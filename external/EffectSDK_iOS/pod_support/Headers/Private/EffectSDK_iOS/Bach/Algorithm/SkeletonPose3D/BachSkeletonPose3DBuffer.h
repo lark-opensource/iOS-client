@@ -1,0 +1,1 @@
+../../../../../../../libEffectSDK/inc/Bach/Algorithm/SkeletonPose3D/BachSkeletonPose3DBuffer.h

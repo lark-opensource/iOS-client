@@ -1,0 +1,2415 @@
+load('@build_bazel_rules_apple//apple:apple.bzl', 'apple_static_framework_import')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "Quaterback_pod_hdrs",
+  srcs = [
+    ":Quaterback_root_pod_hdrs",
+    ":BDSSZipArchive_pod_hdrs",
+    ":Main_pod_hdrs",
+    ":Main_Core_pod_hdrs",
+    ":Main_Aweme_pod_hdrs",
+    ":Main_HotSoon_pod_hdrs",
+    ":Main_News_pod_hdrs",
+    ":Main_Default_pod_hdrs",
+    ":mPaaS_pod_hdrs",
+    ":mPaaS_Task_pod_hdrs",
+    ":mPaaS_CN_pod_hdrs",
+    ":mPaaS_VA_pod_hdrs",
+    ":mPaaS_SG_pod_hdrs",
+    ":mPaaS_Debug_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "Quaterback_private_includes",
+  include = [
+    "external/Quaterback/pod_support/Headers/Private/Quaterback/"
+  ],
+  deps = [],
+  external_name = "Quaterback"
+)
+gen_includes(
+  name = "Quaterback_public_includes",
+  include = [
+    "external/Quaterback/pod_support/Headers/Public/Quaterback/"
+  ],
+  deps = [],
+  external_name = "Quaterback"
+)
+filegroup(
+  name = "_Quaterback_hdrs",
+  srcs = [
+    ":Quaterback_root_hdrs",
+    ":BDSSZipArchive_hdrs",
+    ":Main_hdrs",
+    ":Main_Core_hdrs",
+    ":Main_Aweme_hdrs",
+    ":Main_HotSoon_hdrs",
+    ":Main_News_hdrs",
+    ":Main_Default_hdrs",
+    ":mPaaS_hdrs",
+    ":mPaaS_Task_hdrs",
+    ":mPaaS_CN_hdrs",
+    ":mPaaS_VA_hdrs",
+    ":mPaaS_SG_hdrs",
+    ":mPaaS_Debug_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "Quaterback_xcode_hmapsource",
+  hdrs = [
+    ":Quaterback_root_hdrs",
+    ":Main_Core_hdrs",
+    ":Main_Default_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "Quaterback_xcode_hmap",
+  dep = ":Quaterback_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/Quaterback/*-bitsky-generated.modulemap", "pod_support/Headers/Public/Quaterback/*-bitsky-generated-umbrella.h"]))
+apple_static_framework_import(
+  name = "Quaterback_Main_Core_VendoredStaticFrameworks",
+  framework_imports = glob(
+    [
+      "BDDynamically/Frameworks/Common/Release/Brady.framework/**"
+    ]
+  ),
+  copy_bundle = 0,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "Quaterback_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "Quaterback",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "Quaterback_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":Quaterback_xcode_hmap"
+  ],
+  external_name = "Quaterback",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Quaterback_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Quaterback_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Quaterback_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Quaterback_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Quaterback_module_map",
+  module_map = "pod_support/Headers/Public/Quaterback/Quaterback-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Quaterback/Quaterback-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Quaterback_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Quaterback_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "CoreMedia",
+    "CoreGraphics"
+  ],
+  sdk_dylibs = [
+    "m",
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":Quaterback_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Quaterback_private_includes",
+    ":Quaterback_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":Quaterback_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DQuaterback_POD_VERSION=@\\\"9999_3.1.0-rc.3\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-fno-c++-static-destructors",
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Quaterback",
+  deps = [
+    ":Quaterback_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Quaterback_lib",
+  deps = [
+    ":Quaterback"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDSSZipArchive_hdrs",
+  srcs = [
+    "BDDynamically/Classes/Libs/zip/BDDSSZipArchive.h",
+    "BDDynamically/Classes/Libs/zip/minizip/crypt.h",
+    "BDDynamically/Classes/Libs/zip/minizip/ioapi.h",
+    "BDDynamically/Classes/Libs/zip/minizip/mztools.h",
+    "BDDynamically/Classes/Libs/zip/minizip/unzip.h",
+    "BDDynamically/Classes/Libs/zip/minizip/zip.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDSSZipArchive_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDSSZipArchive_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDSSZipArchive_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "BDSSZipArchive_module_map",
+  module_map = "pod_support/Headers/Public/Quaterback/Quaterback_BDSSZipArchive-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Quaterback/Quaterback_BDSSZipArchive-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDSSZipArchive_srcs",
+  srcs = [
+    "BDDynamically/Classes/Libs/zip/BDDSSZipArchive.m",
+    "BDDynamically/Classes/Libs/zip/minizip/ioapi.c",
+    "BDDynamically/Classes/Libs/zip/minizip/mztools.c",
+    "BDDynamically/Classes/Libs/zip/minizip/unzip.c",
+    "BDDynamically/Classes/Libs/zip/minizip/zip.c"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDSSZipArchive_oc",
+  enable_modules = 1,
+  srcs = [
+    "BDSSZipArchive_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "BDSSZipArchive_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "CoreMedia",
+    "CoreGraphics"
+  ],
+  sdk_dylibs = [
+    "m",
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":Quaterback_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Quaterback_private_includes",
+    ":Quaterback_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":BDSSZipArchive_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DQuaterback_POD_VERSION=@\\\"9999_3.1.0-rc.3\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-fno-c++-static-destructors",
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDSSZipArchive",
+  deps = [
+    ":BDSSZipArchive_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "BDSSZipArchive_lib",
+  deps = [
+    ":BDSSZipArchive"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Main_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Main_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Main_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Main_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Main_module_map",
+  module_map = "pod_support/Headers/Public/Quaterback/Quaterback_Main-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Quaterback/Quaterback_Main-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Main_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Main_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "CoreMedia",
+    "CoreGraphics"
+  ],
+  sdk_dylibs = [
+    "m",
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":Quaterback_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Quaterback_private_includes",
+    ":Quaterback_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@SSZipArchive//:SSZipArchive_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@SSZipArchive//:SSZipArchive_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":Main_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@SSZipArchive//:SSZipArchive_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DQuaterback_POD_VERSION=@\\\"9999_3.1.0-rc.3\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-fno-c++-static-destructors",
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Main",
+  deps = [
+    ":Main_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Main_lib",
+  deps = [
+    ":Main"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Main_Core_hdrs",
+  srcs = [
+    "BDDynamically/Classes/Core/private/BDBDQuaterback+Internal.h",
+    "BDDynamically/Classes/Core/private/BDDFileUtil.h",
+    "BDDynamically/Classes/Core/private/BDDYCDevice.h",
+    "BDDynamically/Classes/Core/private/BDDYCDownloader.h",
+    "BDDynamically/Classes/Core/private/BDDYCEngineHeader.h",
+    "BDDynamically/Classes/Core/private/BDDYCErrCode.h",
+    "BDDynamically/Classes/Core/private/BDDYCMacros.h",
+    "BDDynamically/Classes/Core/private/BDDYCModelKey.h",
+    "BDDynamically/Classes/Core/private/BDDYCModuleManager.h",
+    "BDDynamically/Classes/Core/private/BDDYCModuleRequest.h",
+    "BDDynamically/Classes/Core/private/BDDYCMultipartFormData.h",
+    "BDDynamically/Classes/Core/private/BDDYCNSURLHelper.h",
+    "BDDynamically/Classes/Core/private/BDDYCResourceManager.h",
+    "BDDynamically/Classes/Core/private/BDDYCSecurity.h",
+    "BDDynamically/Classes/Core/private/BDDYCSessionChallenge.h",
+    "BDDynamically/Classes/Core/private/BDDYCSessionTask.h",
+    "BDDynamically/Classes/Core/private/BDDYCURL.h",
+    "BDDynamically/Classes/Core/private/BDDYCUpdateStrategy.h",
+    "BDDynamically/Classes/Core/private/BDDYCUtils.h",
+    "BDDynamically/Classes/Core/private/BDDYCZipArchive.h",
+    "BDDynamically/Classes/Core/private/BDDYCZipArchiveProtocol.h",
+    "BDDynamically/Classes/Core/private/BDQBPostDataHttpRequestSerializer.h",
+    "BDDynamically/Classes/Core/private/Class_Protocol_Map.h",
+    "BDDynamically/Classes/Core/private/NSBundle+DYCResources.h",
+    "BDDynamically/Classes/Core/private/NSString+DYCExtension_Internal.h",
+    "BDDynamically/Classes/Core/private/PreConfuse.h",
+    "BDDynamically/Classes/Core/private/UIImage+DYCResources.h",
+    "BDDynamically/Classes/Core/public/BDBDModule.h",
+    "BDDynamically/Classes/Core/public/BDBDQuaterback.h",
+    "BDDynamically/Classes/Core/public/BDDYCModule+Internal.h",
+    "BDDynamically/Classes/Core/public/BDDYCModuleModel.h",
+    "BDDynamically/Classes/Core/public/BDDYCMonitor.h",
+    "BDDynamically/Classes/Core/public/BDDYCMonitorImpl.h",
+    "BDDynamically/Classes/Core/public/BDQBDelegate.h",
+    "BDDynamically/Classes/Core/public/BDQuaterbackConfigProtocol.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Main_Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/Quaterback/BDBDModule.h",
+    "pod_support/Headers/Private/Quaterback/BDBDQuaterback+Internal.h",
+    "pod_support/Headers/Private/Quaterback/BDBDQuaterback.h",
+    "pod_support/Headers/Private/Quaterback/BDDFileUtil.h",
+    "pod_support/Headers/Private/Quaterback/BDDYCDevice.h",
+    "pod_support/Headers/Private/Quaterback/BDDYCDownloader.h",
+    "pod_support/Headers/Private/Quaterback/BDDYCEngineHeader.h",
+    "pod_support/Headers/Private/Quaterback/BDDYCErrCode.h",
+    "pod_support/Headers/Private/Quaterback/BDDYCMacros.h",
+    "pod_support/Headers/Private/Quaterback/BDDYCModelKey.h",
+    "pod_support/Headers/Private/Quaterback/BDDYCModule+Internal.h",
+    "pod_support/Headers/Private/Quaterback/BDDYCModuleManager.h",
+    "pod_support/Headers/Private/Quaterback/BDDYCModuleModel.h",
+    "pod_support/Headers/Private/Quaterback/BDDYCModuleRequest.h",
+    "pod_support/Headers/Private/Quaterback/BDDYCMonitor.h",
+    "pod_support/Headers/Private/Quaterback/BDDYCMonitorImpl.h",
+    "pod_support/Headers/Private/Quaterback/BDDYCMultipartFormData.h",
+    "pod_support/Headers/Private/Quaterback/BDDYCNSURLHelper.h",
+    "pod_support/Headers/Private/Quaterback/BDDYCResourceManager.h",
+    "pod_support/Headers/Private/Quaterback/BDDYCSecurity.h",
+    "pod_support/Headers/Private/Quaterback/BDDYCSessionChallenge.h",
+    "pod_support/Headers/Private/Quaterback/BDDYCSessionTask.h",
+    "pod_support/Headers/Private/Quaterback/BDDYCURL.h",
+    "pod_support/Headers/Private/Quaterback/BDDYCUpdateStrategy.h",
+    "pod_support/Headers/Private/Quaterback/BDDYCUtils.h",
+    "pod_support/Headers/Private/Quaterback/BDDYCZipArchive.h",
+    "pod_support/Headers/Private/Quaterback/BDDYCZipArchiveProtocol.h",
+    "pod_support/Headers/Private/Quaterback/BDQBDelegate.h",
+    "pod_support/Headers/Private/Quaterback/BDQBPostDataHttpRequestSerializer.h",
+    "pod_support/Headers/Private/Quaterback/BDQuaterbackConfigProtocol.h",
+    "pod_support/Headers/Private/Quaterback/Class_Protocol_Map.h",
+    "pod_support/Headers/Private/Quaterback/NSBundle+DYCResources.h",
+    "pod_support/Headers/Private/Quaterback/NSString+DYCExtension_Internal.h",
+    "pod_support/Headers/Private/Quaterback/PreConfuse.h",
+    "pod_support/Headers/Private/Quaterback/UIImage+DYCResources.h",
+    "pod_support/Headers/Public/Quaterback/BDBDModule.h",
+    "pod_support/Headers/Public/Quaterback/BDBDQuaterback.h",
+    "pod_support/Headers/Public/Quaterback/BDDYCModule+Internal.h",
+    "pod_support/Headers/Public/Quaterback/BDDYCModuleModel.h",
+    "pod_support/Headers/Public/Quaterback/BDDYCMonitor.h",
+    "pod_support/Headers/Public/Quaterback/BDDYCMonitorImpl.h",
+    "pod_support/Headers/Public/Quaterback/BDQBDelegate.h",
+    "pod_support/Headers/Public/Quaterback/BDQuaterbackConfigProtocol.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Main_Core_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Main_Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = [
+    ":Quaterback_Main_Core_VendoredStaticFrameworks"
+  ],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Main_Core_module_map",
+  module_map = "pod_support/Headers/Public/Quaterback/Quaterback_Main_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Quaterback/Quaterback_Main_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Main_Core_srcs",
+  srcs = [
+    "BDDynamically/Classes/Core/private/BDBDModule.mm",
+    "BDDynamically/Classes/Core/private/BDBDQuaterback+Internal.mm",
+    "BDDynamically/Classes/Core/private/BDBDQuaterback.mm",
+    "BDDynamically/Classes/Core/private/BDDFileUtil.m",
+    "BDDynamically/Classes/Core/private/BDDYCDevice.m",
+    "BDDynamically/Classes/Core/private/BDDYCDownloader.m",
+    "BDDynamically/Classes/Core/private/BDDYCModuleManager.m",
+    "BDDynamically/Classes/Core/private/BDDYCModuleModel.m",
+    "BDDynamically/Classes/Core/private/BDDYCModuleRequest.m",
+    "BDDynamically/Classes/Core/private/BDDYCMonitorImpl.m",
+    "BDDynamically/Classes/Core/private/BDDYCMultipartFormData.m",
+    "BDDynamically/Classes/Core/private/BDDYCResourceManager.m",
+    "BDDynamically/Classes/Core/private/BDDYCSecurity.m",
+    "BDDynamically/Classes/Core/private/BDDYCSessionChallenge.m",
+    "BDDynamically/Classes/Core/private/BDDYCSessionTask.m",
+    "BDDynamically/Classes/Core/private/BDDYCUpdateStrategy.m",
+    "BDDynamically/Classes/Core/private/BDDYCURL.m",
+    "BDDynamically/Classes/Core/private/BDDYCUtils.m",
+    "BDDynamically/Classes/Core/private/BDDYCZipArchive.m",
+    "BDDynamically/Classes/Core/private/BDQBPostDataHttpRequestSerializer.m",
+    "BDDynamically/Classes/Core/private/NSBundle+DYCResources.m",
+    "BDDynamically/Classes/Core/private/NSString+DYCExtension_Internal.m",
+    "BDDynamically/Classes/Core/private/UIImage+DYCResources.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Main_Core_oc",
+  enable_modules = 1,
+  srcs = [
+    "Main_Core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Main_Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "CoreMedia",
+    "CoreGraphics"
+  ],
+  sdk_dylibs = [
+    "m",
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":Quaterback_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Quaterback_private_includes",
+    ":Quaterback_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@SSZipArchive//:SSZipArchive_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@SSZipArchive//:SSZipArchive_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":Main_Core_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@SSZipArchive//:SSZipArchive_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DQuaterback_POD_VERSION=@\\\"9999_3.1.0-rc.3\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-fno-c++-static-destructors",
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Main_Core",
+  deps = [
+    ":Main_Core_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Main_Core_lib",
+  deps = [
+    ":Main_Core"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Main_Aweme_hdrs",
+  srcs = [
+    "BDDynamically/Classes/Aweme/AweQuaterbackSDK+local.h",
+    "BDDynamically/Classes/Aweme/AweQuaterbackSDK.h",
+    "BDDynamically/Classes/Aweme/BDDDYAWEHeader.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Main_Aweme_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Main_Aweme_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Main_Aweme_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Main_Aweme_module_map",
+  module_map = "pod_support/Headers/Public/Quaterback/Quaterback_Main_Aweme-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Quaterback/Quaterback_Main_Aweme-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Main_Aweme_srcs",
+  srcs = [
+    "BDDynamically/Classes/Aweme/AweQuaterbackSDK+local.m",
+    "BDDynamically/Classes/Aweme/AweQuaterbackSDK.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Main_Aweme_oc",
+  enable_modules = 1,
+  srcs = [
+    "Main_Aweme_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Main_Aweme_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/Main_Aweme-prefix.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "CoreMedia",
+    "CoreGraphics"
+  ],
+  sdk_dylibs = [
+    "m",
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":Quaterback_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Quaterback_private_includes",
+    ":Quaterback_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@SSZipArchive//:SSZipArchive_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@SSZipArchive//:SSZipArchive_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":Main_Aweme_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@SSZipArchive//:SSZipArchive_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DQuaterback_POD_VERSION=@\\\"9999_3.1.0-rc.3\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-fno-c++-static-destructors",
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Main_Aweme",
+  deps = [
+    ":Main_Aweme_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Main_Aweme_lib",
+  deps = [
+    ":Main_Aweme"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Main_HotSoon_hdrs",
+  srcs = [
+    "BDDynamically/Classes/Base/BDBDConfiguration.h",
+    "BDDynamically/Classes/Base/BDBDMain+local.h",
+    "BDDynamically/Classes/Base/BDBDMain.h",
+    "BDDynamically/Classes/HotSoon/BDDDYHTSHeader.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Main_HotSoon_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Main_HotSoon_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Main_HotSoon_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Main_HotSoon_module_map",
+  module_map = "pod_support/Headers/Public/Quaterback/Quaterback_Main_HotSoon-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Quaterback/Quaterback_Main_HotSoon-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Main_HotSoon_srcs",
+  srcs = [
+    "BDDynamically/Classes/Base/BDBDConfiguration.m",
+    "BDDynamically/Classes/Base/BDBDMain+local.m",
+    "BDDynamically/Classes/Base/BDBDMain.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Main_HotSoon_oc",
+  enable_modules = 1,
+  srcs = [
+    "Main_HotSoon_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Main_HotSoon_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/Main_HotSoon-prefix.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "CoreMedia",
+    "CoreGraphics"
+  ],
+  sdk_dylibs = [
+    "m",
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":Quaterback_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Quaterback_private_includes",
+    ":Quaterback_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@SSZipArchive//:SSZipArchive_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@SSZipArchive//:SSZipArchive_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":Main_HotSoon_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@SSZipArchive//:SSZipArchive_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DQuaterback_POD_VERSION=@\\\"9999_3.1.0-rc.3\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-fno-c++-static-destructors",
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Main_HotSoon",
+  deps = [
+    ":Main_HotSoon_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Main_HotSoon_lib",
+  deps = [
+    ":Main_HotSoon"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Main_News_hdrs",
+  srcs = [
+    "BDDynamically/Classes/Base/BDBDConfiguration.h",
+    "BDDynamically/Classes/Base/BDBDMain+local.h",
+    "BDDynamically/Classes/Base/BDBDMain.h",
+    "BDDynamically/Classes/News/BDDDYNewsHeader.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Main_News_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Main_News_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Main_News_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Main_News_module_map",
+  module_map = "pod_support/Headers/Public/Quaterback/Quaterback_Main_News-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Quaterback/Quaterback_Main_News-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Main_News_srcs",
+  srcs = [
+    "BDDynamically/Classes/Base/BDBDConfiguration.m",
+    "BDDynamically/Classes/Base/BDBDMain+local.m",
+    "BDDynamically/Classes/Base/BDBDMain.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Main_News_oc",
+  enable_modules = 1,
+  srcs = [
+    "Main_News_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Main_News_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/Main_News-prefix.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "CoreMedia",
+    "CoreGraphics"
+  ],
+  sdk_dylibs = [
+    "m",
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":Quaterback_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Quaterback_private_includes",
+    ":Quaterback_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@SSZipArchive//:SSZipArchive_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@SSZipArchive//:SSZipArchive_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":Main_News_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@SSZipArchive//:SSZipArchive_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DQuaterback_POD_VERSION=@\\\"9999_3.1.0-rc.3\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-fno-c++-static-destructors",
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Main_News",
+  deps = [
+    ":Main_News_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Main_News_lib",
+  deps = [
+    ":Main_News"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Main_Default_hdrs",
+  srcs = [
+    "BDDynamically/Classes/Base/BDBDConfiguration.h",
+    "BDDynamically/Classes/Base/BDBDMain+local.h",
+    "BDDynamically/Classes/Base/BDBDMain.h",
+    "BDDynamically/Classes/HotSoon/BDDDYHTSHeader.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Main_Default_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/Quaterback/BDBDConfiguration.h",
+    "pod_support/Headers/Private/Quaterback/BDBDMain+local.h",
+    "pod_support/Headers/Private/Quaterback/BDBDMain.h",
+    "pod_support/Headers/Private/Quaterback/BDDDYHTSHeader.h",
+    "pod_support/Headers/Public/Quaterback/BDBDConfiguration.h",
+    "pod_support/Headers/Public/Quaterback/BDBDMain+local.h",
+    "pod_support/Headers/Public/Quaterback/BDBDMain.h",
+    "pod_support/Headers/Public/Quaterback/BDDDYHTSHeader.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Main_Default_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Main_Default_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Main_Default_module_map",
+  module_map = "pod_support/Headers/Public/Quaterback/Quaterback_Main_Default-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Quaterback/Quaterback_Main_Default-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Main_Default_srcs",
+  srcs = [
+    "BDDynamically/Classes/Base/BDBDConfiguration.m",
+    "BDDynamically/Classes/Base/BDBDMain+local.m",
+    "BDDynamically/Classes/Base/BDBDMain.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Main_Default_oc",
+  enable_modules = 1,
+  srcs = [
+    "Main_Default_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Main_Default_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/Main_Default-prefix.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "CoreMedia",
+    "CoreGraphics"
+  ],
+  sdk_dylibs = [
+    "m",
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":Quaterback_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Quaterback_private_includes",
+    ":Quaterback_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@SSZipArchive//:SSZipArchive_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@SSZipArchive//:SSZipArchive_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":Main_Default_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@SSZipArchive//:SSZipArchive_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DQuaterback_POD_VERSION=@\\\"9999_3.1.0-rc.3\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-fno-c++-static-destructors",
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Main_Default",
+  deps = [
+    ":Main_Default_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Main_Default_lib",
+  deps = [
+    ":Main_Default"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_module_map",
+  module_map = "pod_support/Headers/Public/Quaterback/Quaterback_mPaaS-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Quaterback/Quaterback_mPaaS-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "CoreMedia",
+    "CoreGraphics"
+  ],
+  sdk_dylibs = [
+    "m",
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":Quaterback_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Quaterback_private_includes",
+    ":Quaterback_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":mPaaS_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DQuaterback_POD_VERSION=@\\\"9999_3.1.0-rc.3\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-fno-c++-static-destructors",
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS",
+  deps = [
+    ":mPaaS_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_lib",
+  deps = [
+    ":mPaaS"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_Task_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_Task_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_Task_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_Task_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_Task_module_map",
+  module_map = "pod_support/Headers/Public/Quaterback/Quaterback_mPaaS_Task-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Quaterback/Quaterback_mPaaS_Task-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_Task_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_Task_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/mPaaS_Task-prefix.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "CoreMedia",
+    "CoreGraphics"
+  ],
+  sdk_dylibs = [
+    "m",
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":Quaterback_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Quaterback_private_includes",
+    ":Quaterback_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDStartUp//:Base_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDStartUp//:Base_swift_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":mPaaS_Task_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDStartUp//:Base_module_map",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DQuaterback_POD_VERSION=@\\\"9999_3.1.0-rc.3\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-fno-c++-static-destructors",
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_Task",
+  deps = [
+    ":mPaaS_Task_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_Task_lib",
+  deps = [
+    ":mPaaS_Task"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_CN_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_CN_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_CN_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_CN_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_CN_module_map",
+  module_map = "pod_support/Headers/Public/Quaterback/Quaterback_mPaaS_CN-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Quaterback/Quaterback_mPaaS_CN-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_CN_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_CN_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "CoreMedia",
+    "CoreGraphics"
+  ],
+  sdk_dylibs = [
+    "m",
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":Quaterback_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Quaterback_private_includes",
+    ":Quaterback_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":mPaaS_CN_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DQuaterback_POD_VERSION=@\\\"9999_3.1.0-rc.3\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-fno-c++-static-destructors",
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_CN",
+  deps = [
+    ":mPaaS_CN_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_CN_lib",
+  deps = [
+    ":mPaaS_CN"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_VA_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_VA_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_VA_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_VA_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_VA_module_map",
+  module_map = "pod_support/Headers/Public/Quaterback/Quaterback_mPaaS_VA-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Quaterback/Quaterback_mPaaS_VA-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_VA_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_VA_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "CoreMedia",
+    "CoreGraphics"
+  ],
+  sdk_dylibs = [
+    "m",
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":Quaterback_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Quaterback_private_includes",
+    ":Quaterback_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":mPaaS_VA_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DQuaterback_POD_VERSION=@\\\"9999_3.1.0-rc.3\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-fno-c++-static-destructors",
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_VA",
+  deps = [
+    ":mPaaS_VA_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_VA_lib",
+  deps = [
+    ":mPaaS_VA"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_SG_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_SG_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_SG_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_SG_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_SG_module_map",
+  module_map = "pod_support/Headers/Public/Quaterback/Quaterback_mPaaS_SG-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Quaterback/Quaterback_mPaaS_SG-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_SG_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_SG_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "CoreMedia",
+    "CoreGraphics"
+  ],
+  sdk_dylibs = [
+    "m",
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":Quaterback_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Quaterback_private_includes",
+    ":Quaterback_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":mPaaS_SG_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DQuaterback_POD_VERSION=@\\\"9999_3.1.0-rc.3\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-fno-c++-static-destructors",
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_SG",
+  deps = [
+    ":mPaaS_SG_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_SG_lib",
+  deps = [
+    ":mPaaS_SG"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_Debug_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_Debug_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_Debug_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_Debug_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_Debug_module_map",
+  module_map = "pod_support/Headers/Public/Quaterback/Quaterback_mPaaS_Debug-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Quaterback/Quaterback_mPaaS_Debug-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_Debug_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_Debug_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "CoreMedia",
+    "CoreGraphics"
+  ],
+  sdk_dylibs = [
+    "m",
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":Quaterback_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Quaterback_private_includes",
+    ":Quaterback_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDStartUp//:Debug_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDStartUp//:Debug_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":mPaaS_Debug_objc_interface",
+    "@BDStartUp//:Debug_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DQuaterback_POD_VERSION=@\\\"9999_3.1.0-rc.3\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-fno-c++-static-destructors",
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_Debug",
+  deps = [
+    ":mPaaS_Debug_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_Debug_lib",
+  deps = [
+    ":mPaaS_Debug"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_Quaterback_module_map",
+  module_map = "@Quaterback//:pod_support/Headers/Public/Quaterback/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@Quaterback//:pod_support/Headers/Public/Quaterback/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_Quaterback_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@Quaterback//:Main_Core_objc_interface", "@Quaterback//:Main_Default_objc_interface", "@Quaterback//:Quaterback_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_Quaterback",
+  target_name = "Lark",
+  module_name = "Quaterback",
+  hdrs = ["@Quaterback//:Main_Core_pod_hdrs", "@Quaterback//:Main_Default_pod_hdrs", "@Quaterback//:Quaterback_root_pod_hdrs"],
+  srcs = ["@Quaterback//:Main_Core_srcs", "@Quaterback//:Main_Default_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["BDAlogProtocol", "SSZipArchive", "TTNetworkManager"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DQuaterback_POD_VERSION=@\\\"9999_3.1.0-rc.3\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "Quaterback_copts", []),
+  cxxopts = ["-fno-c++-static-destructors", "-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "Quaterback_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["Foundation", "UIKit", "CoreMedia", "CoreGraphics"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = ["m", "z", "c++"],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "Quaterback_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "Quaterback_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "Quaterback_dynamic", False),
+  tags = getattr(defs_external_objc_library, "Quaterback_tags", []),
+  pch = "pod_support/Headers/Private/Lark_Quaterback-prefix.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("Quaterback", {}),
+  visibility = ["//visibility:public"],
+)

@@ -1,0 +1,491 @@
+[
+  {
+    "name": "eq_int",
+    "expr": "1 == 1",
+    "value": true
+  },
+  {
+    "name": "not_eq_int",
+    "expr": "-1 == 1",
+    "value": false
+  },
+  {
+    "name": "not_eq_double",
+    "expr": "-1.0 == 1.0",
+    "value": false
+  },
+  {
+    "name": "eq_double_NaN",
+    "description": "CEL defines all NaN values to be equal.",
+    "expr": "1.0 / 0.0 == 1.0 / 0.0",
+    "value": true
+  },
+  {
+    "name": "eq_string",
+    "expr": "'' == \"\"",
+    "value": true
+  },
+  {
+    "name": "not_eq_string",
+    "expr": "'a' == 'b'",
+    "value": false
+  },
+  {
+    "name": "not_eq_string_case",
+    "expr": "'abc' == 'ABC'",
+    "value": false
+  },
+  {
+    "name": "eq_string_unicode",
+    "expr": "'ίσος' == 'ίσος'",
+    "value": true
+  },
+  {
+    "name": "not_eq_string_unicode_ascii",
+    "expr": "'a' == 'à'",
+    "value": false
+  },
+  {
+    "name": "no_string_normalization",
+    "description": "Should not normalize Unicode.",
+    "expr": "'Am\\u00E9lie' == 'Ame\\u0301lie'",
+    "value": false
+  },
+  {
+    "name": "no_string_normalization_surrogate",
+    "description": "Should not replace surrogate pairs.",
+    "expr": "'\\U0001F436' == '\\xef\\xbf\\xbd\\xef\\xbf\\bd'",
+    "value": false
+  },
+  {
+    "name": "eq_null",
+    "expr": "null == null",
+    "value": true
+  },
+  {
+    "name": "eq_bool",
+    "expr": "true == true",
+    "value": true
+  },
+  {
+    "name": "not_eq_bool",
+    "expr": "false == true",
+    "value": false
+  },
+  {
+    "name": "eq_list_empty",
+    "expr": "[] == []",
+    "value": true
+  },
+  {
+    "name": "eq_list_null",
+    "expr": "[null] == [null]",
+    "value": true
+  },
+  {
+    "name": "not_eq_list_null",
+    "expr": "['1', '2', null] == ['1', '2', '3']",
+    "value": false
+  },
+  {
+    "name": "eq_list_numbers",
+    "expr": "[1, 2, 3] == [1, 2, 3]",
+    "value": true
+  },
+  {
+    "name": "not_eq_list_order",
+    "expr": "[1, 2, 3] == [1, 3, 2]",
+    "value": false
+  },
+  {
+    "name": "not_eq_list_string_case",
+    "expr": "['case'] == ['cAse']",
+    "value": false
+  },
+  {
+    "name": "not_eq_list_length",
+    "expr": "['one'] == [2, 3]",
+    "disable_check": true,
+    "value": false
+  },
+  {
+    "name": "not_eq_list_false_vs_types",
+    "expr": "[1, 'dos', 3] == [1, 2, 4]",
+    "value": false
+  },
+  {
+    "name": "ne_int",
+    "expr": "24 != 42",
+    "value": true
+  },
+  {
+    "name": "not_ne_int",
+    "expr": "1 != 1",
+    "value": false
+  },
+  {
+    "name": "ne_string",
+    "expr": "'abc' != ''",
+    "value": true
+  },
+  {
+    "name": "not_ne_string",
+    "expr": "'abc' != 'abc'",
+    "value": false
+  },
+  {
+    "name": "ne_string_unicode",
+    "expr": "'résumé' != 'resume'",
+    "value": true
+  },
+  {
+    "name": "not_ne_string_unicode",
+    "expr": "'ίδιο' != 'ίδιο'",
+    "value": false
+  },
+  {
+    "name": "ne_bool",
+    "expr": "false != true",
+    "value": true
+  },
+  {
+    "name": "not_ne_bool",
+    "expr": "true != true",
+    "value": false
+  },
+  {
+    "name": "not_ne_null",
+    "description": "null can only be equal to null, or else it won't match",
+    "expr": "null != null",
+    "value": false
+  },
+  {
+    "name": "ne_list_empty",
+    "expr": "[] != [1]",
+    "value": true
+  },
+  {
+    "name": "not_ne_list_empty",
+    "expr": "[] != []",
+    "value": false
+  },
+  {
+    "name": "ne_list_bool",
+    "expr": "[true, false, true] != [true, true, false]",
+    "value": true
+  },
+  {
+    "name": "not_ne_list_bool",
+    "expr": "[false, true] != [false, true]",
+    "value": false
+  },
+  {
+    "name": "lt_int",
+    "expr": "-1 < 0",
+    "value": true
+  },
+  {
+    "name": "not_lt_int",
+    "expr": "0 < 0",
+    "value": false
+  },
+  {
+    "name": "lt_double",
+    "expr": "1.0 < 1.0000001",
+    "value": true
+  },
+  {
+    "name": "not_lt_double",
+    "description": "Following IEEE 754, negative zero compares equal to zero",
+    "expr": "-0.0 < 0.0",
+    "value": false
+  },
+  {
+    "name": "lt_string",
+    "expr": "'a' < 'b'",
+    "value": true
+  },
+  {
+    "name": "lt_string_empty_to_nonempty",
+    "expr": "'' < 'a'",
+    "value": true
+  },
+  {
+    "name": "lt_string_case",
+    "expr": "'Abc' < 'aBC'",
+    "value": true
+  },
+  {
+    "name": "lt_string_length",
+    "expr": "'abc' < 'abcd'",
+    "value": true
+  },
+  {
+    "name": "lt_string_diacritical_mark_sensitive",
+    "description": "Verifies that the we're not using a string comparison function that strips diacritical marks (á)",
+    "expr": "'a' < '\\u00E1'",
+    "value": true
+  },
+  {
+    "name": "not_lt_string_empty",
+    "expr": "'' < ''",
+    "value": false
+  },
+  {
+    "name": "not_lt_string_same",
+    "expr": "'abc' < 'abc'",
+    "value": false
+  },
+  {
+    "name": "not_lt_string_case_length",
+    "expr": "'a' < 'AB'",
+    "value": false
+  },
+  {
+    "name": "unicode_order_lexical",
+    "description": "Compare the actual code points of the string, instead of decomposing ế into 'e' plus accent modifiers.",
+    "expr": "'f' < '\\u1EBF'",
+    "value": true
+  },
+  {
+    "name": "lt_bytes",
+    "expr": "'a' < 'b'",
+    "value": true
+  },
+  {
+    "name": "not_lt_bytes_same",
+    "expr": "'abc' < 'abc'",
+    "value": false
+  },
+  {
+    "name": "not_lt_bytes_width",
+    "expr": "'á' < 'b'",
+    "value": false
+  },
+  {
+    "name": "lt_bool_false_first",
+    "expr": "false < true",
+    "value": true
+  },
+  {
+    "name": "not_lt_bool_same",
+    "expr": "true < true",
+    "value": false
+  },
+  {
+    "name": "not_lt_bool_true_first",
+    "expr": "true < false",
+    "value": false
+  },
+  {
+    "name": "gt_int",
+    "expr": "42 > -42",
+    "value": true
+  },
+  {
+    "name": "not_gt_int",
+    "expr": "0 > 0",
+    "value": false
+  },
+  {
+    "name": "gt_string_case",
+    "expr": "'abc' > 'aBc'",
+    "value": true
+  },
+  {
+    "name": "gt_string_to_empty",
+    "expr": "'A' > ''",
+    "value": true
+  },
+  {
+    "name": "not_gt_string_empty_to_empty",
+    "expr": "'' > ''",
+    "value": false
+  },
+  {
+    "name": "gt_string_unicode",
+    "expr": "'α' > 'omega'",
+    "value": true
+  },
+  {
+    "name": "gt_bool_true_false",
+    "expr": "true > false",
+    "value": true
+  },
+  {
+    "name": "not_gt_bool_false_true",
+    "expr": "false > true",
+    "value": false
+  },
+  {
+    "name": "not_gt_bool_same",
+    "expr": "true > true",
+    "value": false
+  },
+  {
+    "name": "lte_int_lt",
+    "expr": "0 <= 1",
+    "value": true
+  },
+  {
+    "name": "lte_int_eq",
+    "expr": "1 <= 1",
+    "value": true
+  },
+  {
+    "name": "not_lte_int_gt",
+    "expr": "1 <= -1",
+    "value": false
+  },
+  {
+    "name": "not_lte_double_gt",
+    "expr": "1.0 <= 0.99",
+    "value": false
+  },
+  {
+    "name": "lte_string_empty",
+    "expr": "'' <= ''",
+    "value": true
+  },
+  {
+    "name": "lte_string_from_empty",
+    "expr": "'' <= 'a'",
+    "value": true
+  },
+  {
+    "name": "not_lte_string_to_empty",
+    "expr": "'a' <= ''",
+    "value": false
+  },
+  {
+    "name": "lte_string_lexicographical",
+    "expr": "'aBc' <= 'abc'",
+    "value": true
+  },
+  {
+    "name": "lte_string_unicode_eq",
+    "expr": "'α' <= 'α'",
+    "value": true
+  },
+  {
+    "name": "lte_string_unicode_lt",
+    "expr": "'a' <= 'α'",
+    "value": true
+  },
+  {
+    "name": "not_lte_string_unicode",
+    "expr": "'α' <= 'a'",
+    "value": false
+  },
+  {
+    "name": "lte_bool_false_true",
+    "expr": "false <= true",
+    "value": true
+  },
+  {
+    "name": "lte_bool_false_false",
+    "expr": "false <= false",
+    "value": true
+  },
+  {
+    "name": "lte_bool_true_false",
+    "expr": "true <= false",
+    "value": false
+  },
+  {
+    "name": "gte_int_gt",
+    "expr": "0 >= -1",
+    "value": true
+  },
+  {
+    "name": "gte_int_eq",
+    "expr": "999 >= 999",
+    "value": true
+  },
+  {
+    "name": "not_gte_int_lt",
+    "expr": "999 >= 1000",
+    "value": false
+  },
+  {
+    "name": "not_gte_double_lt",
+    "expr": "0.9999 >= 1.0",
+    "value": false
+  },
+  {
+    "name": "gte_string_empty",
+    "expr": "'' >= ''",
+    "value": true
+  },
+  {
+    "name": "gte_string_to_empty",
+    "expr": "'a' >= ''",
+    "value": true
+  },
+  {
+    "name": "gte_string_empty_to_nonempty",
+    "expr": "'' >= 'a'",
+    "value": false
+  },
+  {
+    "name": "gte_string_length",
+    "expr": "'abcd' >= 'abc'",
+    "value": true
+  },
+  {
+    "name": "not_gte_string_lexicographical",
+    "expr": "'abc' >= 'abd'",
+    "value": false
+  },
+  {
+    "name": "gte_string_unicode_eq",
+    "expr": "'τ' >= 'τ'",
+    "value": true
+  },
+  {
+    "name": "gte_string_unicode_gt",
+    "expr": "'τ' >= 't'",
+    "value": true
+  },
+  {
+    "name": "not_get_string_unicode",
+    "expr": "'t' >= 'τ'",
+    "value": false
+  },
+  {
+    "name": "gte_bool_gt",
+    "expr": "true >= false",
+    "value": true
+  },
+  {
+    "name": "gte_bool_eq",
+    "expr": "true >= true",
+    "value": true
+  },
+  {
+    "name": "not_gte_bool_lt",
+    "expr": "false >= true",
+    "value": false
+  },
+  {
+    "name": "elem_not_in_empty_list",
+    "expr": "'empty' in []",
+    "value": false
+  },
+  {
+    "name": "elem_in_list",
+    "expr": "'elem' in ['elem', 'elemA', 'elemB']",
+    "value": true
+  },
+  {
+    "name": "elem_not_in_list",
+    "expr": "'not' in ['elem1', 'elem2', 'elem3']",
+    "value": false
+  },
+  {
+    "name": "elem_in_mixed_type_list",
+    "description": "Set membership tests should succeed if the 'elem' exists in a mixed element type list.",
+    "expr": "'elem' in [1, 'elem', 2]",
+    "value": true
+  }
+]

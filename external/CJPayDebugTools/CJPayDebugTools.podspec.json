@@ -1,0 +1,86 @@
+{
+  "name": "CJPayDebugTools",
+  "version": "6.8.4-rc.0",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://github.com/shanghuaijun/CJPayDebugTools",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "shanghuaijun": "shanghuaijun@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:caijing_ios/cjpay_debug_tools.git",
+    "commit": "c95ec0932b9b6908f4139eb5b3e7e6b6272a6c4b"
+  },
+  "platforms": {
+    "ios": "10.0"
+  },
+  "default_subspecs": "BaseEnvConfig",
+  "static_framework": true,
+  "subspecs": [
+    {
+      "name": "BaseEnvConfig",
+      "requires_arc": true,
+      "source_files": "CJPayDebugTools/Classes/EnvConfig/BaseEnvConfig/**/*",
+      "public_header_files": "CJPayDebugTools/Classes/EnvConfig/BaseEnvConfig/**/*.h",
+      "dependencies": {
+        "ByteDanceKit/Foundation": [],
+        "CJPay/PayWebView": []
+      }
+    },
+    {
+      "name": "PayManageEnvConfig",
+      "requires_arc": true,
+      "source_files": "CJPayDebugTools/Classes/EnvConfig/PayManageEnvConfig/**/*",
+      "public_header_files": "CJPayDebugTools/Classes/EnvConfig/PayManageEnvConfig/**/*.h",
+      "dependencies": {
+        "CJPayDebugTools/BaseEnvConfig": [],
+        "CJPay/PayManage": []
+      }
+    },
+    {
+      "name": "Hybrid",
+      "requires_arc": true,
+      "source_files": "CJPayDebugTools/Classes/HybridViewEnvConfig/**/*",
+      "public_header_files": "CJPayDebugTools/Classes/HybridViewEnvConfig/**/*.h",
+      "dependencies": {
+        "CJPayDebugTools/BaseEnvConfig": [],
+        "CJPay/Hybrid": [],
+        "XDebugger": []
+      }
+    },
+    {
+      "name": "Isec",
+      "requires_arc": true,
+      "source_files": "CJPayDebugTools/Classes/Engima/ISec/**/*",
+      "public_header_files": "CJPayDebugTools/Classes/Engima/ISec/**/*.h",
+      "dependencies": {
+        "CJPay/Isec": []
+      }
+    },
+    {
+      "name": "Tfcc",
+      "requires_arc": true,
+      "source_files": "CJPayDebugTools/Classes/Engima/Tfcc/**/*",
+      "public_header_files": "CJPayDebugTools/Classes/Engima/Tfcc/**/*.h",
+      "dependencies": {
+        "CJPay/Tfcc": []
+      }
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "8386",
+    "app_id": "9999"
+  },
+  "repoId": "8386",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "CJPayDebugTools_POD_VERSION=@\\\"9999_6.8.4-rc.0\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "CJPayDebugTools_POD_VERSION=@\\\"9999_6.8.4-rc.0\\\""
+  }
+}

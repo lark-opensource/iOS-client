@@ -1,0 +1,51 @@
+{
+    "name": "pop",
+    "version": "1.0.12.1-binary",
+    "license": {
+        "type": "BSD"
+    },
+    "homepage": "https://github.com/facebook/pop",
+    "authors": {
+        "Kimon Tsinteris": "kimon@mac.com"
+    },
+    "summary": "framework_summary",
+    "source_files": "pop/**/*.{h,m,mm,cpp}",
+    "public_header_files": "pop/{POP,POPAnimatableProperty,POPAnimatablePropertyTypes,POPAnimation,POPAnimationEvent,POPAnimationExtras,POPAnimationTracer,POPAnimator,POPBasicAnimation,POPCustomAnimation,POPDecayAnimation,POPDefines,POPGeometry,POPLayerExtras,POPPropertyAnimation,POPSpringAnimation,POPVector}.h",
+    "requires_arc": true,
+    "social_media_url": "https://twitter.com/fbOpenSource",
+    "libraries": "c++",
+    "pod_target_xcconfig": {
+        "CLANG_CXX_LANGUAGE_STANDARD": "c++11",
+        "CLANG_CXX_LIBRARY": "libc++",
+        "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+        "GCC_PREPROCESSOR_DEFINITIONS": "pop_POD_VERSION=@\\\"8888_1.0.12\\\""
+    },
+    "platforms": {
+        "ios": "8.0"
+    },
+    "repoId": "353",
+    "description": "framework_description",
+    "preserve_paths": [
+        "**/*.bwp"
+    ],
+    "user_target_xcconfig": {
+        "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+        "GCC_PREPROCESSOR_DEFINITIONS": "pop_POD_VERSION=@\\\"8888_1.0.12\\\""
+    },
+    "prepare_command": "curl https://code.byted.org/wusizhen.arch/script/raw/master/awesomecommand.sh | bash",
+    "source_code": {
+        "git": "https://github.com/facebook/pop.git",
+        "commit": "88211ac"
+    },
+    "frameworks": [
+        "UIKit",
+        "Foundation",
+        "JavaScriptCore"
+    ],
+    "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_pop_*awesome_*.a"
+    },
+    "source": {
+        "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/8888/pop/1.0.12.0-binary/pop.framework.zip"
+    }
+}

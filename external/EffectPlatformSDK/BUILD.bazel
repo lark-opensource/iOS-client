@@ -1,0 +1,1117 @@
+load('@build_bazel_rules_apple//apple:resources.bzl', 'apple_resource_bundle', 'gen_bundle_plist')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "EffectPlatformSDK_pod_hdrs",
+  srcs = [
+    ":EffectPlatformSDK_root_pod_hdrs",
+    ":Core_pod_hdrs",
+    ":ModelDistribute_pod_hdrs",
+    ":UIKit_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "EffectPlatformSDK_private_includes",
+  include = [
+    "external/EffectPlatformSDK/pod_support/Headers/Private/EffectPlatformSDK/"
+  ],
+  deps = [],
+  external_name = "EffectPlatformSDK"
+)
+gen_includes(
+  name = "EffectPlatformSDK_public_includes",
+  include = [
+    "external/EffectPlatformSDK/pod_support/Headers/Public/EffectPlatformSDK/"
+  ],
+  deps = [],
+  external_name = "EffectPlatformSDK"
+)
+filegroup(
+  name = "_EffectPlatformSDK_hdrs",
+  srcs = [
+    ":EffectPlatformSDK_root_hdrs",
+    ":Core_hdrs",
+    ":ModelDistribute_hdrs",
+    ":UIKit_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "EffectPlatformSDK_xcode_hmapsource",
+  hdrs = [
+    ":EffectPlatformSDK_root_hdrs",
+    ":Core_hdrs",
+    ":ModelDistribute_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "EffectPlatformSDK_xcode_hmap",
+  dep = ":EffectPlatformSDK_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/EffectPlatformSDK/*-bitsky-generated.modulemap", "pod_support/Headers/Public/EffectPlatformSDK/*-bitsky-generated-umbrella.h"]))
+gen_bundle_plist(
+  name = "GEN_IESStickerUIKit_Plist",
+  bundle_name = "IESStickerUIKit",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "2.9.158",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "EffectPlatformSDK_UIKit_IESStickerUIKit",
+  bundle_name = "IESStickerUIKit",
+  infoplists = [
+    ":GEN_IESStickerUIKit_Plist"
+  ],
+  resources = glob(
+    [
+      "EffectPlatformSDK/Assets/IESStickerUIKit.xcassets/**"
+    ]
+  ),
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "EffectPlatformSDK_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "EffectPlatformSDK",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "EffectPlatformSDK_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":EffectPlatformSDK_xcode_hmap"
+  ],
+  external_name = "EffectPlatformSDK",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EffectPlatformSDK_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EffectPlatformSDK_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EffectPlatformSDK_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EffectPlatformSDK_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "EffectPlatformSDK_module_map",
+  module_map = "pod_support/Headers/Public/EffectPlatformSDK/EffectPlatformSDK-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/EffectPlatformSDK/EffectPlatformSDK-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EffectPlatformSDK_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "EffectPlatformSDK_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":EffectPlatformSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":EffectPlatformSDK_private_includes",
+    ":EffectPlatformSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":EffectPlatformSDK_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEffectPlatformSDK_POD_VERSION=@\\\"9999_2.9.158.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EffectPlatformSDK",
+  deps = [
+    ":EffectPlatformSDK_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "EffectPlatformSDK_lib",
+  deps = [
+    ":EffectPlatformSDK"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [
+    "EffectPlatformSDK/Core/Cache/EffectPlatformCache.h",
+    "EffectPlatformSDK/Core/Cache/EffectPlatformJsonCache.h",
+    "EffectPlatformSDK/Core/Downloader/IESDelegateFileDownloadTask.h",
+    "EffectPlatformSDK/Core/Downloader/IESEffectPlatformPostSerializer.h",
+    "EffectPlatformSDK/Core/Downloader/IESEffectPlatformRequestManager.h",
+    "EffectPlatformSDK/Core/Downloader/IESFileDownloadTask.h",
+    "EffectPlatformSDK/Core/Downloader/IESFileDownloader.h",
+    "EffectPlatformSDK/Core/EffectPlatform+Additions.h",
+    "EffectPlatformSDK/Core/EffectPlatform+InfoSticker.h",
+    "EffectPlatformSDK/Core/EffectPlatform+Inspire.h",
+    "EffectPlatformSDK/Core/EffectPlatform+PreLoad.h",
+    "EffectPlatformSDK/Core/EffectPlatform+Search.h",
+    "EffectPlatformSDK/Core/EffectPlatform.h",
+    "EffectPlatformSDK/Core/EffectPlatformBookMark.h",
+    "EffectPlatformSDK/Core/IESCategoryEffectsModel.h",
+    "EffectPlatformSDK/Core/IESCategoryModel.h",
+    "EffectPlatformSDK/Core/IESCategorySampleEffectModel.h",
+    "EffectPlatformSDK/Core/IESCategoryVideoEffectsModel.h",
+    "EffectPlatformSDK/Core/IESEffectAlgorithmModel.h",
+    "EffectPlatformSDK/Core/IESEffectDefines.h",
+    "EffectPlatformSDK/Core/IESEffectModel.h",
+    "EffectPlatformSDK/Core/IESEffectPlatformNewResponseModel.h",
+    "EffectPlatformSDK/Core/IESEffectPlatformResponseModel.h",
+    "EffectPlatformSDK/Core/IESEffectResourceModel.h",
+    "EffectPlatformSDK/Core/IESEffectResourceResponseModel.h",
+    "EffectPlatformSDK/Core/IESEffectSampleVideoModel.h",
+    "EffectPlatformSDK/Core/IESEffectURLModel.h",
+    "EffectPlatformSDK/Core/IESMyEffectModel.h",
+    "EffectPlatformSDK/Core/IESPlatformPanelModel.h",
+    "EffectPlatformSDK/Core/IESSimpleVideoModel.h",
+    "EffectPlatformSDK/Core/IESThirdPartyResponseModel.h",
+    "EffectPlatformSDK/Core/IESThirdPartyStickerInfoModel.h",
+    "EffectPlatformSDK/Core/IESThirdPartyStickerModel.h",
+    "EffectPlatformSDK/Core/IESUserUsedStickerResponseModel.h",
+    "EffectPlatformSDK/Core/IESVideoEffectWrapperModel.h",
+    "EffectPlatformSDK/Core/Internal/Category/NSData+IESEffectManager.h",
+    "EffectPlatformSDK/Core/Internal/Category/NSError+IESEffectManager.h",
+    "EffectPlatformSDK/Core/Internal/Category/NSFileManager+IESEffectManager.h",
+    "EffectPlatformSDK/Core/Internal/Clean/IESEffectCleaner.h",
+    "EffectPlatformSDK/Core/Internal/Download/IESAlgorithmModelDownloadTask.h",
+    "EffectPlatformSDK/Core/Internal/Download/IESEffectBaseDownloadTask.h",
+    "EffectPlatformSDK/Core/Internal/Download/IESEffectDownloadQueue.h",
+    "EffectPlatformSDK/Core/Internal/Download/IESEffectModelDownloadTask.h",
+    "EffectPlatformSDK/Core/Internal/Manifest/IESAlgorithmRecord.h",
+    "EffectPlatformSDK/Core/Internal/Manifest/IESEffectRecord.h",
+    "EffectPlatformSDK/Core/Internal/Manifest/IESManifestManager.h",
+    "EffectPlatformSDK/Core/Internal/Util/IESEffectDecryptUtil.h",
+    "EffectPlatformSDK/Core/Internal/Util/IESEffectUtil.h",
+    "EffectPlatformSDK/Core/Manager/IESEffectConfig.h",
+    "EffectPlatformSDK/Core/Manager/IESEffectListManager.h",
+    "EffectPlatformSDK/Core/Manager/IESEffectLogger.h",
+    "EffectPlatformSDK/Core/Manager/IESEffectManager.h",
+    "EffectPlatformSDK/Core/Model/IESEffectTopListResponseModel.h",
+    "EffectPlatformSDK/Core/Model/IESInfoStickerCategoryModel.h",
+    "EffectPlatformSDK/Core/Model/IESInfoStickerListResponseModel.h",
+    "EffectPlatformSDK/Core/Model/IESInfoStickerModel.h",
+    "EffectPlatformSDK/Core/Model/IESInfoStickerResponseModel.h",
+    "EffectPlatformSDK/Core/Model/IESSearchEffectsModel.h",
+    "EffectPlatformSDK/Core/Utils/NSArray+EffectPlatformUtils.h",
+    "EffectPlatformSDK/Core/Utils/NSData+Crypto.h",
+    "EffectPlatformSDK/Core/Utils/NSDictionary+EffectPlatfromUtils.h",
+    "EffectPlatformSDK/Core/Utils/NSString+Crypto.h",
+    "EffectPlatformSDK/Core/Utils/NSString+EffectPlatformUtils.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/EffectPlatformSDK/EffectPlatform+Additions.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/EffectPlatform+InfoSticker.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/EffectPlatform+Inspire.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/EffectPlatform+PreLoad.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/EffectPlatform+Search.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/EffectPlatform.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/EffectPlatformBookMark.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/EffectPlatformCache.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/EffectPlatformJsonCache.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESAlgorithmModelDownloadTask.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESAlgorithmRecord.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESCategoryEffectsModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESCategoryModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESCategorySampleEffectModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESCategoryVideoEffectsModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESDelegateFileDownloadTask.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESEffectAlgorithmModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESEffectBaseDownloadTask.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESEffectCleaner.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESEffectConfig.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESEffectDecryptUtil.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESEffectDefines.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESEffectDownloadQueue.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESEffectListManager.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESEffectLogger.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESEffectManager.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESEffectModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESEffectModelDownloadTask.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESEffectPlatformNewResponseModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESEffectPlatformPostSerializer.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESEffectPlatformRequestManager.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESEffectPlatformResponseModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESEffectRecord.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESEffectResourceModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESEffectResourceResponseModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESEffectSampleVideoModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESEffectTopListResponseModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESEffectURLModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESEffectUtil.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESFileDownloadTask.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESFileDownloader.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESInfoStickerCategoryModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESInfoStickerListResponseModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESInfoStickerModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESInfoStickerResponseModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESManifestManager.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESMyEffectModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESPlatformPanelModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESSearchEffectsModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESSimpleVideoModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESThirdPartyResponseModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESThirdPartyStickerInfoModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESThirdPartyStickerModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESUserUsedStickerResponseModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/IESVideoEffectWrapperModel.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/NSArray+EffectPlatformUtils.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/NSData+Crypto.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/NSData+IESEffectManager.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/NSDictionary+EffectPlatfromUtils.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/NSError+IESEffectManager.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/NSFileManager+IESEffectManager.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/NSString+Crypto.h",
+    "pod_support/Headers/Private/EffectPlatformSDK/NSString+EffectPlatformUtils.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/EffectPlatform+Additions.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/EffectPlatform+InfoSticker.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/EffectPlatform+Inspire.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/EffectPlatform+PreLoad.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/EffectPlatform+Search.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/EffectPlatform.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/EffectPlatformBookMark.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/EffectPlatformCache.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/EffectPlatformJsonCache.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESCategoryEffectsModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESCategoryModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESCategorySampleEffectModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESCategoryVideoEffectsModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESDelegateFileDownloadTask.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESEffectAlgorithmModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESEffectConfig.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESEffectDefines.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESEffectListManager.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESEffectLogger.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESEffectManager.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESEffectModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESEffectPlatformNewResponseModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESEffectPlatformPostSerializer.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESEffectPlatformRequestManager.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESEffectPlatformResponseModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESEffectResourceModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESEffectResourceResponseModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESEffectSampleVideoModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESEffectTopListResponseModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESEffectURLModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESFileDownloadTask.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESFileDownloader.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESInfoStickerCategoryModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESInfoStickerListResponseModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESInfoStickerModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESInfoStickerResponseModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESMyEffectModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESPlatformPanelModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESSearchEffectsModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESSimpleVideoModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESThirdPartyResponseModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESThirdPartyStickerInfoModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESThirdPartyStickerModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESUserUsedStickerResponseModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/IESVideoEffectWrapperModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/NSArray+EffectPlatformUtils.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/NSData+Crypto.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/NSDictionary+EffectPlatfromUtils.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/NSString+Crypto.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/NSString+EffectPlatformUtils.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/EffectPlatformSDK/EffectPlatformSDK_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/EffectPlatformSDK/EffectPlatformSDK_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_srcs",
+  srcs = [
+    "EffectPlatformSDK/Core/EffectPlatform+Additions.m",
+    "EffectPlatformSDK/Core/EffectPlatform+InfoSticker.m",
+    "EffectPlatformSDK/Core/EffectPlatform+Inspire.m",
+    "EffectPlatformSDK/Core/EffectPlatform+PreLoad.m",
+    "EffectPlatformSDK/Core/EffectPlatform+Search.m",
+    "EffectPlatformSDK/Core/EffectPlatform.m",
+    "EffectPlatformSDK/Core/EffectPlatformBookMark.m",
+    "EffectPlatformSDK/Core/Cache/EffectPlatformCache.m",
+    "EffectPlatformSDK/Core/Cache/EffectPlatformJsonCache.m",
+    "EffectPlatformSDK/Core/Internal/Download/IESAlgorithmModelDownloadTask.m",
+    "EffectPlatformSDK/Core/Internal/Manifest/IESAlgorithmRecord.m",
+    "EffectPlatformSDK/Core/IESCategoryEffectsModel.m",
+    "EffectPlatformSDK/Core/IESCategoryModel.m",
+    "EffectPlatformSDK/Core/IESCategorySampleEffectModel.m",
+    "EffectPlatformSDK/Core/IESCategoryVideoEffectsModel.m",
+    "EffectPlatformSDK/Core/Downloader/IESDelegateFileDownloadTask.m",
+    "EffectPlatformSDK/Core/IESEffectAlgorithmModel.m",
+    "EffectPlatformSDK/Core/Internal/Download/IESEffectBaseDownloadTask.m",
+    "EffectPlatformSDK/Core/Internal/Clean/IESEffectCleaner.m",
+    "EffectPlatformSDK/Core/Manager/IESEffectConfig.m",
+    "EffectPlatformSDK/Core/Internal/Util/IESEffectDecryptUtil.m",
+    "EffectPlatformSDK/Core/IESEffectDefines.m",
+    "EffectPlatformSDK/Core/Internal/Download/IESEffectDownloadQueue.m",
+    "EffectPlatformSDK/Core/Manager/IESEffectListManager.m",
+    "EffectPlatformSDK/Core/Manager/IESEffectLogger.m",
+    "EffectPlatformSDK/Core/Manager/IESEffectManager.m",
+    "EffectPlatformSDK/Core/IESEffectModel.m",
+    "EffectPlatformSDK/Core/Internal/Download/IESEffectModelDownloadTask.m",
+    "EffectPlatformSDK/Core/IESEffectPlatformNewResponseModel.m",
+    "EffectPlatformSDK/Core/Downloader/IESEffectPlatformPostSerializer.m",
+    "EffectPlatformSDK/Core/Downloader/IESEffectPlatformRequestManager.m",
+    "EffectPlatformSDK/Core/IESEffectPlatformResponseModel.m",
+    "EffectPlatformSDK/Core/Internal/Manifest/IESEffectRecord.m",
+    "EffectPlatformSDK/Core/IESEffectResourceModel.m",
+    "EffectPlatformSDK/Core/IESEffectResourceResponseModel.m",
+    "EffectPlatformSDK/Core/IESEffectSampleVideoModel.m",
+    "EffectPlatformSDK/Core/Model/IESEffectTopListResponseModel.m",
+    "EffectPlatformSDK/Core/IESEffectURLModel.m",
+    "EffectPlatformSDK/Core/Internal/Util/IESEffectUtil.m",
+    "EffectPlatformSDK/Core/Downloader/IESFileDownloader.m",
+    "EffectPlatformSDK/Core/Downloader/IESFileDownloadTask.m",
+    "EffectPlatformSDK/Core/Model/IESInfoStickerCategoryModel.m",
+    "EffectPlatformSDK/Core/Model/IESInfoStickerListResponseModel.m",
+    "EffectPlatformSDK/Core/Model/IESInfoStickerModel.m",
+    "EffectPlatformSDK/Core/Model/IESInfoStickerResponseModel.m",
+    "EffectPlatformSDK/Core/Internal/Manifest/IESManifestManager.m",
+    "EffectPlatformSDK/Core/IESMyEffectModel.m",
+    "EffectPlatformSDK/Core/IESPlatformPanelModel.m",
+    "EffectPlatformSDK/Core/Model/IESSearchEffectsModel.m",
+    "EffectPlatformSDK/Core/IESSimpleVideoModel.m",
+    "EffectPlatformSDK/Core/IESThirdPartyResponseModel.m",
+    "EffectPlatformSDK/Core/IESThirdPartyStickerInfoModel.m",
+    "EffectPlatformSDK/Core/IESThirdPartyStickerModel.m",
+    "EffectPlatformSDK/Core/IESUserUsedStickerResponseModel.m",
+    "EffectPlatformSDK/Core/IESVideoEffectWrapperModel.m",
+    "EffectPlatformSDK/Core/Utils/NSArray+EffectPlatformUtils.m",
+    "EffectPlatformSDK/Core/Utils/NSData+Crypto.m",
+    "EffectPlatformSDK/Core/Internal/Category/NSData+IESEffectManager.m",
+    "EffectPlatformSDK/Core/Utils/NSDictionary+EffectPlatfromUtils.m",
+    "EffectPlatformSDK/Core/Internal/Category/NSError+IESEffectManager.m",
+    "EffectPlatformSDK/Core/Internal/Category/NSFileManager+IESEffectManager.m",
+    "EffectPlatformSDK/Core/Utils/NSString+Crypto.m",
+    "EffectPlatformSDK/Core/Utils/NSString+EffectPlatformUtils.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [
+    "Core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":EffectPlatformSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":EffectPlatformSDK_private_includes",
+    ":EffectPlatformSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@FileMD5Hash//:FileMD5Hash_objc_interface",
+    "@FMDB//:FMDB_objc_interface",
+    "@Mantle//:Mantle_objc_interface",
+    "@SSZipArchive//:SSZipArchive_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@FileMD5Hash//:FileMD5Hash_swift_interface",
+    "@FMDB//:FMDB_swift_interface",
+    "@Mantle//:Mantle_swift_interface",
+    "@SSZipArchive//:SSZipArchive_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":Core_objc_interface",
+    "@FileMD5Hash//:FileMD5Hash_module_map",
+    "@FMDB//:FMDB_module_map",
+    "@Mantle//:Mantle_module_map",
+    "@SSZipArchive//:SSZipArchive_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEffectPlatformSDK_POD_VERSION=@\\\"9999_2.9.158.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ModelDistribute_hdrs",
+  srcs = [
+    "EffectPlatformSDK/AlgorithmModel/EffectPlatform+AlgorithmModel.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ModelDistribute_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/EffectPlatformSDK/EffectPlatform+AlgorithmModel.h",
+    "pod_support/Headers/Public/EffectPlatformSDK/EffectPlatform+AlgorithmModel.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ModelDistribute_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ModelDistribute_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ModelDistribute_module_map",
+  module_map = "pod_support/Headers/Public/EffectPlatformSDK/EffectPlatformSDK_ModelDistribute-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/EffectPlatformSDK/EffectPlatformSDK_ModelDistribute-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ModelDistribute_srcs",
+  srcs = [
+    "EffectPlatformSDK/AlgorithmModel/EffectPlatform+AlgorithmModel.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ModelDistribute_oc",
+  enable_modules = 1,
+  srcs = [
+    "ModelDistribute_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "ModelDistribute_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":EffectPlatformSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":EffectPlatformSDK_private_includes",
+    ":EffectPlatformSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@EffectSDK_iOS//:EffectSDK_iOS_objc_interface",
+    "@EffectSDK_iOS//:EffectSDK_iOS_swift_interface",
+    ":ModelDistribute_objc_interface",
+    "@EffectSDK_iOS//:EffectSDK_iOS_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEffectPlatformSDK_POD_VERSION=@\\\"9999_2.9.158.1-bugfix\\\"",
+    "-DModelDistribute=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ModelDistribute",
+  deps = [
+    ":ModelDistribute_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ModelDistribute_lib",
+  deps = [
+    ":ModelDistribute"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "UIKit_hdrs",
+  srcs = [
+    "EffectPlatformSDK/UIKit/IESComposerModel.h",
+    "EffectPlatformSDK/UIKit/IESEffectComposerNodeCollectionViewCell.h",
+    "EffectPlatformSDK/UIKit/IESEffectComposerNodeView.h",
+    "EffectPlatformSDK/UIKit/IESEffectContentCollectionViewCell.h",
+    "EffectPlatformSDK/UIKit/IESEffectItemCollectionCell.h",
+    "EffectPlatformSDK/UIKit/IESEffectListView.h",
+    "EffectPlatformSDK/UIKit/IESEffectSectionCollectionViewCell.h",
+    "EffectPlatformSDK/UIKit/IESEffectUIConfig.h",
+    "EffectPlatformSDK/UIKit/IESEffectView.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "UIKit_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "UIKit_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "UIKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "UIKit_module_map",
+  module_map = "pod_support/Headers/Public/EffectPlatformSDK/EffectPlatformSDK_UIKit-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/EffectPlatformSDK/EffectPlatformSDK_UIKit-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "UIKit_srcs",
+  srcs = [
+    "EffectPlatformSDK/UIKit/IESComposerModel.m",
+    "EffectPlatformSDK/UIKit/IESEffectComposerNodeCollectionViewCell.m",
+    "EffectPlatformSDK/UIKit/IESEffectComposerNodeView.m",
+    "EffectPlatformSDK/UIKit/IESEffectContentCollectionViewCell.m",
+    "EffectPlatformSDK/UIKit/IESEffectItemCollectionCell.m",
+    "EffectPlatformSDK/UIKit/IESEffectListView.m",
+    "EffectPlatformSDK/UIKit/IESEffectSectionCollectionViewCell.m",
+    "EffectPlatformSDK/UIKit/IESEffectUIConfig.m",
+    "EffectPlatformSDK/UIKit/IESEffectView.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "UIKit_oc",
+  enable_modules = 1,
+  srcs = [
+    "UIKit_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "UIKit_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit"
+  ],
+  deps = [
+    ":EffectPlatformSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":EffectPlatformSDK_private_includes",
+    ":EffectPlatformSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDWebImage//:BDWebImage_objc_interface",
+    "@Masonry//:Masonry_objc_interface",
+    "@BDWebImage//:BDWebImage_swift_interface",
+    "@Masonry//:Masonry_swift_interface",
+    ":UIKit_objc_interface",
+    "@BDWebImage//:BDWebImage_module_map",
+    "@Masonry//:Masonry_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEffectPlatformSDK_POD_VERSION=@\\\"9999_2.9.158.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":EffectPlatformSDK_UIKit_IESStickerUIKit"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "UIKit",
+  deps = [
+    ":UIKit_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "UIKit_lib",
+  deps = [
+    ":UIKit"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_EffectPlatformSDK_module_map",
+  module_map = "@EffectPlatformSDK//:pod_support/Headers/Public/EffectPlatformSDK/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@EffectPlatformSDK//:pod_support/Headers/Public/EffectPlatformSDK/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_EffectPlatformSDK_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@EffectPlatformSDK//:Core_objc_interface", "@EffectPlatformSDK//:EffectPlatformSDK_objc_interface", "@EffectPlatformSDK//:ModelDistribute_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_EffectPlatformSDK",
+  target_name = "Lark",
+  module_name = "EffectPlatformSDK",
+  hdrs = ["@EffectPlatformSDK//:Core_pod_hdrs", "@EffectPlatformSDK//:EffectPlatformSDK_root_pod_hdrs", "@EffectPlatformSDK//:ModelDistribute_pod_hdrs"],
+  srcs = ["@EffectPlatformSDK//:Core_srcs", "@EffectPlatformSDK//:ModelDistribute_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["FileMD5Hash", "FMDB", "Mantle", "SSZipArchive", "TTNetworkManager", "EffectSDK_iOS"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEffectPlatformSDK_POD_VERSION=@\\\"9999_2.9.158.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-DModelDistribute=1",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "EffectPlatformSDK_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "EffectPlatformSDK_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "EffectPlatformSDK_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "EffectPlatformSDK_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "EffectPlatformSDK_dynamic", False),
+  tags = getattr(defs_external_objc_library, "EffectPlatformSDK_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("EffectPlatformSDK", {}),
+  visibility = ["//visibility:public"],
+)

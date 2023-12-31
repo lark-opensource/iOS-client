@@ -1,0 +1,65 @@
+# rubocop:disable all
+# @!domain [Pod::Podfile]
+
+
+# @!parse
+#  require 'cocoapods'
+`git config core.hooksPath hooks`
+
+require_relative '../../../if_pod'
+require_relative '../../../bin/lib/lark-project/lib/lark/project/podfile_mixin'
+require_relative '../../../bin/lib/lark-project/lib/lark/project/assembly'
+
+lark_template_common_setup(
+  use_bd_build_infra: true
+)
+
+strict_lock_mode!
+disable_swiftlint!
+
+# LarkAccount 需要特殊处理
+dev_pods = %W[
+  LarkAccountAssembly
+  LarkAccountInterface
+  PassportDebug
+]
+
+lark_use_common_binary_config(strategy: :all) do
+
+  dev_pods.each { |v| source v } 
+  source 'LarkAccount'
+end
+
+target 'Passport' do
+  # 使用主仓的组件版本限制和关联依赖。
+  # Podfile里定义的版本或者关联依赖，可以覆盖从主仓继承的
+  # 也可以使用disable_if_pod("pod1", "pod2"), 显示的禁用某一个组件的配置
+  lark_main_target_if_pods
+  
+  # 其他需要添加的pod dependency
+  dev_pods.each { |name| eepod name, inhibit_warnings: false }
+  pod 'LarkAccount', inhibit_warnings: false # , subspecs: %w[Core Authorization IDP RustPlugin NativePlugin TuringCN OneKeyLogin BootManager]
+
+#  pod 'LarkRustClientAssembly', '3.45.52'
+#  pod 'EENavigator', '0.10.53'
+#  pod 'ECOProbeMeta', '1.0.61'
+#  pod 'LarkEnv', '3.41.26'
+#  pod 'LarkSetting', '0.0.94'
+#  pod 'LarkAppConfig', '3.41.76'
+end
+
+# @param installer [Pod::Installer]
+pre_install do |installer|
+  lark_template_common_pre_install installer
+end
+
+# @param installer [Pod::Installer]
+post_install do |installer|
+  lark_template_common_post_install installer
+
+  # 自动收集 Assembly，生成/更新 BaseAssembly.swift
+  Lark::Project::Assembly.rebuild installer
+end
+
+# Podfile结束eval前需要执行的一些代码，目前是引用if_pod的集成需要延后生效
+flush_defer_actions!

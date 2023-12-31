@@ -1,0 +1,157 @@
+{
+  "name": "LarkMeego",
+  "version": "7.9.0.2",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://bits.bytedance.net/bytebus/components/components/detail/20949?appId=137801",
+  "authors": {
+    "shizhengyu": "shizhengyu@bytedance.com"
+  },
+  "platforms": {
+    "ios": "11.0"
+  },
+  "swift_versions": "5.3",
+  "resource_bundles": {
+    "LarkMeego": [
+      "resources/*.lproj/*",
+      "resources/*"
+    ],
+    "LarkMeegoAuto": [
+      "auto_resources/*.lproj/*",
+      "auto_resources/*",
+      "R/**/*"
+    ]
+  },
+  "license": "MIT",
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/archive_source/137801/LarkMeego/7.9.0.2/LarkMeego.zip"
+  },
+  "default_subspecs": [
+    "Core"
+  ],
+  "extra": {
+    "git_url": "Required."
+  },
+  "subspecs": [
+    {
+      "name": "Core",
+      "frameworks": [
+        "UIKit",
+        "Foundation"
+      ],
+      "source_files": [
+        "src/Core/**/*",
+        "src/configurations/*.{h,m,mm,swift}"
+      ],
+      "public_header_files": "src/Core/**/*.h",
+      "dependencies": {
+        "RxSwift": [],
+        "LarkStorage/KeyValue": [],
+        "LarkUIKit/Base": [],
+        "Swinject": [],
+        "LarkModel": [],
+        "LarkFlutterContainer/Interface": [],
+        "LarkMeegoLogger": [],
+        "LKCommonsTracker": [],
+        "LarkContainer": [],
+        "LarkEmotion": [],
+        "AppContainer": [],
+        "LarkAccountInterface": [],
+        "ThreadSafeDataStructure": [],
+        "LarkMeegoInterface": [],
+        "LarkExtensions": [],
+        "LarkAppConfig": [],
+        "BootManager": [],
+        "LarkAssembler": [],
+        "LarkAppLinkSDK": [],
+        "TTNetworkManager": [],
+        "LarkMeegoNetClient": [],
+        "LarkMeegoPush": [],
+        "LarkSetting": [],
+        "EEAtomic": [],
+        "meego_rust_ios": [],
+        "LarkMeegoStorage": [],
+        "LarkMeegoStrategy": [],
+        "LarkMeegoWorkItemBiz": [],
+        "LarkMeegoViewBiz": [],
+        "LarkMeegoProjectBiz": [],
+        "LarkDebugExtensionPoint": []
+      },
+      "subspecs": [
+        {
+          "name": "MessengerMod",
+          "pod_target_xcconfig": {
+            "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "MessengerMod"
+          },
+          "lark_module_name": "MessengerMod",
+          "dependencies": {
+            "LarkMessageBase": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Debug",
+      "frameworks": [
+        "UIKit",
+        "Foundation"
+      ],
+      "source_files": "src/Debug/**/*",
+      "public_header_files": "src/Debug/**/*.h",
+      "pod_target_xcconfig": {
+        "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "ALPHA",
+        "GCC_PREPROCESSOR_DEFINITIONS": "ALPHA=1"
+      },
+      "dependencies": {
+        "LarkDebugExtensionPoint": [],
+        "LarkStorage": [],
+        "SnapKit": [],
+        "EENavigator": [],
+        "LarkUIKit": [],
+        "UniverseDesignToast": [],
+        "LarkMeegoPush": [],
+        "LarkMeegoLogger": [],
+        "LarkContainer": [],
+        "LarkMeegoNetClient": [],
+        "LarkFlutterContainer": [],
+        "RoundedHUD": []
+      }
+    },
+    {
+      "name": "ForShell",
+      "frameworks": [
+        "UIKit",
+        "Foundation"
+      ],
+      "source_files": "src/ForShell/**/*",
+      "public_header_files": "src/ForShell/**/*.h",
+      "dependencies": {
+        "LarkMeego/Core": [],
+        "LarkContainer": [],
+        "LarkMeegoInterface": [],
+        "Swinject": []
+      }
+    }
+  ],
+  "swift_version": "5.3",
+  "commit": "e382bd67ea11c63a6967f971fd96f9c131859884\n",
+  "source_code": {
+    "git": "git@code.byted.org:lark/LarkMeego.git",
+    "commit": "e382bd67ea11c63a6967f971fd96f9c131859884"
+  },
+  "_bytebus_platform": {
+    "repo_id": "20949",
+    "app_id": "137801",
+    "is_swift": "1"
+  },
+  "repoId": "20949",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "LarkMeego_POD_VERSION=@\\\"137801_7.9.0.2\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS[config=Release]": "$(inherited) NDEBUG=1",
+    "GCC_PREPROCESSOR_DEFINITIONS": "LarkMeego_POD_VERSION=@\\\"137801_7.9.0.2\\\""
+  }
+}

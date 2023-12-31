@@ -1,0 +1,34 @@
+interface ChatVCAbility {
+    var vc: UIViewController
+    func setNaviBar(isShown:bool)
+    func setSideView(isShown:bool)
+    func setNaviSidebarButton(isShown:bool)
+}
+
+enum LifeStauts {
+    case viewDidAppear
+    case viewDidLoad
+    .......
+}
+
+interface ChatVCStatusDelegate {
+    func viewLifeChange(stauts: LifeStauts, ability: ChatVCAbility)
+    func tableDidScroll(table: ChatTableView,  ability: ChatVCAbility)
+    func tableDidDraging(table: ChatTableView, direction: Direction,  ability: ChatVCAbility)
+    func keyBoardFrameChange(frame: CGRect,  ability: ChatVCAbility)
+    func sidebarViewDidShowed(sideView: SidebarView,  ability: ChatVCAbility)
+    func sidebarViewDidHidden(sideView: SidebarView,  ability: ChatVCAbility)
+}
+
+class ChatVC {
+    let statusDelegates: [ChatVCStatusDelegate]
+}
+
+class MeetingCardCreater {
+
+}
+
+ChatVCStatusDelegate "n" --* "1" ChatVC
+MeetingCardCreater ..|> ChatVCStatusDelegate
+ChatVCStatusDelegate ..> LifeStauts
+ChatVCStatusDelegate ..> ChatVCAbility

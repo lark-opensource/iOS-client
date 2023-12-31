@@ -1,0 +1,76 @@
+{
+  "description": "Open source ffmpeg lib lib for toutiao video mediea player and editor",
+  "header_mappings_dir": "include/",
+  "homepage": "https://code.byted.org/ttmp/ffmpeg.git",
+  "ios": {
+    "dependencies": {
+      "boringssl": [
+        "~\u003e 0.1"
+      ]
+    },
+    "vendored_libraries": "lib/*.a"
+  },
+  "name": "TTFFmpeg",
+  "osx": {
+    "vendored_libraries": "lib_macos/*.a"
+  },
+  "platforms": {
+    "ios": "9.0",
+    "osx": "10.10"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/custombinary/2020092912/TTFFmpeg/1.25.108.22-net3/TTFFmpeg.zip"
+  },
+  "source_code": {
+    "commit": "2df4825",
+    "git": "git@code.byted.org:TTVideo/ttffmpeg.git"
+  },
+  "static_framework": true,
+  "subspecs": [
+    {
+      "name": "libavcodec",
+      "source_files": "include/libavcodec/**/*.h"
+    },
+    {
+      "name": "libavdevice",
+      "source_files": "include/libavdevice/**/*.h"
+    },
+    {
+      "name": "libavfilter",
+      "source_files": "include/libavfilter/**/*.h"
+    },
+    {
+      "name": "libavformat",
+      "source_files": "include/libavformat/**/*.h"
+    },
+    {
+      "name": "libavresample",
+      "source_files": "include/libavresample/**/*.h"
+    },
+    {
+      "name": "libavutil",
+      "source_files": "include/libavutil/**/*.h"
+    },
+    {
+      "name": "libpostproc",
+      "source_files": "include/libpostproc/**/*.h"
+    },
+    {
+      "name": "libswscale",
+      "source_files": "include/libswscale/**/*.h"
+    },
+    {
+      "name": "libswresample",
+      "source_files": "include/libswresample/**/*.h"
+    },
+    {
+      "name": "libffmpeg",
+      "source_files": "include/libffmpeg/**/*.h"
+    }
+  ],
+  "summary": "The open source ffmpeg lib for video media player and editor",
+  "version": "1.25.108.22-net3",
+  "xcconfig": {
+    "HEADER_SEARCH_PATHS": "$(inherited) \"${PODS_ROOT}/TTFFmpeg/include\""
+  }
+}

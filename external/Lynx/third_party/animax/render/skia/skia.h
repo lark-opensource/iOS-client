@@ -1,0 +1,43 @@
+// Copyright 2023 The Lynx Authors. All rights reserved.
+
+#ifndef ANIMAX_RENDER_SKIA_SKIA_H_
+#define ANIMAX_RENDER_SKIA_SKIA_H_
+
+#include "third_party/skia_includes/include/core/SkBitmap.h"
+#include "third_party/skia_includes/include/core/SkBlendMode.h"
+#include "third_party/skia_includes/include/core/SkCanvas.h"
+#include "third_party/skia_includes/include/core/SkClipOp.h"
+#include "third_party/skia_includes/include/core/SkColor.h"
+#include "third_party/skia_includes/include/core/SkData.h"
+#include "third_party/skia_includes/include/core/SkFont.h"
+#include "third_party/skia_includes/include/core/SkFontMetrics.h"
+#include "third_party/skia_includes/include/core/SkFontMgr.h"
+#include "third_party/skia_includes/include/core/SkGraphics.h"
+#include "third_party/skia_includes/include/core/SkImage.h"
+#include "third_party/skia_includes/include/core/SkImageFilter.h"
+#include "third_party/skia_includes/include/core/SkMaskFilter.h"
+#include "third_party/skia_includes/include/core/SkMatrix.h"
+#include "third_party/skia_includes/include/core/SkMatrix44.h"
+#include "third_party/skia_includes/include/core/SkPaint.h"
+#include "third_party/skia_includes/include/core/SkPath.h"
+#include "third_party/skia_includes/include/core/SkPathMeasure.h"
+#include "third_party/skia_includes/include/core/SkPicture.h"
+#include "third_party/skia_includes/include/core/SkPictureRecorder.h"
+#include "third_party/skia_includes/include/core/SkPixmap.h"
+#include "third_party/skia_includes/include/core/SkPoint.h"
+#include "third_party/skia_includes/include/core/SkRect.h"
+#include "third_party/skia_includes/include/core/SkRegion.h"
+#include "third_party/skia_includes/include/core/SkShader.h"
+#include "third_party/skia_includes/include/core/SkSize.h"
+#include "third_party/skia_includes/include/core/SkSurface.h"
+#include "third_party/skia_includes/include/core/SkTileMode.h"
+#include "third_party/skia_includes/include/effects/SkDashPathEffect.h"
+#include "third_party/skia_includes/include/effects/SkGradientShader.h"
+#include "third_party/skia_includes/include/effects/SkImageFilters.h"
+#include "third_party/skia_includes/include/gpu/GrBackendSurface.h"
+#include "third_party/skia_includes/include/gpu/GrDirectContext.h"
+#include "third_party/skia_includes/include/gpu/gl/GrGLInterface.h"
+#include "third_party/skia_includes/include/pathops/SkPathOps.h"
+#include "third_party/skia_includes/include/utils/SkBase64.h"
+
+#endif  // ANIMAX_RENDER_SKIA_SKIA_H_

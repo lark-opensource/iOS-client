@@ -1,0 +1,1 @@
+../../../../../ios/include/mobilecv2/core/core_c.h

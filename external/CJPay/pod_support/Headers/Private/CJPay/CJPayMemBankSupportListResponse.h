@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayAbility/PayManage/BankSupportList/Service/CJPayMemBankSupportListResponse.h

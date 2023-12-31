@@ -1,0 +1,1495 @@
+load('@build_bazel_rules_apple//apple:resources.bzl', 'apple_resource_bundle', 'gen_bundle_plist')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "DVETrackKit_pod_hdrs",
+  srcs = [
+    ":DVETrackKit_root_pod_hdrs",
+    ":Core_pod_hdrs",
+    ":Adapter_pod_hdrs",
+    ":DVELiteTrack_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "DVETrackKit_private_includes",
+  include = [
+    "external/DVETrackKit/pod_support/Headers/Private/DVETrackKit/"
+  ],
+  deps = [],
+  external_name = "DVETrackKit"
+)
+gen_includes(
+  name = "DVETrackKit_public_includes",
+  include = [
+    "external/DVETrackKit/pod_support/Headers/Public/DVETrackKit/"
+  ],
+  deps = [],
+  external_name = "DVETrackKit"
+)
+filegroup(
+  name = "_DVETrackKit_hdrs",
+  srcs = [
+    ":DVETrackKit_root_hdrs",
+    ":Core_hdrs",
+    ":Adapter_hdrs",
+    ":DVELiteTrack_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "DVETrackKit_xcode_hmapsource",
+  hdrs = [
+    ":DVETrackKit_root_hdrs",
+    ":Adapter_hdrs",
+    ":Core_hdrs",
+    ":DVELiteTrack_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "DVETrackKit_xcode_hmap",
+  dep = ":DVETrackKit_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/DVETrackKit/*-bitsky-generated.modulemap", "pod_support/Headers/Public/DVETrackKit/*-bitsky-generated-umbrella.h"]))
+gen_bundle_plist(
+  name = "GEN_DVETrackKit_Plist",
+  bundle_name = "DVETrackKit",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "0.0.0",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "DVETrackKit_Core_DVETrackKit",
+  bundle_name = "DVETrackKit",
+  infoplists = [
+    ":GEN_DVETrackKit_Plist"
+  ],
+  resources = glob(
+    [
+      "DVETrackKit/Assets/Assets.xcassets/**"
+    ]
+  ) + [
+    "DVETrackKit/Assets/styles/color.json",
+    "DVETrackKit/Assets/styles/config.json",
+    "DVETrackKit/Assets/styles/font.json",
+    "DVETrackKit/Assets/styles/layout.json"
+  ],
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "DVETrackKit_Core_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libDVETrackKit_Core_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "DVETrackKit_DVELiteTrack_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libDVETrackKit_DVELiteTrack_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "DVETrackKit_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "DVETrackKit",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "DVETrackKit_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":DVETrackKit_xcode_hmap"
+  ],
+  external_name = "DVETrackKit",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DVETrackKit_root_hdrs",
+  srcs = [
+    "DVETrackKit/Classes/Lite/Track/DVELiteTimelineContentView.h",
+    "DVETrackKit/Classes/Lite/Track/DVELiteTimelineView.h",
+    "DVETrackKit/Classes/Lite/Track/DVELiteTrackController.h",
+    "DVETrackKit/Classes/Lite/VideoClip/DVELiteDurationClipView.h",
+    "DVETrackKit/Classes/Lite/VideoClip/DVELiteVideoSegmentClipView.h",
+    "DVETrackKit/Classes/MediaContext/DVEMediaContext+AudioOperation.h",
+    "DVETrackKit/Classes/MediaContext/DVEMediaContext+Blend.h",
+    "DVETrackKit/Classes/MediaContext/DVEMediaContext+FilterOperation.h",
+    "DVETrackKit/Classes/MediaContext/DVEMediaContext+Operation.h",
+    "DVETrackKit/Classes/MediaContext/DVEMediaContext+SlotUtils.h",
+    "DVETrackKit/Classes/MediaContext/DVEMediaContext+StickerOperation.h",
+    "DVETrackKit/Classes/MediaContext/DVEMediaContext+VideoOperation.h",
+    "DVETrackKit/Classes/MediaContext/DVEMediaContext.h",
+    "DVETrackKit/Classes/MediaContext/DVESelectSegment.h",
+    "DVETrackKit/Classes/MediaContext/DVETrackConfig.h",
+    "DVETrackKit/Classes/MediaContext/Protocol/DVEMediaContextNLEEditorDelegate.h",
+    "DVETrackKit/Classes/MediaContext/Protocol/DVEMediaContextNLEInterfaceDelegate.h",
+    "DVETrackKit/Classes/MediaContext/Protocol/DVEMediaContextPlayerDelegate.h",
+    "DVETrackKit/Classes/Models/DVELinkageDescription.h",
+    "DVETrackKit/Classes/Models/DVEVideoAnimationChangePayload.h",
+    "DVETrackKit/Classes/Models/DVEVideoTrackThumbnail.h",
+    "DVETrackKit/Classes/Models/DVEVideoTransitionModel.h",
+    "DVETrackKit/Classes/MultipleTrack/Audio/DVEAudioBeatsPoint.h",
+    "DVETrackKit/Classes/MultipleTrack/Audio/DVEAudioFadeInOutView.h",
+    "DVETrackKit/Classes/MultipleTrack/Audio/DVEAudioFeaturePoint.h",
+    "DVETrackKit/Classes/MultipleTrack/Audio/DVEAudioPoint.h",
+    "DVETrackKit/Classes/MultipleTrack/Audio/DVEAudioSegmentTag.h",
+    "DVETrackKit/Classes/MultipleTrack/Audio/DVEAudioWaveLayer.h",
+    "DVETrackKit/Classes/MultipleTrack/Audio/DVEAudioWaveView.h",
+    "DVETrackKit/Classes/MultipleTrack/Audio/DVEAudioWaveViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/Audio/DVEMultipleTrackAudioCell.h",
+    "DVETrackKit/Classes/MultipleTrack/Audio/DVEMultipleTrackAudioCellViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/Audio/DVEMultipleTrackAudioViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/CombineTrack/DVEMultipleTrackCombinationViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEAttachRange.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackCollectionView.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackController.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackType.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackView+Clip.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackView+EdgeDetect.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackView+Move.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackView.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackViewCell.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackViewCellViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackViewConstants.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackViewDelegate.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackViewFlowLayout.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackViewProtocol.h",
+    "DVETrackKit/Classes/MultipleTrack/DVETrackUIModel.h",
+    "DVETrackKit/Classes/MultipleTrack/Effect/DVEMultipleTrackEffectCell.h",
+    "DVETrackKit/Classes/MultipleTrack/Effect/DVEMultipleTrackEffectCellViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/Effect/DVEMultipleTrackEffectViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/Filter/DVEMultipleTrackFilterCell.h",
+    "DVETrackKit/Classes/MultipleTrack/Filter/DVEMultipleTrackFilterCellViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/Filter/DVEMultipleTrackFilterViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/Sticker/DVEMultipleTrackStickerCell.h",
+    "DVETrackKit/Classes/MultipleTrack/Sticker/DVEMultipleTrackStickerCellViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/Sticker/DVEMultipleTrackStickerViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/Video/DVEMultipleTrackVideoCell.h",
+    "DVETrackKit/Classes/MultipleTrack/Video/DVEMultipleTrackVideoCellViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/Video/DVEMultipleTrackVideoViewModel.h",
+    "DVETrackKit/Classes/Protocol/DVEVideoTrackPreviewDelegate.h",
+    "DVETrackKit/Classes/Timeline/DVEMediaTimelineContentView.h",
+    "DVETrackKit/Classes/Timeline/DVEMediaTimelineScaleHandler.h",
+    "DVETrackKit/Classes/Timeline/DVEMediaTimelineView.h",
+    "DVETrackKit/Classes/Timeline/DVERulerModel.h",
+    "DVETrackKit/Classes/Timeline/DVETimelineGlobal.h",
+    "DVETrackKit/Classes/Timeline/DVETimelineRuler.h",
+    "DVETrackKit/Classes/Timeline/DVETimelineRulerViewModel.h",
+    "DVETrackKit/Classes/TrackKit/EditBox/DVEBorderEditView.h",
+    "DVETrackKit/Classes/TrackKit/EditBox/DVEEditBoxCornerInfo.h",
+    "DVETrackKit/Classes/TrackKit/EditBox/DVEEditBoxView.h",
+    "DVETrackKit/Classes/TrackKit/EditBox/DVEEditItem.h",
+    "DVETrackKit/Classes/TrackKit/EditBox/DVEEditTransform.h",
+    "DVETrackKit/Classes/TrackKit/EditBox/DVEPinchControl.h",
+    "DVETrackKit/Classes/TrackKit/EditBox/DVETransformEditView.h",
+    "DVETrackKit/Classes/TrackKit/EditBox/DVETransformEventHandler.h",
+    "DVETrackKit/Classes/TrackKit/EditBox/DVEVector2.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Components/VEDMaskAbleProtocol.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Components/VEDMaskDrawView.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Components/VEDMaskTransform.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Gestures/VEDMaskPanGestureHandler.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Gestures/VEDMaskPinchGestureHandler.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Gestures/VEDMaskRotateGesture.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Shapes/VEDGeometricDrawView.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Shapes/VEDMaskCircleDrawView.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Shapes/VEDMaskLineDrawView.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Shapes/VEDMaskMirrorDrawView.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Shapes/VEDMaskRectDrawView.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Shapes/VEDMaskShapeType.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/VEDMaskEditView.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/VEDMaskEditViewConfig.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/VEDMaskEditViewProtocol.h",
+    "DVETrackKit/Classes/TrackKit/Tools/DVETools.h",
+    "DVETrackKit/Classes/UIStyle/Defines/MPUIColorDefines.h",
+    "DVETrackKit/Classes/UIStyle/Defines/MPUILayoutDefines.h",
+    "DVETrackKit/Classes/Utils/DVEAttachable.h",
+    "DVETrackKit/Classes/Utils/DVEAttacher.h",
+    "DVETrackKit/Classes/Utils/DVEMultipleTrackAttacher.h",
+    "DVETrackKit/Classes/Utils/DVEVideoAttacher.h",
+    "DVETrackKit/Classes/Utils/DVEVideoThumbnailLoader.h",
+    "DVETrackKit/Classes/Utils/DVEVideoThumbnailManager.h",
+    "DVETrackKit/Classes/Utils/DVEVideoThumbnailTask.h",
+    "DVETrackKit/Classes/Utils/MPMacros.h",
+    "DVETrackKit/Classes/Video/DVEVideoTrackViewModel.h",
+    "DVETrackKit/Classes/Views/DVEOriginalSoundButton.h",
+    "DVETrackKit/Classes/Views/DVESegmentClipView.h",
+    "DVETrackKit/Classes/Views/DVEVideoAnimationShadowView.h",
+    "DVETrackKit/Classes/Views/DVEVideoSegmentClipInfo.h",
+    "DVETrackKit/Classes/Views/DVEVideoSegmentView.h",
+    "DVETrackKit/Classes/Views/DVEVideoThumbnailCell.h",
+    "DVETrackKit/Classes/Views/DVEVideoThumbnailLayout.h",
+    "DVETrackKit/Classes/Views/DVEVideoThumbnailView.h",
+    "DVETrackKit/Classes/Views/DVEVideoTrackPreviewView.h",
+    "DVETrackKit/Classes/Views/DVEVideoTransitionItem.h",
+    "DVETrackKit/Classes/Views/DVEVideoTriangleView.h",
+    "DVETrackKit/Classes/Views/KeyFrame/DVEKeyFrameItem.h",
+    "DVETrackKit/Classes/Views/KeyFrame/DVEKeyFrameProtocol.h",
+    "DVETrackKit/Classes/Views/KeyFrame/DVEKeyFrameView.h",
+    "DVETrackKit/Classes/Views/KeyFrame/DVEKeyFrameViewModel.h",
+    "DVETrackKit/Classes/Views/MeepoButton.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DVETrackKit_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Public/DVETrackKit/DVEAttachRange.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEAttachable.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEAttacher.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEAudioBeatsPoint.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEAudioFadeInOutView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEAudioFeaturePoint.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEAudioPoint.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEAudioSegmentTag.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEAudioWaveLayer.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEAudioWaveView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEAudioWaveViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEBorderEditView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEEditBoxCornerInfo.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEEditBoxView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEEditItem.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEEditTransform.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEKeyFrameItem.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEKeyFrameProtocol.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEKeyFrameView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEKeyFrameViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVELinkageDescription.h",
+    "pod_support/Headers/Public/DVETrackKit/DVELiteDurationClipView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVELiteTimelineContentView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVELiteTimelineView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVELiteTrackController.h",
+    "pod_support/Headers/Public/DVETrackKit/DVELiteVideoSegmentClipView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaContext+AudioOperation.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaContext+Blend.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaContext+FilterOperation.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaContext+Operation.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaContext+SlotUtils.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaContext+StickerOperation.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaContext+VideoOperation.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaContext.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaContextNLEEditorDelegate.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaContextNLEInterfaceDelegate.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaContextPlayerDelegate.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaTimelineContentView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaTimelineScaleHandler.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaTimelineView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackAttacher.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackAudioCell.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackAudioCellViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackAudioViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackCollectionView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackCombinationViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackController.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackEffectCell.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackEffectCellViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackEffectViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackFilterCell.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackFilterCellViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackFilterViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackStickerCell.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackStickerCellViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackStickerViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackType.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackVideoCell.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackVideoCellViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackVideoViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackView+Clip.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackView+EdgeDetect.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackView+Move.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackViewCell.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackViewCellViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackViewConstants.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackViewDelegate.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackViewFlowLayout.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackViewProtocol.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEOriginalSoundButton.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEPinchControl.h",
+    "pod_support/Headers/Public/DVETrackKit/DVERulerModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVESegmentClipView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVESelectSegment.h",
+    "pod_support/Headers/Public/DVETrackKit/DVETimelineGlobal.h",
+    "pod_support/Headers/Public/DVETrackKit/DVETimelineRuler.h",
+    "pod_support/Headers/Public/DVETrackKit/DVETimelineRulerViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVETools.h",
+    "pod_support/Headers/Public/DVETrackKit/DVETrackConfig.h",
+    "pod_support/Headers/Public/DVETrackKit/DVETrackUIModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVETransformEditView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVETransformEventHandler.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVector2.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoAnimationChangePayload.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoAnimationShadowView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoAttacher.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoSegmentClipInfo.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoSegmentView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoThumbnailCell.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoThumbnailLayout.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoThumbnailLoader.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoThumbnailManager.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoThumbnailTask.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoThumbnailView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoTrackPreviewDelegate.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoTrackPreviewView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoTrackThumbnail.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoTrackViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoTransitionItem.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoTransitionModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoTriangleView.h",
+    "pod_support/Headers/Public/DVETrackKit/MPMacros.h",
+    "pod_support/Headers/Public/DVETrackKit/MPUIColorDefines.h",
+    "pod_support/Headers/Public/DVETrackKit/MPUILayoutDefines.h",
+    "pod_support/Headers/Public/DVETrackKit/MeepoButton.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDGeometricDrawView.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskAbleProtocol.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskCircleDrawView.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskDrawView.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskEditView.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskEditViewConfig.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskEditViewProtocol.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskLineDrawView.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskMirrorDrawView.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskPanGestureHandler.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskPinchGestureHandler.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskRectDrawView.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskRotateGesture.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskShapeType.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskTransform.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DVETrackKit_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DVETrackKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "DVETrackKit_module_map",
+  module_map = "pod_support/Headers/Public/DVETrackKit/DVETrackKit-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DVETrackKit/DVETrackKit-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DVETrackKit_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "DVETrackKit_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":DVETrackKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DVETrackKit_private_includes",
+    ":DVETrackKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":DVETrackKit_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DDVETrackKit_POD_VERSION=@\\\"9999_0.0.0.219-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DVETrackKit",
+  deps = [
+    ":DVETrackKit_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "DVETrackKit_lib",
+  deps = [
+    ":DVETrackKit"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [
+    "DVETrackKit/Classes/MediaContext/DVEMediaContext+AudioOperation.h",
+    "DVETrackKit/Classes/MediaContext/DVEMediaContext+Blend.h",
+    "DVETrackKit/Classes/MediaContext/DVEMediaContext+FilterOperation.h",
+    "DVETrackKit/Classes/MediaContext/DVEMediaContext+Operation.h",
+    "DVETrackKit/Classes/MediaContext/DVEMediaContext+Private.h",
+    "DVETrackKit/Classes/MediaContext/DVEMediaContext+SlotUtils.h",
+    "DVETrackKit/Classes/MediaContext/DVEMediaContext+StickerOperation.h",
+    "DVETrackKit/Classes/MediaContext/DVEMediaContext+VideoOperation.h",
+    "DVETrackKit/Classes/MediaContext/DVEMediaContext.h",
+    "DVETrackKit/Classes/MediaContext/DVESelectSegment.h",
+    "DVETrackKit/Classes/MediaContext/DVETrackConfig.h",
+    "DVETrackKit/Classes/MediaContext/Protocol/DVEMediaContextNLEEditorDelegate.h",
+    "DVETrackKit/Classes/MediaContext/Protocol/DVEMediaContextNLEInterfaceDelegate.h",
+    "DVETrackKit/Classes/MediaContext/Protocol/DVEMediaContextPlayerDelegate.h",
+    "DVETrackKit/Classes/Models/DVELinkageDescription.h",
+    "DVETrackKit/Classes/Models/DVEVideoAnimationChangePayload.h",
+    "DVETrackKit/Classes/Models/DVEVideoTrackThumbnail.h",
+    "DVETrackKit/Classes/Models/DVEVideoTransitionModel.h",
+    "DVETrackKit/Classes/MultipleTrack/Audio/DVEAudioBeatsPoint.h",
+    "DVETrackKit/Classes/MultipleTrack/Audio/DVEAudioFadeInOutView.h",
+    "DVETrackKit/Classes/MultipleTrack/Audio/DVEAudioFeaturePoint.h",
+    "DVETrackKit/Classes/MultipleTrack/Audio/DVEAudioPoint.h",
+    "DVETrackKit/Classes/MultipleTrack/Audio/DVEAudioSegmentTag.h",
+    "DVETrackKit/Classes/MultipleTrack/Audio/DVEAudioWaveLayer.h",
+    "DVETrackKit/Classes/MultipleTrack/Audio/DVEAudioWaveView.h",
+    "DVETrackKit/Classes/MultipleTrack/Audio/DVEAudioWaveViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/Audio/DVEMultipleTrackAudioCell.h",
+    "DVETrackKit/Classes/MultipleTrack/Audio/DVEMultipleTrackAudioCellViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/Audio/DVEMultipleTrackAudioViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/Audio/DVEMusicWaveGenerator.h",
+    "DVETrackKit/Classes/MultipleTrack/CombineTrack/DVEMultipleTrackCombinationViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEAttachRange.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackCollectionView.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackController.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackType.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackView+Clip.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackView+EdgeDetect.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackView+Move.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackView.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackViewCell.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackViewCellViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackViewConstants.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackViewDelegate.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackViewFlowLayout.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackViewProtocol.h",
+    "DVETrackKit/Classes/MultipleTrack/DVETrackUIModel.h",
+    "DVETrackKit/Classes/MultipleTrack/Effect/DVEMultipleTrackEffectCell.h",
+    "DVETrackKit/Classes/MultipleTrack/Effect/DVEMultipleTrackEffectCellViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/Effect/DVEMultipleTrackEffectViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/Filter/DVEMultipleTrackFilterCell.h",
+    "DVETrackKit/Classes/MultipleTrack/Filter/DVEMultipleTrackFilterCellViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/Filter/DVEMultipleTrackFilterViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/Sticker/DVEMultipleTrackStickerCell.h",
+    "DVETrackKit/Classes/MultipleTrack/Sticker/DVEMultipleTrackStickerCellViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/Sticker/DVEMultipleTrackStickerViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/Video/DVEMultipleTrackVideoCell.h",
+    "DVETrackKit/Classes/MultipleTrack/Video/DVEMultipleTrackVideoCellViewModel.h",
+    "DVETrackKit/Classes/MultipleTrack/Video/DVEMultipleTrackVideoViewModel.h",
+    "DVETrackKit/Classes/Protocol/DVEVideoTrackPreviewDelegate.h",
+    "DVETrackKit/Classes/Timeline/DVEMediaTimelineContentView.h",
+    "DVETrackKit/Classes/Timeline/DVEMediaTimelineScaleHandler.h",
+    "DVETrackKit/Classes/Timeline/DVEMediaTimelineView.h",
+    "DVETrackKit/Classes/Timeline/DVERulerModel.h",
+    "DVETrackKit/Classes/Timeline/DVETimelineGlobal.h",
+    "DVETrackKit/Classes/Timeline/DVETimelineRuler.h",
+    "DVETrackKit/Classes/Timeline/DVETimelineRulerViewModel.h",
+    "DVETrackKit/Classes/TrackKit/EditBox/DVEBorderEditView.h",
+    "DVETrackKit/Classes/TrackKit/EditBox/DVEEditBoxCornerInfo.h",
+    "DVETrackKit/Classes/TrackKit/EditBox/DVEEditBoxView.h",
+    "DVETrackKit/Classes/TrackKit/EditBox/DVEEditItem.h",
+    "DVETrackKit/Classes/TrackKit/EditBox/DVEEditTransform.h",
+    "DVETrackKit/Classes/TrackKit/EditBox/DVEPinchControl.h",
+    "DVETrackKit/Classes/TrackKit/EditBox/DVETransformEditView.h",
+    "DVETrackKit/Classes/TrackKit/EditBox/DVETransformEventHandler.h",
+    "DVETrackKit/Classes/TrackKit/EditBox/DVEVector2.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Components/VEDMaskAbleProtocol.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Components/VEDMaskDrawView.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Components/VEDMaskTransform.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Gestures/VEDMaskPanGestureHandler.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Gestures/VEDMaskPinchGestureHandler.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Gestures/VEDMaskRotateGesture.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Shapes/VEDGeometricDrawView.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Shapes/VEDMaskCircleDrawView.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Shapes/VEDMaskLineDrawView.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Shapes/VEDMaskMirrorDrawView.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Shapes/VEDMaskRectDrawView.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/Shapes/VEDMaskShapeType.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/VEDMaskEditView.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/VEDMaskEditViewConfig.h",
+    "DVETrackKit/Classes/TrackKit/MaskEditView/VEDMaskEditViewProtocol.h",
+    "DVETrackKit/Classes/TrackKit/Tools/DVETools.h",
+    "DVETrackKit/Classes/UIStyle/Defines/MPUIColorDefines.h",
+    "DVETrackKit/Classes/UIStyle/Defines/MPUILayoutDefines.h",
+    "DVETrackKit/Classes/Utils/DVEAttachable.h",
+    "DVETrackKit/Classes/Utils/DVEAttacher.h",
+    "DVETrackKit/Classes/Utils/DVEMultipleTrackAttacher.h",
+    "DVETrackKit/Classes/Utils/DVEVideoAttacher.h",
+    "DVETrackKit/Classes/Utils/DVEVideoThumbnailLoader.h",
+    "DVETrackKit/Classes/Utils/DVEVideoThumbnailManager.h",
+    "DVETrackKit/Classes/Utils/DVEVideoThumbnailTask.h",
+    "DVETrackKit/Classes/Utils/MPMacros.h",
+    "DVETrackKit/Classes/Video/DVEVideoTrackViewModel.h",
+    "DVETrackKit/Classes/Views/DVEOriginalSoundButton.h",
+    "DVETrackKit/Classes/Views/DVESegmentClipView.h",
+    "DVETrackKit/Classes/Views/DVEVideoAnimationShadowView.h",
+    "DVETrackKit/Classes/Views/DVEVideoSegmentClipInfo.h",
+    "DVETrackKit/Classes/Views/DVEVideoSegmentView.h",
+    "DVETrackKit/Classes/Views/DVEVideoThumbnailCell.h",
+    "DVETrackKit/Classes/Views/DVEVideoThumbnailLayout.h",
+    "DVETrackKit/Classes/Views/DVEVideoThumbnailView.h",
+    "DVETrackKit/Classes/Views/DVEVideoTrackPreviewView.h",
+    "DVETrackKit/Classes/Views/DVEVideoTransitionItem.h",
+    "DVETrackKit/Classes/Views/DVEVideoTriangleView.h",
+    "DVETrackKit/Classes/Views/KeyFrame/DVEKeyFrameItem.h",
+    "DVETrackKit/Classes/Views/KeyFrame/DVEKeyFrameProtocol.h",
+    "DVETrackKit/Classes/Views/KeyFrame/DVEKeyFrameView.h",
+    "DVETrackKit/Classes/Views/KeyFrame/DVEKeyFrameViewModel.h",
+    "DVETrackKit/Classes/Views/MeepoButton.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/DVETrackKit/DVEAttachRange.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEAttachable.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEAttacher.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEAudioBeatsPoint.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEAudioFadeInOutView.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEAudioFeaturePoint.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEAudioPoint.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEAudioSegmentTag.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEAudioWaveLayer.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEAudioWaveView.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEAudioWaveViewModel.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEBorderEditView.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEEditBoxCornerInfo.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEEditBoxView.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEEditItem.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEEditTransform.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEKeyFrameItem.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEKeyFrameProtocol.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEKeyFrameView.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEKeyFrameViewModel.h",
+    "pod_support/Headers/Private/DVETrackKit/DVELinkageDescription.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMediaContext+AudioOperation.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMediaContext+Blend.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMediaContext+FilterOperation.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMediaContext+Operation.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMediaContext+Private.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMediaContext+SlotUtils.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMediaContext+StickerOperation.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMediaContext+VideoOperation.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMediaContext.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMediaContextNLEEditorDelegate.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMediaContextNLEInterfaceDelegate.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMediaContextPlayerDelegate.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMediaTimelineContentView.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMediaTimelineScaleHandler.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMediaTimelineView.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackAttacher.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackAudioCell.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackAudioCellViewModel.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackAudioViewModel.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackCollectionView.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackCombinationViewModel.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackController.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackEffectCell.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackEffectCellViewModel.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackEffectViewModel.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackFilterCell.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackFilterCellViewModel.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackFilterViewModel.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackStickerCell.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackStickerCellViewModel.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackStickerViewModel.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackType.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackVideoCell.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackVideoCellViewModel.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackVideoViewModel.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackView+Clip.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackView+EdgeDetect.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackView+Move.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackView.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackViewCell.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackViewCellViewModel.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackViewConstants.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackViewDelegate.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackViewFlowLayout.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackViewModel.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMultipleTrackViewProtocol.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEMusicWaveGenerator.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEOriginalSoundButton.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEPinchControl.h",
+    "pod_support/Headers/Private/DVETrackKit/DVERulerModel.h",
+    "pod_support/Headers/Private/DVETrackKit/DVESegmentClipView.h",
+    "pod_support/Headers/Private/DVETrackKit/DVESelectSegment.h",
+    "pod_support/Headers/Private/DVETrackKit/DVETimelineGlobal.h",
+    "pod_support/Headers/Private/DVETrackKit/DVETimelineRuler.h",
+    "pod_support/Headers/Private/DVETrackKit/DVETimelineRulerViewModel.h",
+    "pod_support/Headers/Private/DVETrackKit/DVETools.h",
+    "pod_support/Headers/Private/DVETrackKit/DVETrackConfig.h",
+    "pod_support/Headers/Private/DVETrackKit/DVETrackUIModel.h",
+    "pod_support/Headers/Private/DVETrackKit/DVETransformEditView.h",
+    "pod_support/Headers/Private/DVETrackKit/DVETransformEventHandler.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEVector2.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEVideoAnimationChangePayload.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEVideoAnimationShadowView.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEVideoAttacher.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEVideoSegmentClipInfo.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEVideoSegmentView.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEVideoThumbnailCell.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEVideoThumbnailLayout.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEVideoThumbnailLoader.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEVideoThumbnailManager.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEVideoThumbnailTask.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEVideoThumbnailView.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEVideoTrackPreviewDelegate.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEVideoTrackPreviewView.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEVideoTrackThumbnail.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEVideoTrackViewModel.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEVideoTransitionItem.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEVideoTransitionModel.h",
+    "pod_support/Headers/Private/DVETrackKit/DVEVideoTriangleView.h",
+    "pod_support/Headers/Private/DVETrackKit/MPMacros.h",
+    "pod_support/Headers/Private/DVETrackKit/MPUIColorDefines.h",
+    "pod_support/Headers/Private/DVETrackKit/MPUILayoutDefines.h",
+    "pod_support/Headers/Private/DVETrackKit/MeepoButton.h",
+    "pod_support/Headers/Private/DVETrackKit/VEDGeometricDrawView.h",
+    "pod_support/Headers/Private/DVETrackKit/VEDMaskAbleProtocol.h",
+    "pod_support/Headers/Private/DVETrackKit/VEDMaskCircleDrawView.h",
+    "pod_support/Headers/Private/DVETrackKit/VEDMaskDrawView.h",
+    "pod_support/Headers/Private/DVETrackKit/VEDMaskEditView.h",
+    "pod_support/Headers/Private/DVETrackKit/VEDMaskEditViewConfig.h",
+    "pod_support/Headers/Private/DVETrackKit/VEDMaskEditViewProtocol.h",
+    "pod_support/Headers/Private/DVETrackKit/VEDMaskLineDrawView.h",
+    "pod_support/Headers/Private/DVETrackKit/VEDMaskMirrorDrawView.h",
+    "pod_support/Headers/Private/DVETrackKit/VEDMaskPanGestureHandler.h",
+    "pod_support/Headers/Private/DVETrackKit/VEDMaskPinchGestureHandler.h",
+    "pod_support/Headers/Private/DVETrackKit/VEDMaskRectDrawView.h",
+    "pod_support/Headers/Private/DVETrackKit/VEDMaskRotateGesture.h",
+    "pod_support/Headers/Private/DVETrackKit/VEDMaskShapeType.h",
+    "pod_support/Headers/Private/DVETrackKit/VEDMaskTransform.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEAttachRange.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEAttachable.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEAttacher.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEAudioBeatsPoint.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEAudioFadeInOutView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEAudioFeaturePoint.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEAudioPoint.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEAudioSegmentTag.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEAudioWaveLayer.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEAudioWaveView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEAudioWaveViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEBorderEditView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEEditBoxCornerInfo.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEEditBoxView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEEditItem.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEEditTransform.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEKeyFrameItem.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEKeyFrameProtocol.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEKeyFrameView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEKeyFrameViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVELinkageDescription.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaContext+AudioOperation.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaContext+Blend.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaContext+FilterOperation.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaContext+Operation.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaContext+Private.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaContext+SlotUtils.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaContext+StickerOperation.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaContext+VideoOperation.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaContext.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaContextNLEEditorDelegate.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaContextNLEInterfaceDelegate.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaContextPlayerDelegate.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaTimelineContentView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaTimelineScaleHandler.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMediaTimelineView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackAttacher.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackAudioCell.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackAudioCellViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackAudioViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackCollectionView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackCombinationViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackController.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackEffectCell.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackEffectCellViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackEffectViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackFilterCell.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackFilterCellViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackFilterViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackStickerCell.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackStickerCellViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackStickerViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackType.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackVideoCell.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackVideoCellViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackVideoViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackView+Clip.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackView+EdgeDetect.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackView+Move.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackViewCell.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackViewCellViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackViewConstants.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackViewDelegate.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackViewFlowLayout.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMultipleTrackViewProtocol.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEMusicWaveGenerator.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEOriginalSoundButton.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEPinchControl.h",
+    "pod_support/Headers/Public/DVETrackKit/DVERulerModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVESegmentClipView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVESelectSegment.h",
+    "pod_support/Headers/Public/DVETrackKit/DVETimelineGlobal.h",
+    "pod_support/Headers/Public/DVETrackKit/DVETimelineRuler.h",
+    "pod_support/Headers/Public/DVETrackKit/DVETimelineRulerViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVETools.h",
+    "pod_support/Headers/Public/DVETrackKit/DVETrackConfig.h",
+    "pod_support/Headers/Public/DVETrackKit/DVETrackUIModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVETransformEditView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVETransformEventHandler.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVector2.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoAnimationChangePayload.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoAnimationShadowView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoAttacher.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoSegmentClipInfo.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoSegmentView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoThumbnailCell.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoThumbnailLayout.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoThumbnailLoader.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoThumbnailManager.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoThumbnailTask.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoThumbnailView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoTrackPreviewDelegate.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoTrackPreviewView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoTrackThumbnail.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoTrackViewModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoTransitionItem.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoTransitionModel.h",
+    "pod_support/Headers/Public/DVETrackKit/DVEVideoTriangleView.h",
+    "pod_support/Headers/Public/DVETrackKit/MPMacros.h",
+    "pod_support/Headers/Public/DVETrackKit/MPUIColorDefines.h",
+    "pod_support/Headers/Public/DVETrackKit/MPUILayoutDefines.h",
+    "pod_support/Headers/Public/DVETrackKit/MeepoButton.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDGeometricDrawView.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskAbleProtocol.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskCircleDrawView.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskDrawView.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskEditView.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskEditViewConfig.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskEditViewProtocol.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskLineDrawView.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskMirrorDrawView.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskPanGestureHandler.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskPinchGestureHandler.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskRectDrawView.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskRotateGesture.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskShapeType.h",
+    "pod_support/Headers/Public/DVETrackKit/VEDMaskTransform.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/DVETrackKit/DVETrackKit_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DVETrackKit/DVETrackKit_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/Core-prefix.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":DVETrackKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DVETrackKit_private_includes",
+    ":DVETrackKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ByteDanceKit//:UIKit_objc_interface",
+    "@Masonry//:Masonry_objc_interface",
+    "@NLEPlatform//:Model_objc_interface",
+    "@PocketSVG//:PocketSVG_objc_interface",
+    "@ReactiveObjC//:ReactiveObjC_objc_interface",
+    "@TTVideoEditor//:TTVideoEditor_objc_interface",
+    "@YYCache//:YYCache_objc_interface",
+    "@ByteDanceKit//:UIKit_swift_interface",
+    "@Masonry//:Masonry_swift_interface",
+    "@NLEPlatform//:Model_swift_interface",
+    "@PocketSVG//:PocketSVG_swift_interface",
+    "@ReactiveObjC//:ReactiveObjC_swift_interface",
+    "@TTVideoEditor//:TTVideoEditor_swift_interface",
+    "@YYCache//:YYCache_swift_interface",
+    ":DVETrackKit_Core_VendoredLibraries",
+    ":Core_objc_interface",
+    "@ByteDanceKit//:UIKit_module_map",
+    "@Masonry//:Masonry_module_map",
+    "@NLEPlatform//:Model_module_map",
+    "@PocketSVG//:PocketSVG_module_map",
+    "@ReactiveObjC//:ReactiveObjC_module_map",
+    "@TTVideoEditor//:TTVideoEditor_module_map",
+    "@YYCache//:YYCache_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DDVETrackKit_POD_VERSION=@\\\"9999_0.0.0.219-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":DVETrackKit_Core_DVETrackKit"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Adapter_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Adapter_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Adapter_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Adapter_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Adapter_module_map",
+  module_map = "pod_support/Headers/Public/DVETrackKit/DVETrackKit_Adapter-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DVETrackKit/DVETrackKit_Adapter-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Adapter_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Adapter_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/Adapter-prefix.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":DVETrackKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DVETrackKit_private_includes",
+    ":DVETrackKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@DVEFoundationKit//:Adapter_objc_interface",
+    "@NLEPlatform//:Adapter_objc_interface",
+    "@DVEFoundationKit//:Adapter_swift_interface",
+    "@NLEPlatform//:Adapter_swift_interface",
+    ":Adapter_objc_interface",
+    "@DVEFoundationKit//:Adapter_module_map",
+    "@NLEPlatform//:Adapter_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DDVETrackKit_POD_VERSION=@\\\"9999_0.0.0.219-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Adapter",
+  deps = [
+    ":Adapter_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Adapter_lib",
+  deps = [
+    ":Adapter"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DVELiteTrack_hdrs",
+  srcs = [
+    "DVETrackKit/Classes/Lite/Track/DVELiteTimelineContentView.h",
+    "DVETrackKit/Classes/Lite/Track/DVELiteTimelineView.h",
+    "DVETrackKit/Classes/Lite/Track/DVELiteTrackController.h",
+    "DVETrackKit/Classes/Lite/VideoClip/DVELiteDurationClipView.h",
+    "DVETrackKit/Classes/Lite/VideoClip/DVELiteVideoSegmentClipView.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DVELiteTrack_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/DVETrackKit/DVELiteDurationClipView.h",
+    "pod_support/Headers/Private/DVETrackKit/DVELiteTimelineContentView.h",
+    "pod_support/Headers/Private/DVETrackKit/DVELiteTimelineView.h",
+    "pod_support/Headers/Private/DVETrackKit/DVELiteTrackController.h",
+    "pod_support/Headers/Private/DVETrackKit/DVELiteVideoSegmentClipView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVELiteDurationClipView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVELiteTimelineContentView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVELiteTimelineView.h",
+    "pod_support/Headers/Public/DVETrackKit/DVELiteTrackController.h",
+    "pod_support/Headers/Public/DVETrackKit/DVELiteVideoSegmentClipView.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DVELiteTrack_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DVELiteTrack_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "DVELiteTrack_module_map",
+  module_map = "pod_support/Headers/Public/DVETrackKit/DVETrackKit_DVELiteTrack-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DVETrackKit/DVETrackKit_DVELiteTrack-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DVELiteTrack_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "DVELiteTrack_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/DVELiteTrack-prefix.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":DVETrackKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DVETrackKit_private_includes",
+    ":DVETrackKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":DVETrackKit_DVELiteTrack_VendoredLibraries",
+    ":DVELiteTrack_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DDVETrackKit_POD_VERSION=@\\\"9999_0.0.0.219-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DVELiteTrack",
+  deps = [
+    ":DVELiteTrack_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "DVELiteTrack_lib",
+  deps = [
+    ":DVELiteTrack"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_DVETrackKit_module_map",
+  module_map = "@DVETrackKit//:pod_support/Headers/Public/DVETrackKit/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@DVETrackKit//:pod_support/Headers/Public/DVETrackKit/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_DVETrackKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@DVETrackKit//:Adapter_objc_interface", "@DVETrackKit//:Core_objc_interface", "@DVETrackKit//:DVELiteTrack_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_library")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_library(
+  name = "Lark_DVETrackKit",
+  target_name = "Lark",
+  module_name = "DVETrackKit",
+  hdrs = ["@DVETrackKit//:Adapter_pod_hdrs", "@DVETrackKit//:Core_pod_hdrs", "@DVETrackKit//:DVELiteTrack_pod_hdrs"],
+  srcs = [],
+  non_arc_srcs = [],
+  deps = ["@DVETrackKit//:DVETrackKit_Core_VendoredLibraries", "@DVETrackKit//:DVETrackKit_DVELiteTrack_VendoredLibraries"],
+  pod_deps = ["DVEFoundationKit", "NLEPlatform", "ByteDanceKit", "Masonry", "PocketSVG", "ReactiveObjC", "TTVideoEditor", "YYCache"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DDVETrackKit_POD_VERSION=@\\\"9999_0.0.0.219-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "DVETrackKit_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "DVETrackKit_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["UIKit", "Foundation", "JavaScriptCore"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = ["@DVETrackKit//:DVETrackKit_Core_DVETrackKit"],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "DVETrackKit_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "DVETrackKit_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "DVETrackKit_dynamic", False),
+  tags = getattr(defs_external_objc_library, "DVETrackKit_tags", []),
+  pch = "pod_support/Headers/Private/Lark_DVETrackKit-prefix.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("DVETrackKit", {}),
+  visibility = ["//visibility:public"],
+)

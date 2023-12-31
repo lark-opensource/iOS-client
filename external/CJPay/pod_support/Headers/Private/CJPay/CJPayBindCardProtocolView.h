@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayAbility/PayManage/BankCardCenter/View/CJPayBindCardProtocolView.h

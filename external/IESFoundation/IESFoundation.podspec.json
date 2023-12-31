@@ -1,0 +1,72 @@
+{
+  "name": "IESFoundation",
+  "version": "1.0.17.1-binary",
+  "summary": "basic",
+  "description": "IESFoundation for DT basic component",
+  "homepage": "https://code.byted.org/ugc/IESFoundation",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "chenxiancai": "chenxiancai@bytedance.com"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/aweme-rock/rock_binary/douyin_binary_repo/IESFoundation/1.0.17.1-binary/1634541356/IESFoundation.tar.xz"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "default_subspecs": "Core",
+  "preserve_paths": [
+    "rock_document/**/*.{h,m,mm,cpp,hpp,swift}",
+    "rock_document/rock-document-files.txt"
+  ],
+  "source_code": {
+    "git": "git@code.byted.org:ugc/IESFoundation.git",
+    "commit": "97b32a0cc6c79d7554fbf4f91cca58b1ebc83e09"
+  },
+  "binary_type": "rock",
+  "package_env": {
+    "id": null,
+    "xcode": "Xcode 13.0\nBuild version 13A233\n"
+  },
+  "subspecs": [
+    {
+      "name": "Core",
+      "subspecs": [
+        {
+          "name": "Category",
+          "source_files": "IESFoundation/Classes/Category/**/*.{h,m,mm}",
+          "dependencies": {
+            "TTReachability": [
+              "~> 1.8"
+            ]
+          },
+          "vendored_libraries": [
+            "IESFoundation/Classes/Category/**/*.o"
+          ],
+          "exclude_files": [
+
+          ],
+          "ios": {
+            "vendored_libraries": [
+              "IESFoundation/Classes/Category/**/*.o",
+              "libIESFoundation-d2bad51.a"
+            ]
+          }
+        },
+        {
+          "name": "Macro",
+          "source_files": "IESFoundation/Classes/Macro/**/*.{h,m,mm}",
+          "vendored_libraries": [
+            "IESFoundation/Classes/Macro/**/*.o"
+          ],
+          "exclude_files": [
+
+          ]
+        }
+      ]
+    }
+  ]
+}

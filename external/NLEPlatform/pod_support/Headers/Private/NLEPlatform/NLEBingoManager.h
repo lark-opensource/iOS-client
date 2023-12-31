@@ -1,0 +1,1 @@
+../../../../ios/veadapter/Interface/NLEBingoManager.h

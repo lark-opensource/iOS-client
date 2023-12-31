@@ -1,0 +1,1 @@
+../../../../inc/sami_core_effect_param.h

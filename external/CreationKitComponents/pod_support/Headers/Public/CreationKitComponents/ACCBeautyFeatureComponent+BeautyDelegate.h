@@ -1,0 +1,1 @@
+../../../../Recorder/BeautyPanelComponent/Core/Categories/ACCBeautyFeatureComponent+BeautyDelegate.h

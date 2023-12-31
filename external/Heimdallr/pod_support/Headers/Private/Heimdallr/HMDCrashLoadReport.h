@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/CrashCapture/Common/Public/LoadLaunch/HMDCrashLoadReport.h

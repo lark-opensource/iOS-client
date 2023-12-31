@@ -1,0 +1,196 @@
+{
+  "name": "OneKit",
+  "version": "1.1.30",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://github.com/volcengine/veMARS_SwiftOneKit",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "duanwenbin": "bob170731@gmail.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:mPaaS/OneKit.git",
+    "commit": "58748c99be89e21bce1ffbe90ab20be2abd04d41"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "requires_arc": true,
+  "static_framework": true,
+  "pod_target_xcconfig": {
+    "DEFINES_MODULE": "YES",
+    "BITCODE_GENERATION_MODE": "bitcode",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "OneKit_POD_VERSION=@\\\"9999_1.1.30\\\""
+  },
+  "default_subspecs": [
+    "BaseKit",
+    "MARS/Auth",
+    "Screenshot"
+  ],
+  "testspecs": [
+    {
+      "name": "Tests",
+      "test_type": "unit",
+      "source_files": "OneKit/Tests/**/*.{h,m}",
+      "dependencies": {
+        "OCMock": []
+      },
+      "requires_app_host": true
+    }
+  ],
+  "subspecs": [
+    {
+      "name": "BaseKit",
+      "frameworks": "Foundation",
+      "source_files": "OneKit/BaseKit/**/*.{h,m,c}",
+      "public_header_files": "OneKit/BaseKit/**/*.h",
+      "vendored_libraries": "OneKit/BaseKit/Decorator/Vendor/*.a"
+    },
+    {
+      "name": "Defaults",
+      "dependencies": {
+        "OneKit/BaseKit": []
+      },
+      "frameworks": "Foundation",
+      "source_files": "OneKit/Defaults/**/*.{h,m,c}",
+      "public_header_files": "OneKit/Defaults/**/*.h"
+    },
+    {
+      "name": "Reachability",
+      "frameworks": [
+        "Foundation",
+        "CoreTelephony",
+        "SystemConfiguration",
+        "CoreFoundation",
+        "UIKit"
+      ],
+      "source_files": "OneKit/Reachability/**/*.{h,m,c}",
+      "public_header_files": "OneKit/Reachability/**/*.h"
+    },
+    {
+      "name": "Service",
+      "frameworks": "Foundation",
+      "source_files": "OneKit/Service/**/*.{h,m,c}",
+      "public_header_files": "OneKit/Service/**/*.h"
+    },
+    {
+      "name": "Database",
+      "frameworks": "Foundation",
+      "dependencies": {
+        "OneKit/Service": []
+      },
+      "source_files": "OneKit/Database/**/*.{h,m,c}",
+      "public_header_files": "OneKit/Database/**/*.h"
+    },
+    {
+      "name": "BDMantle",
+      "frameworks": "Foundation",
+      "source_files": "OneKit/BDMantle/**/*.{h,m,c}",
+      "public_header_files": "OneKit/BDMantle/**/*.h"
+    },
+    {
+      "name": "StartUp",
+      "frameworks": "Foundation",
+      "dependencies": {
+        "OneKit/BaseKit": [],
+        "OneKit/Reachability": []
+      },
+      "source_files": "OneKit/StartUp/**/*.{h,m,c,swift}",
+      "public_header_files": "OneKit/StartUp/Headers/*.h"
+    },
+    {
+      "name": "IDFA",
+      "frameworks": "AdSupport",
+      "dependencies": {
+        "OneKit/Service": [],
+        "OneKit/StartUp": []
+      },
+      "source_files": "OneKit/IDFA/**/*.{h,m,c}",
+      "public_header_files": "OneKit/IDFA/**/*.h"
+    },
+    {
+      "name": "MARS",
+      "frameworks": "Foundation",
+      "subspecs": [
+        {
+          "name": "Auth",
+          "dependencies": {
+            "OneKit/BaseKit": [],
+            "OneKit/StartUp": []
+          },
+          "source_files": "OneKit/MARS/Auth/**/*.{h,m}",
+          "public_header_files": "OneKit/MARS/Auth/**/*.h"
+        }
+      ]
+    },
+    {
+      "name": "ByteDanceKit",
+      "subspecs": [
+        {
+          "name": "Foundation",
+          "source_files": [
+            "OneKit/ByteDanceKit/Foundation/*.{h,m}",
+            "OneKit/ByteDanceKit/*.{h,m}"
+          ],
+          "public_header_files": [
+            "OneKit/ByteDanceKit/Foundation/*.h",
+            "OneKit/ByteDanceKit/*.h"
+          ]
+        },
+        {
+          "name": "UIKit",
+          "dependencies": {
+            "OneKit/ByteDanceKit/Foundation": []
+          },
+          "source_files": [
+            "OneKit/ByteDanceKit/UIKit/*.{h,m}"
+          ],
+          "frameworks": [
+            "UIKit",
+            "Accelerate"
+          ],
+          "public_header_files": [
+            "OneKit/ByteDanceKit/UIKit/*.h"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Screenshot",
+      "frameworks": [
+        "Foundation",
+        "WebKit"
+      ],
+      "source_files": "OneKit/Screenshot/**/*.{h,m}",
+      "public_header_files": "OneKit/Screenshot/**/*.h"
+    },
+    {
+      "name": "boringssl",
+      "vendored_libraries": [
+        "OneKit/boringssl/libcrcrypto.a",
+        "OneKit/boringssl/libboringssl.a",
+        "OneKit/boringssl/libboringssl_asm.a"
+      ],
+      "libraries": [
+        "boringssl",
+        "crcrypto",
+        "boringssl_asm"
+      ],
+      "xcconfig": {
+        "HEADER_SEARCH_PATHS": "$(inherited) \"${PODS_ROOT}/OneKit/boringssl/include\""
+      }
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "20096",
+    "app_id": "9999"
+  },
+  "repoId": "20096",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "OneKit_POD_VERSION=@\\\"9999_1.1.30\\\""
+  }
+}

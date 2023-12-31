@@ -1,0 +1,233 @@
+{
+  "_bytebus_platform": {
+    "app_id": "9999",
+    "repo_id": "98"
+  },
+  "authors": {
+    "柴淞": "chaisong@bytedance.com"
+  },
+  "default_subspecs": [
+    "Core",
+    "YYCache"
+  ],
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/TTIOS/TTKitchen",
+  "license": {
+    "type": "MIT"
+  },
+  "name": "TTKitchen",
+  "platforms": {
+    "ios": "8.0"
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "DEFINES_MODULE": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "TTKitchen_POD_VERSION=@\\\"9999_4.3.16\\\""
+  },
+  "repoId": "98",
+  "requires_arc": true,
+  "source": {
+    "commit": "84ec73c2bf400d23fdd5a722d3a4099b2cc7ab35",
+    "git": "git@code.byted.org:TTIOS/TTKitchen.git"
+  },
+  "subspecs": [
+    {
+      "dependencies": {
+        "BDAssert": [],
+        "ByteDanceKit": [],
+        "Gaia": []
+      },
+      "name": "Core",
+      "private_header_files": "Core/Classes/Private/*.h",
+      "public_header_files": "Core/Classes/Public/*.h",
+      "source_files": "Core/Classes/**/*.{h,m}"
+    },
+    {
+      "dependencies": {
+        "MMKV": [],
+        "TTKitchen/Core": [],
+        "TTNetworkManager": [
+          "\u003e= 4.0"
+        ]
+      },
+      "name": "Browser",
+      "private_header_files": "Browser/Classes/Private/*.h",
+      "public_header_files": "Browser/Classes/Public/*.h",
+      "source_files": "Browser/Classes/**/*.{h,m}"
+    },
+    {
+      "dependencies": {
+        "BDAlogProtocol": [],
+        "BDMonitorProtocol": [],
+        "ByteDanceKit/UIKit": [],
+        "Heimdallr/DeviceInfo": [],
+        "TTKitchen/Core": [],
+        "TTNetworkManager": [
+          "\u003e= 4.0"
+        ]
+      },
+      "name": "SettingsSyncer",
+      "private_header_files": "SettingsSyncer/Classes/Private/*.h",
+      "public_header_files": "SettingsSyncer/Classes/Public/*.h",
+      "source_files": "SettingsSyncer/Classes/**/*.{h,m}"
+    },
+    {
+      "dependencies": {
+        "BDMonitorProtocol": [],
+        "TTKitchen/SettingsSyncer": []
+      },
+      "name": "PersistentConnection",
+      "source_files": "PersistentConnection/**/*.{h,m}"
+    },
+    {
+      "dependencies": {
+        "AWECloudCommand": [],
+        "TTKitchen/Core": []
+      },
+      "name": "SettingsRetriever",
+      "source_files": "SettingsRetriever/**/*.{h,m}"
+    },
+    {
+      "dependencies": {
+        "JSONModel": [],
+        "TTKitchen/Core": []
+      },
+      "name": "JSONModel",
+      "public_header_files": "JSONModel/Classes/*.h",
+      "source_files": "JSONModel/Classes/*.{h,m}"
+    },
+    {
+      "dependencies": {
+        "ByteDanceKit": [],
+        "TTKitchen/Core": []
+      },
+      "name": "Swift",
+      "public_header_files": "Swift/Classes/*.h",
+      "source_files": "Swift/Classes/*.{h,m}"
+    },
+    {
+      "name": "mPaaS",
+      "subspecs": [
+        {
+          "dependencies": {
+            "BDGaiaExtension": [
+              "\u003e= 1.0"
+            ],
+            "BDStartUp/Base": [],
+            "BDUGSettingsInterface": [
+              "\u003e= 1.1.0"
+            ],
+            "TTKitchen/Core": [
+              "\u003e= 3.3.0"
+            ],
+            "TTKitchen/SettingsSyncer": [
+              "\u003e= 3.3.0"
+            ],
+            "TTNetworkManager": [
+              "\u003e= 2.2.23.1"
+            ]
+          },
+          "frameworks": "Foundation",
+          "name": "Task",
+          "public_header_files": "mPaaS/Task/**/*.h",
+          "source_files": "mPaaS/Task/**/*.{h,m,c}"
+        },
+        {
+          "dependencies": {
+            "TTKitchen/mPaaS/Task": []
+          },
+          "frameworks": "Foundation",
+          "name": "CN",
+          "public_header_files": "mPaaS/China/**/*.h",
+          "source_files": "mPaaS/China/**/*.{h,m,c}"
+        },
+        {
+          "dependencies": {
+            "TTKitchen/mPaaS/Task": []
+          },
+          "frameworks": "Foundation",
+          "name": "SG",
+          "public_header_files": "mPaaS/SG/**/*.h",
+          "source_files": "mPaaS/SG/**/*.{h,m,c}"
+        },
+        {
+          "dependencies": {
+            "TTKitchen/mPaaS/Task": []
+          },
+          "frameworks": "Foundation",
+          "name": "VA",
+          "public_header_files": "mPaaS/VA/**/*.h",
+          "source_files": "mPaaS/VA/**/*.{h,m,c}"
+        },
+        {
+          "dependencies": {
+            "BDStartUp/Debug": [],
+            "TTKitchen/Browser": [],
+            "TTKitchen/mPaaS/Task": []
+          },
+          "frameworks": "Foundation",
+          "name": "InHouse",
+          "public_header_files": "mPaaS/InHouse/**/*.h",
+          "source_files": "mPaaS/InHouse/**/*.{h,m,c}"
+        }
+      ]
+    },
+    {
+      "dependencies": {
+        "Heimdallr/UserException": [],
+        "TTKitchen/Core": []
+      },
+      "name": "KeyReporter",
+      "source_files": "KeyReporter/*.{h,m}"
+    },
+    {
+      "dependencies": {
+        "MMKV": [],
+        "TTKitchen/Core": []
+      },
+      "name": "MMKV",
+      "private_header_files": "MMKV/*.h",
+      "source_files": "MMKV/*.{h,m}"
+    },
+    {
+      "dependencies": {
+        "TTKitchen/Core": [],
+        "YYCache": []
+      },
+      "name": "YYCache",
+      "private_header_files": "YYCache/*.h",
+      "source_files": "YYCache/*.{h,m}"
+    },
+    {
+      "dependencies": {
+        "BDMonitorProtocol": [],
+        "TTKitchen/Core": [],
+        "TTKitchen/KeyReporter": [],
+        "TTKitchen/MMKV": [],
+        "TTKitchen/SettingsSyncer": [],
+        "TTKitchen/YYCache": []
+      },
+      "name": "Migrator",
+      "private_header_files": "Migrator/*.h",
+      "source_files": "Migrator/*.{h,m}"
+    },
+    {
+      "dependencies": {
+        "Heimdallr/DeviceInfo": [],
+        "TTDebugCore": [
+          "\u003e= 1.0.0"
+        ],
+        "TTKitchen/Core": [],
+        "TTKitchen/SettingsSyncer": []
+      },
+      "name": "Debug",
+      "source_files": "Debug/*.{h,m}"
+    }
+  ],
+  "summary": "framework_summary",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "TTKitchen_POD_VERSION=@\\\"9999_4.3.16\\\""
+  },
+  "version": "4.3.16"
+}

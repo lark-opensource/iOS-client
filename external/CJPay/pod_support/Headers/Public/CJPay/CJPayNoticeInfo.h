@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayAbility/Base/Model/CJPayNoticeInfo.h

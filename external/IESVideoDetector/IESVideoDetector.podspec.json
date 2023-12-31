@@ -1,0 +1,53 @@
+{
+  "name": "IESVideoDetector",
+  "version": "0.0.6.1-binary",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/ugc/IESVideoDetector",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "larry.lai": "larry.lai@bytedance.com"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/5/IESVideoDetector/0.0.6.1-binary/IESVideoDetector.framework.zip"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "source_files": "IESVideoDetector/Classes/**/*.{h,m,mm}",
+  "dependencies": {
+    "KVOController": [],
+    "Mantle": []
+  },
+  "_bytebus_platform": {
+    "repo_id": "10155",
+    "app_id": "5"
+  },
+  "repoId": "10155",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "IESVideoDetector_POD_VERSION=@\\\"5_0.0.6\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "IESVideoDetector_POD_VERSION=@\\\"5_0.0.6\\\""
+  },
+  "ios": {
+    "frameworks": [
+      "UIKit",
+      "Foundation",
+      "JavaScriptCore"
+    ],
+    "vendored_libraries": "ios-arch-iphone/*_IESVideoDetector_*awesome_*.a"
+  },
+  "prepare_command": "curl https://ios.bytedance.net/wlapi/tosDownload/iosbinary/platform/master/awesomecommand.sh | bash ;",
+  "source_code": {
+    "git": "git@code.byted.org:ugc/IESVideoDetector.git",
+    "commit": "5192fc50f06f"
+  },
+  "preserve_paths": [
+    "**/*.bwp"
+  ]
+}

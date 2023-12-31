@@ -1,0 +1,1 @@
+../../../../BDWebImage/Classes/Download/URLSession/BDDownloadURLSessionManager.h

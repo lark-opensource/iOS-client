@@ -1,0 +1,47 @@
+{
+  "name": "BDDataDecoratorTob",
+  "version": "1.0.4",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/iOS_Library/BDDataDecoratorTob",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "duanwenbin": "duanwenbin@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:iOS_Library/BDDataDecoratorTob.git",
+    "commit": "c752a7e258880965eae92aa77f5d100b83052544"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "requires_arc": true,
+  "static_framework": true,
+  "subspecs": [
+    {
+      "name": "Data",
+      "source_files": [
+        "BDDataDecorator/Data/**/*.{h,m,c}",
+        "BDDataDecorator/Base/**/*.{h,m,c}"
+      ],
+      "dependencies": {
+        "OneKit/BaseKit": []
+      }
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "5807",
+    "app_id": "9999"
+  },
+  "repoId": "5807",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDDataDecoratorTob_POD_VERSION=@\\\"9999_1.0.4\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDDataDecoratorTob_POD_VERSION=@\\\"9999_1.0.4\\\""
+  }
+}

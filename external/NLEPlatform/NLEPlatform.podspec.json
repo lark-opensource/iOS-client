@@ -1,0 +1,200 @@
+{
+  "_bytebus_platform": {
+    "repo_id": "11947",
+    "app_id": "9999"
+  },
+  "prepare_command": "curl https://ios.bytedance.net/wlapi/tosDownload/iosbinary/platform/master/awesomecommand_xz.sh | bash ;",
+  "preserve_paths": [
+    "**/*.bwp"
+  ],
+  "description": "framework_description",
+  "license": "MIT",
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/9999/NLEPlatform/2.3.1-alpha.0-lark.1.binary/NLEPlatform.framework.tar.xz"
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "NLEPlatform_POD_VERSION=@\\\"9999_2.3.1-alpha.0-lark\\\""
+  },
+  "ios": {
+    "frameworks": [
+      "UIKit",
+      "Foundation",
+      "JavaScriptCore"
+    ]
+  },
+  "summary": "framework_summary",
+  "build_type": "system",
+  "platforms": {
+    "osx": "10.15",
+    "ios": "9.0"
+  },
+  "version": "2.3.1-alpha.0-lark.1.binary",
+  "build_file_count": 187,
+  "authors": {
+    "bytedance": "bytedance@bytedance.com"
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "NLEPlatform_POD_VERSION=@\\\"9999_2.3.1-alpha.0-lark\\\""
+  },
+  "source_code": {
+    "commit": "6a86115fc1960b666e85a812db0b2fd10afa898a",
+    "git": "git@code.byted.org:ies/NLEPlatform.git"
+  },
+  "homepage": "https://code.byted.org/ies/NLEPlatform",
+  "repoId": "11947",
+  "subspecs": [
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_Model_*awesome_*.a"
+      },
+      "public_header_files": [
+        "ios/Headers/**/*.h",
+        "ios/convert/**/*.h"
+      ],
+      "name": "Model",
+      "xcconfig": {
+        "CC": "clang",
+        "CXX": "clang++",
+        "HEADER_SEARCH_PATHS": "\"$(PODS_TARGET_SRCROOT)/ios/convert\" \"$(PODS_TARGET_SRCROOT)/core\" \"$(PODS_TARGET_SRCROOT)/core/editor\" \"$(PODS_TARGET_SRCROOT)/core/model\" \"$(PODS_TARGET_SRCROOT)/core/thirdparty\" \"$(PODS_TARGET_SRCROOT)/core/utils\"",
+        "CLANG_CXX_LANGUAGE_STANDARD": "c++14",
+        "OTHER_LDFLAGS": "-lc++"
+      },
+      "preserve_paths": [
+        "core/thirdparty/nlohmann/**/*.{c,h,mm,m,cpp,hpp}",
+        "core/thirdparty/sha1/*.{c,h,mm,m,cpp,hpp}",
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Model_*awesome_*.a"
+      },
+      "source_files": [
+        "core/*.{h,cpp}",
+        "core/model/*.{hpp,h,cpp}",
+        "core/editor/*.{h,cpp}",
+        "core/logger/*.{h,cpp}",
+        "core/thirdparty/sha1/*.hpp",
+        "core/thirdparty/nlohmann/*.hpp",
+        "core/thirdparty/nlohmann/**/*.hpp",
+        "core/utils/*.{hpp,h,cpp}",
+        "core/resources/**/*.{h,cpp}",
+        "ios/Headers/**/*.{c,h,mm,m}",
+        "ios/Classes/*.{c,cpp,h,mm,m}",
+        "ios/Classes/private/**/*.{c,cpp,h,mm,m}",
+        "ios/convert/*.{c,h,mm,m}",
+        "ios/BaseKit/*.{c,h,mm,m}"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "__V_IPHONE_PLATFORM__"
+      }
+    },
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_Resource_*awesome_*.a"
+      },
+      "public_header_files": "core/resourcesdav/**/*.{h}",
+      "name": "Resource",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Resource_*awesome_*.a"
+      },
+      "dependencies": {
+        "DavinciResource": [],
+        "NLEPlatform/Model": []
+      },
+      "source_files": "core/resourcesdav/**/*.{h,cpp}"
+    },
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_Adapter_*awesome_*.a"
+      },
+      "public_header_files": [
+        "ios/veadapter/Interface/NLEInterface.h",
+        "ios/veadapter/Protocol/**/*.h",
+        "ios/veadapter/NLEConstDefinition.h",
+        "ios/veadapter/NLETextTemplateInfo.h",
+        "ios/veadapter/NLEBingoManager.h",
+        "ios/veadapter/DataSource/*.h"
+      ],
+      "name": "Adapter",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Adapter_*awesome_*.a"
+      },
+      "dependencies": {
+        "TTVideoEditor/Core": [],
+        "TTVideoEditor/LVCutTemplate": [],
+        "NLEPlatform/Model": []
+      },
+      "source_files": [
+        "ios/Classes/Utils/**/*.{c,cpp,h,mm,m}",
+        "ios/veadapter/**/*.{c,h,mm,m}"
+      ]
+    },
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_TOBAdapter_*awesome_*.a"
+      },
+      "public_header_files": [
+        "ios/veadapter/Interface/NLEInterface.h",
+        "ios/veadapter/Interface/NLECaptureOutput.h",
+        "ios/veadapter/Protocol/**/*.h",
+        "ios/veadapter/NLEConstDefinition.h",
+        "ios/veadapter/NLETextTemplateInfo.h",
+        "ios/veadapter/DataSource/*.h",
+        "ios/Classes/Utils/CGSize+NLE.h"
+      ],
+      "name": "TOBAdapter",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_TOBAdapter_*awesome_*.a"
+      },
+      "dependencies": {
+        "NLEPlatform/Model": [],
+        "TTVideoEditor": []
+      },
+      "source_files": [
+        "ios/Classes/Utils/**/*.{c,cpp,h,mm,m}",
+        "ios/veadapter/**/*.{c,h,mm,m}"
+      ]
+    },
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_NLETemplate_*awesome_*.a"
+      },
+      "public_header_files": [
+        "ios/Classes/TemplateModels/**/*.h"
+      ],
+      "name": "NLETemplate",
+      "xcconfig": {
+        "HEADER_SEARCH_PATHS": "\"$(PODS_TARGET_SRCROOT)/core/templatemodel\" \"$(PODS_TARGET_SRCROOT)/base\""
+      },
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_NLETemplate_*awesome_*.a"
+      },
+      "dependencies": {
+        "NLEPlatform/Model": []
+      },
+      "source_files": [
+        "ios/Classes/TemplateModels/Models/**/*.{h,mm,m}",
+        "ios/private/TemplateModels/**/*.{h,mm,m}",
+        "core/templatemodel/**/*.{h,hpp,cpp,c}",
+        "ios/Utils/**/*.{h,mm,m}",
+        "core/thirdparty/zip/*.{h,c}",
+        "ios/Classes/TemplateModels/Utils/**/*.{h,mm,m}",
+        "core/MV/**/*.{h,hpp,cpp,c}"
+      ]
+    }
+  ],
+  "name": "NLEPlatform"
+}

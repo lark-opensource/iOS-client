@@ -1,0 +1,125 @@
+# coding: utf-8
+# Customise this file, documentation can be found here:
+# https://github.com/fastlane/fastlane/tree/master/fastlane/docs
+# All available actions: https://docs.fastlane.tools/actions
+# can also be listed using the `fastlane actions` command
+
+# Change the syntax highlighting to Ruby
+# All lines starting with a # are ignored when running `fastlane`
+
+# If you want to automatically update fastlane if a new version is available:
+# update_fastlane
+
+# This is the minimum version number required.
+# Update this, if you use features of a newer version
+require 'yaml'
+
+fastlane_version "2.108.0"
+
+default_platform :ios
+
+platform :ios do
+  before_all do |lane|
+    if (ENV['BAZEL_ENABLE'] || '') == 'true' || (ENV['BAZEL_ENABLE'] || '') == 'auto'
+      ENV['REMOTE_CACHE_ENABLE'] = 'false'
+      ENV['USE_SWIFT_BINARY'] = 'false'
+    end
+    sh "bundle exec pod install --clean-install || bundle exec pod install --clean-install --repo-update"
+  end
+
+  lane :build_verify do |options|
+    merge_policy = lambda do |key, o, n|
+      if o.is_a? Hash and n.is_a? Hash
+        o.merge!(n, &merge_policy)
+      elsif Fastlane::Actions::XcodebuildAction::ARGS_MAP.include? key and n == 'false'
+        nil # remove action
+      else
+        n
+      end
+    end
+
+    if (ENV['BAZEL_ENABLE'] || '') == 'true' || (ENV['BAZEL_ENABLE'] || '') == 'auto'
+      raise "bitsky install failed " unless system('cd ..;bundle exec bitsky_install --need-pod-install false')
+      raise "bitsky build failed " unless system('cd ..;bundle exec bitsky_build')
+    else
+      options = {
+        workspace: 'UDCCatalog.xcworkspace',
+        scheme: 'UDCCatalog',
+        configuration: 'Debug',
+        clean: true,
+        build: true,
+        raw_buildlog: false, # show output from script like swiftlint
+        destination: 'generic/platform=iOS Simulator',
+        build_settings: {
+          'CODE_SIGNING_REQUIRED' => 'NO'
+        },
+        derivedDataPath: ENV['DERIVED_DATA_PATH'],
+        result_bundle_path: ENV['RESULT_DATA_PATH']
+      }.merge!(options, &merge_policy)
+      xcodebuild options
+    end
+  end
+
+  desc "编译 Demo 包"
+  lane :UDCCatalog do |options|
+
+    sh "rm -rf ../#{options[:output_directory]}"
+    # next;
+
+    scheme = options[:scheme]
+    if !scheme
+      scheme = "UDCCatalog"
+    end
+    increment_build_number_in_plist(
+      scheme: scheme,
+      build_number: options[:build_number]
+    )
+    version = get_version_number_from_plist(scheme: scheme)
+    build = get_build_number_from_plist(scheme: scheme)
+    # cert
+    # sigh
+
+    export_method = options[:export_method]
+    if !export_method
+      export_method = "enterprise"
+    end
+    configuration = options[:configuration]
+    if !configuration
+      configuration = "Release"
+    end
+    iCloud_container_environment = options[:iCloud_container_environment]
+    if !iCloud_container_environment
+      iCloud_container_environment = "Production"
+    end
+
+    # sh "mkdir -p ../#{options[:output_directory]}"
+
+    gym(
+      scheme: scheme,
+      clean: true,
+      silent: true,
+      configuration: configuration,
+      export_method: export_method,
+      export_options: {
+        iCloudContainerEnvironment: iCloud_container_environment,
+        provisioningProfiles: {
+          "com.larksuite.feishu.inhouse" => "comlarksuitefeishuinhouse"
+        }
+      },
+      output_directory: options[:output_directory],
+      output_name: "#{scheme}_#{version}_#{build}",
+      result_bundle: (!ENV['RESULT_DATA_PATH'].nil? and !ENV['RESULT_DATA_PATH'].empty?),
+      result_bundle_path: ENV['RESULT_DATA_PATH']
+    )
+  end
+
+
+  # You can define as many lanes as you want
+  after_all do |lane|
+    # This block is called, only if the executed lane was successful
+  end
+
+  error do |lane, exception|
+  end
+end
+

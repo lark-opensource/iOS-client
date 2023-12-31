@@ -1,0 +1,1940 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "libextobjc_pod_hdrs",
+  srcs = [
+    ":libextobjc_root_pod_hdrs",
+    ":UmbrellaHeader_pod_hdrs",
+    ":RuntimeExtensions_pod_hdrs",
+    ":EXTADT_pod_hdrs",
+    ":EXTConcreteProtocol_pod_hdrs",
+    ":EXTKeyPathCoding_pod_hdrs",
+    ":EXTNil_pod_hdrs",
+    ":EXTSafeCategory_pod_hdrs",
+    ":EXTScope_pod_hdrs",
+    ":EXTSelectorChecking_pod_hdrs",
+    ":EXTSynthesize_pod_hdrs",
+    ":NSInvocation_plus_EXT_pod_hdrs",
+    ":NSMethodSignature_plus_EXT_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "libextobjc_private_includes",
+  include = [
+    "external/libextobjc/pod_support/Headers/Private/libextobjc/"
+  ],
+  deps = [],
+  external_name = "libextobjc"
+)
+gen_includes(
+  name = "libextobjc_public_includes",
+  include = [
+    "external/libextobjc/pod_support/Headers/Public/libextobjc/"
+  ],
+  deps = [],
+  external_name = "libextobjc"
+)
+filegroup(
+  name = "_libextobjc_hdrs",
+  srcs = [
+    ":libextobjc_root_hdrs",
+    ":UmbrellaHeader_hdrs",
+    ":RuntimeExtensions_hdrs",
+    ":EXTADT_hdrs",
+    ":EXTConcreteProtocol_hdrs",
+    ":EXTKeyPathCoding_hdrs",
+    ":EXTNil_hdrs",
+    ":EXTSafeCategory_hdrs",
+    ":EXTScope_hdrs",
+    ":EXTSelectorChecking_hdrs",
+    ":EXTSynthesize_hdrs",
+    ":NSInvocation_plus_EXT_hdrs",
+    ":NSMethodSignature_plus_EXT_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "libextobjc_xcode_hmapsource",
+  hdrs = [
+    ":libextobjc_root_hdrs",
+    ":EXTADT_hdrs",
+    ":EXTConcreteProtocol_hdrs",
+    ":EXTKeyPathCoding_hdrs",
+    ":EXTNil_hdrs",
+    ":EXTSafeCategory_hdrs",
+    ":EXTScope_hdrs",
+    ":EXTSelectorChecking_hdrs",
+    ":EXTSynthesize_hdrs",
+    ":NSInvocation_plus_EXT_hdrs",
+    ":NSMethodSignature_plus_EXT_hdrs",
+    ":RuntimeExtensions_hdrs",
+    ":UmbrellaHeader_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "libextobjc_xcode_hmap",
+  dep = ":libextobjc_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/libextobjc/*-bitsky-generated.modulemap", "pod_support/Headers/Public/libextobjc/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "libextobjc_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "libextobjc",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "libextobjc_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":libextobjc_xcode_hmap"
+  ],
+  external_name = "libextobjc",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libextobjc_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libextobjc_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libextobjc_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libextobjc_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "libextobjc_module_map",
+  module_map = "pod_support/Headers/Public/libextobjc/libextobjc-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/libextobjc/libextobjc-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libextobjc_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "libextobjc_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":libextobjc_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":libextobjc_private_includes",
+    ":libextobjc_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":libextobjc_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libextobjc",
+  deps = [
+    ":libextobjc_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "libextobjc_lib",
+  deps = [
+    ":libextobjc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "UmbrellaHeader_hdrs",
+  srcs = [
+    "extobjc/extobjc.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "UmbrellaHeader_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/libextobjc/extobjc.h",
+    "pod_support/Headers/Public/libextobjc/extobjc.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "UmbrellaHeader_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "UmbrellaHeader_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "UmbrellaHeader_module_map",
+  module_map = "pod_support/Headers/Public/libextobjc/libextobjc_UmbrellaHeader-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/libextobjc/libextobjc_UmbrellaHeader-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "UmbrellaHeader_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "UmbrellaHeader_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":libextobjc_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":libextobjc_private_includes",
+    ":libextobjc_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":UmbrellaHeader_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "UmbrellaHeader",
+  deps = [
+    ":UmbrellaHeader_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "UmbrellaHeader_lib",
+  deps = [
+    ":UmbrellaHeader"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RuntimeExtensions_hdrs",
+  srcs = [
+    "extobjc/EXTRuntimeExtensions.h",
+    "extobjc/metamacros.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RuntimeExtensions_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/libextobjc/EXTRuntimeExtensions.h",
+    "pod_support/Headers/Private/libextobjc/metamacros.h",
+    "pod_support/Headers/Public/libextobjc/EXTRuntimeExtensions.h",
+    "pod_support/Headers/Public/libextobjc/metamacros.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RuntimeExtensions_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RuntimeExtensions_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "RuntimeExtensions_module_map",
+  module_map = "pod_support/Headers/Public/libextobjc/libextobjc_RuntimeExtensions-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/libextobjc/libextobjc_RuntimeExtensions-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RuntimeExtensions_srcs",
+  srcs = [
+    "extobjc/EXTRuntimeExtensions.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RuntimeExtensions_oc",
+  enable_modules = 1,
+  srcs = [
+    "RuntimeExtensions_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "RuntimeExtensions_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":libextobjc_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":libextobjc_private_includes",
+    ":libextobjc_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":RuntimeExtensions_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RuntimeExtensions",
+  deps = [
+    ":RuntimeExtensions_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "RuntimeExtensions_lib",
+  deps = [
+    ":RuntimeExtensions"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EXTADT_hdrs",
+  srcs = [
+    "extobjc/EXTADT.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EXTADT_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/libextobjc/EXTADT.h",
+    "pod_support/Headers/Public/libextobjc/EXTADT.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EXTADT_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EXTADT_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "EXTADT_module_map",
+  module_map = "pod_support/Headers/Public/libextobjc/libextobjc_EXTADT-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/libextobjc/libextobjc_EXTADT-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EXTADT_srcs",
+  srcs = [
+    "extobjc/EXTADT.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EXTADT_oc",
+  enable_modules = 1,
+  srcs = [
+    "EXTADT_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "EXTADT_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":libextobjc_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":libextobjc_private_includes",
+    ":libextobjc_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":EXTADT_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EXTADT",
+  deps = [
+    ":EXTADT_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "EXTADT_lib",
+  deps = [
+    ":EXTADT"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EXTConcreteProtocol_hdrs",
+  srcs = [
+    "extobjc/EXTConcreteProtocol.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EXTConcreteProtocol_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/libextobjc/EXTConcreteProtocol.h",
+    "pod_support/Headers/Public/libextobjc/EXTConcreteProtocol.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EXTConcreteProtocol_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EXTConcreteProtocol_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "EXTConcreteProtocol_module_map",
+  module_map = "pod_support/Headers/Public/libextobjc/libextobjc_EXTConcreteProtocol-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/libextobjc/libextobjc_EXTConcreteProtocol-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EXTConcreteProtocol_srcs",
+  srcs = [
+    "extobjc/EXTConcreteProtocol.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EXTConcreteProtocol_oc",
+  enable_modules = 1,
+  srcs = [
+    "EXTConcreteProtocol_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "EXTConcreteProtocol_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":libextobjc_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":libextobjc_private_includes",
+    ":libextobjc_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":EXTConcreteProtocol_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EXTConcreteProtocol",
+  deps = [
+    ":EXTConcreteProtocol_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "EXTConcreteProtocol_lib",
+  deps = [
+    ":EXTConcreteProtocol"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EXTKeyPathCoding_hdrs",
+  srcs = [
+    "extobjc/EXTKeyPathCoding.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EXTKeyPathCoding_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/libextobjc/EXTKeyPathCoding.h",
+    "pod_support/Headers/Public/libextobjc/EXTKeyPathCoding.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EXTKeyPathCoding_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EXTKeyPathCoding_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "EXTKeyPathCoding_module_map",
+  module_map = "pod_support/Headers/Public/libextobjc/libextobjc_EXTKeyPathCoding-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/libextobjc/libextobjc_EXTKeyPathCoding-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EXTKeyPathCoding_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "EXTKeyPathCoding_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":libextobjc_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":libextobjc_private_includes",
+    ":libextobjc_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":EXTKeyPathCoding_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EXTKeyPathCoding",
+  deps = [
+    ":EXTKeyPathCoding_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "EXTKeyPathCoding_lib",
+  deps = [
+    ":EXTKeyPathCoding"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EXTNil_hdrs",
+  srcs = [
+    "extobjc/EXTNil.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EXTNil_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/libextobjc/EXTNil.h",
+    "pod_support/Headers/Public/libextobjc/EXTNil.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EXTNil_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EXTNil_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "EXTNil_module_map",
+  module_map = "pod_support/Headers/Public/libextobjc/libextobjc_EXTNil-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/libextobjc/libextobjc_EXTNil-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EXTNil_srcs",
+  srcs = [
+    "extobjc/EXTNil.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EXTNil_oc",
+  enable_modules = 1,
+  srcs = [
+    "EXTNil_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "EXTNil_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":libextobjc_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":libextobjc_private_includes",
+    ":libextobjc_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":EXTNil_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EXTNil",
+  deps = [
+    ":EXTNil_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "EXTNil_lib",
+  deps = [
+    ":EXTNil"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EXTSafeCategory_hdrs",
+  srcs = [
+    "extobjc/EXTSafeCategory.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EXTSafeCategory_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/libextobjc/EXTSafeCategory.h",
+    "pod_support/Headers/Public/libextobjc/EXTSafeCategory.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EXTSafeCategory_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EXTSafeCategory_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "EXTSafeCategory_module_map",
+  module_map = "pod_support/Headers/Public/libextobjc/libextobjc_EXTSafeCategory-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/libextobjc/libextobjc_EXTSafeCategory-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EXTSafeCategory_srcs",
+  srcs = [
+    "extobjc/EXTSafeCategory.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EXTSafeCategory_oc",
+  enable_modules = 1,
+  srcs = [
+    "EXTSafeCategory_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "EXTSafeCategory_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":libextobjc_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":libextobjc_private_includes",
+    ":libextobjc_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":EXTSafeCategory_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EXTSafeCategory",
+  deps = [
+    ":EXTSafeCategory_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "EXTSafeCategory_lib",
+  deps = [
+    ":EXTSafeCategory"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EXTScope_hdrs",
+  srcs = [
+    "extobjc/EXTScope.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EXTScope_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/libextobjc/EXTScope.h",
+    "pod_support/Headers/Public/libextobjc/EXTScope.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EXTScope_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EXTScope_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "EXTScope_module_map",
+  module_map = "pod_support/Headers/Public/libextobjc/libextobjc_EXTScope-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/libextobjc/libextobjc_EXTScope-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EXTScope_srcs",
+  srcs = [
+    "extobjc/EXTScope.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EXTScope_oc",
+  enable_modules = 1,
+  srcs = [
+    "EXTScope_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "EXTScope_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":libextobjc_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":libextobjc_private_includes",
+    ":libextobjc_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":EXTScope_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EXTScope",
+  deps = [
+    ":EXTScope_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "EXTScope_lib",
+  deps = [
+    ":EXTScope"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EXTSelectorChecking_hdrs",
+  srcs = [
+    "extobjc/EXTSelectorChecking.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EXTSelectorChecking_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/libextobjc/EXTSelectorChecking.h",
+    "pod_support/Headers/Public/libextobjc/EXTSelectorChecking.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EXTSelectorChecking_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EXTSelectorChecking_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "EXTSelectorChecking_module_map",
+  module_map = "pod_support/Headers/Public/libextobjc/libextobjc_EXTSelectorChecking-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/libextobjc/libextobjc_EXTSelectorChecking-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EXTSelectorChecking_srcs",
+  srcs = [
+    "extobjc/EXTSelectorChecking.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EXTSelectorChecking_oc",
+  enable_modules = 1,
+  srcs = [
+    "EXTSelectorChecking_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "EXTSelectorChecking_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":libextobjc_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":libextobjc_private_includes",
+    ":libextobjc_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":EXTSelectorChecking_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EXTSelectorChecking",
+  deps = [
+    ":EXTSelectorChecking_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "EXTSelectorChecking_lib",
+  deps = [
+    ":EXTSelectorChecking"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EXTSynthesize_hdrs",
+  srcs = [
+    "extobjc/EXTSynthesize.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EXTSynthesize_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/libextobjc/EXTSynthesize.h",
+    "pod_support/Headers/Public/libextobjc/EXTSynthesize.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EXTSynthesize_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EXTSynthesize_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "EXTSynthesize_module_map",
+  module_map = "pod_support/Headers/Public/libextobjc/libextobjc_EXTSynthesize-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/libextobjc/libextobjc_EXTSynthesize-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EXTSynthesize_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "EXTSynthesize_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":libextobjc_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":libextobjc_private_includes",
+    ":libextobjc_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":EXTSynthesize_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EXTSynthesize",
+  deps = [
+    ":EXTSynthesize_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "EXTSynthesize_lib",
+  deps = [
+    ":EXTSynthesize"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NSInvocation_plus_EXT_hdrs",
+  srcs = [
+    "extobjc/NSInvocation+EXT.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NSInvocation_plus_EXT_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/libextobjc/NSInvocation+EXT.h",
+    "pod_support/Headers/Public/libextobjc/NSInvocation+EXT.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "NSInvocation_plus_EXT_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "NSInvocation_plus_EXT_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "NSInvocation_plus_EXT_module_map",
+  module_map = "pod_support/Headers/Public/libextobjc/libextobjc_NSInvocation_plus_EXT-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/libextobjc/libextobjc_NSInvocation_plus_EXT-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NSInvocation_plus_EXT_srcs",
+  srcs = [
+    "extobjc/NSInvocation+EXT.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "NSInvocation_plus_EXT_oc",
+  enable_modules = 1,
+  srcs = [
+    "NSInvocation_plus_EXT_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "NSInvocation_plus_EXT_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":libextobjc_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":libextobjc_private_includes",
+    ":libextobjc_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":NSInvocation_plus_EXT_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "NSInvocation_plus_EXT",
+  deps = [
+    ":NSInvocation_plus_EXT_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "NSInvocation_plus_EXT_lib",
+  deps = [
+    ":NSInvocation_plus_EXT"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NSMethodSignature_plus_EXT_hdrs",
+  srcs = [
+    "extobjc/NSMethodSignature+EXT.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NSMethodSignature_plus_EXT_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/libextobjc/NSMethodSignature+EXT.h",
+    "pod_support/Headers/Public/libextobjc/NSMethodSignature+EXT.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "NSMethodSignature_plus_EXT_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "NSMethodSignature_plus_EXT_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "NSMethodSignature_plus_EXT_module_map",
+  module_map = "pod_support/Headers/Public/libextobjc/libextobjc_NSMethodSignature_plus_EXT-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/libextobjc/libextobjc_NSMethodSignature_plus_EXT-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NSMethodSignature_plus_EXT_srcs",
+  srcs = [
+    "extobjc/NSMethodSignature+EXT.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "NSMethodSignature_plus_EXT_oc",
+  enable_modules = 1,
+  srcs = [
+    "NSMethodSignature_plus_EXT_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "NSMethodSignature_plus_EXT_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":libextobjc_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":libextobjc_private_includes",
+    ":libextobjc_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":NSMethodSignature_plus_EXT_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "NSMethodSignature_plus_EXT",
+  deps = [
+    ":NSMethodSignature_plus_EXT_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "NSMethodSignature_plus_EXT_lib",
+  deps = [
+    ":NSMethodSignature_plus_EXT"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_libextobjc_module_map",
+  module_map = "@libextobjc//:pod_support/Headers/Public/libextobjc/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@libextobjc//:pod_support/Headers/Public/libextobjc/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_libextobjc_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@libextobjc//:EXTADT_objc_interface", "@libextobjc//:EXTConcreteProtocol_objc_interface", "@libextobjc//:EXTKeyPathCoding_objc_interface", "@libextobjc//:EXTNil_objc_interface", "@libextobjc//:EXTSafeCategory_objc_interface", "@libextobjc//:EXTScope_objc_interface", "@libextobjc//:EXTSelectorChecking_objc_interface", "@libextobjc//:EXTSynthesize_objc_interface", "@libextobjc//:NSInvocation_plus_EXT_objc_interface", "@libextobjc//:NSMethodSignature_plus_EXT_objc_interface", "@libextobjc//:RuntimeExtensions_objc_interface", "@libextobjc//:UmbrellaHeader_objc_interface", "@libextobjc//:libextobjc_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_libextobjc",
+  target_name = "Lark",
+  module_name = "libextobjc",
+  hdrs = ["@libextobjc//:EXTADT_pod_hdrs", "@libextobjc//:EXTConcreteProtocol_pod_hdrs", "@libextobjc//:EXTKeyPathCoding_pod_hdrs", "@libextobjc//:EXTNil_pod_hdrs", "@libextobjc//:EXTSafeCategory_pod_hdrs", "@libextobjc//:EXTScope_pod_hdrs", "@libextobjc//:EXTSelectorChecking_pod_hdrs", "@libextobjc//:EXTSynthesize_pod_hdrs", "@libextobjc//:NSInvocation_plus_EXT_pod_hdrs", "@libextobjc//:NSMethodSignature_plus_EXT_pod_hdrs", "@libextobjc//:RuntimeExtensions_pod_hdrs", "@libextobjc//:UmbrellaHeader_pod_hdrs", "@libextobjc//:libextobjc_root_pod_hdrs"],
+  srcs = ["@libextobjc//:EXTADT_srcs", "@libextobjc//:EXTConcreteProtocol_srcs", "@libextobjc//:EXTNil_srcs", "@libextobjc//:EXTSafeCategory_srcs", "@libextobjc//:EXTScope_srcs", "@libextobjc//:EXTSelectorChecking_srcs", "@libextobjc//:NSInvocation_plus_EXT_srcs", "@libextobjc//:NSMethodSignature_plus_EXT_srcs", "@libextobjc//:RuntimeExtensions_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "libextobjc_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "libextobjc_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "libextobjc_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "libextobjc_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "libextobjc_dynamic", False),
+  tags = getattr(defs_external_objc_library, "libextobjc_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("libextobjc", {}),
+  visibility = ["//visibility:public"],
+)

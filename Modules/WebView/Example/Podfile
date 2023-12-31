@@ -1,0 +1,104 @@
+# coding: utf-8
+
+# @!domain [Pod::Podfile]
+# @!parse
+#  require 'cocoapods'
+
+
+require_relative '../../../if_pod'
+require_relative '../../../bin/lib/lark-project/lib/lark/project/podfile_mixin'
+require_relative '../../../bin/lib/lark-project/lib/lark/project/assembly'
+require_relative '../../../bin/lib/lark-project/lib/lark/project/lark_assert'
+plugin 'cocoapods-monitor'
+
+# 下面这行为M1 arm64的配置，取消注释后工程将会以M1 原生的编译, 详细见https://bytedance.feishu.cn/wiki/wikcnwks71unvjEFltDHpinn9Yc
+# lark_build_for_all_arch!
+
+# 删除本地残留的 .eescaffold 避免影响 eesc 工作
+`eesc_dir=$(git rev-parse --show-toplevel)/Modules/WebView/.eescaffold; ([[ -e $eesc_dir ]] && rm -rf $eesc_dir)`
+
+lark_template_common_setup(hummer_tags: {})
+
+strict_lock_mode!
+
+# 使git hook生效
+`git config core.hooksPath hooks`
+
+disable_swiftlint! if respond_to?(:disable_swiftlint!)
+
+# 不进行 dependency 检查
+ENV['CHECK_ARCH_DEPS'] = 'false'
+
+# :all 全部的assert都会转为lldb断点, :none 全部的assert都会被忽略，转为控制台输出, "Modules/Biz" (or ["Moudles/Biz1", "Moudles/Biz2"]  )对单独或多个一个目录转lldb断点，其他目录忽略assert，转为控制台输出
+# :disable 禁用改feature
+# 你也可以在本地创建 Podfile.patch（请勿提交该文件！） 以固定配置某些库为源码或者二进制, 相关文档可见 https://bytedance.feishu.cn/wiki/wikcn5ZmvLm18TTTrwpIzNggwtf
+assert_dir "Modules/WebView"
+
+# @param strategy:
+#   :all 开启全部二进制
+#   :pb 只有PB开启二进制
+#   :other 手动开启二进制
+# 你也可以在本地创建 Podfile.patch（请勿提交该文件！） 以固定配置某些库为源码或者二进制
+# 修改后记得重新pod install
+lark_use_common_binary_config(strategy: :all) do
+  # 这里插入Name可以将某个库切成源码, 无需使用引号、逗号，一行一个或者使用空格做分割
+  %W[
+  ].each { |v| source v }
+end
+
+def developPods
+  pod 'LarkWebViewContainer'
+  eepod 'LarkWebviewNativeComponent'
+end
+
+target 'Demo' do
+  lark_main_target_if_pods
+
+  # Pods for LarkWebViewDemo
+  developPods
+  target 'DemoTests' do
+    inherit! :search_paths
+    # Pods for testing
+  end
+  target 'DemoUITests' do
+    # Pods for testing
+  end
+end
+
+# @param installer [Pod::Installer]
+pre_install do |installer|
+  # modify build_settings in pre_install, so cache check will be valid
+  lark_template_common_pre_install installer
+
+  # additional xcconfigs
+  installer.pod_targets.each do |pod_target|
+    attributes_hash = pod_target.root_spec.attributes_hash
+    pod_target_xcconfig = (attributes_hash['pod_target_xcconfig'] ||= {})
+
+    pod_target_xcconfig['SWIFT_VERSION'] = '5.5'
+    pod_target_xcconfig['SUPPORTS_MACCATALYST'] = 'NO'
+  end
+end
+
+post_install do |installer|
+  lark_template_common_post_install installer
+
+  # 接入 lark-project 的 assembly 同步功能，自动生成 Assembly
+  Assembly.rebuild installer
+
+  # the post installer change won't mark cache invalid, and the results is not full(unless use clean install)
+  # but it can set config by configurations..
+  installer.target_installation_results.pod_target_installation_results.each do |name, result|
+    # @type [Xcodeproj::Project::PBXNativeTarget]
+    target = result.native_target
+    release_settings = target.build_settings('Release')
+    release_settings['SWIFT_OPTIMIZATION_LEVEL'] = '-Osize'
+    release_settings['GCC_OPTIMIZATION_LEVEL'] = 'z'
+  end
+
+  treat_warning_as_errors_list = [
+  ]
+
+  warn_as_error = $lark_env.can_change_module_stability && { 'Debug' => treat_warning_as_errors_list }
+  lark_template_common_post_install installer, warn_as_error: warn_as_error
+end

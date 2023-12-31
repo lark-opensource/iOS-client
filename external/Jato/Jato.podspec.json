@@ -1,0 +1,69 @@
+{
+  "name": "Jato",
+  "version": "0.0.5-rc.2",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://github.com/袁章敬/Jato",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "袁章敬": "yuanzhangjing@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:mobile_perf_infra/Jato-iOS.git",
+    "commit": "d4dacfc39bd65ecd6e06c0751243a2b04d9f49db"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "subspecs": [
+    {
+      "name": "Audio",
+      "source_files": "Jato/Audio/**/*",
+      "frameworks": "AudioToolbox"
+    },
+    {
+      "name": "PageIn",
+      "public_header_files": "Jato/PageIn/**/*.h",
+      "source_files": "Jato/PageIn/**/*",
+      "dependencies": {
+        "ByteDanceKit": []
+      }
+    },
+    {
+      "name": "NetworkOpt",
+      "requires_arc": true,
+      "source_files": "Jato/Classes/JATNetworkOpt/**/*.{h,c,m,mm}",
+      "dependencies": {
+        "TTNetworkManager": [],
+        "ByteDanceKit": [],
+        "Heimdallr/TTMonitor": [],
+        "Jato/Utilities": [],
+        "BDALog": []
+      }
+    },
+    {
+      "name": "Utilities",
+      "requires_arc": true,
+      "source_files": "Jato/Classes/Utilities/**/*.{h,c,m,mm}",
+      "dependencies": {
+        "ByteDanceKit": [],
+        "Heimdallr/UserException": []
+      }
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "23933",
+    "app_id": "9999"
+  },
+  "repoId": "23933",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "Jato_POD_VERSION=@\\\"9999_0.0.5-rc.2\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "Jato_POD_VERSION=@\\\"9999_0.0.5-rc.2\\\""
+  }
+}

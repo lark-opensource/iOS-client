@@ -1,0 +1,2301 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "TTBridgeUnify_pod_hdrs",
+  srcs = [
+    ":TTBridgeUnify_root_pod_hdrs",
+    ":TTBridge_pod_hdrs",
+    ":TTBridgeAuthManager_pod_hdrs",
+    ":TTBridgeAuthManager_Core_pod_hdrs",
+    ":TTBridgeAuthManager_CN_pod_hdrs",
+    ":React_pod_hdrs",
+    ":WebView_pod_hdrs",
+    ":TouTiaoWebView_pod_hdrs",
+    ":UnifiedWebView_pod_hdrs",
+    ":TTBridgeNameDefines_pod_hdrs",
+    ":RexxarAdapter_pod_hdrs",
+    ":DynamicPlugin_pod_hdrs",
+    ":Lynx_pod_hdrs",
+    ":vmsdk_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "TTBridgeUnify_private_includes",
+  include = [
+    "external/TTBridgeUnify/pod_support/Headers/Private/TTBridgeUnify/"
+  ],
+  deps = [],
+  external_name = "TTBridgeUnify"
+)
+gen_includes(
+  name = "TTBridgeUnify_public_includes",
+  include = [
+    "external/TTBridgeUnify/pod_support/Headers/Public/TTBridgeUnify/"
+  ],
+  deps = [],
+  external_name = "TTBridgeUnify"
+)
+filegroup(
+  name = "_TTBridgeUnify_hdrs",
+  srcs = [
+    ":TTBridgeUnify_root_hdrs",
+    ":TTBridge_hdrs",
+    ":TTBridgeAuthManager_hdrs",
+    ":TTBridgeAuthManager_Core_hdrs",
+    ":TTBridgeAuthManager_CN_hdrs",
+    ":React_hdrs",
+    ":WebView_hdrs",
+    ":TouTiaoWebView_hdrs",
+    ":UnifiedWebView_hdrs",
+    ":TTBridgeNameDefines_hdrs",
+    ":RexxarAdapter_hdrs",
+    ":DynamicPlugin_hdrs",
+    ":Lynx_hdrs",
+    ":vmsdk_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "TTBridgeUnify_xcode_hmapsource",
+  hdrs = [
+    ":TTBridgeUnify_root_hdrs",
+    ":Lynx_hdrs",
+    ":TTBridge_hdrs",
+    ":TTBridgeAuthManager_hdrs",
+    ":TTBridgeAuthManager_CN_hdrs",
+    ":TTBridgeAuthManager_Core_hdrs",
+    ":TTBridgeNameDefines_hdrs",
+    ":UnifiedWebView_hdrs",
+    ":WebView_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "TTBridgeUnify_xcode_hmap",
+  dep = ":TTBridgeUnify_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/TTBridgeUnify/*-bitsky-generated.modulemap", "pod_support/Headers/Public/TTBridgeUnify/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "TTBridgeUnify_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "TTBridgeUnify",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "TTBridgeUnify_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":TTBridgeUnify_xcode_hmap"
+  ],
+  external_name = "TTBridgeUnify",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTBridgeUnify_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTBridgeUnify_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTBridgeUnify_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTBridgeUnify_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TTBridgeUnify_module_map",
+  module_map = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTBridgeUnify_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "TTBridgeUnify_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation"
+  ],
+  deps = [
+    ":TTBridgeUnify_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTBridgeUnify_private_includes",
+    ":TTBridgeUnify_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":TTBridgeUnify_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTBridgeUnify_POD_VERSION=@\\\"9999_5.2.13\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTBridgeUnify",
+  deps = [
+    ":TTBridgeUnify_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TTBridgeUnify_lib",
+  deps = [
+    ":TTBridgeUnify"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTBridge_hdrs",
+  srcs = [
+    "TTBridgeUnify/Classes/TTBridge/TTBridgeAuthorization.h",
+    "TTBridgeUnify/Classes/TTBridge/TTBridgeCommand.h",
+    "TTBridgeUnify/Classes/TTBridge/TTBridgeDefines.h",
+    "TTBridgeUnify/Classes/TTBridge/TTBridgeEngine.h",
+    "TTBridgeUnify/Classes/TTBridge/TTBridgeForwarding.h",
+    "TTBridgeUnify/Classes/TTBridge/TTBridgePlugin.h",
+    "TTBridgeUnify/Classes/TTBridge/TTBridgeRegister.h",
+    "TTBridgeUnify/Classes/TTBridge/TTBridgeThreadSafeMutableDictionary.h",
+    "TTBridgeUnify/Classes/TTBridge/TTBridgeUnify.h",
+    "TTBridgeUnify/Classes/TTBridge/TTBridgeUnify_internal.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTBridge_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTBridgeUnify/TTBridgeAuthorization.h",
+    "pod_support/Headers/Private/TTBridgeUnify/TTBridgeCommand.h",
+    "pod_support/Headers/Private/TTBridgeUnify/TTBridgeDefines.h",
+    "pod_support/Headers/Private/TTBridgeUnify/TTBridgeEngine.h",
+    "pod_support/Headers/Private/TTBridgeUnify/TTBridgeForwarding.h",
+    "pod_support/Headers/Private/TTBridgeUnify/TTBridgePlugin.h",
+    "pod_support/Headers/Private/TTBridgeUnify/TTBridgeRegister.h",
+    "pod_support/Headers/Private/TTBridgeUnify/TTBridgeThreadSafeMutableDictionary.h",
+    "pod_support/Headers/Private/TTBridgeUnify/TTBridgeUnify.h",
+    "pod_support/Headers/Private/TTBridgeUnify/TTBridgeUnify_internal.h",
+    "pod_support/Headers/Public/TTBridgeUnify/TTBridgeAuthorization.h",
+    "pod_support/Headers/Public/TTBridgeUnify/TTBridgeCommand.h",
+    "pod_support/Headers/Public/TTBridgeUnify/TTBridgeDefines.h",
+    "pod_support/Headers/Public/TTBridgeUnify/TTBridgeEngine.h",
+    "pod_support/Headers/Public/TTBridgeUnify/TTBridgeForwarding.h",
+    "pod_support/Headers/Public/TTBridgeUnify/TTBridgePlugin.h",
+    "pod_support/Headers/Public/TTBridgeUnify/TTBridgeRegister.h",
+    "pod_support/Headers/Public/TTBridgeUnify/TTBridgeThreadSafeMutableDictionary.h",
+    "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify.h",
+    "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_internal.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTBridge_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTBridge_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TTBridge_module_map",
+  module_map = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_TTBridge-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_TTBridge-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTBridge_srcs",
+  srcs = [
+    "TTBridgeUnify/Classes/TTBridge/TTBridgeCommand.m",
+    "TTBridgeUnify/Classes/TTBridge/TTBridgeForwarding.m",
+    "TTBridgeUnify/Classes/TTBridge/TTBridgePlugin.m",
+    "TTBridgeUnify/Classes/TTBridge/TTBridgeRegister.m",
+    "TTBridgeUnify/Classes/TTBridge/TTBridgeThreadSafeMutableDictionary.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTBridge_oc",
+  enable_modules = 1,
+  srcs = [
+    "TTBridge_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "TTBridge_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation"
+  ],
+  deps = [
+    ":TTBridgeUnify_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTBridgeUnify_private_includes",
+    ":TTBridgeUnify_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAssert//:Core_objc_interface",
+    "@BDJSBridgeAuthManager//:Core_objc_interface",
+    "@BDMonitorProtocol//:BDMonitorProtocol_objc_interface",
+    "@Gaia//:Gaia_objc_interface",
+    "@BDAssert//:Core_swift_interface",
+    "@BDJSBridgeAuthManager//:Core_swift_interface",
+    "@BDMonitorProtocol//:BDMonitorProtocol_swift_interface",
+    "@Gaia//:Gaia_swift_interface",
+    ":TTBridge_objc_interface",
+    "@BDAssert//:Core_module_map",
+    "@BDJSBridgeAuthManager//:Core_module_map",
+    "@BDMonitorProtocol//:BDMonitorProtocol_module_map",
+    "@Gaia//:Gaia_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTBridgeUnify_POD_VERSION=@\\\"9999_5.2.13\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTBridge",
+  deps = [
+    ":TTBridge_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TTBridge_lib",
+  deps = [
+    ":TTBridge"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTBridgeAuthManager_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTBridgeAuthManager_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTBridgeAuthManager_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTBridgeAuthManager_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TTBridgeAuthManager_module_map",
+  module_map = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_TTBridgeAuthManager-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_TTBridgeAuthManager-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTBridgeAuthManager_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "TTBridgeAuthManager_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation"
+  ],
+  deps = [
+    ":TTBridgeUnify_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTBridgeUnify_private_includes",
+    ":TTBridgeUnify_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":TTBridgeAuthManager_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTBridgeUnify_POD_VERSION=@\\\"9999_5.2.13\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTBridgeAuthManager",
+  deps = [
+    ":TTBridgeAuthManager_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TTBridgeAuthManager_lib",
+  deps = [
+    ":TTBridgeAuthManager"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTBridgeAuthManager_Core_hdrs",
+  srcs = [
+    "TTBridgeUnify/Classes/TTBridgeAuthManager/Core/NSObject+IESAuthManager.h",
+    "TTBridgeUnify/Classes/TTBridgeAuthManager/Core/TTBridgeAuthManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTBridgeAuthManager_Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTBridgeUnify/NSObject+IESAuthManager.h",
+    "pod_support/Headers/Private/TTBridgeUnify/TTBridgeAuthManager.h",
+    "pod_support/Headers/Public/TTBridgeUnify/NSObject+IESAuthManager.h",
+    "pod_support/Headers/Public/TTBridgeUnify/TTBridgeAuthManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTBridgeAuthManager_Core_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTBridgeAuthManager_Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TTBridgeAuthManager_Core_module_map",
+  module_map = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_TTBridgeAuthManager_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_TTBridgeAuthManager_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTBridgeAuthManager_Core_srcs",
+  srcs = [
+    "TTBridgeUnify/Classes/TTBridgeAuthManager/Core/NSObject+IESAuthManager.m",
+    "TTBridgeUnify/Classes/TTBridgeAuthManager/Core/TTBridgeAuthManager.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTBridgeAuthManager_Core_oc",
+  enable_modules = 1,
+  srcs = [
+    "TTBridgeAuthManager_Core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "TTBridgeAuthManager_Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation"
+  ],
+  deps = [
+    ":TTBridgeUnify_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTBridgeUnify_private_includes",
+    ":TTBridgeUnify_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDJSBridgeAuthManager//:Core_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDJSBridgeAuthManager//:Core_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":TTBridgeAuthManager_Core_objc_interface",
+    "@BDJSBridgeAuthManager//:Core_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTBridgeUnify_POD_VERSION=@\\\"9999_5.2.13\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTBridgeAuthManager_Core",
+  deps = [
+    ":TTBridgeAuthManager_Core_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TTBridgeAuthManager_Core_lib",
+  deps = [
+    ":TTBridgeAuthManager_Core"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTBridgeAuthManager_CN_hdrs",
+  srcs = [
+    "TTBridgeUnify/Classes/TTBridgeAuthManager/CN/TTBridgeAuthManager+CN.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTBridgeAuthManager_CN_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTBridgeUnify/TTBridgeAuthManager+CN.h",
+    "pod_support/Headers/Public/TTBridgeUnify/TTBridgeAuthManager+CN.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTBridgeAuthManager_CN_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTBridgeAuthManager_CN_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TTBridgeAuthManager_CN_module_map",
+  module_map = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_TTBridgeAuthManager_CN-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_TTBridgeAuthManager_CN-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTBridgeAuthManager_CN_srcs",
+  srcs = [
+    "TTBridgeUnify/Classes/TTBridgeAuthManager/CN/TTBridgeAuthManager+CN.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTBridgeAuthManager_CN_oc",
+  enable_modules = 1,
+  srcs = [
+    "TTBridgeAuthManager_CN_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "TTBridgeAuthManager_CN_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation"
+  ],
+  deps = [
+    ":TTBridgeUnify_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTBridgeUnify_private_includes",
+    ":TTBridgeUnify_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDJSBridgeAuthManager//:CN_objc_interface",
+    "@BDJSBridgeAuthManager//:CN_swift_interface",
+    ":TTBridgeAuthManager_CN_objc_interface",
+    "@BDJSBridgeAuthManager//:CN_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTBridgeUnify_POD_VERSION=@\\\"9999_5.2.13\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTBridgeAuthManager_CN",
+  deps = [
+    ":TTBridgeAuthManager_CN_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TTBridgeAuthManager_CN_lib",
+  deps = [
+    ":TTBridgeAuthManager_CN"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "React_hdrs",
+  srcs = [
+    "TTBridgeUnify/Classes/React/TTRNBridgeEngine.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "React_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "React_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "React_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "React_module_map",
+  module_map = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_React-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_React-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "React_srcs",
+  srcs = [
+    "TTBridgeUnify/Classes/React/TTRNBridgeEngine.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "React_oc",
+  enable_modules = 1,
+  srcs = [
+    "React_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "React_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation"
+  ],
+  deps = [
+    ":TTBridgeUnify_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTBridgeUnify_private_includes",
+    ":TTBridgeUnify_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@React//:Core_objc_interface",
+    "@React//:CxxBridge_objc_interface",
+    "@React//:cxxreact_objc_interface",
+    "@React//:DevSupport_objc_interface",
+    "@React//:jschelpers_objc_interface",
+    "@React//:jsinspector_objc_interface",
+    "@React//:PrivateDatabase_objc_interface",
+    "@React//:RCTActionSheet_objc_interface",
+    "@React//:RCTBlob_objc_interface",
+    "@React//:RCTImage_objc_interface",
+    "@React//:RCTNetwork_objc_interface",
+    "@React//:RCTText_objc_interface",
+    "@React//:RCTWebSocket_objc_interface",
+    "@Yoga//:Yoga_objc_interface",
+    "@React//:Core_swift_interface",
+    "@React//:CxxBridge_swift_interface",
+    "@React//:cxxreact_swift_interface",
+    "@React//:DevSupport_swift_interface",
+    "@React//:jschelpers_swift_interface",
+    "@React//:jsinspector_swift_interface",
+    "@React//:PrivateDatabase_swift_interface",
+    "@React//:RCTActionSheet_swift_interface",
+    "@React//:RCTBlob_swift_interface",
+    "@React//:RCTImage_swift_interface",
+    "@React//:RCTNetwork_swift_interface",
+    "@React//:RCTText_swift_interface",
+    "@React//:RCTWebSocket_swift_interface",
+    "@Yoga//:Yoga_swift_interface",
+    ":React_objc_interface",
+    "@React//:Core_module_map",
+    "@React//:CxxBridge_module_map",
+    "@React//:cxxreact_module_map",
+    "@React//:DevSupport_module_map",
+    "@React//:jschelpers_module_map",
+    "@React//:jsinspector_module_map",
+    "@React//:PrivateDatabase_module_map",
+    "@React//:RCTActionSheet_module_map",
+    "@React//:RCTBlob_module_map",
+    "@React//:RCTImage_module_map",
+    "@React//:RCTNetwork_module_map",
+    "@React//:RCTText_module_map",
+    "@React//:RCTWebSocket_module_map",
+    "@Yoga//:Yoga_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTBridgeUnify_POD_VERSION=@\\\"9999_5.2.13\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "React",
+  deps = [
+    ":React_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "React_lib",
+  deps = [
+    ":React"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "WebView_hdrs",
+  srcs = [
+    "TTBridgeUnify/Classes/WebView/TTWebViewBridgeEngine.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "WebView_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTBridgeUnify/TTWebViewBridgeEngine.h",
+    "pod_support/Headers/Public/TTBridgeUnify/TTWebViewBridgeEngine.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "WebView_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "WebView_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "WebView_module_map",
+  module_map = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_WebView-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_WebView-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "WebView_srcs",
+  srcs = [
+    "TTBridgeUnify/Classes/WebView/TTWebViewBridgeEngine.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "WebView_oc",
+  enable_modules = 1,
+  srcs = [
+    "WebView_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "WebView_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "WebKit"
+  ],
+  deps = [
+    ":TTBridgeUnify_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTBridgeUnify_private_includes",
+    ":TTBridgeUnify_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDMonitorProtocol//:BDMonitorProtocol_objc_interface",
+    "@BDMonitorProtocol//:BDMonitorProtocol_swift_interface",
+    ":WebView_objc_interface",
+    "@BDMonitorProtocol//:BDMonitorProtocol_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTBridgeUnify_POD_VERSION=@\\\"9999_5.2.13\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "WebView",
+  deps = [
+    ":WebView_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "WebView_lib",
+  deps = [
+    ":WebView"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TouTiaoWebView_hdrs",
+  srcs = [
+    "TTBridgeUnify/Classes/TouTiaoWebView/BDTouTiaoWebViewBridgeEngine.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TouTiaoWebView_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TouTiaoWebView_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TouTiaoWebView_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TouTiaoWebView_module_map",
+  module_map = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_TouTiaoWebView-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_TouTiaoWebView-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TouTiaoWebView_srcs",
+  srcs = [
+    "TTBridgeUnify/Classes/TouTiaoWebView/BDTouTiaoWebViewBridgeEngine.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TouTiaoWebView_oc",
+  enable_modules = 1,
+  srcs = [
+    "TouTiaoWebView_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "TouTiaoWebView_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation"
+  ],
+  deps = [
+    ":TTBridgeUnify_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTBridgeUnify_private_includes",
+    ":TTBridgeUnify_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":TouTiaoWebView_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTBridgeUnify_POD_VERSION=@\\\"9999_5.2.13\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TouTiaoWebView",
+  deps = [
+    ":TouTiaoWebView_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TouTiaoWebView_lib",
+  deps = [
+    ":TouTiaoWebView"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "UnifiedWebView_hdrs",
+  srcs = [
+    "TTBridgeUnify/Classes/UnifiedWebView/BDUnifiedWebViewBridgeEngine.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "UnifiedWebView_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTBridgeUnify/BDUnifiedWebViewBridgeEngine.h",
+    "pod_support/Headers/Public/TTBridgeUnify/BDUnifiedWebViewBridgeEngine.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "UnifiedWebView_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "UnifiedWebView_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "UnifiedWebView_module_map",
+  module_map = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_UnifiedWebView-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_UnifiedWebView-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "UnifiedWebView_srcs",
+  srcs = [
+    "TTBridgeUnify/Classes/UnifiedWebView/BDUnifiedWebViewBridgeEngine.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "UnifiedWebView_oc",
+  enable_modules = 1,
+  srcs = [
+    "UnifiedWebView_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "UnifiedWebView_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation"
+  ],
+  deps = [
+    ":TTBridgeUnify_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTBridgeUnify_private_includes",
+    ":TTBridgeUnify_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@IESJSBridgeCore//:Core_objc_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@IESJSBridgeCore//:Core_swift_interface",
+    ":UnifiedWebView_objc_interface",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@IESJSBridgeCore//:Core_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTBridgeUnify_POD_VERSION=@\\\"9999_5.2.13\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "UnifiedWebView",
+  deps = [
+    ":UnifiedWebView_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "UnifiedWebView_lib",
+  deps = [
+    ":UnifiedWebView"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTBridgeNameDefines_hdrs",
+  srcs = [
+    "TTBridgeUnify/Classes/TTBridgeNameDefines/TTBridgeNameDefines.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTBridgeNameDefines_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTBridgeUnify/TTBridgeNameDefines.h",
+    "pod_support/Headers/Public/TTBridgeUnify/TTBridgeNameDefines.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTBridgeNameDefines_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTBridgeNameDefines_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TTBridgeNameDefines_module_map",
+  module_map = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_TTBridgeNameDefines-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_TTBridgeNameDefines-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTBridgeNameDefines_srcs",
+  srcs = [
+    "TTBridgeUnify/Classes/TTBridgeNameDefines/TTBridgeNameDefines.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTBridgeNameDefines_oc",
+  enable_modules = 1,
+  srcs = [
+    "TTBridgeNameDefines_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "TTBridgeNameDefines_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation"
+  ],
+  deps = [
+    ":TTBridgeUnify_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTBridgeUnify_private_includes",
+    ":TTBridgeUnify_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":TTBridgeNameDefines_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTBridgeUnify_POD_VERSION=@\\\"9999_5.2.13\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTBridgeNameDefines",
+  deps = [
+    ":TTBridgeNameDefines_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TTBridgeNameDefines_lib",
+  deps = [
+    ":TTBridgeNameDefines"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RexxarAdapter_hdrs",
+  srcs = [
+    "TTBridgeUnify/Classes/RexxarAdapter/TTRexxarWebViewAdapter.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RexxarAdapter_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RexxarAdapter_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RexxarAdapter_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "RexxarAdapter_module_map",
+  module_map = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_RexxarAdapter-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_RexxarAdapter-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RexxarAdapter_srcs",
+  srcs = [
+    "TTBridgeUnify/Classes/RexxarAdapter/TTRexxarWebViewAdapter.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RexxarAdapter_oc",
+  enable_modules = 1,
+  srcs = [
+    "RexxarAdapter_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "RexxarAdapter_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation"
+  ],
+  deps = [
+    ":TTBridgeUnify_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTBridgeUnify_private_includes",
+    ":TTBridgeUnify_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":RexxarAdapter_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTBridgeUnify_POD_VERSION=@\\\"9999_5.2.13\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RexxarAdapter",
+  deps = [
+    ":RexxarAdapter_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "RexxarAdapter_lib",
+  deps = [
+    ":RexxarAdapter"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DynamicPlugin_hdrs",
+  srcs = [
+    "TTBridgeUnify/Classes/DynamicPlugin/TTDynamicBridgePlugin.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DynamicPlugin_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DynamicPlugin_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DynamicPlugin_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "DynamicPlugin_module_map",
+  module_map = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_DynamicPlugin-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_DynamicPlugin-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DynamicPlugin_srcs",
+  srcs = [
+    "TTBridgeUnify/Classes/DynamicPlugin/TTDynamicBridgePlugin.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DynamicPlugin_oc",
+  enable_modules = 1,
+  srcs = [
+    "DynamicPlugin_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "DynamicPlugin_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation"
+  ],
+  deps = [
+    ":TTBridgeUnify_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTBridgeUnify_private_includes",
+    ":TTBridgeUnify_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":DynamicPlugin_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTBridgeUnify_POD_VERSION=@\\\"9999_5.2.13\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DynamicPlugin",
+  deps = [
+    ":DynamicPlugin_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "DynamicPlugin_lib",
+  deps = [
+    ":DynamicPlugin"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Lynx_hdrs",
+  srcs = [
+    "TTBridgeUnify/Classes/Lynx/TTLynxBridgeEngine.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Lynx_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTBridgeUnify/TTLynxBridgeEngine.h",
+    "pod_support/Headers/Public/TTBridgeUnify/TTLynxBridgeEngine.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Lynx_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Lynx_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lynx_module_map",
+  module_map = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_Lynx-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_Lynx-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Lynx_srcs",
+  srcs = [
+    "TTBridgeUnify/Classes/Lynx/TTLynxBridgeEngine.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Lynx_oc",
+  enable_modules = 1,
+  srcs = [
+    "Lynx_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Lynx_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation"
+  ],
+  deps = [
+    ":TTBridgeUnify_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTBridgeUnify_private_includes",
+    ":TTBridgeUnify_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Lynx//:BDLynxBridge_objc_interface",
+    "@Lynx//:Framework_objc_interface",
+    "@Lynx//:JSRuntime_objc_interface",
+    "@Lynx//:Native_objc_interface",
+    "@Lynx//:BDLynxBridge_swift_interface",
+    "@Lynx//:Framework_swift_interface",
+    "@Lynx//:JSRuntime_swift_interface",
+    "@Lynx//:Native_swift_interface",
+    ":Lynx_objc_interface",
+    "@Lynx//:BDLynxBridge_module_map",
+    "@Lynx//:Framework_module_map",
+    "@Lynx//:JSRuntime_module_map",
+    "@Lynx//:Native_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTBridgeUnify_POD_VERSION=@\\\"9999_5.2.13\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Lynx",
+  deps = [
+    ":Lynx_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Lynx_lib",
+  deps = [
+    ":Lynx"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "vmsdk_hdrs",
+  srcs = [
+    "TTBridgeUnify/Classes/VMSDK/JSWorkerBridge.h",
+    "TTBridgeUnify/Classes/VMSDK/JSWorkerBridgeDefines.h",
+    "TTBridgeUnify/Classes/VMSDK/JSWorkerBridgeEngine.h",
+    "TTBridgeUnify/Classes/VMSDK/JSWorkerBridgeMessage.h",
+    "TTBridgeUnify/Classes/VMSDK/JSWorkerBridgeModule.h",
+    "TTBridgeUnify/Classes/VMSDK/JSWorkerBridgePool.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "vmsdk_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "vmsdk_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "vmsdk_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "vmsdk_module_map",
+  module_map = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_vmsdk-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTBridgeUnify/TTBridgeUnify_vmsdk-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "vmsdk_srcs",
+  srcs = [
+    "TTBridgeUnify/Classes/VMSDK/JSWorkerBridge.m",
+    "TTBridgeUnify/Classes/VMSDK/JSWorkerBridgeEngine.m",
+    "TTBridgeUnify/Classes/VMSDK/JSWorkerBridgeMessage.m",
+    "TTBridgeUnify/Classes/VMSDK/JSWorkerBridgeModule.m",
+    "TTBridgeUnify/Classes/VMSDK/JSWorkerBridgePool.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "vmsdk_oc",
+  enable_modules = 1,
+  srcs = [
+    "vmsdk_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "vmsdk_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation"
+  ],
+  deps = [
+    ":TTBridgeUnify_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTBridgeUnify_private_includes",
+    ":TTBridgeUnify_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@vmsdk//:jsbridge_objc_interface",
+    "@vmsdk//:worker_objc_interface",
+    "@vmsdk//:jsbridge_swift_interface",
+    "@vmsdk//:worker_swift_interface",
+    ":vmsdk_objc_interface",
+    "@vmsdk//:jsbridge_module_map",
+    "@vmsdk//:worker_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTBridgeUnify_POD_VERSION=@\\\"9999_5.2.13\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "vmsdk",
+  deps = [
+    ":vmsdk_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "vmsdk_lib",
+  deps = [
+    ":vmsdk"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_TTBridgeUnify_module_map",
+  module_map = "@TTBridgeUnify//:pod_support/Headers/Public/TTBridgeUnify/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@TTBridgeUnify//:pod_support/Headers/Public/TTBridgeUnify/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_TTBridgeUnify_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@TTBridgeUnify//:Lynx_objc_interface", "@TTBridgeUnify//:TTBridge_objc_interface", "@TTBridgeUnify//:TTBridgeAuthManager_objc_interface", "@TTBridgeUnify//:TTBridgeAuthManager_CN_objc_interface", "@TTBridgeUnify//:TTBridgeAuthManager_Core_objc_interface", "@TTBridgeUnify//:TTBridgeNameDefines_objc_interface", "@TTBridgeUnify//:UnifiedWebView_objc_interface", "@TTBridgeUnify//:WebView_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_TTBridgeUnify",
+  target_name = "Lark",
+  module_name = "TTBridgeUnify",
+  hdrs = ["@TTBridgeUnify//:Lynx_pod_hdrs", "@TTBridgeUnify//:TTBridge_pod_hdrs", "@TTBridgeUnify//:TTBridgeAuthManager_pod_hdrs", "@TTBridgeUnify//:TTBridgeAuthManager_CN_pod_hdrs", "@TTBridgeUnify//:TTBridgeAuthManager_Core_pod_hdrs", "@TTBridgeUnify//:TTBridgeNameDefines_pod_hdrs", "@TTBridgeUnify//:UnifiedWebView_pod_hdrs", "@TTBridgeUnify//:WebView_pod_hdrs"],
+  srcs = ["@TTBridgeUnify//:Lynx_srcs", "@TTBridgeUnify//:TTBridgeAuthManager_CN_srcs", "@TTBridgeUnify//:TTBridgeAuthManager_Core_srcs", "@TTBridgeUnify//:TTBridgeNameDefines_srcs", "@TTBridgeUnify//:TTBridge_srcs", "@TTBridgeUnify//:UnifiedWebView_srcs", "@TTBridgeUnify//:WebView_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["Lynx", "BDAssert", "BDJSBridgeAuthManager", "BDMonitorProtocol", "Gaia", "TTNetworkManager", "BDWebCore", "IESJSBridgeCore"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTBridgeUnify_POD_VERSION=@\\\"9999_5.2.13\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "TTBridgeUnify_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "TTBridgeUnify_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["UIKit", "Foundation", "WebKit"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "TTBridgeUnify_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "TTBridgeUnify_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "TTBridgeUnify_dynamic", False),
+  tags = getattr(defs_external_objc_library, "TTBridgeUnify_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("TTBridgeUnify", {}),
+  visibility = ["//visibility:public"],
+)

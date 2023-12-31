@@ -1,0 +1,33 @@
+# Copyright 2023 The Lynx Authors. All rights reserved.
+
+import("//Lynx/Lynx.gni")
+import("//testing/test.gni")
+
+if (is_android) {
+  import("//build/config/android/config.gni")
+}
+
+if (target_cpu == "arm" || target_cpu == "arm64") {
+  import("//build/config/arm.gni")
+}
+
+lynx_source_set("utils") {
+  sources = [
+    "jsi_object_wrapper.cc",
+    "utils.cc",
+  ]
+}
+
+unittest_set("utils_unittests") {
+  configs = [
+    "//Lynx:config",
+    "//Lynx/lepus/quickjs:quickjs_config",
+  ]
+
+  include_dirs = [ "//Lynx" ]
+
+  sources = [
+    "args_converter_unittest.cc",
+    "utils_unittest.cc",
+  ]
+}

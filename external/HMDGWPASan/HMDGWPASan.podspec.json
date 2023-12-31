@@ -1,0 +1,54 @@
+{
+  "public_header_files": "GWPASan/Public/**/*.{h,hpp}",
+  "platforms": {
+    "ios": "10.0"
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "HMDGWPASan_POD_VERSION=@\\\"9999_0.1.0-alpha.14-TTVideo\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS[config=Release]": "$(inherited) NDEBUG=1",
+    "GCC_PREPROCESSOR_DEFINITIONS": "HMDGWPASan_POD_VERSION=@\\\"9999_0.1.0-alpha.14-TTVideo\\\""
+  },
+  "_bytebus_platform": {
+    "repo_id": "22198",
+    "app_id": "9999"
+  },
+  "libraries": "c++",
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/9999/HMDGWPASan/0.1.0-alpha.14-TTVideo.1.binary/HMDGWPASan.framework.tar.xz"
+  },
+  "version": "0.1.0-alpha.14-TTVideo.1.binary",
+  "source_files": "GWPASan/**/*.{h,hpp,c,m,mm,cpp}",
+  "homepage": "https://code.byted.org/iOS_Library/HMDGWPASan",
+  "repoId": "22198",
+  "prepare_command": "curl https://ios.bytedance.net/wlapi/tosDownload/iosbinary/platform/master/awesomecommand_xz.sh | bash ;",
+  "private_header_files": "GWPASan/Private/**/*.{h,hpp}",
+  "description": "framework_description",
+  "ios": {
+    "frameworks": [
+      "UIKit",
+      "Foundation",
+      "JavaScriptCore"
+    ],
+    "vendored_libraries": "ios-arch-iphone/*_HMDGWPASan_*awesome_*.a"
+  },
+  "authors": {
+    "wukaikai": "wukaikai@bytedance.com"
+  },
+  "source_code": {
+    "commit": "f16dff16aac41a4edd416846397be898e23d548f",
+    "git": "git@code.byted.org:iOS_Library/HMDGWPASan.git"
+  },
+  "name": "HMDGWPASan",
+  "license": {
+    "type": "MIT"
+  },
+  "build_file_count": 16,
+  "preserve_paths": [
+    "**/*.bwp"
+  ],
+  "summary": "framework_summary"
+}

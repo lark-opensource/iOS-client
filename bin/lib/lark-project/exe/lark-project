@@ -1,0 +1,96 @@
+#!/usr/bin/env ruby
+
+require 'rubycli'
+require_relative '../lib/lark/project/lockfile'
+
+class App
+  extend RubyCLI::DSL::Root
+
+  desc '通过修改Gemfile，更新lark-project自身'
+  arg 'branch', desc: 'updated to branch, default only update version in Gemfile.lock'
+  def update_self(branch = nil, **)
+    puts "call update_self with #{branch || 'current'} branch"
+    unless defined?(Bundler) and gemfile_path = ENV['BUNDLE_GEMFILE']
+      warn 'please run with bundle'
+      exit 1
+    end
+
+    # gem "lark-project", git: '...ios-lark-project-mirror...', branch: 'develop'
+    if branch
+      gemfile = File.read(gemfile_path)
+      regex = /
+        ^(\s*gem[( ]\s*['"]lark-project['"]\s*,               # gem name part
+        \s*git:\s*['"].*ios-lark-project-mirror[^'"]*['"]\s*) # git part
+        (?:,\s*(?:branch|ref):\s*["'][^"']+["'])?                     # branch part
+      /x
+      unless gemfile.gsub!(regex, "\\1, branch: '#{branch}'")
+        warn 'not found lark-project with ios-lark-project-mirror git repo and branch'
+        exit 2
+      end
+      File.write(gemfile_path, gemfile)
+    end
+
+    _exec_update
+  end
+
+  # replace process, never return
+  def _exec_update
+    # 直接运行exec会导致新加间接依赖不生效...
+    Bundler.with_original_env do
+      if ENV['BUNDLE_PATH'].nil?
+        # 保证工程目录隔离，避免全局引入本地的未知spec
+        env = { 'BUNDLE_PATH' => '.bundle' }
+        system(env, *%w[bundle lock --update=lark-project]) or \
+          system(env, *%w[bundle lock --update]) or \
+          raise 'bundle update fail, check the output'
+        exec(*%w[bundle install])
+      else
+        # CI等情况原来已经指定了BUNDLE_PATH
+        exec(%q[bundle update lark-project || bundle update])
+      end
+    end
+  end
+
+  desc '同步lark-project中的锁定版本到本地'
+  arg 'path', desc: 'Podfile.strict.lock output path(or dir), default to overwrite Podfile.strict.lock aside Podfile'
+  def synclock(path = nil, **) # keyword可能当成positional接收，使用**忽略keyword的参数
+    require 'cocoapods'
+    %w[claide cocoapods].each do |plugin_prefix|
+      CLAide::Command::PluginManager.load_plugins(plugin_prefix)
+    end
+    Lark::Project::Lockfile.checkout_lockfile path
+  end
+
+  desc '同步主仓的 lark-project 到子仓。需要在子仓路径执行此命令，第一个参数作为主仓路径'
+  arg 'path', desc: '主仓路径'
+  def syncpod(path = nil, **)
+    main_repo_path = path  # 使用 path 作为主仓路径
+    lark_project_gem_path = "#{main_repo_path}/bin/lib/lark-project/"
+    if path == nil
+      puts "同步主仓版本至当前子仓\nUsage: bundle exec lark-project syncpod '主仓路径'"
+      return
+    end
+    if File.file?(lark_project_gem_path + "lark-project.gemspec") == false
+      puts "主仓路径错误，请检查传入的主仓路径 '#{main_repo_path}' 中是否包含 'bin/lib/lark-project/lark-project.gemspec' 文件"
+      return
+    end
+    # 1. 修改子仓Gemfile, lark-project 指向本地主仓的 lark-project
+    puts '[1/3] 子仓 Gemfile 中 lark-project 指向本地主仓'
+    gemfile_path = ENV['BUNDLE_GEMFILE']
+    gemfile = File.read(gemfile_path)
+    regex = /^\s*gem\s*['"]lark-project['"]\s*.*$/
+    gemfile = gemfile.gsub!(regex, "gem 'lark-project', path: '#{lark_project_gem_path}'")
+    puts 'Using lark-project at path: ' + lark_project_gem_path
+    File.write(gemfile_path, gemfile)
+    # 2. Pod 版本管理文件 Podfile.strict.lock 和 if_pod.rb 复制到主仓 lark-project
+    puts '[2/3] Pod 版本管理文件 Podfile.strict.lock 和 if_pod.rb 复制到主仓 lark-project'
+    mirror_path = "#{main_repo_path}/bin/lib/lark-project"
+    Lark::Project::Lockfile.copy_if_pod_and_lockfile(main_repo_path, mirror_path)
+    # 3. 子仓 bundle install
+    # NOTE: 冲突的情况，进不来这个命令，必须使用旧版本无冲突的运行这个命令才行
+    puts '[3/3] 子仓 bundle install'
+    _exec_update
+  end
+end
+
+App.run!

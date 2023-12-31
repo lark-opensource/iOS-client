@@ -1,0 +1,57 @@
+//
+//  SceneListEmptyView.swift
+//  LarkAI
+//
+//  Created by 李勇 on 2023/10/9.
+//
+
+import Foundation
+import UIKit
+import UniverseDesignEmpty // UDEmptyView
+
+/// 加载数据后，空态图
+final class SceneListEmptyView: UIView {
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        // 空态图上下间距并不是相等的，我们这里搞一个上面的视图做比例约束
+        let topLineView = UIView()
+        self.addSubview(topLineView)
+        topLineView.snp.makeConstraints { make in
+            make.width.equalTo(1)
+            make.centerX.equalTo(self)
+            make.top.equalTo(self)
+            make.height.equalTo(self).multipliedBy(148.0 / 596.0)
+        }
+        // 添加空态图
+        let emptyImageView = UIImageView()
+        emptyImageView.image = EmptyBundleResources.image(named: "emptyNeutralNoApplication")
+        self.addSubview(emptyImageView)
+        emptyImageView.snp.makeConstraints { make in
+            make.width.height.equalTo(125)
+            make.centerX.equalTo(self)
+            make.top.equalTo(topLineView.snp.bottom)
+        }
+        // 添加title
+        let titleLabel = UILabel()
+        titleLabel.font = UIFont.systemFont(ofSize: 14)
+        titleLabel.textColor = UIColor.ud.textCaption
+        titleLabel.text = BundleI18n.LarkAI.MyAI_Scenario_MyScenarios_NoScenarios_EmptyState
+        self.addSubview(titleLabel)
+        titleLabel.snp.makeConstraints { make in
+            make.top.equalTo(emptyImageView.snp.bottom).offset(16)
+            make.centerX.equalTo(self)
+        }
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    func addTo(view: UIView) {
+        view.addSubview(self)
+        self.snp.makeConstraints { make in
+            make.top.left.equalTo(view)
+            make.width.height.equalTo(view)
+        }
+    }
+}

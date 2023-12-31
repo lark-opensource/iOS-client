@@ -1,0 +1,73 @@
+{
+    "test_createRequestTask_success()": {
+      "params": {
+        "url": "https://www.feishu.cn",
+        "method": "GET",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      },
+      "responsePayload": {
+        "statusCode": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": "Hello World",
+        "requestTaskId": "rtyiombf-3y6276678432-fvueyguf23g7vyuce"
+      },
+      "extra": {
+        "url": "https://www.feishu.cn",
+        "statusCode": 200,
+        "cookies": []
+      },
+      "desc": "request 正常流程"
+    },
+    "test_createUploadTask_success()": {
+      "params": {
+        "url": "https://www.bytedance.com/",
+        "filePath": "${filePath}",
+        "name": "xx.jpg",
+        "uploadTaskId": "rtyiombf-3y6276678432-fvueyguf23g7vyuce"
+      },
+      "responsePayload": {
+        "statusCode": 200,
+        "data": "{\"something\":\"something\"}",
+        "uploadTaskId": "rtyiombf-3y6276678432-fvueyguf23g7vyuce"
+      },
+      "extra": {
+        "url": "https://gimg2.baidu.com/xx.jpg",
+        "statusCode": 200,
+        "cookies": []
+      },
+      "desc": "uploadFile 正常流程，传入 filePath，并且 suggestedFileName 为 \"\""
+    },
+    "test_createDownloadTask_success()": {
+      "params": {
+        "url": "https://gimg2.baidu.com/xx.jpg",
+        "downloadTaskId": "rtyiombf-3y6276678432-fvueyguf23g7vyuce"
+      },
+      "responsePayload": {
+        "statusCode": 200,
+        "tempFilePath": "ttfile://temp/suggested.jpg",
+        "filePath": "ttfile://temp/suggested.jpg",
+        "requestTaskId": "rtyiombf-3y6276678432-fvueyguf23g7vyuce"
+      },
+      "extra": {
+        "url": "https://gimg2.baidu.com/xx.jpg",
+        "statusCode": 200,
+        "downloadFilePath": "${downloadFilePath}",
+        "suggestedFileName": "suggested.jpg",
+        "cookies": []
+      },
+      "desc": "downloadFile 正常流程，传入 filePath，并且 suggestedFileName 为 \"\""
+    },
+    "test_createSocketTask_success()": {
+        "params": {
+          "url": "wss://frontier.snssdk.com/ws/v2?aid=1288&device_id=98543534&fpid=72&access_key=f075e82cde98601fc5d41302af325631"
+        }
+    },
+    "test_operateSocketTask_success()": {
+        "params": {
+        }
+    }
+}

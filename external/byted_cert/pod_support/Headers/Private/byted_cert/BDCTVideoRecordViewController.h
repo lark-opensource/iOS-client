@@ -1,0 +1,1 @@
+../../../../byted_cert/Classes/Core/Private/VideoRecord/BDCTVideoRecordViewController.h

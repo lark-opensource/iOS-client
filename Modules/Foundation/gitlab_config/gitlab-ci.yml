@@ -1,0 +1,36 @@
+stages:
+  - build
+
+##################
+# common
+##################
+
+.job_template: &job_template
+  variables:
+    GIT_STRATEGY: fetch
+  only:
+    - triggers
+    - web
+
+##################
+# build
+##################
+
+# set env
+variables:
+  LANG: en_US.UTF-8
+  LANGUAGE: en_US.UTF-8
+  LC_ALL: en_US.UTF-8
+
+before_script:
+  - ruby -v
+  - rm -rf Logs/
+  - export GYM_BUILDLOG_PATH=Logs/gym
+  - bundle exec pod --version || bundle install
+  - env
+
+build_verify:
+  <<: *job_template
+  stage : build
+  script:
+    - "sh ./gitlab_config/run_brickwork_ci.sh"

@@ -1,0 +1,1 @@
+../../../../core/model/SwigDocExample.h

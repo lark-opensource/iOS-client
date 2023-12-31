@@ -1,0 +1,1 @@
+int do7z_extract_entry(char *archivePath, char *archiveCachePath, char *threadCwd, char *entryName, char *entryPath, int fullPaths);

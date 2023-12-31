@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_effect_algorithm_after_effect.h

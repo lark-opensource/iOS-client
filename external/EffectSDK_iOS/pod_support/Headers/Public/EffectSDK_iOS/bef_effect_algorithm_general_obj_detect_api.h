@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_effect_algorithm_general_obj_detect_api.h

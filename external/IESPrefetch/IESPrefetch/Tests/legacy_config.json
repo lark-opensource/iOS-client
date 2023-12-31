@@ -1,0 +1,54 @@
+{
+    "version": "0.0.1",
+    "configs": {
+      "https://webcast.amemv.com/falcon/webcast_douyin/page/fansclub/index.html": [
+        {
+          "url": "https://aweme.snssdk.com/aweme/v1/fansclub/rules/",
+          "method": "GET",
+          "expires": 10000,
+          "conditions": [],
+          "headers": {},
+          "params": {
+          }
+        }
+      ],
+      "https://webcast.amemv.com/falcon/webcast_douyin/page/fansclub/index.html": [
+        {
+          "url": "https://aweme.snssdk.com/aweme/v1/fansclub/me/",
+          "method": "GET",
+          "expires": 10000,
+          "conditions": [],
+          "headers": {},
+          "params": {
+          }
+        },
+        {
+          "url": "https://aweme.snssdk.com/aweme/v1/fansclub/rules/",
+          "method": "GET",
+          "expires": 10000,
+          "conditions": [],
+          "headers": {},
+          "params": {
+          }
+        },
+        {
+          "url": "https://aweme.snssdk.com/aweme/v1/user/",
+          "method": "GET",
+          "expires": 10000,
+          "conditions": [],
+          "headers": {},
+          "params": {
+            "user_id": {
+              "type": "query",
+              "value": "anchor_id"
+            },
+            "sec_user_id": {
+              "type": "query",
+              "value": "sec_anchor_id"
+            }
+          }
+        }
+      ]
+  
+    }
+  }

@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_ae_device_monitor_api.h

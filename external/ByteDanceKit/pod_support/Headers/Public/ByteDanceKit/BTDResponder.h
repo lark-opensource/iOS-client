@@ -1,0 +1,1 @@
+../../../../ByteDanceKit/Classes/UIKit/BTDResponder.h

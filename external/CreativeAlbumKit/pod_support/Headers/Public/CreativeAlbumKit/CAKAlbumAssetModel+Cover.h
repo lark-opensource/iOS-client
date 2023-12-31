@@ -1,0 +1,1 @@
+../../../../CreativeAlbumKit/Classes/Core/Model/CAKAlbumAssetModel+Cover.h

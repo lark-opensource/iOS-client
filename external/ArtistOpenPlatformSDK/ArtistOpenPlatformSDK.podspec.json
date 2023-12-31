@@ -1,0 +1,82 @@
+{
+  "name": "ArtistOpenPlatformSDK",
+  "version": "0.0.1-rc.4.1.binary",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/ies/ArtistOpenPlatformSDK",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "wuweixin": "wuweixin.666@bytedance.com"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/9999/ArtistOpenPlatformSDK/0.0.1-rc.4.1.binary/ArtistOpenPlatformSDK.framework.zip"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "subspecs": [
+    {
+      "name": "Core",
+      "source_files": "ArtistOpenPlatformSDK/Classes/Core/**/*.{h,m}",
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Core_*awesome_*.a"
+      },
+      "preserve_paths": [
+        "**/*.bwp"
+      ]
+    },
+    {
+      "name": "Effect",
+      "source_files": "ArtistOpenPlatformSDK/Classes/Effect/**/*.{h,m}",
+      "private_header_files": "ArtistOpenPlatformSDK/Classes/Effect/Internal/**/*.h",
+      "dependencies": {
+        "ArtistOpenPlatformSDK/Core": [],
+        "EffectPlatformSDK/Core": [],
+        "EffectSDK_iOS": [],
+        "TTNetworkManager": [],
+        "SSZipArchive": [],
+        "FileMD5Hash": [],
+        "FMDB": []
+      },
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Effect_*awesome_*.a"
+      },
+      "preserve_paths": [
+        "**/*.bwp"
+      ]
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "11629",
+    "app_id": "9999"
+  },
+  "repoId": "11629",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "ArtistOpenPlatformSDK_POD_VERSION=@\\\"9999_0.0.1-rc.4\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "ArtistOpenPlatformSDK_POD_VERSION=@\\\"9999_0.0.1-rc.4\\\""
+  },
+  "ios": {
+    "frameworks": [
+      "UIKit",
+      "Foundation",
+      "JavaScriptCore"
+    ]
+  },
+  "source_code": {
+    "git": "git@code.byted.org:ies/ArtistOpenPlatformSDK.git",
+    "commit": "3a8d46dee820caf07a4181e81d8fbb5d312fe4d7"
+  },
+  "default_subspecs": [
+    "Core"
+  ],
+  "prepare_command": "curl https://ios.bytedance.net/wlapi/tosDownload/iosbinary/platform/master/awesomecommand.sh | bash ;",
+  "preserve_paths": [
+    "**/*.bwp"
+  ]
+}

@@ -1,0 +1,40 @@
+# frozen_string_literal: true
+
+source 'https://rubygems.byted.org'
+
+cocoapods_version = '1.11.2'
+
+###### 我们自己的 gem
+gem 'EEScaffold'
+gem 'lark_mod_manager'
+
+###### 公司提供的 gem
+# pod 编译数据收集。See more: https://bytedance.feishu.cn/wiki/wikcnFXcOTwnGkUJQNYyv7NQkkg
+gem 'seer-hummer-apm', '~> 0.0.17'
+# pod install 提速。See more: https://bytedance.feishu.cn/docs/doccnFTUeA1JqmFAf5MhTcPwWob#90AEaL
+gem 'seer-optimize', '1.0.1.alpha.1'
+
+gem "cocoapods-remote-resolve", ENV['BITS_BITNEST_VERSION'] || '>= 0.1.2'
+
+###### 第三方使用的 gem
+# 保证 Bundle 执行的和本地 Podfile 兼容
+gem 'cocoapods', cocoapods_version
+# pod 1.7.0 需要 0.3.0 以上, 用于去掉 Podfile Checksum
+# gem 'cocoapods-amicable', '~> 0.3.0'
+# 用于收集 build 时间，fastlane
+gem 'xcode-build-times'
+
+###### 间接依赖降级
+gem 'ffi', '1.14.0'
+gem 'mimemagic', '= 0.3.5'
+gem 'xcpretty', '0.3.1.1'
+
+###### fastlane 的依赖
+plugins_path = File.join(File.dirname(__FILE__), 'fastlane', 'Pluginfile')
+eval_gemfile(plugins_path) if File.exist?(plugins_path)
+
+###### Config
+ENV['COCOAPODS_TARGETS'] ||= 'LarkRVCDemo'
+ENV['COCOAPODS_CONFIGURATIONS'] ||= "Debug"
+# 隔离 cocoapods 缓存环境. cocoapods 发现版本不一样会清缓存，这样多个版本混用时会互相清楚，造成并发问题。
+ENV['CP_CACHE_DIR'] = File.join(Dir.home, 'Library/Caches/CocoaPods', cocoapods_version)

@@ -1,0 +1,1 @@
+../../../../AWECloudCommand/Classes/Core/AWECloudCommandManager.h

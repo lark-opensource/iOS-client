@@ -1,0 +1,1 @@
+../../../../BDJSBridgeAuthManager/Classes/Rename/BDJSBridgeAuthManager_Rename.h

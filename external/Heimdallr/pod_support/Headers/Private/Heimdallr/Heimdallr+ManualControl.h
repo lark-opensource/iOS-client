@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/Core/Common/Public/Heimdallr+ManualControl.h

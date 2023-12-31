@@ -1,0 +1,111 @@
+{
+  "public_header_files": [
+    "DVETrackKit/Classes/**/*.h"
+  ],
+  "platforms": {
+    "ios": "9.0"
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "DVETrackKit_POD_VERSION=@\\\"9999_0.0.0.219-lark\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "DVETrackKit_POD_VERSION=@\\\"9999_0.0.0.219-lark\\\""
+  },
+  "_bytebus_platform": {
+    "repo_id": "20956",
+    "app_id": "9999"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/9999/DVETrackKit/0.0.0.219-lark.1.binary/DVETrackKit.framework.tar.xz"
+  },
+  "version": "0.0.0.219-lark.1.binary",
+  "homepage": "https://code.byted.org/ugc/DVETrackKit",
+  "repoId": "20956",
+  "subspecs": [
+    {
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "name": "Core",
+      "resource_bundles": {
+        "DVETrackKit": [
+          "DVETrackKit/Assets/*.xcassets",
+          "DVETrackKit/Assets/styles/**"
+        ]
+      },
+      "prefix_header_contents": "#ifdef __OBJC__\n#import <DVEFoundationKit/DVEMacros.h>\n#import <DVEFoundationKit/DVEGCDUtils.h>\n#endif",
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Core_*awesome_*.a"
+      },
+      "dependencies": {
+        "ByteDanceKit/UIKit": [],
+        "PocketSVG": [],
+        "TTVideoEditor": [],
+        "YYCache": [],
+        "NLEPlatform/Model": [],
+        "ReactiveObjC": [],
+        "Masonry": []
+      },
+      "source_files": "DVETrackKit/Classes/**/*",
+      "exclude_files": [
+        "DVETrackKit/Classes/Lite/**/*"
+      ]
+    },
+    {
+      "dependencies": {
+        "DVEFoundationKit/Adapter": [],
+        "NLEPlatform/Adapter": [],
+        "DVETrackKit/Core": []
+      },
+      "name": "Adapter",
+      "preserve_paths": [
+        "**/*.bwp"
+      ]
+    },
+    {
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "dependencies": {
+        "DVETrackKit/Core": []
+      },
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_DVELiteTrack_*awesome_*.a"
+      },
+      "name": "DVELiteTrack",
+      "source_files": "DVETrackKit/Classes/Lite/**/*"
+    }
+  ],
+  "prepare_command": "curl https://ios.bytedance.net/wlapi/tosDownload/iosbinary/platform/master/awesomecommand_xz.sh | bash ;",
+  "private_header_files": [
+    "**/DVEMusicWaveGenerator.h",
+    "**/DVEMediaContext+Private.h"
+  ],
+  "description": "framework_description",
+  "ios": {
+    "frameworks": [
+      "UIKit",
+      "Foundation",
+      "JavaScriptCore"
+    ]
+  },
+  "authors": {
+    "bytedance": "bytedance@bytedance.com"
+  },
+  "source_code": {
+    "commit": "36961b84aeb063a33ddf0a3636608d2275cdee06",
+    "git": "git@code.byted.org:ugc/DVETrackKit.git"
+  },
+  "build_type": "system",
+  "name": "DVETrackKit",
+  "license": {
+    "type": "MIT"
+  },
+  "build_file_count": 111,
+  "preserve_paths": [
+    "**/*.bwp"
+  ],
+  "summary": "framework_summary"
+}

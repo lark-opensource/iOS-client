@@ -1,0 +1,1 @@
+../../../../CameraArch/Record/Model/ACCMVTemplateInfo.h

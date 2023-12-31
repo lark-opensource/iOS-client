@@ -1,0 +1,723 @@
+load('@build_bazel_rules_swift//swift:swift.bzl', 'swift_library')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "lottie-lark_pod_hdrs",
+  srcs = [
+    ":lottie-lark_root_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "lottie-lark_private_includes",
+  include = [
+    "external/lottie-lark/pod_support/Headers/Private/lottie-lark/"
+  ],
+  deps = [],
+  external_name = "lottie-lark"
+)
+gen_includes(
+  name = "lottie-lark_public_includes",
+  include = [
+    "external/lottie-lark/pod_support/Headers/Public/lottie-lark/"
+  ],
+  deps = [],
+  external_name = "lottie-lark"
+)
+filegroup(
+  name = "_lottie-lark_hdrs",
+  srcs = [
+    ":lottie-lark_root_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "lottie-lark_xcode_hmapsource",
+  hdrs = [
+    ":_lottie-lark_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "lottie-lark_xcode_hmap",
+  dep = ":lottie-lark_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/lottie-lark/*-bitsky-generated.modulemap", "pod_support/Headers/Public/lottie-lark/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "lottie-lark_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "lottie-lark",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "lottie-lark_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "lottie-lark_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "lottie-lark_swift_interface",
+  deps = [
+    ":lottie-lark_swift"
+  ],
+  minimum_os_version = "11.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "lottie-lark_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "lottie-lark_module_map",
+  module_map = "pod_support/Headers/Public/lottie-lark/lottie-lark-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/lottie-lark/lottie-lark-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "lottie-lark_root_swift_srcs",
+  srcs = [
+    "Sources/Public/iOS/AnimatedButton.swift",
+    "Sources/Public/iOS/AnimatedControl.swift",
+    "Sources/Public/iOS/AnimatedSwitch.swift",
+    "Sources/Public/AnimationCache/AnimationCacheProvider.swift",
+    "Sources/Private/Utility/Helpers/AnimationContext.swift",
+    "Sources/Public/FontProvider/AnimationFontProvider.swift",
+    "Sources/Public/ImageProvider/AnimationImageProvider.swift",
+    "Sources/Public/DynamicProperties/AnimationKeypath.swift",
+    "Sources/Private/Utility/Extensions/AnimationKeypathExtension.swift",
+    "Sources/Private/CoreAnimation/Layers/AnimationLayer.swift",
+    "Sources/Public/iOS/AnimationSubview.swift",
+    "Sources/Public/TextProvider/AnimationTextProvider.swift",
+    "Sources/Public/Primitives/AnimationTime.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Protocols/AnimatorNode.swift",
+    "Sources/Private/Utility/Debugging/AnimatorNodeDebugging.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/NodeProperties/Protocols/AnyNodeProperty.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/NodeProperties/Protocols/AnyValueContainer.swift",
+    "Sources/Public/DynamicProperties/AnyValueProvider.swift",
+    "Sources/Private/Model/DotLottie/ZipFoundation/Archive+BackingConfiguration.swift",
+    "Sources/Private/Model/DotLottie/ZipFoundation/Archive+Helpers.swift",
+    "Sources/Private/Model/DotLottie/ZipFoundation/Archive+MemoryFile.swift",
+    "Sources/Private/Model/DotLottie/ZipFoundation/Archive+Progress.swift",
+    "Sources/Private/Model/DotLottie/ZipFoundation/Archive+Reading.swift",
+    "Sources/Private/Model/DotLottie/ZipFoundation/Archive+ReadingDeprecated.swift",
+    "Sources/Private/Model/DotLottie/ZipFoundation/Archive+Writing.swift",
+    "Sources/Private/Model/DotLottie/ZipFoundation/Archive+WritingDeprecated.swift",
+    "Sources/Private/Model/DotLottie/ZipFoundation/Archive+ZIP64.swift",
+    "Sources/Private/Model/DotLottie/ZipFoundation/Archive.swift",
+    "Sources/Private/Model/Assets/Asset.swift",
+    "Sources/Private/Model/Assets/AssetLibrary.swift",
+    "Sources/Private/CoreAnimation/Layers/BaseAnimationLayer.swift",
+    "Sources/Private/CoreAnimation/Layers/BaseCompositionLayer.swift",
+    "Sources/Private/Utility/Primitives/BezierPath.swift",
+    "Sources/Private/Utility/Primitives/BezierPathRoundExtension.swift",
+    "Sources/Private/Utility/Extensions/BlendMode+Filter.swift",
+    "Sources/Private/Model/Extensions/Bundle.swift",
+    "Sources/Public/iOS/BundleImageProvider.swift",
+    "Sources/Private/CoreAnimation/Animations/CAAnimation+TimingConfiguration.swift",
+    "Sources/Private/MainThread/LayerContainers/Utility/CachedImageProvider.swift",
+    "Sources/Private/CoreAnimation/Animations/CALayer+addAnimation.swift",
+    "Sources/Private/CoreAnimation/Extensions/CALayer+fillBounds.swift",
+    "Sources/Private/CoreAnimation/Layers/CALayer+setupLayerHierarchy.swift",
+    "Sources/Private/Utility/Extensions/CGColor+RGB.swift",
+    "Sources/Private/Utility/Extensions/CGFloatExtensions.swift",
+    "Sources/Private/Utility/Primitives/CGPointExtension.swift",
+    "Sources/Private/Utility/Primitives/ColorExtension.swift",
+    "Sources/Public/DynamicProperties/ValueProviders/ColorValueProvider.swift",
+    "Sources/Private/CoreAnimation/Animations/CombinedShapeAnimation.swift",
+    "Sources/Private/CoreAnimation/CompatibilityTracker.swift",
+    "Sources/Public/iOS/Compatibility/CompatibleAnimationKeypath.swift",
+    "Sources/Public/iOS/Compatibility/CompatibleAnimationView.swift",
+    "Sources/Private/MainThread/LayerContainers/CompLayers/CompositionLayer.swift",
+    "Sources/Private/MainThread/LayerContainers/Utility/CompositionLayersInitializer.swift",
+    "Sources/Private/Utility/Primitives/CompoundBezierPath.swift",
+    "Sources/Private/CoreAnimation/CoreAnimationLayer.swift",
+    "Sources/Private/MainThread/LayerContainers/Utility/CoreTextRenderLayer.swift",
+    "Sources/Private/Utility/Primitives/CurveVertex.swift",
+    "Sources/Private/CoreAnimation/Animations/CustomPathAnimation.swift",
+    "Sources/Private/Model/Objects/DashPattern.swift",
+    "Sources/Private/Model/DotLottie/ZipFoundation/Data+Compression.swift",
+    "Sources/Private/Model/DotLottie/ZipFoundation/Data+CompressionDeprecated.swift",
+    "Sources/Private/Model/DotLottie/ZipFoundation/Data+Serialization.swift",
+    "Sources/Private/Utility/Extensions/DataExtension.swift",
+    "Sources/Public/AnimationCache/DefaultAnimationCache.swift",
+    "Sources/Private/Model/DictionaryInitializable.swift",
+    "Sources/Private/Model/DotLottie/DotLottieAnimation.swift",
+    "Sources/Public/DotLottie/Cache/DotLottieCache.swift",
+    "Sources/Public/DotLottie/Cache/DotLottieCacheProvider.swift",
+    "Sources/Private/Model/DotLottie/DotLottieConfiguration.swift",
+    "Sources/Public/DotLottie/DotLottieFile.swift",
+    "Sources/Public/DotLottie/DotLottieFileHelpers.swift",
+    "Sources/Private/Model/DotLottie/DotLottieImageProvider.swift",
+    "Sources/Private/Model/DotLottie/DotLottieManifest.swift",
+    "Sources/Private/Model/DotLottie/DotLottieUtils.swift",
+    "Sources/Private/Model/ShapeItems/Ellipse.swift",
+    "Sources/Private/CoreAnimation/Animations/EllipseAnimation.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Nodes/PathNodes/EllipseNode.swift",
+    "Sources/Private/Model/DotLottie/ZipFoundation/Entry+Serialization.swift",
+    "Sources/Private/Model/DotLottie/ZipFoundation/Entry+ZIP64.swift",
+    "Sources/Private/Model/DotLottie/ZipFoundation/Entry.swift",
+    "Sources/Private/Model/DotLottie/ZipFoundation/FileManager+ZIP.swift",
+    "Sources/Public/iOS/FilepathImageProvider.swift",
+    "Sources/Private/Model/ShapeItems/Fill.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Nodes/RenderNodes/FillNode.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Nodes/OutputNodes/Renderables/FillRenderer.swift",
+    "Sources/Public/DynamicProperties/ValueProviders/FloatValueProvider.swift",
+    "Sources/Private/Model/Text/Font.swift",
+    "Sources/Private/Model/Text/Glyph.swift",
+    "Sources/Private/CoreAnimation/Animations/GradientAnimations.swift",
+    "Sources/Private/Model/ShapeItems/GradientFill.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Nodes/RenderNodes/GradientFillNode.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Nodes/OutputNodes/Renderables/GradientFillRenderer.swift",
+    "Sources/Private/CoreAnimation/Layers/GradientRenderLayer.swift",
+    "Sources/Private/Model/ShapeItems/GradientStroke.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Nodes/RenderNodes/GradientStrokeNode.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Nodes/OutputNodes/Renderables/GradientStrokeRenderer.swift",
+    "Sources/Public/DynamicProperties/ValueProviders/GradientValueProvider.swift",
+    "Sources/Private/Model/ShapeItems/Group.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/NodeProperties/ValueProviders/GroupInterpolator.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Nodes/RenderContainers/GroupNode.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Nodes/OutputNodes/GroupOutputNode.swift",
+    "Sources/Private/Model/Assets/ImageAsset.swift",
+    "Sources/Private/MainThread/LayerContainers/CompLayers/ImageCompositionLayer.swift",
+    "Sources/Private/CoreAnimation/Layers/ImageLayer.swift",
+    "Sources/Private/Model/Layers/ImageLayerModel.swift",
+    "Sources/Private/CoreAnimation/Layers/InfiniteOpaqueAnimationLayer.swift",
+    "Sources/Public/Keyframes/Interpolatable.swift",
+    "Sources/Private/Utility/Interpolatable/InterpolatableExtensions.swift",
+    "Sources/Private/MainThread/LayerContainers/Utility/InvertedMatteLayer.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Extensions/ItemsExtension.swift",
+    "Sources/Private/Model/Extensions/KeyedDecodingContainerExtensions.swift",
+    "Sources/Public/Keyframes/Keyframe.swift",
+    "Sources/Private/Model/Keyframes/KeyframeData.swift",
+    "Sources/Private/Utility/Interpolatable/KeyframeExtensions.swift",
+    "Sources/Private/CoreAnimation/Extensions/KeyframeGroup+exactlyOneKeyframe.swift",
+    "Sources/Private/Model/Keyframes/KeyframeGroup.swift",
+    "Sources/Private/Utility/Interpolatable/KeyframeInterpolator.swift",
+    "Sources/Private/CoreAnimation/Extensions/Keyframes+combined.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/NodeProperties/Protocols/KeypathSearchable.swift",
+    "Sources/Private/Utility/Debugging/LayerDebugging.swift",
+    "Sources/Private/MainThread/LayerContainers/Utility/LayerFontProvider.swift",
+    "Sources/Private/MainThread/LayerContainers/Utility/LayerImageProvider.swift",
+    "Sources/Private/CoreAnimation/Layers/LayerModel+makeAnimationLayer.swift",
+    "Sources/Private/Model/Layers/LayerModel.swift",
+    "Sources/Private/CoreAnimation/Animations/LayerProperty.swift",
+    "Sources/Private/MainThread/LayerContainers/Utility/LayerTextProvider.swift",
+    "Sources/Private/MainThread/LayerContainers/Utility/LayerTransformNode.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Nodes/OutputNodes/Renderables/LegacyGradientFillRenderer.swift",
+    "Sources/Public/Animation/LottieAnimation.swift",
+    "Sources/Public/AnimationCache/LottieAnimationCache.swift",
+    "Sources/Public/Animation/LottieAnimationHelpers.swift",
+    "Sources/Public/Animation/LottieAnimationView.swift",
+    "Sources/Public/iOS/LottieAnimationViewBase.swift",
+    "Sources/Public/Animation/LottieAnimationViewInitializers.swift",
+    "Sources/Public/Primitives/LottieColor.swift",
+    "Sources/Public/LottieConfiguration.swift",
+    "Sources/Public/Logging/LottieLogger.swift",
+    "Sources/Public/AnimationCache/LRUAnimationCache.swift",
+    "Sources/Private/MainThread/LayerContainers/MainThreadAnimationLayer.swift",
+    "Sources/Private/Model/Objects/Marker.swift",
+    "Sources/Private/Model/Objects/Mask.swift",
+    "Sources/Private/CoreAnimation/Layers/MaskCompositionLayer.swift",
+    "Sources/Private/MainThread/LayerContainers/CompLayers/MaskContainerLayer.swift",
+    "Sources/Private/Utility/Extensions/MathKit.swift",
+    "Sources/Private/Model/ShapeItems/Merge.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/NodeProperties/NodeProperty.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/NodeProperties/Protocols/NodePropertyMap.swift",
+    "Sources/Private/MainThread/LayerContainers/CompLayers/NullCompositionLayer.swift",
+    "Sources/Private/CoreAnimation/Animations/OpacityAnimation.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Nodes/OutputNodes/PassThroughOutputNode.swift",
+    "Sources/Private/Utility/Primitives/PathElement.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Protocols/PathNode.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Nodes/OutputNodes/PathOutputNode.swift",
+    "Sources/Public/DynamicProperties/ValueProviders/PointValueProvider.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Nodes/PathNodes/PolygonNode.swift",
+    "Sources/Private/Model/Assets/PrecompAsset.swift",
+    "Sources/Private/CoreAnimation/Layers/PreCompLayer.swift",
+    "Sources/Private/Model/Layers/PreCompLayerModel.swift",
+    "Sources/Private/MainThread/LayerContainers/CompLayers/PreCompositionLayer.swift",
+    "Sources/Private/Model/ShapeItems/Rectangle.swift",
+    "Sources/Private/CoreAnimation/Animations/RectangleAnimation.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Nodes/PathNodes/RectNode.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Protocols/RenderNode.swift",
+    "Sources/Private/Model/ShapeItems/Repeater.swift",
+    "Sources/Private/CoreAnimation/Layers/RepeaterLayer.swift",
+    "Sources/Private/RootAnimationLayer.swift",
+    "Sources/Private/Model/ShapeItems/RoundedCorners.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Nodes/ModifierNodes/RoundedCornersNode.swift",
+    "Sources/Private/Model/ShapeItems/Shape.swift",
+    "Sources/Private/CoreAnimation/Animations/ShapeAnimation.swift",
+    "Sources/Private/MainThread/LayerContainers/CompLayers/ShapeCompositionLayer.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/RenderLayers/ShapeContainerLayer.swift",
+    "Sources/Private/Model/ShapeItems/ShapeItem.swift",
+    "Sources/Private/CoreAnimation/Layers/ShapeItemLayer.swift",
+    "Sources/Private/CoreAnimation/Layers/ShapeLayer.swift",
+    "Sources/Private/Model/Layers/ShapeLayerModel.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Nodes/PathNodes/ShapeNode.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/RenderLayers/ShapeRenderLayer.swift",
+    "Sources/Private/Model/ShapeItems/ShapeTransform.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/NodeProperties/ValueProviders/SingleValueProvider.swift",
+    "Sources/Public/DynamicProperties/ValueProviders/SizeValueProvider.swift",
+    "Sources/Private/MainThread/LayerContainers/CompLayers/SolidCompositionLayer.swift",
+    "Sources/Private/CoreAnimation/Layers/SolidLayer.swift",
+    "Sources/Private/Model/Layers/SolidLayerModel.swift",
+    "Sources/Private/Model/ShapeItems/Star.swift",
+    "Sources/Private/CoreAnimation/Animations/StarAnimation.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Nodes/PathNodes/StarNode.swift",
+    "Sources/Private/Utility/Extensions/StringExtensions.swift",
+    "Sources/Private/Model/ShapeItems/Stroke.swift",
+    "Sources/Private/CoreAnimation/Animations/StrokeAnimation.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Nodes/RenderNodes/StrokeNode.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Nodes/OutputNodes/Renderables/StrokeRenderer.swift",
+    "Sources/Private/Utility/Debugging/TestHelpers.swift",
+    "Sources/Private/Model/Text/TextAnimator.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Nodes/Text/TextAnimatorNode.swift",
+    "Sources/Private/MainThread/LayerContainers/CompLayers/TextCompositionLayer.swift",
+    "Sources/Private/Model/Text/TextDocument.swift",
+    "Sources/Private/CoreAnimation/Layers/TextLayer.swift",
+    "Sources/Private/Model/Layers/TextLayerModel.swift",
+    "Sources/Private/Model/Objects/Transform.swift",
+    "Sources/Private/CoreAnimation/Animations/TransformAnimations.swift",
+    "Sources/Private/CoreAnimation/Layers/TransformLayer.swift",
+    "Sources/Private/Model/ShapeItems/Trim.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/Nodes/ModifierNodes/TrimPathNode.swift",
+    "Sources/Public/iOS/UIColorExtension.swift",
+    "Sources/Private/Utility/Primitives/UnitBezier.swift",
+    "Sources/Private/Model/DotLottie/ZipFoundation/URL+ZIP.swift",
+    "Sources/Private/MainThread/NodeRenderSystem/NodeProperties/ValueContainer.swift",
+    "Sources/Private/CoreAnimation/ValueProviderStore.swift",
+    "Sources/Public/Primitives/Vectors.swift",
+    "Sources/Private/Utility/Primitives/VectorsExtensions.swift",
+    "Sources/Private/CoreAnimation/Animations/VisibilityAnimation.swift"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+swift_library(
+  name = "lottie-lark_swift",
+  module_name = "LottieLark",
+  srcs = [
+    "lottie-lark_root_swift_srcs"
+  ],
+  deps = [
+    "@PodHeaders//:PodHeaders_namespace_public_interface",
+    ":lottie-lark_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":lottie-lark_module_map",
+    ":lottie-lark_objc_interface"
+  ],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ) + [
+    "-DCOCOAPODS",
+    "-suppress-warnings",
+    "-import-underlying-module",
+    "-swift-version",
+    "5",
+    "-Xcc",
+    "-fobjc-weak",
+    "-Xcc",
+    "-stdlib=libc++",
+    "-Xcc",
+    "-DCOCOAPODS=1",
+    "-Xcc",
+    "-fdiagnostics-show-note-include-stack",
+    "-Xcc",
+    "-fno-common",
+    "-Xcc",
+    "-fmessage-length=0",
+    "-Xcc",
+    "-fpascal-strings",
+    "-Xcc",
+    "-fstrict-aliasing",
+    "-Xcc",
+    "-Dlottie_lark_POD_VERSION=@\\\"137801_4.2.7-lark\\\"",
+    "-Xcc",
+    "-I.",
+    "-Xcc",
+    "-Wno-nullability-completeness",
+    "-Xcc",
+    "-Wno-nonnull",
+    "-Xcc",
+    "-Wno-nullability",
+    "-Xcc",
+    "-Wno-incomplete-umbrella"
+  ],
+  generates_header = True,
+  generated_header_name = "LottieLark-Swift.h",
+  features = [
+    "swift.no_generated_module_map",
+    "swift.opt_uses_wmo",
+    "swift.opt_uses_osize"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "lottie-lark_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "lottie-lark_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "CoreGraphics",
+    "QuartzCore"
+  ],
+  deps = [
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":lottie-lark_private_includes",
+    ":lottie-lark_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":lottie-lark_swift",
+    ":lottie-lark_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dlottie_lark_POD_VERSION=@\\\"137801_4.2.7-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "lottie-lark",
+  deps = [
+    ":lottie-lark_oc",
+    ":lottie-lark_swift"
+  ],
+  minimum_os_version = "11.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "lottie-lark_lib",
+  deps = [
+    ":lottie-lark"
+  ],
+  minimum_os_version = "11.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_lottie-lark_module_map",
+  module_map = "@lottie-lark//:pod_support/Headers/Public/lottie-lark/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@lottie-lark//:pod_support/Headers/Public/lottie-lark/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_lottie-lark_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@lottie-lark//:lottie-lark_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_lottie-lark",
+  target_name = "Lark",
+  module_name = "LottieLark",
+  hdrs = ["@lottie-lark//:lottie-lark_root_pod_hdrs"],
+  srcs = ["@lottie-lark//:lottie-lark_root_swift_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dlottie_lark_POD_VERSION=@\\\"137801_4.2.7-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "lottie_lark_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "lottie_lark_cxxopts", []),
+  swift_copts = select({
+      "//conditions:default": [],
+      ":release": []
+    }) + [
+    "-DCOCOAPODS",
+    "-suppress-warnings",
+    "-import-underlying-module",
+    "-swift-version",
+    "5",
+    "-Xcc",
+    "-fobjc-weak",
+    "-Xcc",
+    "-stdlib=libc++",
+    "-Xcc",
+    "-DCOCOAPODS=1",
+    "-Xcc",
+    "-fdiagnostics-show-note-include-stack",
+    "-Xcc",
+    "-fno-common",
+    "-Xcc",
+    "-fmessage-length=0",
+    "-Xcc",
+    "-fpascal-strings",
+    "-Xcc",
+    "-fstrict-aliasing",
+    "-Xcc",
+    "-Dlottie_lark_POD_VERSION=@\\\"137801_4.2.7-lark\\\"",
+    "-Xcc",
+    "-Wno-nullability-completeness",
+    "-Xcc",
+    "-Wno-nonnull",
+    "-Xcc",
+    "-Wno-nullability",
+    "-Xcc",
+    "-Wno-incomplete-umbrella",
+    ] + getattr(defs_external_swift_library, "common_copts", []) 
+      + getattr(defs_external_swift_library, "lottie_lark_copts", []),
+  sdk_frameworks = ["UIKit", "CoreGraphics", "QuartzCore"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "lottie_lark_features", []),
+  swift_features = ["swift.no_generated_module_map", "swift.opt_uses_wmo", "swift.opt_uses_osize"] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "lottie_lark_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "lottie_lark_dynamic", False),
+  tags = getattr(defs_external_objc_library, "lottie_lark_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("lottie_lark", {}),
+  visibility = ["//visibility:public"],
+)

@@ -1,0 +1,55 @@
+# Sometimes it's a README fix, or something like that - which isn't relevant for
+# including in a project's CHANGELOG for example
+
+labels = gitlab.mr_json['labels']
+squash = gitlab.mr_json['squash']
+force_remove = gitlab.mr_json['force_remove_source_branch']
+
+def liaf(msg)
+  labels = gitlab.mr_json['labels']
+  fail(msg) unless labels.any? { |label| label.eql?('BypassMRCheck')}
+  warn(msg) if labels.any? { |label| label.eql?('BypassMRCheck')}
+end
+
+# MR info
+#liaf("MR 太大了，不建议处理修改行数超过500行的merge request，请尽量拆分为逻辑独立的多个MR.") if git.lines_of_code > 500
+warn("这个MR 有点大，考虑一下能否拆分为多个独立的MR.") if git.lines_of_code > 200
+liaf("Merge Request 标题超过了80个字符") if gitlab.mr_title.length > 80
+leaf("Merge Request 标题不应该包含 Jira issue ID") if gitlab.mr_title =~ /SUITE-/
+
+files = git.modified_files + git.added_files
+
+has_byteview_changes = !files.grep(/^ByteView\/|^Example\//).empty?
+has_code_changes = !files.grep(/swift$/).empty?
+has_configuration_changes = !git.modified_files.grep(/podspec|Gemfile|fastlane|yml$|^.git|^.eescaffold/).empty?
+has_document_changes = !git.modified_files.grep(/md$|LICENSE|CHANGELOG|^Docs/).empty?
+
+
+#warn("Merge Request 尽量勾选 squash以保证历史干净") unless squash
+warn("建议Merge Request合入后 删除远端源分支") unless force_remove
+
+# if has_document_changes
+#   liaf("文档有更新，需要为MR添加Documentation 标签") unless labels.any? { |label| label.eql?('Documentation')}
+# end
+# if has_configuration_changes
+#   liaf("配置文件有更新，需要为MR添加Configuration 标签") unless labels.any? { |label| label.eql?('Configuration')}
+# end
+if has_byteview_changes
+  # liaf("Byteview 代码有更新，需要根据类型为MR添加Bugfix、Feature 或者Enhancement 标签") unless labels.any? { |label| label =~ /Bugfix|Feature|Enhancement/ }
+  #check jira
+  jira.check(
+    key: ["SUITE"],
+    url: "https://jira.bytedance.com/browse",
+    search_commits: false,
+    fail_on_warning: true,
+    report_missing: true,
+    skippable: true
+  )
+end
+
+#if has_byteview_changes && !failed?
+#  ENV["REVIEW_NEED_BUILD"] = 'true'
+#  message("需要进行单元测试进一步review")
+#else
+#  message("没有代码修改，无需运行单元测试。")
+#end

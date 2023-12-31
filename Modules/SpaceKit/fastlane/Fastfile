@@ -1,0 +1,142 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+__root='../../..'
+require_relative "#{__root}/fastlane/remove_unused_pb_common"
+
+default_platform(:ios)
+
+platform :ios do
+
+  desc "SpaceDemo Debug"
+  lane :space_demo_debug do |options|
+    build_number = options[:build_number]
+    output_dir = options[:output_dir]
+
+    try_switch_xcode_version options
+
+    gym(
+      workspace: "SpaceDemo.xcworkspace",
+      export_method: "development",
+      configuration: "Debug",
+      scheme: "SpaceDemo-Debug",
+      output_directory: output_dir,
+      output_name: "SpaceDemo-Debug-"+build_number+".ipa",
+      clean: true,
+      result_bundle: (!ENV['RESULT_DATA_PATH'].nil? and !ENV['RESULT_DATA_PATH'].empty?),
+      result_bundle_path: ENV['RESULT_DATA_PATH']
+    )
+  end
+
+  desc "SpaceDemoSZ Debug"
+  lane :space_demo_sz_debug do |options|
+    build_number = options[:build_number]
+    output_dir = options[:output_dir]
+
+    try_switch_xcode_version options
+
+    gym(
+      workspace: "SpaceDemo.xcworkspace",
+      export_method: "development",
+      scheme: "SpaceDemoSZ-Debug",
+      configuration: "Debug",
+      output_directory: output_dir,
+      output_name: "SpaceDemoSZ-Debug-"+build_number+".ipa",
+      clean: true,
+      result_bundle: (!ENV['RESULT_DATA_PATH'].nil? and !ENV['RESULT_DATA_PATH'].empty?),
+      result_bundle_path: ENV['RESULT_DATA_PATH']
+    )
+  end
+
+  # desc "SpaceDemoEnt Beta"
+  # lane :space_demo_ent_beta do |options|
+  #   build_number = options[:build_number]
+  #   output_dir = options[:output_dir]
+
+  #   gym(
+  #     workspace: "SpaceDemo.xcworkspace",
+  #     configuration: "Beta",
+  #     export_method: "enterprise",
+  #     scheme: "SpaceDemoEnt-Beta",
+  #     output_directory: output_dir,
+  #     output_name: "SpaceDemoEnt-Beta-"+build_number+".ipa",
+  #     clean: true
+  #   )
+  # end
+
+  # desc "SpaceDemoEnt Release"
+  # lane :space_demo_ent_release do |options|
+  #   build_number = options[:build_number]
+  #   output_dir = options[:output_dir]
+
+  #   gym(
+  #     workspace: "SpaceDemo.xcworkspace",
+  #     configuration: "Release",
+  #     export_method: "enterprise",
+  #     scheme: "SpaceDemoEnt-Release",
+  #     output_directory: output_dir,
+  #     output_name: "SpaceDemoEnt-Release-"+build_number+".ipa",
+  #     clean: true
+  #   )
+  # end
+
+  # desc "SpaceDemo UnitTest"
+  # lane :space_demo_unittest do |options|
+  #   build_number = options[:build_number]
+  #   output_dir = options[:output_dir]
+
+  #   run_tests(
+  #     workspace: "SpaceDemo.xcworkspace",
+  #     scheme: "SpaceDemo-UnitTest",
+  #     build_for_testing: true,
+  #     configuration: "Debug"
+  #   )
+
+  #   run_tests(
+  #     workspace: "SpaceDemo.xcworkspace",
+  #     scheme: "SpaceDemo-UnitTest",
+  #     clean: false,
+  #     test_without_building: true,
+  #     prelaunch_simulator: true,
+  #     configuration: "Debug",
+  #     destination: 'platform=iOS simulator,name=iPhone 7 Plus,OS=12.4',
+  #     output_directory: output_dir,
+  #     output_types: "html",
+  #     output_files: "SpaceDemo-UnitTest-"+build_number+".html"
+  #   )
+  # end
+
+  private_lane :try_switch_xcode_version do |options|
+    __xcode_version_config = ENV['XCODE_VERSION']
+
+    if __xcode_version_config.nil? || __xcode_version_config.empty? || __xcode_version_config == 'default'
+      ENV['DEVELOPER_DIR'] = `path_for_version_string 12.x`.strip
+    else
+      ENV['DEVELOPER_DIR'] = `path_for_version_string`.strip
+    end
+
+    puts "* * * * * * * * '#{ENV['DEVELOPER_DIR']}'"
+  end
+
+  lane :revert_remove_unused_pb do |options|
+    _revert_remove_unused_pb(options)
+  end
+
+  lane :remove_unused_pb do |options|
+    # 删除无用pb message（文档：https://bytedance.feishu.cn/wiki/wikcnSevDX5Izu7OSlfmAmVxrle）
+    options['REMOVE_PB_PROEJCT_DIR'] = __root
+    _remove_unused_pb(options)
+  end
+end

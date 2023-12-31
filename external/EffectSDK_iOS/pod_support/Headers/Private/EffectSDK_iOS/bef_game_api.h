@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_game_api.h

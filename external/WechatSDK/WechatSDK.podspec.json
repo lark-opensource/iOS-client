@@ -1,0 +1,48 @@
+{
+  "name": "WechatSDK",
+  "version": "0.3.3",
+  "summary": "framework_summary",
+  "homepage": "https://code.byted.org/growth_client/WechatSDK",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "wangpeng": "wangpeng.yony@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:growth_client/WechatSDK.git",
+    "commit": "79a2f2f3398398134b9b6d1ece547f80c8bf5a05"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "source_files": "WechatSDK/Classes/*.{h,m}",
+  "public_header_files": "WechatSDK/**/*.h",
+  "vendored_libraries": "WechatSDK/Classes/libWeChatSDK.a",
+  "frameworks": [
+    "CFNetwork",
+    "CoreTelephony",
+    "Security",
+    "SystemConfiguration",
+    "WebKit"
+  ],
+  "libraries": [
+    "c++",
+    "sqlite3",
+    "z"
+  ],
+  "_bytebus_platform": {
+    "repo_id": "1413",
+    "app_id": "9999"
+  },
+  "repoId": "1413",
+  "description": "framework_description",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "WechatSDK_POD_VERSION=@\\\"9999_0.3.3\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "WechatSDK_POD_VERSION=@\\\"9999_0.3.3\\\""
+  }
+}

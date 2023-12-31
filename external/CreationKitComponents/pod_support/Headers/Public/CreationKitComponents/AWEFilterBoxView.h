@@ -1,0 +1,1 @@
+../../../../Recorder/Filter/Core/Views/AWEFilterBoxView.h

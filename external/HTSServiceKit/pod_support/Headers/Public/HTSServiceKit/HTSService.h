@@ -1,0 +1,1 @@
+../../../../HTSServiceKit/Classes/Service/HTSService.h

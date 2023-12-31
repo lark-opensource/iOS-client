@@ -1,0 +1,151 @@
+# yaml-language-server: $schema=http://tosv.byted.org/obj/ee-infra-ios/schema/project_configuration#
+#
+#   ______ ______ _____        __
+#  |  ____|  ____|_   _|      / _|
+#  | |__  | |__    | |  _ __ | |_ _ __ __ _
+#  |  __| |  __|   | | | '_ \|  _| '__/ _` |
+#  | |____| |____ _| |_| | | | | | | | (_| |
+#  |______|______|_____|_| |_|_| |_|  \__,_|
+#
+#   Toolchains For EE iOS
+# 项目ID
+projectID: com.bytedance.ee.ios.client
+# publish 的目标地址
+pod:
+  repo: "git@code.byted.org:ee/pods_specs.git"
+# 发布的模块仓储位置 可以直接使用下面的配置，这个配置是架构组申请的TOS的bucket
+storage:
+  accessKey: "Y6KCSEZ49IVH1ES8QR8W"
+  bucket: "ee-infra-ios"
+
+# 证书管理的git仓库地址和密码
+certs:
+  git: git@code.byted.org:ee/ios_match_certificates
+  password:  eeios
+# 模块管理相关功能
+
+modules:
+  # 进行模块搜索的路径,默认会在工程Bizs和Libs下面进行搜索
+  searchPaths:
+    - 'Bizs/'
+    - 'Libs'
+    - 'Modules'
+    # - '../LarkMessenger/Bizs/'
+    # - '../LarkMessenger/Libs'
+  exclude_paths:
+    - "Pods/"
+    - "Products/"
+# 模块中dependency需要的私有源地址
+appspecs:
+  searchPaths:
+    - 'Apps'
+private_sources: # need by eesc project analyze...
+  - 'git@code.byted.org:ee/pods_specs.git'
+  # old bd extension sources
+  - 'git@code.byted.org:ee/pods_specs.git'
+  - 'git@code.byted.org:iOS_Library/lark_binary_repo.git'
+  - 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+  - 'git@code.byted.org:iOS_Library/privatethird_binary_repo.git'
+  - 'git@code.byted.org:iOS_Library/privatethird_source_repo.git'
+  - 'git@code.byted.org:iOS_Library/publicthird_binary_repo.git'
+  - 'git@code.byted.org:iOS_Library/publicthird_source_repo.git'
+  - 'git@code.byted.org:iOS_Library/toutiao_source_repo.git'
+  - 'git@code.byted.org:lab-cv/Specs.git'
+  - 'git@code.byted.org:TTVideo/ttvideo-pods.git'
+  - 'git@code.byted.org:ugc/UGCSpecs.git'
+
+  # ours custom sources
+
+# 设置build setting中的默认值，用于全局 参考 ![AppSpec BuildSettings设置](/docs/en/appspec/build_settings)
+build_seting_defaults:
+  Release:
+    development_team: X46375UBYG
+    provisioning_profile_specifier: "EEScaffold App Distribute"
+    custom_build_settings:
+      CODE_SIGN_IDENTITY: "iPhone Distribution"
+  Debug:
+    development_team: X46375UBYG
+    provisioning_profile_specifier: "match Development com.bytedance.ee.*"
+
+# starling产品线配置，会覆盖i18n的配置
+starling:
+  # 数据源 可配置多个, 前面的优先, 里面参数同starling(透传)
+  resources:
+    - projectId: 2207 # Lark
+      # 如果重名，前面的优先
+      namespaceId: [34815, 38483, 34810] # Shared
+    - projectId: 2094 # OpenPlatform
+      # 如果重名，前面的优先
+      namespaceId: [34132, 34137] # Shared
+    - projectId: 2085 # Calendar
+      # 如果重名，前面的优先
+      namespaceId: [34083] # Shared
+    - projectId: 2103 # View
+      # 如果重名，前面的优先
+      namespaceId: [34186, 34191, 34187] # Shared
+    - projectId: 2108 # Mail
+      # 如果重名，前面的优先
+      namespaceId: [34221, 34216] # Shared
+    - projectId: 2187 # Todo
+      namespaceId: [34695] # Shared
+    - projectId: 2521 # Pano
+      # 如果重名，前面的优先
+      namespaceId: [38139] # Shared
+    - projectId: 3545 # Moments
+      namespaceId: [37986] # iOS, Shared
+    - projectId: 4394 # T
+      # 如果重名，前面的优先
+      namespaceId: [41385] # Shared
+    - projectId: 8217
+      namespaceId: [50340, 50342, 50344]
+      support_single_param: true
+    - projectId: 3788 # UniverseDesign
+      # 如果重名，前面的优先
+      namespaceId: [38915] # React
+    - projectId: 2095 # LittleApp
+      # 如果重名，前面的优先
+      namespaceId: [34143, 34138] # iOS, Shared
+    - projectId: 3129
+      namespaceId: [37171]
+    - projectId: 2268 # MMWebV
+      # 如果重名，前面的优先
+      namespaceId: [35181] # Share
+      support_single_param: true
+    - projectId: 2176 # LarkLive
+      # 如果重名，前面的优先
+      namespaceId: [34629, 41969, 41970]
+    - projectId: 2085 # Calendar
+      namespaceId: [34078, 34083]  # Shared
+    - projectId: 2113 # Docs
+      namespaceId: [34251, 34246] # Shared
+    - projectId: 2086 #
+      # 如果重名，前面的优先
+      namespaceId: [38121, 34089]
+    - projectId: 2231 #
+      # 如果重名，前面的优先
+      namespaceId: [34959] # iOS, Shared
+    - projectId: 8770 #
+      # 如果重名，前面的优先
+      namespaceId: [52445, 66909]
+    - projectId: 23858 # My AI
+      # 如果重名，前面的优先
+      namespaceId: [81561]
+
+  locale:
+    - en-US
+    - zh-CN
+    - zh-TW
+    - zh-HK
+    - ja-JP
+    - id-ID
+    - de-DE
+    - es-ES
+    - fr-FR
+    - it-IT
+    - pt-BR
+    - vi-VN
+    - ru-RU
+    - hi-IN
+    - th-TH
+    - ko-KR
+    - ms-MY

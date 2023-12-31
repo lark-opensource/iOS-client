@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/HMDALogProtocol/Common/Public/HMDALogProtocol.h

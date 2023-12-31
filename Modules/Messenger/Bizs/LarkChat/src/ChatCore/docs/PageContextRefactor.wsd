@@ -1,0 +1,30 @@
+@startuml refactor
+
+class PageContext {
+    +resolver: Resolver
+    +pageAPI: PagePI
+    +datasourceAPI: DataSourceAPI
+    +pageContainer: PageContainer
+}
+
+class ViewController {
+    +messageViewModel: MessageViewModel
+}
+
+class MessageViewModel {
+    +context: PageContext
+    +cellViewModels: [CellViewModel]
+}
+
+ViewController --|> PagePI
+ViewController "1" *-- "1" MessageViewModel
+
+MessageViewModel "1" *-- "n" CellViewModel
+MessageViewModel "1" *-- "1" PageContext
+MessageViewModel --|> DataSourceAPI
+
+PageContext "1" *.. "1" PagePI
+PageContext "1" *.. "1" DataSourceAPI
+PageContext "1" *-- "1" PageContainer
+
+@enduml

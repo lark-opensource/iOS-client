@@ -1,0 +1,370 @@
+# Copyright 2021 The Lynx Authors. All rights reserved.
+
+import("//Lynx/Lynx.gni")
+
+assert(is_ios)
+
+if (target_cpu == "arm" || target_cpu == "arm64") {
+  import("//build/config/arm.gni")
+}
+
+ios_lynx_shared_sources = [
+  "Base/Background/LynxBackgroundCapInsets.m",
+  "Base/Background/LynxBackgroundDrawable.mm",
+  "Base/Background/LynxBackgroundImageLayerInfo.m",
+  "Base/Background/LynxBackgroundInfo.m",
+  "Base/Background/LynxBackgroundManager.m",
+  "Base/Background/LynxBackgroundSubBackgroundLayer.m",
+  "Base/Background/LynxBackgroundUtils.m",
+  "Base/Background/LynxBoxShadowLayer.m",
+  "Base/LynxBoxShadowManager.m",
+  "Base/LynxConverter+Transform.m",
+  "Base/LynxFontFaceManager.m",
+  "Base/LynxGradient.m",
+  "Base/LynxLayoutStyle.mm",
+  "Base/LynxPropsProcessor.mm",
+  "Base/LynxTextStyle.m",
+  "Base/LynxTextUtils.m",
+  "Base/LynxTransformOriginRaw.m",
+  "Base/LynxTransformRaw.m",
+  "Base/LynxUIMethodProcessor.m",
+  "Base/UIDevice+Lynx.m",
+  "Event/LynxEventDetail.m",
+  "Event/LynxEventEmitter.mm",
+  "Event/LynxEventHandler+Internal.h",
+  "Event/LynxEventHandler.m",
+  "Event/LynxEventSpec.m",
+  "Event/LynxKeyboardEventDispatcher.m",
+  "Event/LynxTouchHandler+Internal.h",
+  "Event/LynxTouchHandler.mm",
+  "Fluency/Base/LynxFPSMonitor.mm",
+  "Fluency/Base/LynxFPSRecord.m",
+  "Fluency/LynxFluencyMonitor.mm",
+  "Fluency/LynxScrollFluency.m",
+  "HeroTransitions/CALayer+LynxHeroTransition.m",
+  "HeroTransitions/LynxHeroAnimator.m",
+  "HeroTransitions/LynxHeroModifiers.m",
+  "HeroTransitions/LynxHeroTransition.m",
+  "HeroTransitions/LynxUI+LynxHeroTransition.m",
+  "HeroTransitions/UIView+LynxHeroTransition.m",
+  "HeroTransitions/UIViewController+LynxHeroTransition.m",
+  "LynxConfig+Internal.h",
+  "LynxContext+Internal.h",
+  "LynxSSRHelper.h",
+  "LynxSSRHelper.m",
+  "LynxSettingsManager.m",
+  "LynxTemplateRender+Internal.h",
+  "LynxTemplateRender.mm",
+  "LynxView.mm",
+  "Module/LynxExposureModule.h",
+  "Module/LynxExposureModule.mm",
+  "Module/LynxAccessibilityModule.h",
+  "Module/LynxAccessibilityModule.mm",
+  "Module/LynxIntersectionObserverModule.h",
+  "Module/LynxIntersectionObserverModule.mm",
+  "Module/LynxResourceModule.h",
+  "Module/LynxResourceModule.mm",
+  "Module/LynxUIMethodModule.h",
+  "Module/LynxUIMethodModule.mm",
+  "PaintingContextProxy.h",
+  "PaintingContextProxy.mm",
+  "Public/Base/Background/LynxBackgroundCapInsets.h",
+  "Public/Base/Background/LynxBackgroundDrawable.h",
+  "Public/Base/Background/LynxBackgroundImageLayerInfo.h",
+  "Public/Base/Background/LynxBackgroundInfo.h",
+  "Public/Base/Background/LynxBackgroundManager.h",
+  "Public/Base/Background/LynxBackgroundRenderer+Internal.h",
+  "Public/Base/Background/LynxBackgroundRenderer.h",
+  "Public/Base/Background/LynxBackgroundUtils.h",
+  "Public/Base/Background/LynxBoxShadowLayer.h",
+  "Public/Base/LynxBoxShadowManager.h",
+  "Public/Base/LynxConverter+Transform.h",
+  "Public/Base/LynxFontFaceManager.h",
+  "Public/Base/LynxGradient.h",
+  "Public/Base/LynxImageFetcher.h",
+  "Public/Base/LynxLayoutStyle.h",
+  "Public/Base/LynxPreprocessingUtils.h",
+  "Public/Base/LynxPropsProcessor.h",
+  "Public/Base/LynxTextStyle.h",
+  "Public/Base/LynxTextUtils.h",
+  "Public/Base/LynxTransformOriginRaw.h",
+  "Public/Base/LynxTransformRaw.h",
+  "Public/Base/LynxUIMethodProcessor.h",
+  "Public/Base/UIDevice+Lynx.h",
+  "Public/Event/LynxEventDetail.h",
+  "Public/Event/LynxEventEmitter.h",
+  "Public/Event/LynxEventHandler.h",
+  "Public/Event/LynxEventSpec.h",
+  "Public/Event/LynxEventTarget.h",
+  "Public/Event/LynxKeyboardEventDispatcher.h",
+  "Public/Event/LynxTouchHandler.h",
+  "Public/Fluency/Base/LynxFPSMonitor.h",
+  "Public/Fluency/Base/LynxFPSRecord.h",
+  "Public/Fluency/LynxFluencyMonitor.h",
+  "Public/Fluency/LynxScrollFluency.h",
+  "Public/HeroTransitions/CALayer+LynxHeroTransition.h",
+  "Public/HeroTransitions/LynxHeroAnimator.h",
+  "Public/HeroTransitions/LynxHeroModifiers.h",
+  "Public/HeroTransitions/LynxHeroTransition.h",
+  "Public/HeroTransitions/LynxUI+LynxHeroTransition.h",
+  "Public/HeroTransitions/UIView+LynxHeroTransition.h",
+  "Public/HeroTransitions/UIViewController+LynxHeroTransition.h",
+  "Public/Krypton/LynxKryptonEffectHandlerProtocol.h",
+  "Public/Krypton/LynxKryptonHelper.h",
+  "Public/LynxBlurImageProcessor.h",
+  "Public/LynxFatImageProcessor.h",
+  "Public/LynxImageBlurUtils.h",
+  "Public/LynxImageLoader.h",
+  "Public/LynxImageProcessor.h",
+  "Public/LynxNinePatchImageProcessor.h",
+  "Public/LynxSettingsManager.h",
+  "Public/LynxTemplateRender.h",
+  "Public/LynxUIFilterImage.h",
+  "Public/LynxUIImage.h",
+  "Public/LynxUIInlineImage.h",
+  "Public/LynxView+Internal.h",
+  "Public/LynxView.h",
+  "Public/ShadowNode/LynxCustomMeasureDelegate+Internal.h",
+  "Public/ShadowNode/LynxCustomMeasureDelegate.h",
+  "Public/ShadowNode/LynxCustomMeasureShadowNode.h",
+  "Public/ShadowNode/LynxLayoutNode+Internal.h",
+  "Public/ShadowNode/LynxLayoutNode.h",
+  "Public/ShadowNode/LynxLayoutTick.h",
+  "Public/ShadowNode/LynxMeasureDelegate.h",
+  "Public/ShadowNode/LynxNativeLayoutNode.h",
+  "Public/ShadowNode/LynxShadowNode+VirtualAnchor.h",
+  "Public/ShadowNode/LynxShadowNode.h",
+  "Public/ShadowNode/LynxShadowNodeOwner.h",
+  "Public/ShadowNode/LynxShadowNodeStyle.h",
+  "Public/ShadowNode/Text/LynxBaseTextShadowNode.h",
+  "Public/ShadowNode/Text/LynxBaselineShiftLayoutManager.h",
+  "Public/ShadowNode/Text/LynxConverter+NSShadow.h",
+  "Public/ShadowNode/Text/LynxEventTargetSpan.h",
+  "Public/ShadowNode/Text/LynxInlineTextShadowNode.h",
+  "Public/ShadowNode/Text/LynxRawTextShadowNode.h",
+  "Public/ShadowNode/Text/LynxTextLayoutManager.h",
+  "Public/ShadowNode/Text/LynxTextLayoutSpec.h",
+  "Public/ShadowNode/Text/LynxTextRenderer.h",
+  "Public/ShadowNode/Text/LynxTextRendererCache.h",
+  "Public/ShadowNode/Text/LynxTextSelectionShadowNode.h",
+  "Public/ShadowNode/Text/LynxTextShadowNode.h",
+  "Public/UI/List/LynxCollection/Layout/LynxCollectionInvalidationContext.h",
+  "Public/UI/List/LynxCollection/Layout/LynxCollectionViewLayout.h",
+  "Public/UI/List/LynxCollection/Layout/LynxCollectionViewLayoutModel.h",
+  "Public/UI/List/LynxCollection/Layout/LynxCollectionViewLayoutSectionModel.h",
+  "Public/UI/List/LynxCollection/LynxCollectionDataSource.h",
+  "Public/UI/List/LynxCollection/LynxCollectionScroll.h",
+  "Public/UI/List/LynxCollection/LynxCollectionScroller.h",
+  "Public/UI/List/LynxCollection/LynxCollectionViewCell.h",
+  "Public/UI/List/LynxCollection/LynxUICollection+Delegate.h",
+  "Public/UI/List/LynxCollection/LynxUICollection+Internal.h",
+  "Public/UI/List/LynxCollection/LynxUICollection+PropSetter.h",
+  "Public/UI/List/LynxCollection/LynxUICollection.h",
+  "Public/UI/List/LynxCollection/LynxUIListItem.h",
+  "Public/UI/List/LynxListAppearEventEmitter.h",
+  "Public/UI/List/LynxListDebug.h",
+  "Public/UI/List/LynxListScrollEventEmitter.h",
+  "Public/UI/List/LynxUIListDelegate.h",
+  "Public/UI/List/LynxUIListInspector.h",
+  "Public/UI/List/LynxUIListLoader.h",
+  "Public/UI/List/LynxUIListScrollEvent.h",
+  "Public/UI/LynxLayer.h",
+  "Public/UI/LynxRootUI.h",
+  "Public/UI/LynxScrollListener.h",
+  "Public/UI/LynxUI+Accessibility.h",
+  "Public/UI/LynxUI+Fluency.h",
+  "Public/UI/LynxUI+Internal.h",
+  "Public/UI/LynxUI.h",
+  "Public/UI/LynxUIComponent.h",
+  "Public/UI/LynxUIContext.h",
+  "Public/UI/LynxUIExposure.h",
+  "Public/UI/LynxUIOwner+Accessibility.h",
+  "Public/UI/LynxUIOwner.h",
+  "Public/UI/LynxUIReportInfoDelegate.h",
+  "Public/UI/LynxUITarget.h",
+  "Public/UI/LynxUIView.h",
+  "Public/UI/LynxViewCurrentIndexHelper.h",
+  "Public/UI/LynxViewVisibleHelper.h",
+  "Public/UI/ScrollView/AbsLynxUIScroller.h",
+  "Public/UI/ScrollView/LynxBounceView.h",
+  "Public/UI/ScrollView/LynxImpressionView.h",
+  "Public/UI/ScrollView/LynxScrollView.h",
+  "Public/UI/ScrollView/LynxUIScroller.h",
+  "Public/UI/ScrollView/UIScrollView+Nested.h",
+  "Public/UI/Text/LynxTextOverflowLayer.h",
+  "Public/UI/Text/LynxTextView.h",
+  "Public/UI/Text/LynxUIText.h",
+  "Public/UI/UIScrollView+Lynx.h",
+  "Public/UI/UIScrollView+LynxFadingEdge.h",
+  "Public/UI/UIView+Lynx.h",
+  "Public/Utils/LynxUIUnitUtils.h",
+  "Public/animation/LynxAnimationDelegate.h",
+  "Public/animation/LynxAnimationInfo.h",
+  "Public/animation/LynxAnimationTransformRotation.h",
+  "Public/animation/LynxAnimationUtils.h",
+  "Public/animation/LynxKeyframeAnimator.h",
+  "Public/animation/LynxKeyframeManager.h",
+  "Public/animation/LynxKeyframes.h",
+  "Public/animation/LynxLayoutAnimationManager.h",
+  "Public/animation/LynxTransitionAnimationManager.h",
+  "ShadowNode/LynxCustomMeasureShadowNode.mm",
+  "ShadowNode/LynxLayoutNode.mm",
+  "ShadowNode/LynxLayoutTick.m",
+  "ShadowNode/LynxNativeLayoutNode.mm",
+  "ShadowNode/LynxShadowNode.m",
+  "ShadowNode/LynxShadowNodeOwner.m",
+  "ShadowNode/LynxUILayoutTick.h",
+  "ShadowNode/LynxUILayoutTick.m",
+  "ShadowNode/Text/LynxBaseTextShadowNode.m",
+  "ShadowNode/Text/LynxBaselineShiftLayoutManager.m",
+  "ShadowNode/Text/LynxConverter+NSShadow.m",
+  "ShadowNode/Text/LynxEventTargetSpan.m",
+  "ShadowNode/Text/LynxInlineTextShadowNode.m",
+  "ShadowNode/Text/LynxRawTextShadowNode.m",
+  "ShadowNode/Text/LynxTextLayoutManager.m",
+  "ShadowNode/Text/LynxTextLayoutSpec.m",
+  "ShadowNode/Text/LynxTextRenderer.m",
+  "ShadowNode/Text/LynxTextRendererCache.m",
+  "ShadowNode/Text/LynxTextSelectionShadowNode.m",
+  "ShadowNode/Text/LynxTextShadowNode.m",
+  "UI/List/LynxCollection/Layout/LynxCollectionInvalidationContext.m",
+  "UI/List/LynxCollection/Layout/LynxCollectionViewLayout.m",
+  "UI/List/LynxCollection/Layout/LynxCollectionViewLayoutModel.m",
+  "UI/List/LynxCollection/Layout/LynxCollectionViewLayoutSectionModel.m",
+  "UI/List/LynxCollection/LynxCollectionDataSource.m",
+  "UI/List/LynxCollection/LynxCollectionScroll.m",
+  "UI/List/LynxCollection/LynxCollectionScroller.m",
+  "UI/List/LynxCollection/LynxCollectionViewCell.m",
+  "UI/List/LynxCollection/LynxUICollection+Delegate.m",
+  "UI/List/LynxCollection/LynxUICollection+PropSetter.m",
+  "UI/List/LynxCollection/LynxUICollection.m",
+  "UI/List/LynxCollection/LynxUIListItem.m",
+  "UI/List/LynxListAppearEventEmitter.m",
+  "UI/List/LynxListScrollEventEmitter.m",
+  "UI/List/LynxUIListLoader.mm",
+  "UI/LynxGlobalObserver.m",
+  "UI/LynxBasicShape.h",
+  "UI/LynxBasicShape.m",
+  "UI/LynxLayer.m",
+  "UI/LynxRootUI.m",
+  "UI/LynxScrollListener.m",
+  "UI/LynxUI+Accessibility.m",
+  "UI/LynxUI+AsyncDisplay.m",
+  "UI/LynxUI+Fluency.m",
+  "UI/LynxUI.m",
+  "UI/LynxUIComponent.m",
+  "UI/LynxUIContext+Internal.h",
+  "UI/LynxUIContext.m",
+  "UI/LynxUIExposure+Internal.h",
+  "UI/LynxUIExposure.m",
+  "UI/LynxUIIntersectionObserver+Internal.h",
+  "UI/LynxUIIntersectionObserver.h",
+  "UI/LynxUIIntersectionObserver.mm",
+  "UI/LynxUIOwner+Accessibility.m",
+  "UI/LynxUIOwner.m",
+  "UI/LynxUIView.m",
+  "UI/ScrollView/AbsLynxUIScroller.m",
+  "UI/ScrollView/LynxBounceView.m",
+  "UI/ScrollView/LynxImpressionView.m",
+  "UI/ScrollView/LynxScrollView.m",
+  "UI/ScrollView/LynxUIScroller.m",
+  "UI/ScrollView/UIScrollView+Nested.m",
+  "UI/Text/LynxTextOverflowLayer.m",
+  "UI/Text/LynxTextView.m",
+  "UI/Text/LynxUIText.m",
+  "UI/UIScrollView+Lynx.m",
+  "UI/UIScrollView+LynxFadingEdge.m",
+  "UI/UIView+Lynx.m",
+  "Utils/LynxUIUnitUtils.m",
+  "animation/LynxAnimationDelegate.m",
+  "animation/LynxAnimationInfo.m",
+  "animation/LynxAnimationTransformRotation.m",
+  "animation/LynxAnimationUtils.m",
+  "animation/LynxKeyframeAnimator.m",
+  "animation/LynxKeyframeManager.m",
+  "animation/LynxKeyframes.m",
+  "animation/LynxLayoutAnimationManager.m",
+  "animation/LynxTransitionAnimationManager.m",
+]
+
+shared_deps_frameworks = [
+  "UIKit",
+  "NaturalLanguage",
+]
+
+network_shared_sources = [
+  "Network/LynxHttpRequest.h",
+  "Network/LynxHttpRequest.m",
+  "Network/LynxNetworkModule.h",
+  "Network/LynxNetworkModule.m",
+  "Network/LynxNetworkProtocol.h",
+]
+
+source_set("lynx") {
+  include_dirs = [
+    "//third_party",
+    "//Darwin/iOS/Headers/Private",
+  ]
+
+  sources = ios_lynx_shared_sources
+  cflags = [
+    # FIXME(wangjianliang): ../../Darwin/iOS/Lynx/Base/Background/LynxBackgroundRenderer.h:122:17: error: variable length array folded to constant array as an extension [-Werror,-Wgnu-folding-constant]
+    "-Wno-gnu-folding-constant",
+  ]
+
+  public_deps = [ "//Darwin/Common/Lynx:lynx" ]
+  configs += [ "//third_party/ios_deps:ios_deps_public_config" ]
+  configs -= [
+    # FIXME(wangjianliang): ../../Darwin/iOS/Lynx/LynxTemplateRender.mm:763:3: error: cannot use 'try' with exceptions disabled
+    "//build/config/gcc:no_exceptions",
+  ]
+
+  frameworks = []
+  foreach(name, shared_deps_frameworks) {
+    frameworks += [ "$name.framework" ]
+  }
+}
+
+source_set("net") {
+  include_dirs = [ "//Darwin/iOS/Lynx/Network" ]
+
+  sources = network_shared_sources
+
+  configs += [
+    "//Darwin:darwin_include_config",
+    "//Darwin:darwin_flag_config",
+  ]
+
+  public_deps = [ "//Lynx/jsbridge/network" ]
+}
+
+if (enable_gen_podspec) {
+  gen_subspec_file("ios_lynx_podspec") {
+    deps_frameworks = shared_deps_frameworks
+    exclude_files = [
+      "Darwin/iOS/Lynx/Inspector/",
+      "Darwin/iOS/Lynx/Inspector/*",
+      "Darwin/iOS/Lynx/Inspector/**/*",
+      "Darwin/iOS/Lynx/Helium/",
+      "Darwin/iOS/Lynx/Helium/*",
+      "Darwin/iOS/Lynx/Network/*",
+      "Darwin/iOS/Lynx/Recorder/LynxRecorder.{h,mm}",
+      "Darwin/iOS/Lynx/**/*UnitTest.{m,mm}"
+    ]
+    module_name = "Lynx"
+    parent_path = "subspecs"
+    podspec_name = "Framework"
+
+    rebase_private_headers = []
+    private_header_files = rebase_private_headers
+    public_header_files = "Darwin/iOS/Lynx/**/*"
+    sources = ios_lynx_shared_sources
+  }
+
+  gen_subspec_file("lynx_net_podspec") {
+    module_name = "Lynx"
+    parent_path = "subspecs"
+    podspec_name = "Net"
+    sources = network_shared_sources
+  }
+}

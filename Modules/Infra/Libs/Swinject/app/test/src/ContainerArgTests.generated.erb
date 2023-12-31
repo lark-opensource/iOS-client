@@ -1,0 +1,62 @@
+//
+//  Container+Register.generated.swift
+//  Swinject
+//
+//  Created by CharlieSu on 4/30/20.
+//
+// swiftlint:disable all
+//
+// NOTICE: Generated Code, Do Not Edit!
+//
+
+import XCTest
+import Swinject
+
+// swiftlint:disable identifier_name
+class GeneratedTests: XCTestCase {
+
+    var container: Container!
+    var resolver: Resolver { return container as Resolver }
+
+    override func setUp() {
+        super.setUp()
+        container = Container()
+    }
+
+    override func tearDown() {
+        container = nil
+        super.tearDown()
+    }
+% arg_count = 9
+
+% (1..arg_count).each do |i|
+    func test_container_with_arg_<%= i %>() {
+%       arg_types = (1..i).map { |n| "arg#{n}: String" }.join(", ")
+%       arg_types_1 = (1..i).map { |n| "arg#{n}" }.join(" + ")
+%       arg_types_2 = i == 1 ? "argument: \"arg1\"" : "arguments: " +  (1..i).map { |n| "\"arg#{n}\"" }.join(", ")
+%       arg_types_3 = (1..i).map { |n| "arg#{n}" }.join("")
+
+        container.register(String.self) { (_, <%= arg_types %>) -> String in
+            "result:" + <%= arg_types_1 %>
+        }
+
+        container.register(String.self, name: "name") { (_, <%= arg_types %>) -> String in
+            "resultWithName:" + <%= arg_types_1 %>
+        }
+
+        let result = resolver.resolve(String.self, <%= arg_types_2 %>)!
+        XCTAssert(result == "result:<%= arg_types_3 %>")
+
+        let resultWithName = resolver.resolve(String.self, name: "name", <%= arg_types_2 %>)!
+        XCTAssert(resultWithName == "resultWithName:<%= arg_types_3 %>")
+
+        let result2 = try! resolver.resolve(type: String.self, <%= arg_types_2 %>)
+        XCTAssert(result2 == "result:<%= arg_types_3 %>")
+
+        let resultWithName2 = try! resolver.resolve(assert: String.self, name: "name", <%= arg_types_2 %>)
+        XCTAssert(resultWithName2 == "resultWithName:<%= arg_types_3 %>")
+    }
+
+% end
+}
+// swiftlint:enable identifier_name

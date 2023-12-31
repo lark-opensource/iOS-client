@@ -1,0 +1,1 @@
+../../../../BDWebImage/Classes/BDWebImageManager+Private.h

@@ -1,0 +1,1 @@
+../../../../CameraArch/Common/Manager/AWEEffectPlatformManageable.h

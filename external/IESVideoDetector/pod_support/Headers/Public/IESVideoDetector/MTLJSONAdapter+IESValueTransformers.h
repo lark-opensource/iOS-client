@@ -1,0 +1,1 @@
+../../../../IESVideoDetector/Classes/Categories/MTLJSONAdapter+IESValueTransformers.h

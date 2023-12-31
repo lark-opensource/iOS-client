@@ -1,0 +1,1 @@
+../../../../RuntimeProtocol/CameraService/Protocol/ACCKaraokeProtocol.h

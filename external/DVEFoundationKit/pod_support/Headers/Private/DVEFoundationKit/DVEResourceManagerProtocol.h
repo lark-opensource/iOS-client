@@ -1,0 +1,1 @@
+../../../../Core/ResourceManager/External/Protocol/DVEResourceManagerProtocol.h

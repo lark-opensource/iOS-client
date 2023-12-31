@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraComponents/Recorder/SubmodeComponent/ACCRecordSubmodeComponent.h

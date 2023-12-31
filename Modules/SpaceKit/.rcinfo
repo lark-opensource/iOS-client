@@ -1,0 +1,27 @@
+---
+cache_addresses:
+- http://build-larkmobile-boe.bytedance.net/cache
+primary_repo: git@code.byted.org:ee/spacekit-ios.git
+primary_branch: develop
+mode: producer
+final_target: SpaceDemo
+custom_rewrite_envs:
+- PODS_TARGET_SRCROOT
+- XCRC_COOCAPODS_ROOT
+custom_asset_url: http://tosv.byted.org/obj/ee-infra-ios/xcrc/101/package.zip
+irrelevant_dependencies_paths:
+- "\\.modulemap$"
+- "\\-Swift\\.h$"
+- "\\/RustPB\\.swiftmodule"
+- "\\/ServerPB\\.swiftmodule"
+- "\\-umbrella\\.h$"
+custom_fingerprint_envs:
+- SWIFT_VERSION
+schema_version: 105-Space-test
+xccc_file: ".rc/xccc"
+remote_commit_file: ".rc/arc.rc"
+prettify_meta_files: false
+disable_certificate_verification: false
+lldb_init_file_path: ''
+swift_version_file: ".rc/swift_version.rc"
+podfile_lock_file: Podfile.lock

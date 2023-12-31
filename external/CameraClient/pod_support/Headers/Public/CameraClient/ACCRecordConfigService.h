@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/Record/Service/RecordConfig/ACCRecordConfigService.h

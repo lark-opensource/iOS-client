@@ -1,0 +1,236 @@
+@startuml SuiteLogin结构图
+
+package "SuiteLogin" {
+    [iOSAdaptor] -> [SuiteLoginDefaultUIComponents]
+    [Keychain] -> [iOSAdaptor]
+    [Userdefaults] -> [iOSAdaptor]
+}
+
+package "SuiteLoginSDK" {
+    [iOSAdaptor] --> [FSM]
+    [SuiteLoginAPI] -> [FSM]
+    [RustLibNet]
+}
+
+@enduml
+
+@startuml LarkLoginUML
+
+interface DeviceIDFetcher {
+    + void callback(deviceID: String)
+}
+
+interface ISuiteLoginConfiguration {
+    + DeviceIDFetcher deviceIDFetcher;
+    + String? pushChannelID;
+    + SuiteLoginAppID appID;
+    + String host;
+    + SuiteLoginLocale locale;
+    + String groupID;
+    + Bool multiUser;
+    + Environment environment;
+    + OpenURLHandler openURL;
+}
+
+enum Environment {
+    case internal
+    case oversea
+}
+
+enum SuiteFastLoginCallbackResult {
+    case ok(DeviceID, AccoutUserInfo[], currentUserIdx)
+    case error(error)
+}
+
+interface ISuiteLoginCallback {
+    + callback(DeviceID, AccountUserInfo[], CurrentUserIndex)
+}
+
+interface ISutieFastLoginCallback {
+    + callback(SuiteFastLoginCallbackResult result)
+}
+
+class SuiteLogin {
+    - SuiteLoginSDK suiteLoginSDK
+    + String deviceID;
+    + String installID;
+    + init(ISuiteLoginConfiguration configuration)
+    + login(ISuiteLoginCallback callback) -> LoginViewController
+    + avtiveAccount(ISuiteLoginCallback callback) -> InitializeViewController
+    + fastLogin(ISuiteFastLoginLoginCallback callback)
+    + updatePassword() -> UIViewController
+    + logout()
+    + setDoubleLoginVerify()
+    + fetchDoubleLoginVerify()
+    + switchToUser(AccountUserInfo user)
+}
+
+interface OpenURLHandler {
+    + openURL(URL url)
+}
+
+class SuiteLoginSDK {
+    + (String?, String?) deviceInfo;
+    + init(ISuiteLoginConfiguration configuration);
+    - StateMachine stageMachine;
+    - SuiteLoginAPI loginAPI;
+    - SuiteLoginStore store;
+}
+
+class StateMachine {
+    + void fireEvent(Event event);
+    + void onChange(Function(Event event, State state, Context context))
+}
+
+class SuiteLoginAPI {
+    + init(ISuiteLoginConfiguration configuration)
+}
+
+class SuiteLoginStore {
+    + init(String groupName)
+}
+
+class AccountUserInfo {
+    + String userID;
+    + String tenantID;
+    + String name;
+    + String enName;
+    + Bool isActive;
+    + Bool isFrozen;
+    + String avatarKey;
+    + String avatarUrl;
+    + String session;
+    + String domain;
+    + AccountTenantInfo? tenant;
+}
+
+class AccountTenantInfo {
+    + String userID;
+    + String tenantID;
+    + String name;
+    + String iconUrl;
+    + String tenantCode;
+}
+
+SuiteLogin ..|> SuiteLoginSDK
+SuiteLogin ..|> ISuiteLoginConfiguration
+SuiteLogin ..|> ISuiteLoginCallback
+SuiteLogin ..|> ISutieFastLoginCallback
+SuiteLoginSDK ..|> StateMachine
+SuiteLoginSDK ..|> SuiteLoginAPI
+SuiteLoginSDK ..|> SuiteLoginStore
+ISuiteLoginConfiguration ..|> OpenURLHandler
+ISuiteLoginConfiguration ..|> DeviceIDFetcher
+ISuiteLoginConfiguration ..|> Environment
+ISuiteLoginCallback ..|> AccountUserInfo
+ISutieFastLoginCallback ..|> SuiteFastLoginCallbackResult
+ISutieFastLoginCallback ..|> AccountUserInfo
+AccountUserInfo ..|> AccountTenantInfo
+
+@enduml
+
+@startuml SuiteLoginServerState
+
+[*] --> InitializeState
+InitializeState : need phoneNumber or email
+InitializeState --> VerifyCodeState : loginStartEvent
+InitializeState --> VerifyPwdState : verifyPwdEvent
+
+VerifyCodeState : need verifyCode
+VerifyCodeState --> SetPwdState
+VerifyCodeState --> VerifySuccess
+
+ForGetPwdState : need phone number of email
+ForGetPwdState --> VerifyForgetPwdCode
+
+VerifyForgetPwdCode : need verifyCode
+VerifyForgetPwdCode --> ResetPwdState
+
+ResetPwdState : need modify_pwd_token
+ResetPwdState --> VerifySuccess
+
+VerifyPwdState : need pwd
+VerifyPwdState --> VerifyCodeState
+VerifyPwdState --> ForGetPwdState
+VerifyPwdState --> VerifySuccess
+
+SetPwdState : need modify_pwd_token
+SetPwdState --> VerifySuccess
+
+VerifySuccess : getAccounts
+VerifySuccess --> LoginEnd
+
+LoginEnd --> [*]
+
+@enduml
+
+@startuml SuiteLoginAllStateMachine
+
+[*] --> InitializeState
+[*] --> InitializePersonalState : if change User \n in app and\n account is 2c\n need active
+InitializeState --> LoginApiReady : fetchDeviceIDEvent
+
+LoginApiReady: required deviceID to init api
+
+LoginApiReady --> VerifyCodeState : if not init pwd
+LoginApiReady --> VerifyPwdState : if init pwd
+
+VerifyCodeState : user input verifyCode
+VerifyCodeState --> SetPwdState : init user pwd
+VerifyCodeState --> VerifySuccess
+
+ForGetPwdState : user input phone number of email
+ForGetPwdState --> VerifyForgetPwdCode
+
+VerifyForgetPwdCode : user input verifyCode
+VerifyForgetPwdCode --> ResetPwdState
+
+ResetPwdState : need VerifyForgetPwdCode return modify_pwd_token
+ResetPwdState --> VerifySuccess
+
+VerifyPwdState : user input pwd
+VerifyPwdState --> VerifyCodeState
+VerifyPwdState --> ForGetPwdState
+VerifyPwdState --> VerifySuccess
+
+SetPwdState : need modify_pwd_token
+SetPwdState --> VerifySuccess
+
+VerifySuccess : getAccounts
+VerifySuccess --> LoginEnd
+VerifySuccess --> InitializePersonalState : 2C账号需要激活
+InitializePersonalState: required UserID
+InitializePersonalState --> VerifySuccess
+VerifySuccess --> AccountFrozen : 全部2B账号都被冻结, 并且没有2C账号
+AccountFrozen --> [*] : 没有完成登陆，不会继续
+
+LoginEnd --> [*]
+
+@enduml
+
+@startuml SuiteLoginUpgrade
+
+participant SuiteLogin order 10
+participant Server order 20
+
+title: SuiteLoginUpgrade
+
+== 正常Login流程 ==
+SuiteLogin -> SuiteLogin: 根据自己BundleID判断国内国外域名，static code
+SuiteLogin -> Server: MainDomain request
+Server -> SuiteLogin: Account { tenant { domain } } 服务器返回tenant域名
+SuiteLogin -> Client: Account with tenants domain
+
+== fastLogin流程 ==
+SuiteLogin -> SuiteLogin: getLocalAccount
+SuiteLogin -> Client: Account 2.2.0之前没有domain
+
+== upgrade流程 ==
+SuiteLogin -> SuiteLogin: getLocalAccount
+SuiteLogin -> SuiteLogin: check LocalAccount is ok. 按照版本不同去找不同的key
+SuiteLogin -> Server: 如果有问题, upgrade接口获取最新Account
+SuiteLogin -> SuiteLogin: retry3次。如果失败loguout
+SuiteLogin -> SuiteLogin: loguout失败，维持现在状态直到logout成功
+SuiteLogin -> Client: 最新Account
+
+@enduml

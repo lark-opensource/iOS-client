@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/TTNet/Common/Private/HMDTTNetQualityHelper.h

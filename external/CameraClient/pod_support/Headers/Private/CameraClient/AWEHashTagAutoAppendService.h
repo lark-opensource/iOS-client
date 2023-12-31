@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/Edit/Service/HashTagAppend/AWEHashTagAutoAppendService.h

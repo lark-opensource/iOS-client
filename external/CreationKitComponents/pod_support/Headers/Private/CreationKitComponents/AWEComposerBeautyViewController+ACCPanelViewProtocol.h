@@ -1,0 +1,1 @@
+../../../../Recorder/BeautyPanelComponent/Core/BeautyFeature/Beauty/Controller/AWEComposerBeautyViewController+ACCPanelViewProtocol.h

@@ -1,0 +1,1 @@
+../../../../XService/BDXResourceLoader/Classes/Resource/BDXGurdConfigDelegate.h

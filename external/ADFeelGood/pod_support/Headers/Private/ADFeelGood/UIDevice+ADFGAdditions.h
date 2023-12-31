@@ -1,0 +1,1 @@
+../../../../ADFeelGood/Utils/UIDevice+ADFGAdditions.h

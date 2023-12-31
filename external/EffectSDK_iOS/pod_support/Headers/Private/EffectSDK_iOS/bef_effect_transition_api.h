@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_effect_transition_api.h

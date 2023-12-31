@@ -1,0 +1,80 @@
+{
+  "name": "AWELazyRegister",
+  "version": "11.2.0.51.1-binary",
+  "summary": "A short description of AWELazyRegister.",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://code.byted.org/ugc/AWELazyRegister",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "liqingyao": "qingyao.li@bytedance.com"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/aweme-rock/rock_binary/privatethird_binary_repo/AWELazyRegister/11.2.0.51.1-binary/1635314556/AWELazyRegister.tar.xz"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "default_subspecs": [
+    "Core",
+    "Rename"
+  ],
+  "preserve_paths": [
+    "rock_document/**/*.{h,m,mm,cpp,hpp,swift}",
+    "rock_document/rock-document-files.txt"
+  ],
+  "source_code": {
+    "git": "git@code.byted.org:ugc/AWELazyRegister.git",
+    "commit": "7c0da0f7dedd03d27934a573fa447c5c80f419c7"
+  },
+  "binary_type": "rock",
+  "package_env": {
+    "id": null,
+    "xcode": "Xcode 13.0\nBuild version 13A233\n"
+  },
+  "subspecs": [
+    {
+      "name": "Core",
+      "source_files": "AWELazyRegister/Classes/Core/**/*.{h,m}",
+      "vendored_libraries": [
+        "AWELazyRegister/Classes/Core/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "AWELazyRegister/Classes/Core/**/*.o",
+          "libAWELazyRegister-c4198c3.a"
+        ]
+      }
+    },
+    {
+      "name": "Rename",
+      "dependencies": {
+        "AWELazyRegister/Core": [
+
+        ]
+      },
+      "source_files": "AWELazyRegister/Classes/Rename/**/*.{h,m}",
+      "vendored_libraries": [
+        "AWELazyRegister/Classes/Rename/**/*.o"
+      ],
+      "exclude_files": [
+
+      ]
+    },
+    {
+      "name": "Register",
+      "source_files": "AWELazyRegister/Classes/Core/**/AWELazyRegister.{h,m}",
+      "vendored_libraries": [
+        "AWELazyRegister/Classes/Core/**/AWELazyRegister.o"
+      ],
+      "exclude_files": [
+
+      ]
+    }
+  ]
+}

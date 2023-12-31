@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayAbility/Base/Model/CJPayBDDeskConfig.h

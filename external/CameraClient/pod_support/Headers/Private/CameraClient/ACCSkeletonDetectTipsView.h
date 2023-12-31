@@ -1,0 +1,1 @@
+../../../../CameraClient/MVPComponents/Recorder/BeautyPanelComponent/BeautyFeature/ACCSkeletonDetectTipsView.h

@@ -1,0 +1,1 @@
+../../../../third_party/krypton/canvas/background_lock.h

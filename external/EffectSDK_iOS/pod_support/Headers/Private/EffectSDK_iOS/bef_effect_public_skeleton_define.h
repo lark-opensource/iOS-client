@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_effect_public_skeleton_define.h

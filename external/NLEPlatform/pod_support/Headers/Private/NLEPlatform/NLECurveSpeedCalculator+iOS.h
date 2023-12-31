@@ -1,0 +1,1 @@
+../../../../ios/Headers/Utils/NLECurveSpeedCalculator+iOS.h

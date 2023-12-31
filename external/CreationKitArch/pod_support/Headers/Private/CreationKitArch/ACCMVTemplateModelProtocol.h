@@ -1,0 +1,1 @@
+../../../../CameraArch/Common/Interface/ModelProtocol/ACCMVTemplateModelProtocol.h

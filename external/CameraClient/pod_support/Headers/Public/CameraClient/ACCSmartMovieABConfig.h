@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/Edit/Utils/SmartMovie/ACCSmartMovieABConfig.h

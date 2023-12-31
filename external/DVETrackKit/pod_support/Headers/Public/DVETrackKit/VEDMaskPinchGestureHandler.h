@@ -1,0 +1,1 @@
+../../../../DVETrackKit/Classes/TrackKit/MaskEditView/Gestures/VEDMaskPinchGestureHandler.h

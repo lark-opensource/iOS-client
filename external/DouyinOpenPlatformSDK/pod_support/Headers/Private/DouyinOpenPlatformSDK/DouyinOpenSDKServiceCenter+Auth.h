@@ -1,0 +1,1 @@
+../../../../DouyinOpenPlatformSDK/Classes/Auth/DouyinOpenSDKServiceCenter+Auth.h

@@ -1,0 +1,1 @@
+../../../../CameraClient/MVPComponents/Recorder/SwitchModeComponent/Mode/ACCRecordModeFactory.h

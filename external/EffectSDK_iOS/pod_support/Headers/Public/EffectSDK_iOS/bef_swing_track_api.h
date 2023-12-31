@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_swing_track_api.h

@@ -1,0 +1,55 @@
+{
+  "name": "AMapFoundation-NO-IDFA",
+  "version": "1.6.9",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "http://lbs.amap.com/api/ios-sdk/summary/",
+  "license": {
+    "type": "Copyright",
+    "text": "Copyright © 2014 AutoNavi. All Rights Reserved.\n"
+  },
+  "authors": "lbs.amap.com",
+  "social_media_url": "http://lbsbbs.amap.com/forum.php?mod=forumdisplay&fid=38",
+  "documentation_url": "http://lbs.amap.com/api/ios-sdk/reference/",
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/8888/AMapFoundation-NO-IDFA/source/1.6.9/AMapFoundation-NO-IDFA_source.zip"
+  },
+  "source_files": "AMapFoundationKit.framework/**/*.{h}",
+  "platforms": {
+    "ios": "7.0"
+  },
+  "requires_arc": true,
+  "xcconfig": {
+    "ARCHS": "$(ARCHS_STANDARD)"
+  },
+  "user_target_xcconfig": {
+    "EXCLUDED_ARCHS[sdk=iphonesimulator*]": "arm64",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "AMapFoundation_NO_IDFA_POD_VERSION=@\\\"8888_1.6.9\\\""
+  },
+  "pod_target_xcconfig": {
+    "EXCLUDED_ARCHS[sdk=iphonesimulator*]": "arm64",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "AMapFoundation_NO_IDFA_POD_VERSION=@\\\"8888_1.6.9\\\""
+  },
+  "public_header_files": "AMapFoundationKit.framework/Headers/*.h",
+  "vendored_frameworks": "AMapFoundationKit.framework",
+  "frameworks": [
+    "SystemConfiguration",
+    "CoreTelephony",
+    "Security",
+    "CoreLocation"
+  ],
+  "libraries": [
+    "z",
+    "c++"
+  ],
+  "_bytebus_platform": {
+    "repo_id": "8269",
+    "app_id": "8888"
+  },
+  "repoId": "8269",
+  "source_code": {
+    "http": "https://amappc.oss-cn-zhangjiakou.aliyuncs.com/lbs/static/zip/AMap_iOS_Foundation_NO_IDFA_Lib_V1.6.9.zip"
+  }
+}

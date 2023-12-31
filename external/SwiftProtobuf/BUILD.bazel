@@ -1,0 +1,595 @@
+load('@build_bazel_rules_swift//swift:swift.bzl', 'swift_library')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "SwiftProtobuf_pod_hdrs",
+  srcs = [
+    ":SwiftProtobuf_root_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "SwiftProtobuf_private_includes",
+  include = [
+    "external/SwiftProtobuf/pod_support/Headers/Private/SwiftProtobuf/"
+  ],
+  deps = [],
+  external_name = "SwiftProtobuf"
+)
+gen_includes(
+  name = "SwiftProtobuf_public_includes",
+  include = [
+    "external/SwiftProtobuf/pod_support/Headers/Public/SwiftProtobuf/"
+  ],
+  deps = [],
+  external_name = "SwiftProtobuf"
+)
+filegroup(
+  name = "_SwiftProtobuf_hdrs",
+  srcs = [
+    ":SwiftProtobuf_root_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "SwiftProtobuf_xcode_hmapsource",
+  hdrs = [
+    ":_SwiftProtobuf_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "SwiftProtobuf_xcode_hmap",
+  dep = ":SwiftProtobuf_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/SwiftProtobuf/*-bitsky-generated.modulemap", "pod_support/Headers/Public/SwiftProtobuf/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "SwiftProtobuf_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "SwiftProtobuf",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SwiftProtobuf_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SwiftProtobuf_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SwiftProtobuf_swift_interface",
+  deps = [
+    ":SwiftProtobuf_swift"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SwiftProtobuf_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "SwiftProtobuf_module_map",
+  module_map = "pod_support/Headers/Public/SwiftProtobuf/SwiftProtobuf-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/SwiftProtobuf/SwiftProtobuf-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SwiftProtobuf_root_swift_srcs",
+  srcs = [
+    "Sources/SwiftProtobuf/any.pb.swift",
+    "Sources/SwiftProtobuf/any.pb.text.swift",
+    "Sources/SwiftProtobuf/AnyMessageStorage.swift",
+    "Sources/SwiftProtobuf/AnyUnpackError.swift",
+    "Sources/SwiftProtobuf/api.pb.swift",
+    "Sources/SwiftProtobuf/api.pb.text.swift",
+    "Sources/SwiftProtobuf/BinaryDecoder.swift",
+    "Sources/SwiftProtobuf/BinaryDecodingError.swift",
+    "Sources/SwiftProtobuf/BinaryDecodingOptions.swift",
+    "Sources/SwiftProtobuf/BinaryDelimited.swift",
+    "Sources/SwiftProtobuf/BinaryEncoder.swift",
+    "Sources/SwiftProtobuf/BinaryEncodingError.swift",
+    "Sources/SwiftProtobuf/BinaryEncodingSizeVisitor.swift",
+    "Sources/SwiftProtobuf/BinaryEncodingVisitor.swift",
+    "Sources/SwiftProtobuf/CustomJSONCodable.swift",
+    "Sources/SwiftProtobuf/Data+Extensions.swift",
+    "Sources/SwiftProtobuf/Decoder.swift",
+    "Sources/SwiftProtobuf/descriptor.pb.swift",
+    "Sources/SwiftProtobuf/descriptor.pb.text.swift",
+    "Sources/SwiftProtobuf/DoubleParser.swift",
+    "Sources/SwiftProtobuf/duration.pb.swift",
+    "Sources/SwiftProtobuf/duration.pb.text.swift",
+    "Sources/SwiftProtobuf/empty.pb.swift",
+    "Sources/SwiftProtobuf/empty.pb.text.swift",
+    "Sources/SwiftProtobuf/Enum.swift",
+    "Sources/SwiftProtobuf/ExtensibleMessage.swift",
+    "Sources/SwiftProtobuf/ExtensionFields.swift",
+    "Sources/SwiftProtobuf/ExtensionFieldValueSet.swift",
+    "Sources/SwiftProtobuf/ExtensionMap.swift",
+    "Sources/SwiftProtobuf/field_mask.pb.swift",
+    "Sources/SwiftProtobuf/field_mask.pb.text.swift",
+    "Sources/SwiftProtobuf/FieldTag.swift",
+    "Sources/SwiftProtobuf/FieldTypes.swift",
+    "Sources/SwiftProtobuf/Google_Protobuf_Any+Extensions.swift",
+    "Sources/SwiftProtobuf/Google_Protobuf_Any+Registry.swift",
+    "Sources/SwiftProtobuf/Google_Protobuf_Duration+Extensions.swift",
+    "Sources/SwiftProtobuf/Google_Protobuf_FieldMask+Extensions.swift",
+    "Sources/SwiftProtobuf/Google_Protobuf_ListValue+Extensions.swift",
+    "Sources/SwiftProtobuf/Google_Protobuf_NullValue+Extensions.swift",
+    "Sources/SwiftProtobuf/Google_Protobuf_Struct+Extensions.swift",
+    "Sources/SwiftProtobuf/Google_Protobuf_Timestamp+Extensions.swift",
+    "Sources/SwiftProtobuf/Google_Protobuf_Value+Extensions.swift",
+    "Sources/SwiftProtobuf/Google_Protobuf_Wrappers+Extensions.swift",
+    "Sources/SwiftProtobuf/HashVisitor.swift",
+    "Sources/SwiftProtobuf/Internal.swift",
+    "Sources/SwiftProtobuf/JSONDecoder.swift",
+    "Sources/SwiftProtobuf/JSONDecodingError.swift",
+    "Sources/SwiftProtobuf/JSONDecodingOptions.swift",
+    "Sources/SwiftProtobuf/JSONEncoder.swift",
+    "Sources/SwiftProtobuf/JSONEncodingError.swift",
+    "Sources/SwiftProtobuf/JSONEncodingOptions.swift",
+    "Sources/SwiftProtobuf/JSONEncodingVisitor.swift",
+    "Sources/SwiftProtobuf/JSONMapEncodingVisitor.swift",
+    "Sources/SwiftProtobuf/JSONScanner.swift",
+    "Sources/SwiftProtobuf/MathUtils.swift",
+    "Sources/SwiftProtobuf/Message+AnyAdditions.swift",
+    "Sources/SwiftProtobuf/Message+BinaryAdditions.swift",
+    "Sources/SwiftProtobuf/Message+JSONAdditions.swift",
+    "Sources/SwiftProtobuf/Message+JSONArrayAdditions.swift",
+    "Sources/SwiftProtobuf/Message+TextFormatAdditions.swift",
+    "Sources/SwiftProtobuf/Message.swift",
+    "Sources/SwiftProtobuf/MessageExtension.swift",
+    "Sources/SwiftProtobuf/MessageLarkExt+DebugDescription.swift",
+    "Sources/SwiftProtobuf/MessageLarkExt+JSONAdditions.swift",
+    "Sources/SwiftProtobuf/MessageLarkExt+JSONArrayAdditions.swift",
+    "Sources/SwiftProtobuf/MessageLarkExt+TextFormatAdditions.swift",
+    "Sources/SwiftProtobuf/NameMap.swift",
+    "Sources/SwiftProtobuf/ProtobufAPIVersionCheck.swift",
+    "Sources/SwiftProtobuf/ProtobufMap.swift",
+    "Sources/SwiftProtobuf/ProtoNameProviding.swift",
+    "Sources/SwiftProtobuf/SelectiveVisitor.swift",
+    "Sources/SwiftProtobuf/SimpleExtensionMap.swift",
+    "Sources/SwiftProtobuf/source_context.pb.swift",
+    "Sources/SwiftProtobuf/source_context.pb.text.swift",
+    "Sources/SwiftProtobuf/StringUtils.swift",
+    "Sources/SwiftProtobuf/struct.pb.swift",
+    "Sources/SwiftProtobuf/struct.pb.text.swift",
+    "Sources/SwiftProtobuf/TextFormatDecoder.swift",
+    "Sources/SwiftProtobuf/TextFormatDecodingError.swift",
+    "Sources/SwiftProtobuf/TextFormatDecodingOptions.swift",
+    "Sources/SwiftProtobuf/TextFormatEncoder.swift",
+    "Sources/SwiftProtobuf/TextFormatEncodingOptions.swift",
+    "Sources/SwiftProtobuf/TextFormatEncodingVisitor.swift",
+    "Sources/SwiftProtobuf/TextFormatScanner.swift",
+    "Sources/SwiftProtobuf/timestamp.pb.swift",
+    "Sources/SwiftProtobuf/timestamp.pb.text.swift",
+    "Sources/SwiftProtobuf/TimeUtils.swift",
+    "Sources/SwiftProtobuf/type.pb.swift",
+    "Sources/SwiftProtobuf/type.pb.text.swift",
+    "Sources/SwiftProtobuf/UnknownStorage.swift",
+    "Sources/SwiftProtobuf/UnsafeBufferPointer+Shims.swift",
+    "Sources/SwiftProtobuf/UnsafeRawPointer+Shims.swift",
+    "Sources/SwiftProtobuf/Varint.swift",
+    "Sources/SwiftProtobuf/Version.swift",
+    "Sources/SwiftProtobuf/Visitor.swift",
+    "Sources/SwiftProtobuf/WireFormat.swift",
+    "Sources/SwiftProtobuf/wrappers.pb.swift",
+    "Sources/SwiftProtobuf/wrappers.pb.text.swift",
+    "Sources/SwiftProtobuf/ZigZag.swift"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+swift_library(
+  name = "SwiftProtobuf_swift",
+  module_name = "SwiftProtobuf",
+  srcs = [
+    "SwiftProtobuf_root_swift_srcs"
+  ],
+  deps = [
+    "@PodHeaders//:PodHeaders_namespace_public_interface",
+    ":SwiftProtobuf_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":SwiftProtobuf_module_map",
+    ":SwiftProtobuf_objc_interface"
+  ],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ) + [
+    "-DCOCOAPODS",
+    "-suppress-warnings",
+    "-import-underlying-module",
+    "-swift-version",
+    "5",
+    "-Xcc",
+    "-fobjc-weak",
+    "-Xcc",
+    "-stdlib=libc++",
+    "-Xcc",
+    "-DCOCOAPODS=1",
+    "-Xcc",
+    "-fdiagnostics-show-note-include-stack",
+    "-Xcc",
+    "-fno-common",
+    "-Xcc",
+    "-fmessage-length=0",
+    "-Xcc",
+    "-fpascal-strings",
+    "-Xcc",
+    "-fstrict-aliasing",
+    "-Xcc",
+    "-I.",
+    "-Xcc",
+    "-Wno-nullability-completeness",
+    "-Xcc",
+    "-Wno-nonnull",
+    "-Xcc",
+    "-Wno-nullability",
+    "-Xcc",
+    "-Wno-incomplete-umbrella"
+  ],
+  generates_header = True,
+  generated_header_name = "SwiftProtobuf-Swift.h",
+  features = [
+    "swift.no_generated_module_map",
+    "swift.opt_uses_wmo",
+    "swift.opt_uses_osize"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SwiftProtobuf_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "SwiftProtobuf_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":SwiftProtobuf_private_includes",
+    ":SwiftProtobuf_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":SwiftProtobuf_swift",
+    ":SwiftProtobuf_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SwiftProtobuf",
+  deps = [
+    ":SwiftProtobuf_oc",
+    ":SwiftProtobuf_swift"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "SwiftProtobuf_lib",
+  deps = [
+    ":SwiftProtobuf"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_SwiftProtobuf_module_map",
+  module_map = "@SwiftProtobuf//:pod_support/Headers/Public/SwiftProtobuf/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@SwiftProtobuf//:pod_support/Headers/Public/SwiftProtobuf/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_SwiftProtobuf_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@SwiftProtobuf//:SwiftProtobuf_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_SwiftProtobuf",
+  target_name = "Lark",
+  module_name = "SwiftProtobuf",
+  hdrs = ["@SwiftProtobuf//:SwiftProtobuf_root_pod_hdrs"],
+  srcs = ["@SwiftProtobuf//:SwiftProtobuf_root_swift_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "SwiftProtobuf_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "SwiftProtobuf_cxxopts", []),
+  swift_copts = select({
+      "//conditions:default": [],
+      ":release": []
+    }) + [
+    "-DCOCOAPODS",
+    "-suppress-warnings",
+    "-import-underlying-module",
+    "-swift-version",
+    "5",
+    "-Xcc",
+    "-fobjc-weak",
+    "-Xcc",
+    "-stdlib=libc++",
+    "-Xcc",
+    "-DCOCOAPODS=1",
+    "-Xcc",
+    "-fdiagnostics-show-note-include-stack",
+    "-Xcc",
+    "-fno-common",
+    "-Xcc",
+    "-fmessage-length=0",
+    "-Xcc",
+    "-fpascal-strings",
+    "-Xcc",
+    "-fstrict-aliasing",
+    "-Xcc",
+    "-Wno-nullability-completeness",
+    "-Xcc",
+    "-Wno-nonnull",
+    "-Xcc",
+    "-Wno-nullability",
+    "-Xcc",
+    "-Wno-incomplete-umbrella",
+    ] + getattr(defs_external_swift_library, "common_copts", []) 
+      + getattr(defs_external_swift_library, "SwiftProtobuf_copts", []),
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "SwiftProtobuf_features", []),
+  swift_features = ["swift.no_generated_module_map", "swift.opt_uses_wmo", "swift.opt_uses_osize"] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "SwiftProtobuf_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "SwiftProtobuf_dynamic", False),
+  tags = getattr(defs_external_objc_library, "SwiftProtobuf_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("SwiftProtobuf", {}),
+  visibility = ["//visibility:public"],
+)

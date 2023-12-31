@@ -1,0 +1,1 @@
+../../../../CameraClient/MVPComponents/Recorder/FlashComponent/View/AWEFlashModeSwitchButton.h

@@ -1,0 +1,197 @@
+{
+  "name": "TTBridgeUnify",
+  "version": "5.2.13",
+  "summary": "framework_summary",
+  "homepage": "https://code.byted.org/TTIOS/tt_pods_bridgeunify",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "renpengcheng": "renpengcheng@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:TTIOS/tt_pods_bridgeunify.git",
+    "commit": "3083ecc88a5a3e8bdb2bd78a2d1eaa7bca601dd3"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "frameworks": [
+    "UIKit",
+    "Foundation"
+  ],
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "TTBridgeUnify_POD_VERSION=@\\\"9999_5.2.13\\\""
+  },
+  "default_subspecs": "TTBridge",
+  "subspecs": [
+    {
+      "name": "TTBridge",
+      "source_files": "TTBridgeUnify/Classes/TTBridge/**/*",
+      "dependencies": {
+        "BDAssert/Core": [],
+        "Gaia": [],
+        "BDMonitorProtocol": [],
+        "BDJSBridgeAuthManager/Core": [
+          ">=0.1.0"
+        ]
+      }
+    },
+    {
+      "name": "TTBridgeAuthManager",
+      "subspecs": [
+        {
+          "name": "Core",
+          "source_files": "TTBridgeUnify/Classes/TTBridgeAuthManager/Core/**/*",
+          "dependencies": {
+            "TTBridgeUnify/TTBridge": [],
+            "TTNetworkManager": [],
+            "BDJSBridgeAuthManager/Core": [
+              ">=1.1.2"
+            ]
+          }
+        },
+        {
+          "name": "CN",
+          "source_files": "TTBridgeUnify/Classes/TTBridgeAuthManager/CN/**/*",
+          "dependencies": {
+            "TTBridgeUnify/TTBridgeAuthManager/Core": [],
+            "BDJSBridgeAuthManager/CN": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "React",
+      "source_files": "TTBridgeUnify/Classes/React/**/*",
+      "dependencies": {
+        "React/Core": [
+          ">=0.55.8"
+        ],
+        "React/CxxBridge": [
+          ">=0.55.8"
+        ],
+        "React/RCTActionSheet": [
+          ">=0.55.8"
+        ],
+        "React/RCTImage": [
+          ">=0.55.8"
+        ],
+        "React/RCTNetwork": [
+          ">=0.55.8"
+        ],
+        "React/RCTText": [
+          ">=0.55.8"
+        ],
+        "React/jschelpers": [
+          ">=0.55.8"
+        ],
+        "React/cxxreact": [
+          ">=0.55.8"
+        ],
+        "React/PrivateDatabase": [
+          ">=0.55.8"
+        ],
+        "React/RCTBlob": [
+          ">=0.55.8"
+        ],
+        "React/jsinspector": [
+          ">=0.55.8"
+        ],
+        "React/RCTWebSocket": [
+          ">=0.55.8"
+        ],
+        "React/DevSupport": [
+          ">=0.55.8"
+        ],
+        "Yoga": [],
+        "TTBridgeUnify/TTBridge": []
+      }
+    },
+    {
+      "name": "WebView",
+      "source_files": "TTBridgeUnify/Classes/WebView/**/*",
+      "frameworks": "WebKit",
+      "dependencies": {
+        "TTBridgeUnify/TTBridge": [],
+        "TTBridgeUnify/TTBridgeAuthManager/Core": [],
+        "BDMonitorProtocol": []
+      }
+    },
+    {
+      "name": "TouTiaoWebView",
+      "source_files": "TTBridgeUnify/Classes/TouTiaoWebView/**/*",
+      "dependencies": {
+        "TTBridgeUnify/WebView": [],
+        "TTBridgeUnify/RexxarAdapter": []
+      }
+    },
+    {
+      "name": "UnifiedWebView",
+      "source_files": "TTBridgeUnify/Classes/UnifiedWebView/**/*",
+      "dependencies": {
+        "TTBridgeUnify/WebView": [],
+        "IESJSBridgeCore/Core": [
+          ">=1.2.3"
+        ],
+        "BDWebCore": [
+          ">=2.0.1"
+        ]
+      }
+    },
+    {
+      "name": "TTBridgeNameDefines",
+      "source_files": "TTBridgeUnify/Classes/TTBridgeNameDefines/**/*",
+      "dependencies": {
+        "TTBridgeUnify/TTBridge": []
+      }
+    },
+    {
+      "name": "RexxarAdapter",
+      "source_files": "TTBridgeUnify/Classes/RexxarAdapter/**/*",
+      "dependencies": {
+        "TTBridgeUnify/WebView": []
+      }
+    },
+    {
+      "name": "DynamicPlugin",
+      "source_files": "TTBridgeUnify/Classes/DynamicPlugin/**/*",
+      "dependencies": {
+        "TTBridgeUnify/TTBridge": []
+      }
+    },
+    {
+      "name": "Lynx",
+      "source_files": "TTBridgeUnify/Classes/Lynx/**/*.{h,m,mm}",
+      "dependencies": {
+        "Lynx/Framework": [],
+        "Lynx/Native": [],
+        "Lynx/JSRuntime": [],
+        "TTBridgeUnify/TTBridge": [],
+        "Lynx/BDLynxBridge": [
+          ">=1.4.2"
+        ]
+      }
+    },
+    {
+      "name": "vmsdk",
+      "source_files": "TTBridgeUnify/Classes/VMSDK/**/*.{h,m,mm}",
+      "dependencies": {
+        "vmsdk/worker": [],
+        "vmsdk/jsbridge": [],
+        "TTBridgeUnify/TTBridge": []
+      }
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "881",
+    "app_id": "9999"
+  },
+  "repoId": "881",
+  "description": "framework_description",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "TTBridgeUnify_POD_VERSION=@\\\"9999_5.2.13\\\""
+  }
+}

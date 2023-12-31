@@ -1,0 +1,590 @@
+load('@build_bazel_rules_apple//apple:resources.bzl', 'apple_resource_bundle', 'gen_bundle_plist')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "BitableBridge_pod_hdrs",
+  srcs = [
+    ":BitableBridge_root_pod_hdrs",
+    ":Tests_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "BitableBridge_private_includes",
+  include = [
+    "external/BitableBridge/pod_support/Headers/Private/BitableBridge/"
+  ],
+  deps = [],
+  external_name = "BitableBridge"
+)
+gen_includes(
+  name = "BitableBridge_public_includes",
+  include = [
+    "external/BitableBridge/pod_support/Headers/Public/BitableBridge/"
+  ],
+  deps = [],
+  external_name = "BitableBridge"
+)
+filegroup(
+  name = "_BitableBridge_hdrs",
+  srcs = [
+    ":BitableBridge_root_hdrs",
+    ":Tests_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "BitableBridge_xcode_hmapsource",
+  hdrs = [
+    ":_BitableBridge_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "BitableBridge_xcode_hmap",
+  dep = ":BitableBridge_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/BitableBridge/*-bitsky-generated.modulemap", "pod_support/Headers/Public/BitableBridge/*-bitsky-generated-umbrella.h"]))
+gen_bundle_plist(
+  name = "GEN_BitableBridge_Plist",
+  bundle_name = "BitableBridge",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "2.0.1",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "BitableBridge_BitableBridge",
+  bundle_name = "BitableBridge",
+  infoplists = [
+    ":GEN_BitableBridge_Plist"
+  ],
+  resources = [
+    "resources/README.md"
+  ],
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "BitableBridge_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "BitableBridge",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "BitableBridge_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":BitableBridge_xcode_hmap"
+  ],
+  external_name = "BitableBridge",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BitableBridge_root_hdrs",
+  srcs = [
+    "src/BTJsToNativeBridge.h",
+    "src/BTNativeToJsBridge.h",
+    "src/BitableBridge.h",
+    "src/NSData+BitableBridge.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BitableBridge_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BitableBridge/BTJsToNativeBridge.h",
+    "pod_support/Headers/Private/BitableBridge/BTNativeToJsBridge.h",
+    "pod_support/Headers/Private/BitableBridge/BitableBridge.h",
+    "pod_support/Headers/Private/BitableBridge/NSData+BitableBridge.h",
+    "pod_support/Headers/Public/BitableBridge/BTJsToNativeBridge.h",
+    "pod_support/Headers/Public/BitableBridge/BTNativeToJsBridge.h",
+    "pod_support/Headers/Public/BitableBridge/BitableBridge.h",
+    "pod_support/Headers/Public/BitableBridge/NSData+BitableBridge.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BitableBridge_swift_interface",
+  deps = [],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BitableBridge_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "BitableBridge_module_map",
+  module_map = "pod_support/Headers/Public/BitableBridge/BitableBridge-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BitableBridge/BitableBridge-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BitableBridge_root_srcs",
+  srcs = [
+    "src/BitableBridge.m",
+    "src/BTJsToNativeBridge.m",
+    "src/BTNativeToJsBridge.m",
+    "src/NSData+BitableBridge.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BitableBridge_oc",
+  enable_modules = 1,
+  srcs = [
+    "BitableBridge_root_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "BitableBridge_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BitableBridge_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BitableBridge_private_includes",
+    ":BitableBridge_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@React-Core//:React-Core_objc_interface",
+    "@React-Core//:React-Core_swift_interface",
+    ":BitableBridge_objc_interface",
+    "@React-Core//:React-Core_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":BitableBridge_BitableBridge"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BitableBridge",
+  deps = [
+    ":BitableBridge_oc"
+  ],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "BitableBridge_lib",
+  deps = [
+    ":BitableBridge"
+  ],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Tests_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Tests_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Tests_swift_interface",
+  deps = [],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Tests_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Tests_module_map",
+  module_map = "pod_support/Headers/Public/BitableBridge/BitableBridge_Tests-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BitableBridge/BitableBridge_Tests-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Tests_srcs",
+  srcs = [
+    "Tests/FirstTests.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Tests_oc",
+  enable_modules = 1,
+  srcs = [
+    "Tests_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Tests_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BitableBridge_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BitableBridge_private_includes",
+    ":BitableBridge_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@React-Core//:React-Core_objc_interface",
+    "@React-Core//:React-Core_swift_interface",
+    ":Tests_objc_interface",
+    "@React-Core//:React-Core_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Tests",
+  deps = [
+    ":Tests_oc"
+  ],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Tests_lib",
+  deps = [
+    ":Tests"
+  ],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_BitableBridge_module_map",
+  module_map = "@BitableBridge//:pod_support/Headers/Public/BitableBridge/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@BitableBridge//:pod_support/Headers/Public/BitableBridge/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_BitableBridge_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@BitableBridge//:BitableBridge_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_BitableBridge",
+  target_name = "Lark",
+  module_name = "BitableBridge",
+  hdrs = ["@BitableBridge//:BitableBridge_root_pod_hdrs"],
+  srcs = ["@BitableBridge//:BitableBridge_root_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["React-Core"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "BitableBridge_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "BitableBridge_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = ["@BitableBridge//:BitableBridge_BitableBridge"],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "BitableBridge_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "BitableBridge_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "BitableBridge_dynamic", False),
+  tags = getattr(defs_external_objc_library, "BitableBridge_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("BitableBridge", {}),
+  visibility = ["//visibility:public"],
+)

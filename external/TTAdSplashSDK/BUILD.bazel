@@ -1,0 +1,1154 @@
+load('@build_bazel_rules_apple//apple:resources.bzl', 'apple_resource_bundle', 'gen_bundle_plist')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "TTAdSplashSDK_pod_hdrs",
+  srcs = [
+    ":TTAdSplashSDK_root_pod_hdrs",
+    ":Core_pod_hdrs",
+    ":Interactive_pod_hdrs",
+    ":Privacy_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "TTAdSplashSDK_private_includes",
+  include = [
+    "external/TTAdSplashSDK/pod_support/Headers/Private/TTAdSplashSDK/"
+  ],
+  deps = [],
+  external_name = "TTAdSplashSDK"
+)
+gen_includes(
+  name = "TTAdSplashSDK_public_includes",
+  include = [
+    "external/TTAdSplashSDK/pod_support/Headers/Public/TTAdSplashSDK/"
+  ],
+  deps = [],
+  external_name = "TTAdSplashSDK"
+)
+filegroup(
+  name = "_TTAdSplashSDK_hdrs",
+  srcs = [
+    ":TTAdSplashSDK_root_hdrs",
+    ":Core_hdrs",
+    ":Interactive_hdrs",
+    ":Privacy_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "TTAdSplashSDK_xcode_hmapsource",
+  hdrs = [
+    ":TTAdSplashSDK_root_hdrs",
+    ":Core_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "TTAdSplashSDK_xcode_hmap",
+  dep = ":TTAdSplashSDK_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/TTAdSplashSDK/*-bitsky-generated.modulemap", "pod_support/Headers/Public/TTAdSplashSDK/*-bitsky-generated-umbrella.h"]))
+gen_bundle_plist(
+  name = "GEN_splashResourceCore_Plist",
+  bundle_name = "splashResourceCore",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "0.7.26",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "TTAdSplashSDK_Core_splashResourceCore",
+  bundle_name = "splashResourceCore",
+  infoplists = [
+    ":GEN_splashResourceCore_Plist"
+  ],
+  resources = glob(
+    [
+      "TTAdSplashSDK/Assets/splashResource/CoreImage.xcassets/**"
+    ]
+  ) + [
+    "TTAdSplashSDK/Assets/splashResource/hand.webp",
+    "TTAdSplashSDK/Assets/splashResource/triangle.webp",
+    "TTAdSplashSDK/Assets/splashResource/ShakeMusic.mp3"
+  ],
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "TTAdSplashSDK_Core_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libTTAdSplashSDK_Core_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_bundle_plist(
+  name = "GEN_splashResource_Plist",
+  bundle_name = "splashResource",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "0.7.26",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "TTAdSplashSDK_Interactive_splashResource",
+  bundle_name = "splashResource",
+  infoplists = [
+    ":GEN_splashResource_Plist"
+  ],
+  resources = glob(
+    [
+      "TTAdSplashSDK/Assets/splashResource/Image.xcassets/**"
+    ]
+  ),
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "TTAdSplashSDK_Interactive_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libTTAdSplashSDK_Interactive_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "TTAdSplashSDK_Privacy_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libTTAdSplashSDK_Privacy_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "TTAdSplashSDK_custom_includes",
+  include = [
+    "external/boringssl/include",
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "TTAdSplashSDK",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "TTAdSplashSDK_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":TTAdSplashSDK_xcode_hmap"
+  ],
+  external_name = "TTAdSplashSDK",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTAdSplashSDK_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTAdSplashSDK_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTAdSplashSDK_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTAdSplashSDK_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TTAdSplashSDK_module_map",
+  module_map = "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashSDK-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTAdSplashSDK_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "TTAdSplashSDK_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":TTAdSplashSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTAdSplashSDK_private_includes",
+    ":TTAdSplashSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":TTAdSplashSDK_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTAdSplashSDK_POD_VERSION=@\\\"9999_0.7.26.15-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTAdSplashSDK",
+  deps = [
+    ":TTAdSplashSDK_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TTAdSplashSDK_lib",
+  deps = [
+    ":TTAdSplashSDK"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [
+    "TTAdSplashSDK/Classes/ModuleMap/TTAdSplashSDK-umbrella.h",
+    "TTAdSplashSDK/Classes/ShakeCreative/BDASplashShakeContainerView.h",
+    "TTAdSplashSDK/Classes/ShakeCreative/BDASplashShakeDownloader.h",
+    "TTAdSplashSDK/Classes/ShakeCreative/BDASplashShakeGIFView.h",
+    "TTAdSplashSDK/Classes/ShakeCreative/BDASplashShakeModel.h",
+    "TTAdSplashSDK/Classes/ShakeCreative/BDASplashShakeTipView.h",
+    "TTAdSplashSDK/Classes/ShakeCreative/BDASplashShakeVideoView.h",
+    "TTAdSplashSDK/Classes/ShakeCreative/BDSplashShakeBannerView.h",
+    "TTAdSplashSDK/Classes/category/NSArray+TTAdSplashAddition.h",
+    "TTAdSplashSDK/Classes/category/NSBundle+BDASplashAddtion.h",
+    "TTAdSplashSDK/Classes/category/NSData+TTAdSplashAddition.h",
+    "TTAdSplashSDK/Classes/category/NSDictionary+TTAdSplashAddition.h",
+    "TTAdSplashSDK/Classes/category/NSString+TTAdSplashAddition.h",
+    "TTAdSplashSDK/Classes/category/UIColor+TTAdSplashUtils.h",
+    "TTAdSplashSDK/Classes/category/UIView+TTAdSplashAddition.h",
+    "TTAdSplashSDK/Classes/core/BDASplashGestureRecognizer.h",
+    "TTAdSplashSDK/Classes/core/BDASplashOMTrackDelegate.h",
+    "TTAdSplashSDK/Classes/core/BDASplashPrivacyProtocol.h",
+    "TTAdSplashSDK/Classes/core/BDASplashViewTargetActionManager.h",
+    "TTAdSplashSDK/Classes/core/BDASplashViewTargetActionProtocol.h",
+    "TTAdSplashSDK/Classes/core/SplashManager/BDASplashMetricInfoStore.h",
+    "TTAdSplashSDK/Classes/core/SplashManager/TTAdSplashManager+Action.h",
+    "TTAdSplashSDK/Classes/core/SplashManager/TTAdSplashManager+Cache.h",
+    "TTAdSplashSDK/Classes/core/SplashManager/TTAdSplashManager+FirstSplash.h",
+    "TTAdSplashSDK/Classes/core/SplashManager/TTAdSplashManager+Request.h",
+    "TTAdSplashSDK/Classes/core/SplashManager/TTAdSplashManager+Switch.h",
+    "TTAdSplashSDK/Classes/core/SplashManager/TTAdSplashManager.h",
+    "TTAdSplashSDK/Classes/core/SplashManager/TTAdSplashUDPManager.h",
+    "TTAdSplashSDK/Classes/core/TTAdSplashCache.h",
+    "TTAdSplashSDK/Classes/core/TTAdSplashDelegate.h",
+    "TTAdSplashSDK/Classes/core/TTAdSplashDownloader.h",
+    "TTAdSplashSDK/Classes/core/TTAdSplashHeader.h",
+    "TTAdSplashSDK/Classes/core/TTAdSplashInterceptDelegate.h",
+    "TTAdSplashSDK/Classes/core/TTAdSplashMessageCenter.h",
+    "TTAdSplashSDK/Classes/core/TTAdSplashRequest.h",
+    "TTAdSplashSDK/Classes/core/TTAdSplashStore.h",
+    "TTAdSplashSDK/Classes/core/TTAdSplashURLTracker.h",
+    "TTAdSplashSDK/Classes/core/socket/BDAsyncUdpSocket.h",
+    "TTAdSplashSDK/Classes/logger/BDASplashDebugLogger.h",
+    "TTAdSplashSDK/Classes/logger/TTAdSplashLogModule.h",
+    "TTAdSplashSDK/Classes/logger/TTAdSplashLogger.h",
+    "TTAdSplashSDK/Classes/model/BDAExtraVideoInfoModel.h",
+    "TTAdSplashSDK/Classes/model/BDASplashControlModel.h",
+    "TTAdSplashSDK/Classes/model/BDASplashVideoInfoModel.h",
+    "TTAdSplashSDK/Classes/model/BDASplashViewProtocol.h",
+    "TTAdSplashSDK/Classes/model/TTAdSplashBanRequestModel.h",
+    "TTAdSplashSDK/Classes/model/TTAdSplashBanResponseModel.h",
+    "TTAdSplashSDK/Classes/model/TTAdSplashImageInfosModel.h",
+    "TTAdSplashSDK/Classes/model/TTAdSplashModel.h",
+    "TTAdSplashSDK/Classes/model/TTAdSplashRealTimeFetchModel.h",
+    "TTAdSplashSDK/Classes/model/TTAdSplashSubFieldModels.h",
+    "TTAdSplashSDK/Classes/tracker/TTAdSplashTracker.h",
+    "TTAdSplashSDK/Classes/util/BDASplashImageCoder.h",
+    "TTAdSplashSDK/Classes/util/BDASplashTimeChecker.h",
+    "TTAdSplashSDK/Classes/util/TTAdSplashDeviceHelper.h",
+    "TTAdSplashSDK/Classes/util/TTAdSplashNetworkUtils.h",
+    "TTAdSplashSDK/Classes/util/TTAdSplashSocketUtil.h",
+    "TTAdSplashSDK/Classes/util/TTAdSplashStringUtils.h",
+    "TTAdSplashSDK/Classes/util/private/TTAdRandomSequence.h",
+    "TTAdSplashSDK/Classes/view/BDASplashAddFansView.h",
+    "TTAdSplashSDK/Classes/view/BDASplashBannerView.h",
+    "TTAdSplashSDK/Classes/view/BDASplashImage.h",
+    "TTAdSplashSDK/Classes/view/BDASplashImageView.h",
+    "TTAdSplashSDK/Classes/view/BDASplashShadowLabel.h",
+    "TTAdSplashSDK/Classes/view/BDASplashSkipButton.h",
+    "TTAdSplashSDK/Classes/view/BDASplashSwipeUpView.h",
+    "TTAdSplashSDK/Classes/view/BDASplashVideoContainer.h",
+    "TTAdSplashSDK/Classes/view/BDASplashVideoView.h",
+    "TTAdSplashSDK/Classes/view/BDASplashView+Helper.h",
+    "TTAdSplashSDK/Classes/view/BDASplashView+SwipeUp.h",
+    "TTAdSplashSDK/Classes/view/BDASplashView.h",
+    "TTAdSplashSDK/Classes/view/TTAdSplashControllerView.h",
+    "TTAdSplashSDK/Classes/view/TTAdSplashHittestButton.h",
+    "TTAdSplashSDK/Classes/view/TTAdSplashLabel.h",
+    "TTAdSplashSDK/Classes/view/TTAdSplashVVeboImage.h",
+    "TTAdSplashSDK/Classes/view/TTAdSplashVideoView.h",
+    "TTAdSplashSDK/Classes/view/TTAdSplashViewButton.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTAdSplashSDK/BDAExtraVideoInfoModel.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashAddFansView.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashBannerView.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashControlModel.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashDebugLogger.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashGestureRecognizer.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashImage.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashImageCoder.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashImageView.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashMetricInfoStore.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashOMTrackDelegate.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashPrivacyProtocol.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashShadowLabel.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashShakeContainerView.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashShakeDownloader.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashShakeGIFView.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashShakeModel.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashShakeTipView.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashShakeVideoView.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashSkipButton.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashSwipeUpView.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashTimeChecker.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashVideoContainer.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashVideoInfoModel.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashVideoView.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashView+Helper.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashView+SwipeUp.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashView.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashViewProtocol.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashViewTargetActionManager.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDASplashViewTargetActionProtocol.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDAsyncUdpSocket.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/BDSplashShakeBannerView.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/NSArray+TTAdSplashAddition.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/NSBundle+BDASplashAddtion.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/NSData+TTAdSplashAddition.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/NSDictionary+TTAdSplashAddition.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/NSString+TTAdSplashAddition.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdRandomSequence.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashBanRequestModel.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashBanResponseModel.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashCache.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashControllerView.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashDelegate.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashDeviceHelper.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashDownloader.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashHeader.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashHittestButton.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashImageInfosModel.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashInterceptDelegate.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashLabel.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashLogModule.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashLogger.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashManager+Action.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashManager+Cache.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashManager+FirstSplash.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashManager+Request.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashManager+Switch.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashManager.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashMessageCenter.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashModel.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashNetworkUtils.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashRealTimeFetchModel.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashRequest.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashSDK-umbrella.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashSocketUtil.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashStore.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashStringUtils.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashSubFieldModels.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashTracker.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashUDPManager.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashURLTracker.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashVVeboImage.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashVideoView.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/TTAdSplashViewButton.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/UIColor+TTAdSplashUtils.h",
+    "pod_support/Headers/Private/TTAdSplashSDK/UIView+TTAdSplashAddition.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDAExtraVideoInfoModel.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashAddFansView.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashBannerView.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashControlModel.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashDebugLogger.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashGestureRecognizer.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashImage.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashImageCoder.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashImageView.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashMetricInfoStore.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashOMTrackDelegate.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashPrivacyProtocol.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashShadowLabel.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashShakeContainerView.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashShakeDownloader.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashShakeGIFView.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashShakeModel.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashShakeTipView.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashShakeVideoView.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashSkipButton.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashSwipeUpView.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashTimeChecker.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashVideoContainer.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashVideoInfoModel.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashVideoView.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashView+Helper.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashView+SwipeUp.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashView.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashViewProtocol.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashViewTargetActionManager.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDASplashViewTargetActionProtocol.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDAsyncUdpSocket.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/BDSplashShakeBannerView.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/NSArray+TTAdSplashAddition.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/NSBundle+BDASplashAddtion.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/NSData+TTAdSplashAddition.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/NSDictionary+TTAdSplashAddition.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/NSString+TTAdSplashAddition.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashBanRequestModel.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashBanResponseModel.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashCache.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashControllerView.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashDelegate.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashDeviceHelper.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashDownloader.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashHeader.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashHittestButton.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashImageInfosModel.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashInterceptDelegate.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashLabel.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashLogModule.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashLogger.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashManager+Action.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashManager+Cache.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashManager+FirstSplash.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashManager+Request.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashManager+Switch.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashManager.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashMessageCenter.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashModel.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashNetworkUtils.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashRealTimeFetchModel.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashRequest.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashSDK-umbrella.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashSocketUtil.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashStore.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashStringUtils.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashSubFieldModels.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashTracker.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashUDPManager.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashURLTracker.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashVVeboImage.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashVideoView.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashViewButton.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/UIColor+TTAdSplashUtils.h",
+    "pod_support/Headers/Public/TTAdSplashSDK/UIView+TTAdSplashAddition.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashSDK_Core-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":TTAdSplashSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTAdSplashSDK_private_includes",
+    ":TTAdSplashSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDWebImage//:BDWebImage_objc_interface",
+    "@boringssl//:boringssl_objc_interface",
+    "@ByteDanceKit//:Foundation_objc_interface",
+    "@JSONModel//:JSONModel_objc_interface",
+    "@libwebp//:libwebp_objc_interface",
+    "@MMKV//:MMKV_objc_interface",
+    "@TTReachability//:TTReachability_objc_interface",
+    "@TTVideoEngine//:TTVideoEngine_objc_interface",
+    "@BDWebImage//:BDWebImage_swift_interface",
+    "@boringssl//:boringssl_swift_interface",
+    "@ByteDanceKit//:Foundation_swift_interface",
+    "@JSONModel//:JSONModel_swift_interface",
+    "@libwebp//:libwebp_swift_interface",
+    "@MMKV//:MMKV_swift_interface",
+    "@TTReachability//:TTReachability_swift_interface",
+    "@TTVideoEngine//:TTVideoEngine_swift_interface",
+    ":TTAdSplashSDK_Core_VendoredLibraries",
+    ":Core_objc_interface",
+    "@BDWebImage//:BDWebImage_module_map",
+    "@boringssl//:boringssl_module_map",
+    "@ByteDanceKit//:Foundation_module_map",
+    "@JSONModel//:JSONModel_module_map",
+    "@libwebp//:libwebp_module_map",
+    "@MMKV//:MMKV_module_map",
+    "@TTReachability//:TTReachability_module_map",
+    "@TTVideoEngine//:TTVideoEngine_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTAdSplashSDK_POD_VERSION=@\\\"9999_0.7.26.15-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":TTAdSplashSDK_Core_splashResourceCore"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Interactive_hdrs",
+  srcs = [
+    "TTAdSplashSDK/Classes/interactive/view/BDAInteractiveVideoSplashView+Helper.h",
+    "TTAdSplashSDK/Classes/interactive/view/BDAInteractiveVideoSplashView.h",
+    "TTAdSplashSDK/Classes/interactive/view/BDASplashBaseView.h",
+    "TTAdSplashSDK/Classes/interactive/view/BDASwipGuideView.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Interactive_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Interactive_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Interactive_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Interactive_module_map",
+  module_map = "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashSDK_Interactive-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Interactive_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Interactive_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":TTAdSplashSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTAdSplashSDK_private_includes",
+    ":TTAdSplashSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":TTAdSplashSDK_Interactive_VendoredLibraries",
+    ":Interactive_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTAdSplashSDK_POD_VERSION=@\\\"9999_0.7.26.15-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":TTAdSplashSDK_Interactive_splashResource"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Interactive",
+  deps = [
+    ":Interactive_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Interactive_lib",
+  deps = [
+    ":Interactive"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Privacy_hdrs",
+  srcs = [
+    "TTAdSplashSDK/Classes/Privacy/BDASplashPrivacyHelper.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Privacy_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Privacy_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Privacy_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Privacy_module_map",
+  module_map = "pod_support/Headers/Public/TTAdSplashSDK/TTAdSplashSDK_Privacy-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Privacy_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Privacy_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":TTAdSplashSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTAdSplashSDK_private_includes",
+    ":TTAdSplashSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ByteDanceKit//:Legacy_objc_interface",
+    "@ByteDanceKit//:Legacy_swift_interface",
+    ":TTAdSplashSDK_Privacy_VendoredLibraries",
+    ":Privacy_objc_interface",
+    "@ByteDanceKit//:Legacy_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTAdSplashSDK_POD_VERSION=@\\\"9999_0.7.26.15-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Privacy",
+  deps = [
+    ":Privacy_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Privacy_lib",
+  deps = [
+    ":Privacy"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_TTAdSplashSDK_module_map",
+  module_map = "@TTAdSplashSDK//:pod_support/Headers/Public/TTAdSplashSDK/Lark-bitsky-generated.modulemap",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_TTAdSplashSDK_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@TTAdSplashSDK//:Core_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_TTAdSplashSDK",
+  target_name = "Lark",
+  module_name = "TTAdSplashSDK",
+  module_map = "TTAdSplashSDK/Classes/ModuleMap/TTAdSplashSDK.modulemap",
+  hdrs = ["@TTAdSplashSDK//:Core_pod_hdrs"],
+  srcs = [],
+  non_arc_srcs = [],
+  deps = ["@TTAdSplashSDK//:TTAdSplashSDK_Core_VendoredLibraries"],
+  pod_deps = ["BDWebImage", "boringssl", "ByteDanceKit", "JSONModel", "libwebp", "MMKV", "TTReachability", "TTVideoEngine"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTAdSplashSDK_POD_VERSION=@\\\"9999_0.7.26.15-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "TTAdSplashSDK_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "TTAdSplashSDK_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["UIKit", "Foundation", "JavaScriptCore"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = ["@TTAdSplashSDK//:TTAdSplashSDK_Core_splashResourceCore"],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "TTAdSplashSDK_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "TTAdSplashSDK_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "TTAdSplashSDK_dynamic", False),
+  tags = getattr(defs_external_objc_library, "TTAdSplashSDK_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("TTAdSplashSDK", {}),
+  visibility = ["//visibility:public"],
+)

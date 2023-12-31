@@ -1,0 +1,5624 @@
+load('@build_bazel_rules_apple//apple:resources.bzl', 'apple_resource_bundle', 'gen_bundle_plist')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "BDWebKit_pod_hdrs",
+  srcs = [
+    ":BDWebKit_root_pod_hdrs",
+    ":Core_pod_hdrs",
+    ":SecureLink_pod_hdrs",
+    ":SCCWebView_pod_hdrs",
+    ":Cookie_pod_hdrs",
+    ":BDWKPrecreator_pod_hdrs",
+    ":Precreator_pod_hdrs",
+    ":Interceptor_pod_hdrs",
+    ":Keyboard_pod_hdrs",
+    ":TTNet_pod_hdrs",
+    ":Preload_pod_hdrs",
+    ":SSL_pod_hdrs",
+    ":Falcon_pod_hdrs",
+    ":Falcon_WebP_pod_hdrs",
+    ":ResourceLoader_pod_hdrs",
+    ":ResourceLoader_RLFalcon_pod_hdrs",
+    ":ResourceLoader_RLTTNet_pod_hdrs",
+    ":ResourcePreload_pod_hdrs",
+    ":ResourcePreload_PreloadCore_pod_hdrs",
+    ":ResourcePreload_FalconInterceptor_pod_hdrs",
+    ":ResourcePreload_RLGlobalProcessor_pod_hdrs",
+    ":Forest_pod_hdrs",
+    ":Offline_pod_hdrs",
+    ":Resource_pod_hdrs",
+    ":Prefetch_pod_hdrs",
+    ":BlankDetect_pod_hdrs",
+    ":ADBlock_pod_hdrs",
+    ":CrashFix_pod_hdrs",
+    ":CSRF_pod_hdrs",
+    ":Security_pod_hdrs",
+    ":Native_pod_hdrs",
+    ":Native_Base_pod_hdrs",
+    ":Native_NativeLiveVideo_pod_hdrs",
+    ":Native_NativeLottieView_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "BDWebKit_private_includes",
+  include = [
+    "external/BDWebKit/pod_support/Headers/Private/BDWebKit/"
+  ],
+  deps = [],
+  external_name = "BDWebKit"
+)
+gen_includes(
+  name = "BDWebKit_public_includes",
+  include = [
+    "external/BDWebKit/pod_support/Headers/Public/BDWebKit/"
+  ],
+  deps = [],
+  external_name = "BDWebKit"
+)
+filegroup(
+  name = "_BDWebKit_hdrs",
+  srcs = [
+    ":BDWebKit_root_hdrs",
+    ":Core_hdrs",
+    ":SecureLink_hdrs",
+    ":SCCWebView_hdrs",
+    ":Cookie_hdrs",
+    ":BDWKPrecreator_hdrs",
+    ":Precreator_hdrs",
+    ":Interceptor_hdrs",
+    ":Keyboard_hdrs",
+    ":TTNet_hdrs",
+    ":Preload_hdrs",
+    ":SSL_hdrs",
+    ":Falcon_hdrs",
+    ":Falcon_WebP_hdrs",
+    ":ResourceLoader_hdrs",
+    ":ResourceLoader_RLFalcon_hdrs",
+    ":ResourceLoader_RLTTNet_hdrs",
+    ":ResourcePreload_hdrs",
+    ":ResourcePreload_PreloadCore_hdrs",
+    ":ResourcePreload_FalconInterceptor_hdrs",
+    ":ResourcePreload_RLGlobalProcessor_hdrs",
+    ":Forest_hdrs",
+    ":Offline_hdrs",
+    ":Resource_hdrs",
+    ":Prefetch_hdrs",
+    ":BlankDetect_hdrs",
+    ":ADBlock_hdrs",
+    ":CrashFix_hdrs",
+    ":CSRF_hdrs",
+    ":Security_hdrs",
+    ":Native_hdrs",
+    ":Native_Base_hdrs",
+    ":Native_NativeLiveVideo_hdrs",
+    ":Native_NativeLottieView_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "BDWebKit_xcode_hmapsource",
+  hdrs = [
+    ":BDWebKit_root_hdrs",
+    ":BlankDetect_hdrs",
+    ":Core_hdrs",
+    ":CrashFix_hdrs",
+    ":Falcon_hdrs",
+    ":Falcon_WebP_hdrs",
+    ":Interceptor_hdrs",
+    ":Offline_hdrs",
+    ":Precreator_hdrs",
+    ":Resource_hdrs",
+    ":SecureLink_hdrs",
+    ":SSL_hdrs",
+    ":TTNet_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "BDWebKit_xcode_hmap",
+  dep = ":BDWebKit_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/BDWebKit/*-bitsky-generated.modulemap", "pod_support/Headers/Public/BDWebKit/*-bitsky-generated-umbrella.h"]))
+gen_bundle_plist(
+  name = "GEN_BDWebKit_Plist",
+  bundle_name = "BDWebKit",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "2.0.5",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "BDWebKit_SSL_BDWebKit",
+  bundle_name = "BDWebKit",
+  infoplists = [
+    ":GEN_BDWebKit_Plist"
+  ],
+  resources = glob(
+    [
+      "BDWebKit/Assets/en.lproj/**",
+      "BDWebKit/Assets/zh.lproj/**"
+    ]
+  ),
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "BDWebKit_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "BDWebKit",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "BDWebKit_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":BDWebKit_xcode_hmap"
+  ],
+  external_name = "BDWebKit",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDWebKit_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDWebKit_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDWebKit_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDWebKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "BDWebKit_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDWebKit_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "BDWebKit_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":BDWebKit_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDWebKit",
+  deps = [
+    ":BDWebKit_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "BDWebKit_lib",
+  deps = [
+    ":BDWebKit"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [
+    "BDWebKit/Classes/Core/BDWebKitDefine.h",
+    "BDWebKit/Classes/Core/BDWebKitMainFrameModel.h",
+    "BDWebKit/Classes/Core/BDWebKitSettingsManger.h",
+    "BDWebKit/Classes/Core/BDWebKitUtil.h",
+    "BDWebKit/Classes/Core/BDWebKitVersion.h",
+    "BDWebKit/Classes/Core/BDWebViewDebugKit.h",
+    "BDWebKit/Classes/Core/BDWebViewUAManager.h",
+    "BDWebKit/Classes/Core/NSObject+BDWRuntime.h",
+    "BDWebKit/Classes/Core/WKUserContentController+BDWHelper.h",
+    "BDWebKit/Classes/Core/WKWebView+BDPrivate.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDWebKit/BDWebKitDefine.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebKitMainFrameModel.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebKitSettingsManger.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebKitUtil.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebKitVersion.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebViewDebugKit.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebViewUAManager.h",
+    "pod_support/Headers/Private/BDWebKit/NSObject+BDWRuntime.h",
+    "pod_support/Headers/Private/BDWebKit/WKUserContentController+BDWHelper.h",
+    "pod_support/Headers/Private/BDWebKit/WKWebView+BDPrivate.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebKitDefine.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebKitMainFrameModel.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebKitSettingsManger.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebKitUtil.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebKitVersion.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebViewDebugKit.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebViewUAManager.h",
+    "pod_support/Headers/Public/BDWebKit/NSObject+BDWRuntime.h",
+    "pod_support/Headers/Public/BDWebKit/WKUserContentController+BDWHelper.h",
+    "pod_support/Headers/Public/BDWebKit/WKWebView+BDPrivate.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_srcs",
+  srcs = [
+    "BDWebKit/Classes/Core/BDWebKitMainFrameModel.m",
+    "BDWebKit/Classes/Core/BDWebKitSettingsManger.m",
+    "BDWebKit/Classes/Core/BDWebKitUtil.m",
+    "BDWebKit/Classes/Core/BDWebKitVersion.m",
+    "BDWebKit/Classes/Core/BDWebViewDebugKit.m",
+    "BDWebKit/Classes/Core/BDWebViewUAManager.m",
+    "BDWebKit/Classes/Core/NSObject+BDWRuntime.m",
+    "BDWebKit/Classes/Core/WKUserContentController+BDWHelper.m",
+    "BDWebKit/Classes/Core/WKWebView+BDPrivate.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [
+    "Core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@Heimdallr//:DeviceInfo_objc_interface",
+    "@TTReachability//:TTReachability_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    "@Heimdallr//:DeviceInfo_swift_interface",
+    "@TTReachability//:TTReachability_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":Core_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map",
+    "@Heimdallr//:DeviceInfo_module_map",
+    "@TTReachability//:TTReachability_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SecureLink_hdrs",
+  srcs = [
+    "BDWebKit/Classes/SecureLink/BDWebSecureLinkCustomSetting.h",
+    "BDWebKit/Classes/SecureLink/BDWebSecureLinkManager.h",
+    "BDWebKit/Classes/SecureLink/BDWebSecureLinkPlugin.h",
+    "BDWebKit/Classes/SecureLink/WKWebView+BDSecureLink.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SecureLink_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDWebKit/BDWebSecureLinkCustomSetting.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebSecureLinkManager.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebSecureLinkPlugin.h",
+    "pod_support/Headers/Private/BDWebKit/WKWebView+BDSecureLink.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebSecureLinkCustomSetting.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebSecureLinkManager.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebSecureLinkPlugin.h",
+    "pod_support/Headers/Public/BDWebKit/WKWebView+BDSecureLink.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SecureLink_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SecureLink_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "SecureLink_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_SecureLink-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_SecureLink-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SecureLink_srcs",
+  srcs = [
+    "BDWebKit/Classes/SecureLink/BDWebSecureLinkCustomSetting.m",
+    "BDWebKit/Classes/SecureLink/BDWebSecureLinkManager.m",
+    "BDWebKit/Classes/SecureLink/BDWebSecureLinkPlugin.m",
+    "BDWebKit/Classes/SecureLink/WKWebView+BDSecureLink.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SecureLink_oc",
+  enable_modules = 1,
+  srcs = [
+    "SecureLink_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "SecureLink_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@TTReachability//:TTReachability_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    "@TTReachability//:TTReachability_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    ":SecureLink_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map",
+    "@TTReachability//:TTReachability_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SecureLink",
+  deps = [
+    ":SecureLink_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "SecureLink_lib",
+  deps = [
+    ":SecureLink"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SCCWebView_hdrs",
+  srcs = [
+    "BDWebKit/Classes/SCCWebView/BDSCCDomainListLRU.h",
+    "BDWebKit/Classes/SCCWebView/BDSCCFilter.h",
+    "BDWebKit/Classes/SCCWebView/BDSCCURLObserver.h",
+    "BDWebKit/Classes/SCCWebView/BDWSCCWebViewCustomHandler.h",
+    "BDWebKit/Classes/SCCWebView/BDWebSCCManager.h",
+    "BDWebKit/Classes/SCCWebView/WKWebView+BDWSCCWebView.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SCCWebView_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SCCWebView_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SCCWebView_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "SCCWebView_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_SCCWebView-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_SCCWebView-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SCCWebView_srcs",
+  srcs = [
+    "BDWebKit/Classes/SCCWebView/BDSCCDomainListLRU.m",
+    "BDWebKit/Classes/SCCWebView/BDSCCFilter.m",
+    "BDWebKit/Classes/SCCWebView/BDSCCURLObserver.m",
+    "BDWebKit/Classes/SCCWebView/BDWebSCCManager.m",
+    "BDWebKit/Classes/SCCWebView/WKWebView+BDWSCCWebView.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SCCWebView_oc",
+  enable_modules = 1,
+  srcs = [
+    "SCCWebView_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "SCCWebView_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    ":SCCWebView_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SCCWebView",
+  deps = [
+    ":SCCWebView_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "SCCWebView_lib",
+  deps = [
+    ":SCCWebView"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Cookie_hdrs",
+  srcs = [
+    "BDWebKit/Classes/Cookie/BDWebCookiePlugin.h",
+    "BDWebKit/Classes/Cookie/WKWebView+BDCookie.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Cookie_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Cookie_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Cookie_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Cookie_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_Cookie-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_Cookie-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Cookie_srcs",
+  srcs = [
+    "BDWebKit/Classes/Cookie/BDWebCookiePlugin.m",
+    "BDWebKit/Classes/Cookie/WKWebView+BDCookie.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Cookie_oc",
+  enable_modules = 1,
+  srcs = [
+    "Cookie_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Cookie_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    ":Cookie_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Cookie",
+  deps = [
+    ":Cookie_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Cookie_lib",
+  deps = [
+    ":Cookie"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDWKPrecreator_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDWKPrecreator_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDWKPrecreator_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDWKPrecreator_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "BDWKPrecreator_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_BDWKPrecreator-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_BDWKPrecreator-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDWKPrecreator_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "BDWKPrecreator_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":BDWKPrecreator_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDWKPrecreator",
+  deps = [
+    ":BDWKPrecreator_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "BDWKPrecreator_lib",
+  deps = [
+    ":BDWKPrecreator"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Precreator_hdrs",
+  srcs = [
+    "BDWebKit/Classes/Precreator/BDWKPrecreator.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Precreator_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDWebKit/BDWKPrecreator.h",
+    "pod_support/Headers/Public/BDWebKit/BDWKPrecreator.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Precreator_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Precreator_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Precreator_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_Precreator-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_Precreator-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Precreator_srcs",
+  srcs = [
+    "BDWebKit/Classes/Precreator/BDWKPrecreator.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Precreator_oc",
+  enable_modules = 1,
+  srcs = [
+    "Precreator_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Precreator_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit",
+    "Foundation"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":Precreator_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Precreator",
+  deps = [
+    ":Precreator_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Precreator_lib",
+  deps = [
+    ":Precreator"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Interceptor_hdrs",
+  srcs = [
+    "BDWebKit/Classes/Interceptor/BDWebDefaultRequestDecorator.h",
+    "BDWebKit/Classes/Interceptor/BDWebDefaultURLSchemaHandler.h",
+    "BDWebKit/Classes/Interceptor/BDWebHTTPCachePolicy.h",
+    "BDWebKit/Classes/Interceptor/BDWebInterceptor+Private.h",
+    "BDWebKit/Classes/Interceptor/BDWebInterceptor.h",
+    "BDWebKit/Classes/Interceptor/BDWebInterceptorPluginObject.h",
+    "BDWebKit/Classes/Interceptor/BDWebRLMonitorHelper.h",
+    "BDWebKit/Classes/Interceptor/BDWebRequestDecorator.h",
+    "BDWebKit/Classes/Interceptor/BDWebRequestFilter.h",
+    "BDWebKit/Classes/Interceptor/BDWebResourceMonitorEventType.h",
+    "BDWebKit/Classes/Interceptor/BDWebURLProtocolTask.h",
+    "BDWebKit/Classes/Interceptor/BDWebURLSchemeHandler.h",
+    "BDWebKit/Classes/Interceptor/BDWebURLSchemeProtocolClass.h",
+    "BDWebKit/Classes/Interceptor/BDWebURLSchemeTask.h",
+    "BDWebKit/Classes/Interceptor/BDWebURLSchemeTaskHandler.h",
+    "BDWebKit/Classes/Interceptor/BDWebURLSchemeTaskProxy.h",
+    "BDWebKit/Classes/Interceptor/QNSURLSessionDemux.h",
+    "BDWebKit/Classes/Interceptor/WKWebView+BDInterceptor.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Interceptor_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDWebKit/BDWebDefaultRequestDecorator.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebDefaultURLSchemaHandler.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebHTTPCachePolicy.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebInterceptor+Private.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebInterceptor.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebInterceptorPluginObject.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebRLMonitorHelper.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebRequestDecorator.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebRequestFilter.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebResourceMonitorEventType.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebURLProtocolTask.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebURLSchemeHandler.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebURLSchemeProtocolClass.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebURLSchemeTask.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebURLSchemeTaskHandler.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebURLSchemeTaskProxy.h",
+    "pod_support/Headers/Private/BDWebKit/QNSURLSessionDemux.h",
+    "pod_support/Headers/Private/BDWebKit/WKWebView+BDInterceptor.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebDefaultRequestDecorator.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebDefaultURLSchemaHandler.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebHTTPCachePolicy.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebInterceptor+Private.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebInterceptor.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebInterceptorPluginObject.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebRLMonitorHelper.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebRequestDecorator.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebRequestFilter.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebResourceMonitorEventType.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebURLProtocolTask.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebURLSchemeHandler.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebURLSchemeProtocolClass.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebURLSchemeTask.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebURLSchemeTaskHandler.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebURLSchemeTaskProxy.h",
+    "pod_support/Headers/Public/BDWebKit/QNSURLSessionDemux.h",
+    "pod_support/Headers/Public/BDWebKit/WKWebView+BDInterceptor.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Interceptor_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Interceptor_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Interceptor_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_Interceptor-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_Interceptor-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Interceptor_srcs",
+  srcs = [
+    "BDWebKit/Classes/Interceptor/BDWebDefaultRequestDecorator.m",
+    "BDWebKit/Classes/Interceptor/BDWebDefaultURLSchemaHandler.m",
+    "BDWebKit/Classes/Interceptor/BDWebInterceptor.m",
+    "BDWebKit/Classes/Interceptor/BDWebInterceptorPluginObject.m",
+    "BDWebKit/Classes/Interceptor/BDWebResourceMonitorEventType.m",
+    "BDWebKit/Classes/Interceptor/BDWebRLMonitorHelper.m",
+    "BDWebKit/Classes/Interceptor/BDWebURLSchemeHandler.m",
+    "BDWebKit/Classes/Interceptor/BDWebURLSchemeTask.m",
+    "BDWebKit/Classes/Interceptor/BDWebURLSchemeTaskProxy.m",
+    "BDWebKit/Classes/Interceptor/QNSURLSessionDemux.m",
+    "BDWebKit/Classes/Interceptor/WKWebView+BDInterceptor.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Interceptor_oc",
+  enable_modules = 1,
+  srcs = [
+    "Interceptor_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Interceptor_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit",
+    "Foundation"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":Interceptor_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Interceptor",
+  deps = [
+    ":Interceptor_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Interceptor_lib",
+  deps = [
+    ":Interceptor"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Keyboard_hdrs",
+  srcs = [
+    "BDWebKit/Classes/Keyboard/WKWebView+Keyboard.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Keyboard_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Keyboard_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Keyboard_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Keyboard_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_Keyboard-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_Keyboard-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Keyboard_srcs",
+  srcs = [
+    "BDWebKit/Classes/Keyboard/WKWebView+Keyboard.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Keyboard_oc",
+  enable_modules = 1,
+  srcs = [
+    "Keyboard_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Keyboard_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit",
+    "Foundation"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":Keyboard_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Keyboard",
+  deps = [
+    ":Keyboard_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Keyboard_lib",
+  deps = [
+    ":Keyboard"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTNet_hdrs",
+  srcs = [
+    "BDWebKit/Classes/TTNet/BDTTNetAdapter.h",
+    "BDWebKit/Classes/TTNet/BDTTNetPrefetch.h",
+    "BDWebKit/Classes/TTNet/BDWKPrecreator+TTNet.h",
+    "BDWebKit/Classes/TTNet/BDWebTTNetPlugin.h",
+    "BDWebKit/Classes/TTNet/BDWebViewSchemeTaskHandler.h",
+    "BDWebKit/Classes/TTNet/BDWebViewTTNetUtil.h",
+    "BDWebKit/Classes/TTNet/BDWebViewURLProtocolClient.h",
+    "BDWebKit/Classes/TTNet/WKWebView+TTNet.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTNet_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDWebKit/BDTTNetAdapter.h",
+    "pod_support/Headers/Private/BDWebKit/BDTTNetPrefetch.h",
+    "pod_support/Headers/Private/BDWebKit/BDWKPrecreator+TTNet.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebTTNetPlugin.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebViewSchemeTaskHandler.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebViewTTNetUtil.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebViewURLProtocolClient.h",
+    "pod_support/Headers/Private/BDWebKit/WKWebView+TTNet.h",
+    "pod_support/Headers/Public/BDWebKit/BDTTNetAdapter.h",
+    "pod_support/Headers/Public/BDWebKit/BDTTNetPrefetch.h",
+    "pod_support/Headers/Public/BDWebKit/BDWKPrecreator+TTNet.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebTTNetPlugin.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebViewSchemeTaskHandler.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebViewTTNetUtil.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebViewURLProtocolClient.h",
+    "pod_support/Headers/Public/BDWebKit/WKWebView+TTNet.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTNet_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTNet_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TTNet_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_TTNet-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_TTNet-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTNet_srcs",
+  srcs = [
+    "BDWebKit/Classes/TTNet/BDTTNetAdapter.m",
+    "BDWebKit/Classes/TTNet/BDTTNetPrefetch.m",
+    "BDWebKit/Classes/TTNet/BDWebViewSchemeTaskHandler.m",
+    "BDWebKit/Classes/TTNet/BDWebViewTTNetUtil.m",
+    "BDWebKit/Classes/TTNet/BDWebViewURLProtocolClient.m",
+    "BDWebKit/Classes/TTNet/BDWKPrecreator+TTNet.m",
+    "BDWebKit/Classes/TTNet/WKWebView+TTNet.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTNet_oc",
+  enable_modules = 1,
+  srcs = [
+    "TTNet_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "TTNet_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit",
+    "Foundation"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":TTNet_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTNet",
+  deps = [
+    ":TTNet_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TTNet_lib",
+  deps = [
+    ":TTNet"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Preload_hdrs",
+  srcs = [
+    "BDWebKit/Classes/Preload/BDWebPreloadManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Preload_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Preload_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Preload_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Preload_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_Preload-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_Preload-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Preload_srcs",
+  srcs = [
+    "BDWebKit/Classes/Preload/BDWebPreloadManager.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Preload_oc",
+  enable_modules = 1,
+  srcs = [
+    "Preload_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Preload_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit",
+    "Foundation"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    ":Preload_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Preload",
+  deps = [
+    ":Preload_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Preload_lib",
+  deps = [
+    ":Preload"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SSL_hdrs",
+  srcs = [
+    "BDWebKit/Classes/SSL/BDWebSSLPlugin.h",
+    "BDWebKit/Classes/SSL/BDWebServerTrustChallengeHandler.h",
+    "BDWebKit/Classes/SSL/WKWebView+BDWebServerTrust.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SSL_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDWebKit/BDWebSSLPlugin.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebServerTrustChallengeHandler.h",
+    "pod_support/Headers/Private/BDWebKit/WKWebView+BDWebServerTrust.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebSSLPlugin.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebServerTrustChallengeHandler.h",
+    "pod_support/Headers/Public/BDWebKit/WKWebView+BDWebServerTrust.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SSL_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SSL_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "SSL_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_SSL-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_SSL-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SSL_srcs",
+  srcs = [
+    "BDWebKit/Classes/SSL/BDWebServerTrustChallengeHandler.m",
+    "BDWebKit/Classes/SSL/BDWebSSLPlugin.m",
+    "BDWebKit/Classes/SSL/WKWebView+BDWebServerTrust.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SSL_oc",
+  enable_modules = 1,
+  srcs = [
+    "SSL_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "SSL_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit",
+    "Foundation"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@ByteDanceKit//:UIKit_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    "@ByteDanceKit//:UIKit_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":SSL_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map",
+    "@ByteDanceKit//:UIKit_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":BDWebKit_SSL_BDWebKit"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SSL",
+  deps = [
+    ":SSL_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "SSL_lib",
+  deps = [
+    ":SSL"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Falcon_hdrs",
+  srcs = [
+    "BDWebKit/Classes/Falcon/Advertising/AWEWebViewChannelInterceptor.h",
+    "BDWebKit/Classes/Falcon/Advertising/IESAdLandingChannelInterceptor.h",
+    "BDWebKit/Classes/Falcon/Advertising/IESAdSplashChannelInterceptor.h",
+    "BDWebKit/Classes/Falcon/BDWebFalconURLSchemaHandler.h",
+    "BDWebKit/Classes/Falcon/IESFalconCustomInterceptor.h",
+    "BDWebKit/Classes/Falcon/IESFalconDebugLogger.h",
+    "BDWebKit/Classes/Falcon/IESFalconFileInterceptor.h",
+    "BDWebKit/Classes/Falcon/IESFalconGurdInterceptionDelegate.h",
+    "BDWebKit/Classes/Falcon/IESFalconGurdInterceptor.h",
+    "BDWebKit/Classes/Falcon/IESFalconHelper.h",
+    "BDWebKit/Classes/Falcon/IESFalconInfo.h",
+    "BDWebKit/Classes/Falcon/IESFalconManager+InterceptionDelegate.h",
+    "BDWebKit/Classes/Falcon/IESFalconManager.h",
+    "BDWebKit/Classes/Falcon/IESFalconStatModel.h",
+    "BDWebKit/Classes/Falcon/IESFalconStatRecorder.h",
+    "BDWebKit/Classes/Falcon/IESFalconURLProtocol.h",
+    "BDWebKit/Classes/Falcon/IESFalconWebURLProtocolTask.h",
+    "BDWebKit/Classes/Falcon/IWKFalconPluginObject.h",
+    "BDWebKit/Classes/Falcon/NSData+ETag.h",
+    "BDWebKit/Classes/Falcon/NSString+IESFalconConvenience.h",
+    "BDWebKit/Classes/Falcon/NSURLProtocol+WebKitSupport.h",
+    "BDWebKit/Classes/Falcon/WebP/IESWebPRepresentation.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Falcon_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDWebKit/AWEWebViewChannelInterceptor.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebFalconURLSchemaHandler.h",
+    "pod_support/Headers/Private/BDWebKit/IESAdLandingChannelInterceptor.h",
+    "pod_support/Headers/Private/BDWebKit/IESAdSplashChannelInterceptor.h",
+    "pod_support/Headers/Private/BDWebKit/IESFalconCustomInterceptor.h",
+    "pod_support/Headers/Private/BDWebKit/IESFalconDebugLogger.h",
+    "pod_support/Headers/Private/BDWebKit/IESFalconFileInterceptor.h",
+    "pod_support/Headers/Private/BDWebKit/IESFalconGurdInterceptionDelegate.h",
+    "pod_support/Headers/Private/BDWebKit/IESFalconGurdInterceptor.h",
+    "pod_support/Headers/Private/BDWebKit/IESFalconHelper.h",
+    "pod_support/Headers/Private/BDWebKit/IESFalconInfo.h",
+    "pod_support/Headers/Private/BDWebKit/IESFalconManager+InterceptionDelegate.h",
+    "pod_support/Headers/Private/BDWebKit/IESFalconManager.h",
+    "pod_support/Headers/Private/BDWebKit/IESFalconStatModel.h",
+    "pod_support/Headers/Private/BDWebKit/IESFalconStatRecorder.h",
+    "pod_support/Headers/Private/BDWebKit/IESFalconURLProtocol.h",
+    "pod_support/Headers/Private/BDWebKit/IESFalconWebURLProtocolTask.h",
+    "pod_support/Headers/Private/BDWebKit/IESWebPRepresentation.h",
+    "pod_support/Headers/Private/BDWebKit/IWKFalconPluginObject.h",
+    "pod_support/Headers/Private/BDWebKit/NSData+ETag.h",
+    "pod_support/Headers/Private/BDWebKit/NSString+IESFalconConvenience.h",
+    "pod_support/Headers/Private/BDWebKit/NSURLProtocol+WebKitSupport.h",
+    "pod_support/Headers/Public/BDWebKit/AWEWebViewChannelInterceptor.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebFalconURLSchemaHandler.h",
+    "pod_support/Headers/Public/BDWebKit/IESAdLandingChannelInterceptor.h",
+    "pod_support/Headers/Public/BDWebKit/IESAdSplashChannelInterceptor.h",
+    "pod_support/Headers/Public/BDWebKit/IESFalconCustomInterceptor.h",
+    "pod_support/Headers/Public/BDWebKit/IESFalconDebugLogger.h",
+    "pod_support/Headers/Public/BDWebKit/IESFalconFileInterceptor.h",
+    "pod_support/Headers/Public/BDWebKit/IESFalconGurdInterceptionDelegate.h",
+    "pod_support/Headers/Public/BDWebKit/IESFalconGurdInterceptor.h",
+    "pod_support/Headers/Public/BDWebKit/IESFalconHelper.h",
+    "pod_support/Headers/Public/BDWebKit/IESFalconInfo.h",
+    "pod_support/Headers/Public/BDWebKit/IESFalconManager+InterceptionDelegate.h",
+    "pod_support/Headers/Public/BDWebKit/IESFalconManager.h",
+    "pod_support/Headers/Public/BDWebKit/IESFalconStatModel.h",
+    "pod_support/Headers/Public/BDWebKit/IESFalconStatRecorder.h",
+    "pod_support/Headers/Public/BDWebKit/IESFalconURLProtocol.h",
+    "pod_support/Headers/Public/BDWebKit/IESFalconWebURLProtocolTask.h",
+    "pod_support/Headers/Public/BDWebKit/IESWebPRepresentation.h",
+    "pod_support/Headers/Public/BDWebKit/IWKFalconPluginObject.h",
+    "pod_support/Headers/Public/BDWebKit/NSData+ETag.h",
+    "pod_support/Headers/Public/BDWebKit/NSString+IESFalconConvenience.h",
+    "pod_support/Headers/Public/BDWebKit/NSURLProtocol+WebKitSupport.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Falcon_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Falcon_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Falcon_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_Falcon-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_Falcon-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Falcon_srcs",
+  srcs = [
+    "BDWebKit/Classes/Falcon/Advertising/AWEWebViewChannelInterceptor.m",
+    "BDWebKit/Classes/Falcon/BDWebFalconURLSchemaHandler.m",
+    "BDWebKit/Classes/Falcon/Advertising/IESAdLandingChannelInterceptor.m",
+    "BDWebKit/Classes/Falcon/Advertising/IESAdSplashChannelInterceptor.m",
+    "BDWebKit/Classes/Falcon/IESFalconDebugLogger.m",
+    "BDWebKit/Classes/Falcon/IESFalconFileInterceptor.m",
+    "BDWebKit/Classes/Falcon/IESFalconGurdInterceptor.m",
+    "BDWebKit/Classes/Falcon/IESFalconHelper.m",
+    "BDWebKit/Classes/Falcon/IESFalconInfo.m",
+    "BDWebKit/Classes/Falcon/IESFalconManager+InterceptionDelegate.m",
+    "BDWebKit/Classes/Falcon/IESFalconManager.m",
+    "BDWebKit/Classes/Falcon/IESFalconStatModel.m",
+    "BDWebKit/Classes/Falcon/IESFalconStatRecorder.m",
+    "BDWebKit/Classes/Falcon/IESFalconURLProtocol.m",
+    "BDWebKit/Classes/Falcon/IESFalconWebURLProtocolTask.m",
+    "BDWebKit/Classes/Falcon/IWKFalconPluginObject.m",
+    "BDWebKit/Classes/Falcon/NSData+ETag.m",
+    "BDWebKit/Classes/Falcon/NSString+IESFalconConvenience.m",
+    "BDWebKit/Classes/Falcon/NSURLProtocol+WebKitSupport.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Falcon_oc",
+  enable_modules = 1,
+  srcs = [
+    "Falcon_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Falcon_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@IESGeckoKit//:Core_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    "@IESGeckoKit//:Core_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":Falcon_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map",
+    "@IESGeckoKit//:Core_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Falcon",
+  deps = [
+    ":Falcon_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Falcon_lib",
+  deps = [
+    ":Falcon"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Falcon_WebP_hdrs",
+  srcs = [
+    "BDWebKit/Classes/Falcon/WebP/IESWebPRepresentation.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Falcon_WebP_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDWebKit/IESWebPRepresentation.h",
+    "pod_support/Headers/Public/BDWebKit/IESWebPRepresentation.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Falcon_WebP_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Falcon_WebP_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Falcon_WebP_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_Falcon_WebP-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_Falcon_WebP-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Falcon_WebP_srcs",
+  srcs = [
+    "BDWebKit/Classes/Falcon/WebP/IESWebPRepresentation.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Falcon_WebP_oc",
+  enable_modules = 1,
+  srcs = [
+    "Falcon_WebP_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Falcon_WebP_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@libwebp//:libwebp_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@IESGeckoKit//:Core_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@libwebp//:libwebp_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    "@IESGeckoKit//:Core_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":Falcon_WebP_objc_interface",
+    "@libwebp//:libwebp_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map",
+    "@IESGeckoKit//:Core_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Falcon_WebP",
+  deps = [
+    ":Falcon_WebP_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Falcon_WebP_lib",
+  deps = [
+    ":Falcon_WebP"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ResourceLoader_hdrs",
+  srcs = [
+    "BDWebKit/Classes/ResourceLoader/Core/BDResourceLoaderMetricHelper.h",
+    "BDWebKit/Classes/ResourceLoader/Core/BDResourceLoaderPluginObject.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ResourceLoader_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ResourceLoader_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ResourceLoader_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ResourceLoader_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_ResourceLoader-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_ResourceLoader-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ResourceLoader_srcs",
+  srcs = [
+    "BDWebKit/Classes/ResourceLoader/Core/BDResourceLoaderMetricHelper.m",
+    "BDWebKit/Classes/ResourceLoader/Core/BDResourceLoaderPluginObject.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ResourceLoader_oc",
+  enable_modules = 1,
+  srcs = [
+    "ResourceLoader_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "ResourceLoader_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDXResourceLoader//:BDXResourceLoader_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDXResourceLoader//:BDXResourceLoader_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":ResourceLoader_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDXResourceLoader//:BDXResourceLoader_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ResourceLoader",
+  deps = [
+    ":ResourceLoader_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ResourceLoader_lib",
+  deps = [
+    ":ResourceLoader"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ResourceLoader_RLFalcon_hdrs",
+  srcs = [
+    "BDWebKit/Classes/ResourceLoader/Falcon/BDFalconResourceLoaderInterceptor.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ResourceLoader_RLFalcon_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ResourceLoader_RLFalcon_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ResourceLoader_RLFalcon_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ResourceLoader_RLFalcon_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_ResourceLoader_RLFalcon-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_ResourceLoader_RLFalcon-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ResourceLoader_RLFalcon_srcs",
+  srcs = [
+    "BDWebKit/Classes/ResourceLoader/Falcon/BDFalconResourceLoaderInterceptor.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ResourceLoader_RLFalcon_oc",
+  enable_modules = 1,
+  srcs = [
+    "ResourceLoader_RLFalcon_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "ResourceLoader_RLFalcon_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDXResourceLoader//:BDXResourceLoader_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDXResourceLoader//:BDXResourceLoader_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":ResourceLoader_RLFalcon_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDXResourceLoader//:BDXResourceLoader_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ResourceLoader_RLFalcon",
+  deps = [
+    ":ResourceLoader_RLFalcon_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ResourceLoader_RLFalcon_lib",
+  deps = [
+    ":ResourceLoader_RLFalcon"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ResourceLoader_RLTTNet_hdrs",
+  srcs = [
+    "BDWebKit/Classes/ResourceLoader/TTNet/BDWebResourceLoaderURLProtocol.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ResourceLoader_RLTTNet_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ResourceLoader_RLTTNet_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ResourceLoader_RLTTNet_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ResourceLoader_RLTTNet_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_ResourceLoader_RLTTNet-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_ResourceLoader_RLTTNet-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ResourceLoader_RLTTNet_srcs",
+  srcs = [
+    "BDWebKit/Classes/ResourceLoader/TTNet/BDWebResourceLoaderURLProtocol.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ResourceLoader_RLTTNet_oc",
+  enable_modules = 1,
+  srcs = [
+    "ResourceLoader_RLTTNet_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "ResourceLoader_RLTTNet_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDXResourceLoader//:BDXResourceLoader_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDXResourceLoader//:BDXResourceLoader_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":ResourceLoader_RLTTNet_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDXResourceLoader//:BDXResourceLoader_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ResourceLoader_RLTTNet",
+  deps = [
+    ":ResourceLoader_RLTTNet_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ResourceLoader_RLTTNet_lib",
+  deps = [
+    ":ResourceLoader_RLTTNet"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ResourcePreload_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ResourcePreload_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ResourcePreload_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ResourcePreload_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ResourcePreload_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_ResourcePreload-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_ResourcePreload-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ResourcePreload_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "ResourcePreload_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":ResourcePreload_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ResourcePreload",
+  deps = [
+    ":ResourcePreload_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ResourcePreload_lib",
+  deps = [
+    ":ResourcePreload"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ResourcePreload_PreloadCore_hdrs",
+  srcs = [
+    "BDWebKit/Classes/ResourcePreload/PreloadCore/BDWebContentPreloadManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ResourcePreload_PreloadCore_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ResourcePreload_PreloadCore_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ResourcePreload_PreloadCore_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ResourcePreload_PreloadCore_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_ResourcePreload_PreloadCore-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_ResourcePreload_PreloadCore-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ResourcePreload_PreloadCore_srcs",
+  srcs = [
+    "BDWebKit/Classes/ResourcePreload/PreloadCore/BDWebContentPreloadManager.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ResourcePreload_PreloadCore_oc",
+  enable_modules = 1,
+  srcs = [
+    "ResourcePreload_PreloadCore_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "ResourcePreload_PreloadCore_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDPreloadSDK//:BDPreloadSDK_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDPreloadSDK//:BDPreloadSDK_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":ResourcePreload_PreloadCore_objc_interface",
+    "@BDPreloadSDK//:BDPreloadSDK_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ResourcePreload_PreloadCore",
+  deps = [
+    ":ResourcePreload_PreloadCore_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ResourcePreload_PreloadCore_lib",
+  deps = [
+    ":ResourcePreload_PreloadCore"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ResourcePreload_FalconInterceptor_hdrs",
+  srcs = [
+    "BDWebKit/Classes/ResourcePreload/FalconInterceptor/BDWebPreloadOfflineInterceptor.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ResourcePreload_FalconInterceptor_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ResourcePreload_FalconInterceptor_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ResourcePreload_FalconInterceptor_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ResourcePreload_FalconInterceptor_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_ResourcePreload_FalconInterceptor-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_ResourcePreload_FalconInterceptor-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ResourcePreload_FalconInterceptor_srcs",
+  srcs = [
+    "BDWebKit/Classes/ResourcePreload/FalconInterceptor/BDWebPreloadOfflineInterceptor.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ResourcePreload_FalconInterceptor_oc",
+  enable_modules = 1,
+  srcs = [
+    "ResourcePreload_FalconInterceptor_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "ResourcePreload_FalconInterceptor_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":ResourcePreload_FalconInterceptor_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ResourcePreload_FalconInterceptor",
+  deps = [
+    ":ResourcePreload_FalconInterceptor_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ResourcePreload_FalconInterceptor_lib",
+  deps = [
+    ":ResourcePreload_FalconInterceptor"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ResourcePreload_RLGlobalProcessor_hdrs",
+  srcs = [
+    "BDWebKit/Classes/ResourcePreload/RLGlobalProcessor/BDWebPreloadResourceLoaderProcessor.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ResourcePreload_RLGlobalProcessor_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ResourcePreload_RLGlobalProcessor_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ResourcePreload_RLGlobalProcessor_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ResourcePreload_RLGlobalProcessor_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_ResourcePreload_RLGlobalProcessor-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_ResourcePreload_RLGlobalProcessor-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ResourcePreload_RLGlobalProcessor_srcs",
+  srcs = [
+    "BDWebKit/Classes/ResourcePreload/RLGlobalProcessor/BDWebPreloadResourceLoaderProcessor.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ResourcePreload_RLGlobalProcessor_oc",
+  enable_modules = 1,
+  srcs = [
+    "ResourcePreload_RLGlobalProcessor_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "ResourcePreload_RLGlobalProcessor_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDXResourceLoader//:BDXResourceLoader_objc_interface",
+    "@BDXServiceCenter//:BDXServiceCenter_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDXResourceLoader//:BDXResourceLoader_swift_interface",
+    "@BDXServiceCenter//:BDXServiceCenter_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":ResourcePreload_RLGlobalProcessor_objc_interface",
+    "@BDXResourceLoader//:BDXResourceLoader_module_map",
+    "@BDXServiceCenter//:BDXServiceCenter_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ResourcePreload_RLGlobalProcessor",
+  deps = [
+    ":ResourcePreload_RLGlobalProcessor_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ResourcePreload_RLGlobalProcessor_lib",
+  deps = [
+    ":ResourcePreload_RLGlobalProcessor"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Forest_hdrs",
+  srcs = [
+    "BDWebKit/Classes/Forest/BDWebForestPluginObject.h",
+    "BDWebKit/Classes/Forest/BDWebForestSchemeTaskDecorator.h",
+    "BDWebKit/Classes/Forest/BDWebForestURLProtocol.h",
+    "BDWebKit/Classes/Forest/BDWebForestUtil.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Forest_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Forest_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Forest_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Forest_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_Forest-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_Forest-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Forest_srcs",
+  srcs = [
+    "BDWebKit/Classes/Forest/BDWebForestPluginObject.m",
+    "BDWebKit/Classes/Forest/BDWebForestSchemeTaskDecorator.m",
+    "BDWebKit/Classes/Forest/BDWebForestURLProtocol.m",
+    "BDWebKit/Classes/Forest/BDWebForestUtil.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Forest_oc",
+  enable_modules = 1,
+  srcs = [
+    "Forest_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Forest_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@IESForestKit//:Core_objc_interface",
+    "@IESGeckoKit//:Core_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@IESForestKit//:Core_swift_interface",
+    "@IESGeckoKit//:Core_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":Forest_objc_interface",
+    "@IESForestKit//:Core_module_map",
+    "@IESGeckoKit//:Core_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Forest",
+  deps = [
+    ":Forest_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Forest_lib",
+  deps = [
+    ":Forest"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Offline_hdrs",
+  srcs = [
+    "BDWebKit/Classes/Offline/BDPreloadCachedResponse+Falcon.h",
+    "BDWebKit/Classes/Offline/BDWebOfflinePlugin.h",
+    "BDWebKit/Classes/Offline/BDWebViewOfflineManager.h",
+    "BDWebKit/Classes/Offline/BDWebViewOfflineStatusLogicControl.h",
+    "BDWebKit/Classes/Offline/WKUserContentController+BDWebViewHookJS.h",
+    "BDWebKit/Classes/Offline/WKWebView+BDOffline.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Offline_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDWebKit/BDPreloadCachedResponse+Falcon.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebOfflinePlugin.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebViewOfflineManager.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebViewOfflineStatusLogicControl.h",
+    "pod_support/Headers/Private/BDWebKit/WKUserContentController+BDWebViewHookJS.h",
+    "pod_support/Headers/Private/BDWebKit/WKWebView+BDOffline.h",
+    "pod_support/Headers/Public/BDWebKit/BDPreloadCachedResponse+Falcon.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebOfflinePlugin.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebViewOfflineManager.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebViewOfflineStatusLogicControl.h",
+    "pod_support/Headers/Public/BDWebKit/WKUserContentController+BDWebViewHookJS.h",
+    "pod_support/Headers/Public/BDWebKit/WKWebView+BDOffline.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Offline_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Offline_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Offline_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_Offline-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_Offline-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Offline_srcs",
+  srcs = [
+    "BDWebKit/Classes/Offline/BDPreloadCachedResponse+Falcon.m",
+    "BDWebKit/Classes/Offline/BDWebOfflinePlugin.m",
+    "BDWebKit/Classes/Offline/BDWebViewOfflineManager.m",
+    "BDWebKit/Classes/Offline/BDWebViewOfflineStatusLogicControl.m",
+    "BDWebKit/Classes/Offline/WKUserContentController+BDWebViewHookJS.m",
+    "BDWebKit/Classes/Offline/WKWebView+BDOffline.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Offline_oc",
+  enable_modules = 1,
+  srcs = [
+    "Offline_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Offline_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDPreloadSDK//:WebView_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDPreloadSDK//:WebView_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    ":Offline_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDPreloadSDK//:WebView_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map",
+    "@BDWebCore//:BDWebCore_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Offline",
+  deps = [
+    ":Offline_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Offline_lib",
+  deps = [
+    ":Offline"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Resource_hdrs",
+  srcs = [
+    "BDWebKit/Classes/Resource/BDWebViewResourceManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Resource_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDWebKit/BDWebViewResourceManager.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebViewResourceManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Resource_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Resource_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Resource_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_Resource-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_Resource-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Resource_srcs",
+  srcs = [
+    "BDWebKit/Classes/Resource/BDWebViewResourceManager.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Resource_oc",
+  enable_modules = 1,
+  srcs = [
+    "Resource_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Resource_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@IESGeckoKit//:Core_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@IESGeckoKit//:Core_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":Resource_objc_interface",
+    "@IESGeckoKit//:Core_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Resource",
+  deps = [
+    ":Resource_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Resource_lib",
+  deps = [
+    ":Resource"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Prefetch_hdrs",
+  srcs = [
+    "BDWebKit/Classes/Prefetch/BDWebPrefetchPluginObject.h",
+    "BDWebKit/Classes/Prefetch/IESPrefetchManager+Gecko.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Prefetch_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Prefetch_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Prefetch_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Prefetch_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_Prefetch-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_Prefetch-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Prefetch_srcs",
+  srcs = [
+    "BDWebKit/Classes/Prefetch/BDWebPrefetchPluginObject.m",
+    "BDWebKit/Classes/Prefetch/IESPrefetchManager+Gecko.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Prefetch_oc",
+  enable_modules = 1,
+  srcs = [
+    "Prefetch_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Prefetch_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@IESGeckoKit//:Core_objc_interface",
+    "@IESJSBridgeCore//:Core_objc_interface",
+    "@IESPrefetch//:IESPrefetch_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@IESGeckoKit//:Core_swift_interface",
+    "@IESJSBridgeCore//:Core_swift_interface",
+    "@IESPrefetch//:IESPrefetch_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":Prefetch_objc_interface",
+    "@IESGeckoKit//:Core_module_map",
+    "@IESJSBridgeCore//:Core_module_map",
+    "@IESPrefetch//:IESPrefetch_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Prefetch",
+  deps = [
+    ":Prefetch_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Prefetch_lib",
+  deps = [
+    ":Prefetch"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BlankDetect_hdrs",
+  srcs = [
+    "BDWebKit/Classes/BlankDetect/BDWebKitUtil+BlankDetect.h",
+    "BDWebKit/Classes/BlankDetect/BDWebViewBlankDetect.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BlankDetect_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDWebKit/BDWebKitUtil+BlankDetect.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebViewBlankDetect.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebKitUtil+BlankDetect.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebViewBlankDetect.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BlankDetect_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BlankDetect_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "BlankDetect_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_BlankDetect-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_BlankDetect-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BlankDetect_srcs",
+  srcs = [
+    "BDWebKit/Classes/BlankDetect/BDWebKitUtil+BlankDetect.m",
+    "BDWebKit/Classes/BlankDetect/BDWebViewBlankDetect.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BlankDetect_oc",
+  enable_modules = 1,
+  srcs = [
+    "BlankDetect_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "BlankDetect_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":BlankDetect_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BlankDetect",
+  deps = [
+    ":BlankDetect_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "BlankDetect_lib",
+  deps = [
+    ":BlankDetect"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ADBlock_hdrs",
+  srcs = [
+    "BDWebKit/Classes/ADBlock/BDWADBlockUtil.h",
+    "BDWebKit/Classes/ADBlock/BDWWebViewGeckoUtil.h",
+    "BDWebKit/Classes/ADBlock/WKUserContentController+BDWADBlock.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ADBlock_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ADBlock_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ADBlock_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ADBlock_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_ADBlock-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_ADBlock-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ADBlock_srcs",
+  srcs = [
+    "BDWebKit/Classes/ADBlock/BDWADBlockUtil.m",
+    "BDWebKit/Classes/ADBlock/BDWWebViewGeckoUtil.m",
+    "BDWebKit/Classes/ADBlock/WKUserContentController+BDWADBlock.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ADBlock_oc",
+  enable_modules = 1,
+  srcs = [
+    "ADBlock_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "ADBlock_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":ADBlock_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ADBlock",
+  deps = [
+    ":ADBlock_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ADBlock_lib",
+  deps = [
+    ":ADBlock"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CrashFix_hdrs",
+  srcs = [
+    "BDWebKit/Classes/CrashFix/BDFixWKWebViewCrash.h",
+    "BDWebKit/Classes/CrashFix/BDWebCrashFixPlugin.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CrashFix_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDWebKit/BDFixWKWebViewCrash.h",
+    "pod_support/Headers/Private/BDWebKit/BDWebCrashFixPlugin.h",
+    "pod_support/Headers/Public/BDWebKit/BDFixWKWebViewCrash.h",
+    "pod_support/Headers/Public/BDWebKit/BDWebCrashFixPlugin.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CrashFix_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CrashFix_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "CrashFix_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_CrashFix-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_CrashFix-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CrashFix_srcs",
+  srcs = [
+    "BDWebKit/Classes/CrashFix/BDFixWKWebViewCrash.m",
+    "BDWebKit/Classes/CrashFix/BDWebCrashFixPlugin.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CrashFix_oc",
+  enable_modules = 1,
+  srcs = [
+    "CrashFix_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "CrashFix_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":CrashFix_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CrashFix",
+  deps = [
+    ":CrashFix_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "CrashFix_lib",
+  deps = [
+    ":CrashFix"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CSRF_hdrs",
+  srcs = [
+    "BDWebKit/Classes/CSRF/BDWebCsrfPlugin.h",
+    "BDWebKit/Classes/CSRF/WKWebView+CSRF.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CSRF_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CSRF_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CSRF_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "CSRF_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_CSRF-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_CSRF-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CSRF_srcs",
+  srcs = [
+    "BDWebKit/Classes/CSRF/BDWebCsrfPlugin.m",
+    "BDWebKit/Classes/CSRF/WKWebView+CSRF.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CSRF_oc",
+  enable_modules = 1,
+  srcs = [
+    "CSRF_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "CSRF_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    ":CSRF_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CSRF",
+  deps = [
+    ":CSRF_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "CSRF_lib",
+  deps = [
+    ":CSRF"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Security_hdrs",
+  srcs = [
+    "BDWebKit/Classes/Security/BDWebSecHttpsGuardPlugin.h",
+    "BDWebKit/Classes/Security/BDWebSecSettingManager.h",
+    "BDWebKit/Classes/Security/WKWebView+Security.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Security_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Security_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Security_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Security_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_Security-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_Security-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Security_srcs",
+  srcs = [
+    "BDWebKit/Classes/Security/BDWebSecHttpsGuardPlugin.m",
+    "BDWebKit/Classes/Security/BDWebSecSettingManager.m",
+    "BDWebKit/Classes/Security/WKWebView+Security.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Security_oc",
+  enable_modules = 1,
+  srcs = [
+    "Security_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Security_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    ":Security_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Security",
+  deps = [
+    ":Security_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Security_lib",
+  deps = [
+    ":Security"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Native_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Native_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Native_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Native_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Native_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_Native-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_Native-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Native_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Native_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":Native_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Native",
+  deps = [
+    ":Native_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Native_lib",
+  deps = [
+    ":Native"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Native_Base_hdrs",
+  srcs = [
+    "BDWebKit/Classes/Native/Base/BDNativeMixRenderComponentPlugin.h",
+    "BDWebKit/Classes/Native/Base/BDNativeWebContainerObject.h",
+    "BDWebKit/Classes/Native/Base/BDNativeWebContainerView.h",
+    "BDWebKit/Classes/Native/Base/Bridge/BDNativeWebBridgeManager.h",
+    "BDWebKit/Classes/Native/Base/Bridge/BDNativeWebMessageHandler.h",
+    "BDWebKit/Classes/Native/Base/Bridge/WKWebView+BDNativeWebBridge.h",
+    "BDWebKit/Classes/Native/Base/NativeComponent/BDNativeWebBaseComponent+Private.h",
+    "BDWebKit/Classes/Native/Base/NativeComponent/BDNativeWebBaseComponent.h",
+    "BDWebKit/Classes/Native/Base/NativeComponent/BDNativeWebComponentLogic.h",
+    "BDWebKit/Classes/Native/Base/UIScrollView+BDNativeWeb.h",
+    "BDWebKit/Classes/Native/Base/Util/BDNativeWebHookUtil.h",
+    "BDWebKit/Classes/Native/Base/Util/BDNativeWebLogManager.h",
+    "BDWebKit/Classes/Native/Base/Util/NSArray+BDNativeWebHelper.h",
+    "BDWebKit/Classes/Native/Base/Util/NSDictionary+BDNativeWebHelper.h",
+    "BDWebKit/Classes/Native/Base/Util/NSString+BDNativeWebHelper.h",
+    "BDWebKit/Classes/Native/Base/WKWebView+BDNativeWeb.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Native_Base_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Native_Base_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Native_Base_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Native_Base_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_Native_Base-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_Native_Base-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Native_Base_srcs",
+  srcs = [
+    "BDWebKit/Classes/Native/Base/BDNativeMixRenderComponentPlugin.m",
+    "BDWebKit/Classes/Native/Base/NativeComponent/BDNativeWebBaseComponent+Private.m",
+    "BDWebKit/Classes/Native/Base/NativeComponent/BDNativeWebBaseComponent.m",
+    "BDWebKit/Classes/Native/Base/Bridge/BDNativeWebBridgeManager.m",
+    "BDWebKit/Classes/Native/Base/NativeComponent/BDNativeWebComponentLogic.m",
+    "BDWebKit/Classes/Native/Base/BDNativeWebContainerObject.m",
+    "BDWebKit/Classes/Native/Base/BDNativeWebContainerView.m",
+    "BDWebKit/Classes/Native/Base/Util/BDNativeWebHookUtil.m",
+    "BDWebKit/Classes/Native/Base/Util/BDNativeWebLogManager.m",
+    "BDWebKit/Classes/Native/Base/Bridge/BDNativeWebMessageHandler.m",
+    "BDWebKit/Classes/Native/Base/Util/NSArray+BDNativeWebHelper.m",
+    "BDWebKit/Classes/Native/Base/Util/NSDictionary+BDNativeWebHelper.m",
+    "BDWebKit/Classes/Native/Base/Util/NSString+BDNativeWebHelper.m",
+    "BDWebKit/Classes/Native/Base/UIScrollView+BDNativeWeb.m",
+    "BDWebKit/Classes/Native/Base/WKWebView+BDNativeWeb.m",
+    "BDWebKit/Classes/Native/Base/Bridge/WKWebView+BDNativeWebBridge.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Native_Base_oc",
+  enable_modules = 1,
+  srcs = [
+    "Native_Base_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Native_Base_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    ":Native_Base_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Native_Base",
+  deps = [
+    ":Native_Base_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Native_Base_lib",
+  deps = [
+    ":Native_Base"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Native_NativeLiveVideo_hdrs",
+  srcs = [
+    "BDWebKit/Classes/Native/Live/BDNativeLiveComponent.h",
+    "BDWebKit/Classes/Native/Live/BDNativeLiveVideoView.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Native_NativeLiveVideo_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Native_NativeLiveVideo_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Native_NativeLiveVideo_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Native_NativeLiveVideo_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_Native_NativeLiveVideo-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_Native_NativeLiveVideo-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Native_NativeLiveVideo_srcs",
+  srcs = [
+    "BDWebKit/Classes/Native/Live/BDNativeLiveComponent.m",
+    "BDWebKit/Classes/Native/Live/BDNativeLiveVideoView.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Native_NativeLiveVideo_oc",
+  enable_modules = 1,
+  srcs = [
+    "Native_NativeLiveVideo_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Native_NativeLiveVideo_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@AWELazyRegister//:AWELazyRegister_objc_interface",
+    "@BDWebImage//:BDWebImage_objc_interface",
+    "@TTVideoLive//:TTVideoLive_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@AWELazyRegister//:AWELazyRegister_swift_interface",
+    "@BDWebImage//:BDWebImage_swift_interface",
+    "@TTVideoLive//:TTVideoLive_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":Native_NativeLiveVideo_objc_interface",
+    "@AWELazyRegister//:AWELazyRegister_module_map",
+    "@BDWebImage//:BDWebImage_module_map",
+    "@TTVideoLive//:TTVideoLive_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Native_NativeLiveVideo",
+  deps = [
+    ":Native_NativeLiveVideo_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Native_NativeLiveVideo_lib",
+  deps = [
+    ":Native_NativeLiveVideo"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Native_NativeLottieView_hdrs",
+  srcs = [
+    "BDWebKit/Classes/Native/Lottie/BDNativeLottieComponent.h",
+    "BDWebKit/Classes/Native/Lottie/BDNativeLottieView.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Native_NativeLottieView_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Native_NativeLottieView_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Native_NativeLottieView_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Native_NativeLottieView_module_map",
+  module_map = "pod_support/Headers/Public/BDWebKit/BDWebKit_Native_NativeLottieView-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDWebKit/BDWebKit_Native_NativeLottieView-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Native_NativeLottieView_srcs",
+  srcs = [
+    "BDWebKit/Classes/Native/Lottie/BDNativeLottieComponent.m",
+    "BDWebKit/Classes/Native/Lottie/BDNativeLottieView.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Native_NativeLottieView_oc",
+  enable_modules = 1,
+  srcs = [
+    "Native_NativeLottieView_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Native_NativeLottieView_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDWebKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDWebKit_private_includes",
+    ":BDWebKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDWebImage//:BDWebImage_objc_interface",
+    "@lottie-ios//:lottie-ios_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDWebCore//:BDWebCore_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@BDWebImage//:BDWebImage_swift_interface",
+    "@lottie-ios//:lottie-ios_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDWebCore//:BDWebCore_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":Native_NativeLottieView_objc_interface",
+    "@BDWebImage//:BDWebImage_module_map",
+    "@lottie-ios//:lottie-ios_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDWebCore//:BDWebCore_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Native_NativeLottieView",
+  deps = [
+    ":Native_NativeLottieView_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Native_NativeLottieView_lib",
+  deps = [
+    ":Native_NativeLottieView"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_BDWebKit_module_map",
+  module_map = "@BDWebKit//:pod_support/Headers/Public/BDWebKit/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@BDWebKit//:pod_support/Headers/Public/BDWebKit/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_BDWebKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@BDWebKit//:BDWebKit_objc_interface", "@BDWebKit//:BlankDetect_objc_interface", "@BDWebKit//:Core_objc_interface", "@BDWebKit//:CrashFix_objc_interface", "@BDWebKit//:Falcon_objc_interface", "@BDWebKit//:Falcon_WebP_objc_interface", "@BDWebKit//:Interceptor_objc_interface", "@BDWebKit//:Offline_objc_interface", "@BDWebKit//:Precreator_objc_interface", "@BDWebKit//:Resource_objc_interface", "@BDWebKit//:SSL_objc_interface", "@BDWebKit//:SecureLink_objc_interface", "@BDWebKit//:TTNet_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_BDWebKit",
+  target_name = "Lark",
+  module_name = "BDWebKit",
+  hdrs = ["@BDWebKit//:BDWebKit_root_pod_hdrs", "@BDWebKit//:BlankDetect_pod_hdrs", "@BDWebKit//:Core_pod_hdrs", "@BDWebKit//:CrashFix_pod_hdrs", "@BDWebKit//:Falcon_pod_hdrs", "@BDWebKit//:Falcon_WebP_pod_hdrs", "@BDWebKit//:Interceptor_pod_hdrs", "@BDWebKit//:Offline_pod_hdrs", "@BDWebKit//:Precreator_pod_hdrs", "@BDWebKit//:Resource_pod_hdrs", "@BDWebKit//:SSL_pod_hdrs", "@BDWebKit//:SecureLink_pod_hdrs", "@BDWebKit//:TTNet_pod_hdrs"],
+  srcs = ["@BDWebKit//:BlankDetect_srcs", "@BDWebKit//:Core_srcs", "@BDWebKit//:CrashFix_srcs", "@BDWebKit//:Falcon_WebP_srcs", "@BDWebKit//:Falcon_srcs", "@BDWebKit//:Interceptor_srcs", "@BDWebKit//:Offline_srcs", "@BDWebKit//:Precreator_srcs", "@BDWebKit//:Resource_srcs", "@BDWebKit//:SSL_srcs", "@BDWebKit//:SecureLink_srcs", "@BDWebKit//:TTNet_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["BDAlogProtocol", "BDWebCore", "ByteDanceKit", "BDTrackerProtocol", "Heimdallr", "TTReachability", "IESGeckoKit", "libwebp", "BDPreloadSDK", "TTNetworkManager"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "BDWebKit_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "BDWebKit_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["UIKit", "WebKit", "Foundation"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = ["@BDWebKit//:BDWebKit_SSL_BDWebKit"],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "BDWebKit_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "BDWebKit_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "BDWebKit_dynamic", False),
+  tags = getattr(defs_external_objc_library, "BDWebKit_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("BDWebKit", {}),
+  visibility = ["//visibility:public"],
+)

@@ -1,0 +1,20 @@
+# 包名，支持通过"/"进行分级（便于查询），同时支持一些特定变量，用于支持同一个配置文件在不同平台上发布对应的版本，如os，arch等，格式为{var}
+package: lynx/devtool/redbox/buildin_redbox
+
+# 描述信息
+description: build-in redbox
+
+# 待发布文件所在路径，此参数可通过命令行参数覆盖
+root: "."
+
+# 是否压缩，若为true，则所有文件会被打包成一个压缩包后再进行发布，若为false，则直接按照原始的文件名和目录结构对文件进行上传（适用于待发布文件本身就是压缩包的场景，小文件数量较多时建议压缩，文件数量较少时可选择不压缩）
+compress: true
+# 安装模式，指定下载时的方式，copy表示将文件直接拷贝到目标路径，symlink（暂不支持）表示将文件通过软连接的方式链接到目标路径
+install_mode: "copy"
+data:
+  # 需要打包的目录，可通过exclude排除部分文件
+  - dir: "."
+    exclude:
+      - ./lcm.yml
+  # 指定版本信息文件，此配置仅在下载时生效，若指定此文件，则下载时会在目标路径下生成一个包含当前包所有信息的json文件
+  - version_file: VERSION.json

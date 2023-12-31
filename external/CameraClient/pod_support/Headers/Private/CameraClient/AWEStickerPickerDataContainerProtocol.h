@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraClientSDK/Effect/Extend/Manager/AWEStickerPickerDataContainerProtocol.h

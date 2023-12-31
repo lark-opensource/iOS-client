@@ -1,0 +1,367 @@
+{
+  "osx": {
+    "frameworks": [
+      "Foundation"
+    ],
+    "weak_frameworks": [
+      "Metal",
+      "CoreVideo",
+      "MetalPerformanceShaders"
+    ]
+  },
+  "platforms": {
+    "osx": "10.11",
+    "ios": "8.0"
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "fastcv_POD_VERSION=@\\\"9999_3.3.2\\\"",
+    "EXCLUDED_ARCHS[sdk=iphonesimulator*]": "arm64"
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "EIGEN_MPL2_ONLY=1 fastcv_POD_VERSION=@\\\"9999_3.3.2\\\"",
+    "EXCLUDED_ARCHS[sdk=iphonesimulator*]": "arm64"
+  },
+  "_bytebus_platform": {
+    "repo_id": "22681",
+    "app_id": "9999"
+  },
+  "libraries": "c++",
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/9999/fastcv/3.3.2.1-binary/fastcv.framework.tar.xz"
+  },
+  "version": "3.3.2.1-binary",
+  "homepage": "None",
+  "repoId": "22681",
+  "subspecs": [
+    {
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "arch_ios/*.a"
+        ]
+      },
+      "name": "exports",
+      "source_files": [
+        "cpp/exports/include/*.{h,hpp}",
+        "cpp/exports/src/*.cpp"
+      ]
+    },
+    {
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "arch_ios/*.a"
+        ]
+      },
+      "name": "ml",
+      "source_files": [
+        "cpp/exports/include/ml/*.{h,hpp}",
+        "cpp/exports/src/ml/*.cpp",
+        "cpp/include/ml/*.{h,hpp}",
+        "cpp/ml/*.cpp"
+      ]
+    },
+    {
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "FASTCV_CORE=1"
+      },
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "arch_ios/*.a"
+        ]
+      },
+      "name": "core",
+      "source_files": [
+        "cpp/core/utils/*.h",
+        "cpp/core/utils/*.hpp",
+        "cpp/core/hal/gpu/*.h",
+        "cpp/core/hal/metal/*.h",
+        "cpp/core/hal/gpu/*.cpp",
+        "cpp/core/hal/metal/*.mm",
+        "cpp/core/hal/parallel/*.h",
+        "cpp/core/hal/parallel/*.cpp",
+        "cpp/core/hal/simd/intrin.hpp",
+        "cpp/core/hal/simd/interface.h",
+        "cpp/core/hal/simd/*.{h,hpp}",
+        "cpp/core/utils/ImageGPU.cpp",
+        "cpp/core/utils/Image.cpp",
+        "cpp/core/utils/cpu_id.cpp",
+        "cpp/core/utils/base.cpp",
+        "cpp/core/utils/apple_utils.h",
+        "cpp/core/utils/apple_utils.mm",
+        "cpp/core/utils/imgcodecs/ImgCodecs.cpp",
+        "cpp/core/utils/base.h",
+        "cpp/core/utils/base.cpp",
+        "cpp/include/ops/*.h",
+        "cpp/include/core/*.h",
+        "cpp/include/utils/*.h",
+        "cpp/include/*.h"
+      ]
+    },
+    {
+      "name": "resize",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "arch_ios/*.a"
+        ]
+      },
+      "dependencies": {
+        "fastcv/core": []
+      },
+      "source_files": [
+        "cpp/operator/Resize/*.{cpp,mm,h}"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "HAVE_RESIZE=1"
+      }
+    },
+    {
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "HAVE_RESIZE_CPU=1"
+      },
+      "dependencies": {
+        "fastcv/resize": []
+      },
+      "ios": {
+        "vendored_libraries": [
+          "arch_ios/*.a"
+        ]
+      },
+      "name": "resizeCPU",
+      "preserve_paths": [
+        "**/*.bwp"
+      ]
+    },
+    {
+      "name": "warp",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "arch_ios/*.a"
+        ]
+      },
+      "dependencies": {
+        "fastcv/core": []
+      },
+      "source_files": [
+        "cpp/operator/Warp/*.{cpp,mm,h}"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "HAVE_WARP=1"
+      }
+    },
+    {
+      "name": "imagecopy",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "arch_ios/*.a"
+        ]
+      },
+      "dependencies": {
+        "fastcv/core": []
+      },
+      "source_files": [
+        "cpp/operator/ImageCopy/*.{cpp,mm,h}"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "HAVE_IMAGE_COPY=1"
+      }
+    },
+    {
+      "name": "dis",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "arch_ios/*.a"
+        ]
+      },
+      "dependencies": {
+        "fastcv/core": []
+      },
+      "source_files": [
+        "cpp/operator/DISOpticalFlow/*.{cpp,mm,h}"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "HAVE_DIS_OPTICAL_FLOW=1"
+      }
+    },
+    {
+      "name": "cvtcolor",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "arch_ios/*.a"
+        ]
+      },
+      "dependencies": {
+        "fastcv/core": []
+      },
+      "source_files": [
+        "cpp/operator/Cvt/CvtColor.cpp",
+        "cpp/operator/Cvt/CvtColorForApple.mm",
+        "cpp/operator/Cvt/CvtInternal.h"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "HAVE_CVT_COLOR=1"
+      }
+    },
+    {
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "HAVE_CVT_COLOR_CPU=1"
+      },
+      "dependencies": {
+        "fastcv/cvtcolor": []
+      },
+      "ios": {
+        "vendored_libraries": [
+          "arch_ios/*.a"
+        ]
+      },
+      "name": "cvtColorCPU",
+      "preserve_paths": [
+        "**/*.bwp"
+      ]
+    },
+    {
+      "name": "cvteletype",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "arch_ios/*.a"
+        ]
+      },
+      "dependencies": {
+        "fastcv/core": []
+      },
+      "source_files": [
+        "cpp/operator/Cvt/CvtElementType.cpp",
+        "cpp/operator/Cvt/CvtElementTypeForApple.mm",
+        "cpp/operator/Cvt/CvtInternal.h"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "HAVE_CVT_ELE_TYPE=1"
+      }
+    },
+    {
+      "name": "morph",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "arch_ios/*.a"
+        ]
+      },
+      "dependencies": {
+        "fastcv/core": []
+      },
+      "source_files": [
+        "cpp/operator/Morph/*.{cpp,mm,h}"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "HAVE_MORPH=1"
+      }
+    },
+    {
+      "public_header_files": [
+        "cpp/exports/include/*.{h,hpp}"
+      ],
+      "dependencies": {
+        "fastcv/dis": [],
+        "fastcv/resizeCPU": [],
+        "fastcv/imagecopy": [],
+        "fastcv/resize": [],
+        "fastcv/morph": [],
+        "fastcv/cvtcolor": [],
+        "fastcv/cvteletype": [],
+        "fastcv/warp": [],
+        "fastcv/cvtColorCPU": [],
+        "fastcv/ml": [],
+        "fastcv/exports": []
+      },
+      "ios": {
+        "vendored_libraries": [
+          "arch_ios/*.a"
+        ]
+      },
+      "name": "AwemeMode",
+      "preserve_paths": [
+        "**/*.bwp"
+      ]
+    }
+  ],
+  "prepare_command": "curl https://ios.bytedance.net/wlapi/tosDownload/iosbinary/platform/master/awesomecommand_xz.sh | bash ;",
+  "description": "framework_description",
+  "xcconfig": {
+    "OTHER_CFLAGS[arch=i386]": "$(inherited) -DHAVE_GPU -DHAVE_METAL -DEIGEN_MPL2_ONLY",
+    "HEADER_SEARCH_PATHS": "${PODS_TARGET_SRCROOT}/cpp/thirdpartys/Eigen",
+    "OTHER_CFLAGS[arch=x86_64]": "$(inherited) -DHAVE_GPU  -DHAVE_METAL -DEIGEN_MPL2_ONLY",
+    "OTHER_CFLAGS[arch=armv7s]": "$(inherited) -DHAVE_GPU  -DHAVE_METAL -DEIGEN_MPL2_ONLY",
+    "OTHER_CFLAGS[arch=armv7]": "$(inherited) -DHAVE_GPU  -DHAVE_METAL -DEIGEN_MPL2_ONLY",
+    "OTHER_CFLAGS[arch=arm64]": "$(inherited) -DHAVE_GPU -DHAVE_METAL -DEIGEN_MPL2_ONLY"
+  },
+  "ios": {
+    "frameworks": [
+      "Foundation",
+      "UIKit",
+      "JavaScriptCore"
+    ],
+    "vendored_libraries": [
+      "arch_ios/*.a"
+    ],
+    "weak_frameworks": [
+      "Metal",
+      "CoreVideo",
+      "MetalPerformanceShaders"
+    ]
+  },
+  "authors": {
+    "zhanglongtao": "zhanglongtao@bytedance.com"
+  },
+  "source_code": {
+    "commit": "deb294235d93e2883ab8b4312f0e1a8a63b4e02b",
+    "git": "git@code.byted.org:UGC-SDK/fastcv.git"
+  },
+  "build_type": "system",
+  "name": "fastcv",
+  "license": {
+    "text": "            fastcv. All Rights Reserved.\n",
+    "type": "Proprietary"
+  },
+  "build_file_count": 32,
+  "preserve_paths": [
+    "cpp/thirdpartys/Eigen/**/*",
+    "**/*.bwp"
+  ],
+  "compiler_flags": [
+    "-stdlib=libc++",
+    "-O3",
+    "-ffast-math",
+    "-fvisibility=hidden",
+    "-DMULTITHREAD_SUPPORT"
+  ],
+  "summary": "framework_summary"
+}

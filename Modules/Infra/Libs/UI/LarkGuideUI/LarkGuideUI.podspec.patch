@@ -1,0 +1,30 @@
+debug_dependency 'RxCocoa', '5.1.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'RxSwift', '5.1.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'RxRelay', '5.1.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'libPhoneNumber-iOS', '0.9.15'
+debug_dependency 'SnapKit', '5.0.1', :source => 'https://github.com/CocoaPods/Specs.git'
+debug_dependency 'RoundedHUD', '1.5.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LKCommonsLogging', '0.4.10', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkAlertController', '0.7.2', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'EEImageService', '0.19.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'Kingfisher', '5.3.1-lark.13', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'KingfisherWebP', '0.6.0-lark.0', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkPerf', '3.29.3', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'Homeric', '0.2.599', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'CryptoSwift', '1.1.3', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'EENavigator', '0.10.35', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkUIKit', '1.34.18', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git', :subspecs => ["Base", "Common", "LoadPlaceholder", "NaviProtocol", "BaseComponent", "Checkbox", "ConfirmContainer", "FloatWindow", "LanguageSelector", "MobileCodeSelect", "NaviBar", "OtherDependency", "Others", "Resources", "Switch", "TextField", "Utils"]
+#END_PODSPEC_GENERATE
+
+debug_cocoapods do
+  pre_install "patch build settings", <<-'PRE_INSTALL'
+  installer.pod_targets.each do |pod_target|
+    attributes_hash = pod_target.root_spec.attributes_hash
+    pod_target_xcconfig = (attributes_hash['pod_target_xcconfig'] ||= {})
+    # enable binary support verify
+    # https://bytedance.feishu.cn/docs/doccnFDlr2YGS0w2ULXQ3SH7Aob?new_source=message
+    pod_target_xcconfig['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
+    pod_target_xcconfig['IPHONEOS_DEPLOYMENT_TARGET'] = '11.0'
+  end
+  PRE_INSTALL
+end

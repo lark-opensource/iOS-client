@@ -1,0 +1,668 @@
+load('@build_bazel_rules_swift//swift:swift.bzl', 'swift_library')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "RxCocoa_pod_hdrs",
+  srcs = [
+    ":RxCocoa_root_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "RxCocoa_private_includes",
+  include = [
+    "external/RxCocoa/pod_support/Headers/Private/RxCocoa/"
+  ],
+  deps = [],
+  external_name = "RxCocoa"
+)
+gen_includes(
+  name = "RxCocoa_public_includes",
+  include = [
+    "external/RxCocoa/pod_support/Headers/Public/RxCocoa/"
+  ],
+  deps = [],
+  external_name = "RxCocoa"
+)
+filegroup(
+  name = "_RxCocoa_hdrs",
+  srcs = [
+    ":RxCocoa_root_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "RxCocoa_xcode_hmapsource",
+  hdrs = [
+    ":_RxCocoa_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "RxCocoa_xcode_hmap",
+  dep = ":RxCocoa_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/RxCocoa/*-bitsky-generated.modulemap", "pod_support/Headers/Public/RxCocoa/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "RxCocoa_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "RxCocoa",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "RxCocoa_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":RxCocoa_xcode_hmap"
+  ],
+  external_name = "RxCocoa",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RxCocoa_root_hdrs",
+  srcs = [
+    "RxCocoa/Runtime/include/RxCocoaRuntime.h",
+    "RxCocoa/Runtime/include/_RX.h",
+    "RxCocoa/Runtime/include/_RXDelegateProxy.h",
+    "RxCocoa/Runtime/include/_RXKVOObserver.h",
+    "RxCocoa/Runtime/include/_RXObjCRuntime.h",
+    "RxCocoa/RxCocoa.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RxCocoa_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/RxCocoa/RxCocoa.h",
+    "pod_support/Headers/Private/RxCocoa/RxCocoaRuntime.h",
+    "pod_support/Headers/Private/RxCocoa/_RX.h",
+    "pod_support/Headers/Private/RxCocoa/_RXDelegateProxy.h",
+    "pod_support/Headers/Private/RxCocoa/_RXKVOObserver.h",
+    "pod_support/Headers/Private/RxCocoa/_RXObjCRuntime.h",
+    "pod_support/Headers/Public/RxCocoa/RxCocoa.h",
+    "pod_support/Headers/Public/RxCocoa/RxCocoaRuntime.h",
+    "pod_support/Headers/Public/RxCocoa/_RX.h",
+    "pod_support/Headers/Public/RxCocoa/_RXDelegateProxy.h",
+    "pod_support/Headers/Public/RxCocoa/_RXKVOObserver.h",
+    "pod_support/Headers/Public/RxCocoa/_RXObjCRuntime.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RxCocoa_swift_interface",
+  deps = [
+    ":RxCocoa_swift"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RxCocoa_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "RxCocoa_module_map",
+  module_map = "pod_support/Headers/Public/RxCocoa/RxCocoa-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RxCocoa/RxCocoa-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RxCocoa_root_swift_srcs",
+  srcs = [
+    "Platform/DataStructures/Bag.swift",
+    "RxCocoa/Traits/Driver/BehaviorRelay+Driver.swift",
+    "RxCocoa/Common/Binder.swift",
+    "RxCocoa/Traits/Driver/ControlEvent+Driver.swift",
+    "RxCocoa/Traits/Signal/ControlEvent+Signal.swift",
+    "RxCocoa/Traits/ControlEvent.swift",
+    "RxCocoa/Traits/Driver/ControlProperty+Driver.swift",
+    "RxCocoa/Traits/ControlProperty.swift",
+    "RxCocoa/Common/ControlTarget.swift",
+    "RxCocoa/Common/DelegateProxy.swift",
+    "RxCocoa/Common/DelegateProxyType.swift",
+    "RxCocoa/Deprecated.swift",
+    "Platform/DispatchQueue+Extensions.swift",
+    "RxCocoa/Traits/Driver/Driver+Subscription.swift",
+    "RxCocoa/Traits/Driver/Driver.swift",
+    "Platform/DataStructures/InfiniteSequence.swift",
+    "RxCocoa/iOS/Events/ItemEvents.swift",
+    "RxCocoa/Common/KeyPathBinder.swift",
+    "RxCocoa/Foundation/KVORepresentable+CoreGraphics.swift",
+    "RxCocoa/Foundation/KVORepresentable+Swift.swift",
+    "RxCocoa/Foundation/KVORepresentable.swift",
+    "RxCocoa/Foundation/Logging.swift",
+    "RxCocoa/Foundation/NotificationCenter+Rx.swift",
+    "RxCocoa/macOS/NSButton+Rx.swift",
+    "RxCocoa/macOS/NSControl+Rx.swift",
+    "RxCocoa/macOS/NSImageView+Rx.swift",
+    "RxCocoa/Common/NSLayoutConstraint+Rx.swift",
+    "RxCocoa/Foundation/NSObject+Rx+KVORepresentable.swift",
+    "RxCocoa/Foundation/NSObject+Rx+RawRepresentable.swift",
+    "RxCocoa/Foundation/NSObject+Rx.swift",
+    "RxCocoa/macOS/NSSlider+Rx.swift",
+    "RxCocoa/macOS/NSTextField+Rx.swift",
+    "RxCocoa/iOS/NSTextStorage+Rx.swift",
+    "RxCocoa/macOS/NSTextView+Rx.swift",
+    "RxCocoa/macOS/NSView+Rx.swift",
+    "RxCocoa/Common/Observable+Bind.swift",
+    "RxCocoa/Traits/Driver/ObservableConvertibleType+Driver.swift",
+    "RxCocoa/Traits/SharedSequence/ObservableConvertibleType+SharedSequence.swift",
+    "RxCocoa/Traits/Signal/ObservableConvertibleType+Signal.swift",
+    "Platform/Platform.Darwin.swift",
+    "Platform/Platform.Linux.swift",
+    "Platform/DataStructures/PriorityQueue.swift",
+    "RxCocoa/Traits/Signal/PublishRelay+Signal.swift",
+    "Platform/DataStructures/Queue.swift",
+    "Platform/RecursiveLock.swift",
+    "RxCocoa/RxCocoa.swift",
+    "RxCocoa/Common/RxCocoaObjCRuntimeError+Extensions.swift",
+    "RxCocoa/iOS/Proxies/RxCollectionViewDataSourcePrefetchingProxy.swift",
+    "RxCocoa/iOS/Proxies/RxCollectionViewDataSourceProxy.swift",
+    "RxCocoa/iOS/Protocols/RxCollectionViewDataSourceType.swift",
+    "RxCocoa/iOS/Proxies/RxCollectionViewDelegateProxy.swift",
+    "RxCocoa/iOS/DataSources/RxCollectionViewReactiveArrayDataSource.swift",
+    "RxCocoa/iOS/Proxies/RxNavigationControllerDelegateProxy.swift",
+    "RxCocoa/iOS/DataSources/RxPickerViewAdapter.swift",
+    "RxCocoa/iOS/Proxies/RxPickerViewDataSourceProxy.swift",
+    "RxCocoa/iOS/Protocols/RxPickerViewDataSourceType.swift",
+    "RxCocoa/iOS/Proxies/RxPickerViewDelegateProxy.swift",
+    "RxCocoa/iOS/Proxies/RxScrollViewDelegateProxy.swift",
+    "RxCocoa/iOS/Proxies/RxSearchBarDelegateProxy.swift",
+    "RxCocoa/iOS/Proxies/RxSearchControllerDelegateProxy.swift",
+    "RxCocoa/iOS/Proxies/RxTabBarControllerDelegateProxy.swift",
+    "RxCocoa/iOS/Proxies/RxTabBarDelegateProxy.swift",
+    "RxCocoa/iOS/Proxies/RxTableViewDataSourcePrefetchingProxy.swift",
+    "RxCocoa/iOS/Proxies/RxTableViewDataSourceProxy.swift",
+    "RxCocoa/iOS/Protocols/RxTableViewDataSourceType.swift",
+    "RxCocoa/iOS/Proxies/RxTableViewDelegateProxy.swift",
+    "RxCocoa/iOS/DataSources/RxTableViewReactiveArrayDataSource.swift",
+    "RxCocoa/Common/RxTarget.swift",
+    "RxCocoa/iOS/Proxies/RxTextStorageDelegateProxy.swift",
+    "RxCocoa/iOS/Proxies/RxTextViewDelegateProxy.swift",
+    "RxCocoa/iOS/Proxies/RxWKNavigationDelegateProxy.swift",
+    "RxCocoa/Traits/SharedSequence/SchedulerType+SharedSequence.swift",
+    "RxCocoa/Common/SectionedViewDataSourceType.swift",
+    "RxCocoa/Traits/SharedSequence/SharedSequence+Operators+arity.swift",
+    "RxCocoa/Traits/SharedSequence/SharedSequence+Operators.swift",
+    "RxCocoa/Traits/SharedSequence/SharedSequence.swift",
+    "RxCocoa/Traits/Signal/Signal+Subscription.swift",
+    "RxCocoa/Traits/Signal/Signal.swift",
+    "RxCocoa/Common/TextInput.swift",
+    "RxCocoa/iOS/UIActivityIndicatorView+Rx.swift",
+    "RxCocoa/iOS/UIAlertAction+Rx.swift",
+    "RxCocoa/iOS/UIApplication+Rx.swift",
+    "RxCocoa/iOS/UIBarButtonItem+Rx.swift",
+    "RxCocoa/iOS/UIButton+Rx.swift",
+    "RxCocoa/iOS/UICollectionView+Rx.swift",
+    "RxCocoa/iOS/UIControl+Rx.swift",
+    "RxCocoa/iOS/UIDatePicker+Rx.swift",
+    "RxCocoa/iOS/UIGestureRecognizer+Rx.swift",
+    "RxCocoa/iOS/UIImageView+Rx.swift",
+    "RxCocoa/iOS/UILabel+Rx.swift",
+    "RxCocoa/iOS/UINavigationController+Rx.swift",
+    "RxCocoa/iOS/UINavigationItem+Rx.swift",
+    "RxCocoa/iOS/UIPageControl+Rx.swift",
+    "RxCocoa/iOS/UIPickerView+Rx.swift",
+    "RxCocoa/iOS/UIProgressView+Rx.swift",
+    "RxCocoa/iOS/UIRefreshControl+Rx.swift",
+    "RxCocoa/iOS/UIScrollView+Rx.swift",
+    "RxCocoa/iOS/UISearchBar+Rx.swift",
+    "RxCocoa/iOS/UISearchController+Rx.swift",
+    "RxCocoa/iOS/UISegmentedControl+Rx.swift",
+    "RxCocoa/iOS/UISlider+Rx.swift",
+    "RxCocoa/iOS/UIStepper+Rx.swift",
+    "RxCocoa/iOS/UISwitch+Rx.swift",
+    "RxCocoa/iOS/UITabBar+Rx.swift",
+    "RxCocoa/iOS/UITabBarController+Rx.swift",
+    "RxCocoa/iOS/UITabBarItem+Rx.swift",
+    "RxCocoa/iOS/UITableView+Rx.swift",
+    "RxCocoa/iOS/UITextField+Rx.swift",
+    "RxCocoa/iOS/UITextView+Rx.swift",
+    "RxCocoa/iOS/UIView+Rx.swift",
+    "RxCocoa/iOS/UIViewController+Rx.swift",
+    "RxCocoa/Foundation/URLSession+Rx.swift",
+    "RxCocoa/iOS/WKWebView+Rx.swift"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+swift_library(
+  name = "RxCocoa_swift",
+  module_name = "RxCocoa",
+  srcs = [
+    "RxCocoa_root_swift_srcs"
+  ],
+  deps = [
+    ":RxCocoa_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_public_interface",
+    ":RxCocoa_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@RxRelay//:RxRelay_objc_interface",
+    "@RxSwift//:RxSwift_objc_interface",
+    "@RxRelay//:RxRelay_swift_interface",
+    "@RxSwift//:RxSwift_swift_interface",
+    "@RxRelay//:RxRelay_module_map",
+    "@RxSwift//:RxSwift_module_map",
+    ":RxCocoa_module_map",
+    ":RxCocoa_objc_interface"
+  ],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ) + [
+    "-DCOCOAPODS",
+    "-suppress-warnings",
+    "-import-underlying-module",
+    "-swift-version",
+    "5",
+    "-Xcc",
+    "-fobjc-weak",
+    "-Xcc",
+    "-stdlib=libc++",
+    "-Xcc",
+    "-DCOCOAPODS=1",
+    "-Xcc",
+    "-fdiagnostics-show-note-include-stack",
+    "-Xcc",
+    "-fno-common",
+    "-Xcc",
+    "-fmessage-length=0",
+    "-Xcc",
+    "-fpascal-strings",
+    "-Xcc",
+    "-fstrict-aliasing",
+    "-Xcc",
+    "-I.",
+    "-Xcc",
+    "-Wno-nullability-completeness",
+    "-Xcc",
+    "-Wno-nonnull",
+    "-Xcc",
+    "-Wno-nullability",
+    "-Xcc",
+    "-Wno-incomplete-umbrella"
+  ],
+  generates_header = True,
+  generated_header_name = "RxCocoa-Swift.h",
+  features = [
+    "swift.no_generated_module_map",
+    "swift.opt_uses_wmo",
+    "swift.opt_uses_osize"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RxCocoa_root_srcs",
+  srcs = [
+    "RxCocoa/Runtime/_RX.m",
+    "RxCocoa/Runtime/_RXDelegateProxy.m",
+    "RxCocoa/Runtime/_RXKVOObserver.m",
+    "RxCocoa/Runtime/_RXObjCRuntime.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RxCocoa_oc",
+  enable_modules = 1,
+  srcs = [
+    "RxCocoa_root_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "RxCocoa_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RxCocoa_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RxCocoa_private_includes",
+    ":RxCocoa_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@RxRelay//:RxRelay_objc_interface",
+    "@RxSwift//:RxSwift_objc_interface",
+    "@RxRelay//:RxRelay_swift_interface",
+    "@RxSwift//:RxSwift_swift_interface",
+    ":RxCocoa_swift",
+    ":RxCocoa_objc_interface",
+    "@RxRelay//:RxRelay_module_map",
+    "@RxSwift//:RxSwift_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RxCocoa",
+  deps = [
+    ":RxCocoa_oc",
+    ":RxCocoa_swift"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "RxCocoa_lib",
+  deps = [
+    ":RxCocoa"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_RxCocoa_module_map",
+  module_map = "@RxCocoa//:pod_support/Headers/Public/RxCocoa/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@RxCocoa//:pod_support/Headers/Public/RxCocoa/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_RxCocoa_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@RxCocoa//:RxCocoa_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_RxCocoa",
+  target_name = "Lark",
+  module_name = "RxCocoa",
+  hdrs = ["@RxCocoa//:RxCocoa_root_pod_hdrs"],
+  srcs = ["@RxCocoa//:RxCocoa_root_srcs", "@RxCocoa//:RxCocoa_root_swift_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["RxRelay", "RxSwift"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "RxCocoa_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "RxCocoa_cxxopts", []),
+  swift_copts = select({
+      "//conditions:default": [],
+      ":release": []
+    }) + [
+    "-DCOCOAPODS",
+    "-suppress-warnings",
+    "-import-underlying-module",
+    "-swift-version",
+    "5",
+    "-Xcc",
+    "-fobjc-weak",
+    "-Xcc",
+    "-stdlib=libc++",
+    "-Xcc",
+    "-DCOCOAPODS=1",
+    "-Xcc",
+    "-fdiagnostics-show-note-include-stack",
+    "-Xcc",
+    "-fno-common",
+    "-Xcc",
+    "-fmessage-length=0",
+    "-Xcc",
+    "-fpascal-strings",
+    "-Xcc",
+    "-fstrict-aliasing",
+    "-Xcc",
+    "-Wno-nullability-completeness",
+    "-Xcc",
+    "-Wno-nonnull",
+    "-Xcc",
+    "-Wno-nullability",
+    "-Xcc",
+    "-Wno-incomplete-umbrella",
+    ] + getattr(defs_external_swift_library, "common_copts", []) 
+      + getattr(defs_external_swift_library, "RxCocoa_copts", []),
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "RxCocoa_features", []),
+  swift_features = ["swift.no_generated_module_map", "swift.opt_uses_wmo", "swift.opt_uses_osize"] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "RxCocoa_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "RxCocoa_dynamic", False),
+  tags = getattr(defs_external_objc_library, "RxCocoa_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("RxCocoa", {}),
+  visibility = ["//visibility:public"],
+)

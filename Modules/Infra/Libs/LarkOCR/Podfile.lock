@@ -1,0 +1,168 @@
+PODS:
+  - ByteWebImage/Core (5.21.0.5):
+    - ByteWebImage/Core/Base (= 5.21.0.5)
+    - ByteWebImage/Core/Business (= 5.21.0.5)
+    - ByteWebImage/Core/Cache (= 5.21.0.5)
+    - ByteWebImage/Core/Codable (= 5.21.0.5)
+    - ByteWebImage/Core/Loader (= 5.21.0.5)
+    - ByteWebImage/Core/Manager (= 5.21.0.5)
+    - ByteWebImage/Core/Transformer (= 5.21.0.5)
+    - ByteWebImage/Core/Utils (= 5.21.0.5)
+  - ByteWebImage/Core/Base (5.21.0.5)
+  - ByteWebImage/Core/Business (5.21.0.5):
+    - ByteWebImage/Core/Cache
+    - ByteWebImage/Core/Loader
+    - ByteWebImage/Core/Manager
+    - ByteWebImage/Monitor
+  - ByteWebImage/Core/Cache (5.21.0.5):
+    - ByteWebImage/Core/Base
+    - EEAtomic
+    - MMKV
+    - YYCache
+  - ByteWebImage/Core/Codable (5.21.0.5):
+    - ByteWebImage/Core/Base
+    - libwebp
+    - ThreadSafeDataStructure
+  - ByteWebImage/Core/Loader (5.21.0.5)
+  - ByteWebImage/Core/Manager (5.21.0.5):
+    - ByteWebImage/Core/Base
+    - ByteWebImage/Monitor
+    - EEAtomic
+    - ThreadSafeDataStructure
+  - ByteWebImage/Core/Transformer (5.21.0.5):
+    - ByteWebImage/Core/Base
+  - ByteWebImage/Core/Utils (5.21.0.5):
+    - ByteWebImage/Core/Base
+  - ByteWebImage/Monitor (5.21.0.5)
+  - EEAtomic (0.1.7)
+  - LarkLocalizations (1.16.18):
+    - EEAtomic
+  - LarkOCR (0.1.0):
+    - ByteWebImage/Core
+    - LarkLocalizations
+    - LKCommonsLogging
+    - LKCommonsTracker
+    - RxCocoa
+    - RxSwift
+    - SnapKit
+    - UniverseDesignButton
+    - UniverseDesignColor
+    - UniverseDesignFont
+    - UniverseDesignIcon
+  - libwebp (0.6.1.1-binary):
+    - libwebp/core (= 0.6.1.1-binary)
+    - libwebp/dec (= 0.6.1.1-binary)
+    - libwebp/demux (= 0.6.1.1-binary)
+    - libwebp/dsp (= 0.6.1.1-binary)
+    - libwebp/enc (= 0.6.1.1-binary)
+    - libwebp/mux (= 0.6.1.1-binary)
+    - libwebp/utils (= 0.6.1.1-binary)
+    - libwebp/webp (= 0.6.1.1-binary)
+  - libwebp/core (0.6.1.1-binary):
+    - libwebp/webp
+  - libwebp/dec (0.6.1.1-binary):
+    - libwebp/core
+  - libwebp/demux (0.6.1.1-binary):
+    - libwebp/core
+  - libwebp/dsp (0.6.1.1-binary):
+    - libwebp/core
+  - libwebp/enc (0.6.1.1-binary):
+    - libwebp/core
+  - libwebp/mux (0.6.1.1-binary):
+    - libwebp/core
+  - libwebp/utils (0.6.1.1-binary):
+    - libwebp/core
+  - libwebp/webp (0.6.1.1-binary)
+  - LKCommonsLogging (0.4.19)
+  - LKCommonsTracker (0.4.17)
+  - LKLoadable (0.0.14):
+    - EEAtomic
+  - MMKV (1.2.7):
+    - MMKVCore (~> 1.2.7)
+  - MMKVCore (1.2.7)
+  - RxCocoa (5.1.1):
+    - RxRelay (~> 5)
+    - RxSwift (~> 5)
+  - RxRelay (5.1.1):
+    - RxSwift (~> 5)
+  - RxSwift (5.1.1)
+  - SnapKit (5.0.1-fork.7)
+  - ThreadSafeDataStructure (0.21.11)
+  - UniverseDesignButton (2.0.4):
+    - SnapKit
+    - UniverseDesignColor
+    - UniverseDesignIcon
+    - UniverseDesignStyle
+  - UniverseDesignColor (2.0.12):
+    - LKLoadable
+    - UniverseDesignTheme
+  - UniverseDesignFont (2.0.0):
+    - UniverseDesignTheme
+  - UniverseDesignIcon (2.1.34):
+    - UniverseDesignColor
+  - UniverseDesignStyle (2.0.0):
+    - UniverseDesignColor
+    - UniverseDesignTheme
+  - UniverseDesignTheme (2.0.5)
+  - YYCache (4.11.3-lark.2)
+
+DEPENDENCIES:
+  - LarkOCR (from `.`)
+
+SPEC REPOS:
+  "git@code.byted.org:ee/pods_specs.git":
+    - MMKV
+    - MMKVCore
+    - RxCocoa
+    - RxSwift
+    - SnapKit
+    - YYCache
+  "git@code.byted.org:iOS_Library/lark_source_repo.git":
+    - EEAtomic
+    - LarkLocalizations
+    - LKCommonsLogging
+    - LKCommonsTracker
+    - LKLoadable
+    - ThreadSafeDataStructure
+    - UniverseDesignButton
+    - UniverseDesignColor
+    - UniverseDesignFont
+    - UniverseDesignIcon
+    - UniverseDesignStyle
+    - UniverseDesignTheme
+  "git@code.byted.org:iOS_Library/privatethird_source_repo.git":
+    - ByteWebImage
+  "git@code.byted.org:iOS_Library/publicthird_binary_repo.git":
+    - libwebp
+  "git@code.byted.org:iOS_Library/publicthird_source_repo.git":
+    - RxRelay
+
+EXTERNAL SOURCES:
+  LarkOCR:
+    :path: "."
+
+SPEC CHECKSUMS:
+  ByteWebImage: cad723dbf843ab8edccac1335eafe3d65d3d0e53
+  EEAtomic: 8caefd627acf8a95bc746fd698c7b34d8cf63d0d
+  LarkLocalizations: 0354671848345af9a143ef6e04c875800d5e3a89
+  LarkOCR: 6d9cdd249b430bea4fe8eeedd6c555a0afe400df
+  libwebp: c184f52cefe46b52c753216233ac467ba8f61730
+  LKCommonsLogging: 748c413ed51fbfddc50c4996356368813f49dc80
+  LKCommonsTracker: dd2c8b6d69151592d5679ea778dc6a1224f49cf0
+  LKLoadable: b3554fe77a8a761bfb1135d6157aa27c3f6fe00f
+  MMKV: 01165d9b733d640c49f7803356b872e6d41f4697
+  MMKVCore: f6f1fce65e88329d5828f97bc240db53b0265467
+  RxCocoa: 00733d20b77c44fc096705afeacaff737f4ae2dc
+  RxRelay: e12f9a648a7da4cf833e977b82ea6a0ed1ff7f0c
+  RxSwift: 25af47d498e336a2b0d8e30b65a6a161516a0f77
+  SnapKit: fd2f6d02114c39eebd6d0eb154ddf187d7b4a3b7
+  ThreadSafeDataStructure: 03aa81a7eb43f1d82f8440d7fd755934a1d507a3
+  UniverseDesignButton: 74ff73fc6caf53f5c0028b2fd1ee875a033796e0
+  UniverseDesignColor: 29cec9c02850291aec19885838dfd494379b1104
+  UniverseDesignFont: 7f659f72066414aaa0313aee2faa12cbfe93abe8
+  UniverseDesignIcon: c2098fa48819004ada9bb79d4fe9a34477b6fbcb
+  UniverseDesignStyle: 1fa2050c0cfb0d687ad239e247b5dafbc2fcb901
+  UniverseDesignTheme: e537bd169c1e38d38d7a86ec46bd13f8f7b75716
+  YYCache: 85834a19dddc2667e74ab45e852e6bde0761333b
+
+COCOAPODS: 1.11.2

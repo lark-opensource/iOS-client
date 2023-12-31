@@ -1,0 +1,1 @@
+../../../../sources/settings/vc_settings.h

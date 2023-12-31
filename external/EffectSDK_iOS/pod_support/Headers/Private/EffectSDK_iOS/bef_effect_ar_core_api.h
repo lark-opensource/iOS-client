@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_effect_ar_core_api.h

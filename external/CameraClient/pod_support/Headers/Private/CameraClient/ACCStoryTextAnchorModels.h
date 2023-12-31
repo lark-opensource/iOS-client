@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/Common/Model/ACCStoryTextAnchorModels.h

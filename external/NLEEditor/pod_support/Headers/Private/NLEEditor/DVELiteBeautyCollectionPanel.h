@@ -1,0 +1,1 @@
+../../../../NLEEditor/Classes/LiteEditor/ToolBar/Components/View/Collection/Beauty/DVELiteBeautyCollectionPanel.h

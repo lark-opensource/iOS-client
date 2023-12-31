@@ -1,0 +1,1 @@
+../../../../DVETrackKit/Classes/MultipleTrack/Effect/DVEMultipleTrackEffectViewModel.h

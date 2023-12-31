@@ -1,0 +1,1 @@
+../../../../TTAdSplashSDK/Classes/model/TTAdSplashImageInfosModel.h

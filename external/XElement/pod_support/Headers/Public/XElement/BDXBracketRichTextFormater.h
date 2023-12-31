@@ -1,0 +1,1 @@
+../../../../Darwin/iOS/BDXElement/BDXElement/Classes/Text/BDXBracketRichTextFormater.h

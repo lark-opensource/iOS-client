@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_effect_codec_define.h

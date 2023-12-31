@@ -1,0 +1,87 @@
+# coding: utf-8
+# @!domain [Pod::Podfile]
+# @!parse
+#  require 'cocoapods'
+
+
+require_relative '../../if_pod'
+require_relative '../../bin/lib/lark-project/lib/lark/project/podfile_mixin'
+require_relative '../../bin/lib/lark-project/lib/lark/project/assembly'
+
+# 不进行 dependency 检查
+ENV['CHECK_ARCH_DEPS'] = "false"
+# 不需要自动登录
+ENV['bytest_autoLogin'] = 'false'
+
+# 下面这行为M1 arm64的配置，取消注释后工程将会以M1 原生的编译, 详细见https://bytedance.feishu.cn/wiki/wikcnwks71unvjEFltDHpinn9Yc
+lark_build_for_all_arch!
+
+hummer_tags = {}
+hummer_tags["COCOAPODS_LINK_POD_CACHE"] = 1 if Lark::Misc.true? ENV['COCOAPODS_LINK_POD_CACHE']
+hummer_tags["COCOAPODS_INTEGRATE_SPECIFIC_TARGETS"] = 1 if Lark::Misc.true? ENV['COCOAPODS_INTEGRATE_SPECIFIC_TARGETS']
+lark_template_common_setup(hummer_tags: hummer_tags)
+
+strict_lock_mode!
+
+disable_swiftlint! if respond_to?(:disable_swiftlint!)
+
+dev_pods = %w[
+  TodoMod
+  Todo
+  TodoInterface
+]
+
+lark_use_common_binary_config(strategy: :all) do
+  # additional config
+  source_pods = %w[
+  ]
+  dev_pods.each { |v| source v } # dev pods 使用源码
+  source_pods.each { |v| source v } # 使用源码
+end
+
+target 'LarkTodo' do
+   # ENV['TMP_PB_VERSION'] ||= "5.30.0-f1153eb1015d.114419082-dev"
+  lark_main_target_if_pods
+
+  # 壳工程依赖
+  pod 'LarkRustClientAssembly'
+  pod 'LarkAppConfig'
+  pod 'SwiftLint', '0.50.0', :configurations => ['Debug']
+  pod 'FLEX', :configurations => ['Debug']
+  pod 'PassportDebug'
+
+  # 是否允许 messenger 业务
+  messenger = false
+  if messenger
+    pod 'MessengerMod'
+    # 需额外引入
+    pod 'LarkBaseService'  
+  end
+
+  dev_pods.each { |v| pod v, inhibit_warnings: false }
+end
+
+# @param installer [Pod::Installer]
+pre_install do |installer|
+  lark_template_common_pre_install installer
+
+  installer.pod_targets.each do |pod_target|
+    # 增加编译宏：InTodoDemo
+    attributes_hash = pod_target.root_spec.attributes_hash
+    pod_target_xcconfig = (attributes_hash['pod_target_xcconfig'] ||= {})
+    pod_target_xcconfig['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] += ' InTodoDemo'
+  end
+end
+
+# @param installer [Pod::Installer]
+post_install do |installer|
+  lark_template_common_post_install installer
+
+  # 自动收集 Assembly，生成/更新 BasicAssembly.swift
+  Assembly.rebuild installer
+end
+
+# Podfile结束eval前需要执行的一些代码，目前是引用if_pod的集成需要延后生效
+flush_defer_actions!
+
+# rubocop:enable all

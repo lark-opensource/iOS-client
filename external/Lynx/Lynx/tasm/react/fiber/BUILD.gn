@@ -1,0 +1,45 @@
+# Copyright 2022 The Lynx Authors. All rights reserved.
+
+import("//Lynx/Lynx.gni")
+
+# fiber_shared_sources
+fiber_shared_sources = [
+  "component_element.cc",
+  "component_element.h",
+  "fiber_element.cc",
+  "fiber_element.h",
+  "fiber_node_info.cc",
+  "fiber_node_info.h",
+  "image_element.cc",
+  "image_element.h",
+  "list_element.cc",
+  "list_element.h",
+  "none_element.cc",
+  "none_element.h",
+  "page_element.cc",
+  "page_element.h",
+  "raw_text_element.cc",
+  "raw_text_element.h",
+  "scroll_element.cc",
+  "scroll_element.h",
+  "text_element.cc",
+  "text_element.h",
+  "view_element.cc",
+  "view_element.h",
+  "wrapper_element.cc",
+  "wrapper_element.h",
+]
+# fiber_shared_sources end
+
+lynx_source_set("fiber") {
+  sources = fiber_shared_sources
+}
+
+if (enable_gen_podspec) {
+  gen_subspec_file("react_podspec") {
+    module_name = "Lynx"
+    parent_path = "subspecs-Native"
+    podspec_name = "tasm"
+    sources = fiber_shared_sources
+  }
+}

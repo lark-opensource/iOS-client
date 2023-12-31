@@ -1,0 +1,43 @@
+<!doctype html><html class="mobile"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1,maximum-scale=1,minimum-scale=1,viewport-fit=cover"><meta http-equiv="X-UA-Compatible" content="ie=edge"><meta name="google" value="notranslate"><meta name="sheet-data-version" content="4"><title>Docs</title><script>navigator.cdn_host="//s3.pstatp.com"</script><script>navigator.pathPrefix="{{navigator_path_prefix}}"</script><script>navigator.apiPrefix="{{navigator_api_prefix}}"</script><script>navigator.isOversea="{{navigator_is_oversea}}"</script><script>navigator.env="{{navigator_env}}"</script><script src="{{lang_cdn}}"></script><link rel="shortcut icon" href="//s3.pstatp.com/eesz/resource/bear/bear-favicon-v3.ico"><link href="//s3.pstatp.com/eesz/resource/bear/css/mobile_app.9bf5674107d8357e6a75.css" rel="stylesheet"></head><script>window.loadStartTime=(new Date).getTime(),performance&&(window.loadStartTime=performance.timing.navigationStart)</script><script>/* 除了user_id，其他字段在移动端离线化的时候可能不会被处理，或会被赋值为null， */
+  window.User = {
+    'id': "{{ user_id }}",
+    'sz': "{{ sz }}",
+    'host': "{{ host }}",
+    'wsServer': "{{ ws_server }}",
+    'language': "{{ language }}",
+    'userAgent': "{{ user_agent }}",
+    'suid': "{{ suid }}",
+    'tenantId': "{{ tenant_id }}",
+    'departmentId': "{{ department_id }}",
+    'wsTicket': "{{ ws_ticket }}",
+    'appConfig': "{{ app_config }}",
+    'appDebugConfig': "{{ app_debug_config }}",
+    'lang_cdns': "{{ lang_cdns }}"
+  };
+  window.User.suid = window.User.id;
+  window.DATA = {
+    clientVars: {{client_vars|safe}}
+  };
+  window.rv_rev = "docs-3-4-1551679835633";
+  if (/iphone|ipad|itouch/i.test(navigator.appVersion)) {
+    document.documentElement.className += ' ios';
+  } else {
+    document.documentElement.className += ' android';
+  };
+  window.scm = {
+    version: "1.0.1.11000",
+    type: "test",
+    branch: "feat-at-user",
+  };
+  window.pkgScm={
+    block:{
+      version:"0.4.2-aphal-feat-async-sheet-1",
+      scm:"",
+      branch:"",
+    },
+    editor:{
+      version:"0.2.2-merge",
+      scm:"",
+      branch:"",
+    },
+  };</script><script src="//s3.pstatp.com/eesz/resource/bear/raven/raven.min.js"></script><script>var sendSentryToTea=function(e){var n=window;n.lark&&n.lark.biz&&n.lark.biz.util.logger&&(sendSentryToTea=function(e){if(e)try{var n=e.exception.values,o="FE ERROR, url: "+location.href+" message: "+JSON.stringify(n);window.lark.biz.util.logger({logMessage:o})}catch(e){}})(e)};Raven.config("https://b2b4fd03e1c94c17bdfee04f4001d617@ee-sentry.byted.org/267",{logger:"docs-mobile",serverName:window.userId,ignoreUrls:[/bear-test\.bytedance\.net/,/docs-test\.bytedance\.net/],dataCallback:function(e){return e.message||(e.message="Docs FE"),sendSentryToTea(e),e},shouldSendCallback:function(e){return!0},release:window.scm&&window.scm.version||"local-dev"}).install(),Raven.setUserContext({username:window.User.id,id:window.User.id}),Raven.setTagsContext({key:"FE",version:window.scm&&window.scm.version||"local-dev",branch:window.scm&&window.scm.branch||"local-dev",type:window.scm&&window.scm.type||"local-dev"})</script><body class="layout-column"><script>var Dpr=1,uAgent=window.navigator.userAgent,isIOS=uAgent.match(/iphone/i),isYIXIN=uAgent.match(/yixin/i),is2345=uAgent.match(/Mb2345/i),ishaosou=uAgent.match(/mso_app/i),isSogou=uAgent.match(/sogoumobilebrowser/gi),isLiebao=uAgent.match(/liebaofast/i),isGnbr=uAgent.match(/GNBR/i);function resizeRoot(){var e,i=0<screen.width&&(window.innerWidth>=screen.width||0==window.innerWidth)?screen.width:window.innerWidth,n=0<screen.height&&(window.innerHeight>=screen.height||0==window.innerHeight)?screen.height:window.innerHeight;window.devicePixelRatio&&window.devicePixelRatio,isIOS&&(i=screen.width,n=screen.height),n<i&&(i=n),e=32<(e=1080<i?144:i/7.5)?e:32,window.screenWidth_=i,isYIXIN||is2345||ishaosou||isSogou||isLiebao||isGnbr?setTimeout(function(){i=0<screen.width&&(window.innerWidth>=screen.width||0==window.innerWidth)?screen.width:window.innerWidth,n=0<screen.height&&(window.innerHeight>=screen.height||0==window.innerHeight)?screen.height:window.innerHeight,e=32<(e=1080<i?144:i/7.5)?e:32,document.getElementsByTagName("html")[0].style.fontSize=e+"px"},500):document.getElementsByTagName("html")[0].style.fontSize=e+"px"}resizeRoot()</script><div id="mainBox" class="flex layout-column"></div><script src="//s3.pstatp.com/toutiao/monitor/sdk/slardar.js"></script><script>window.Slardar&&window.Slardar.install({sampleRate:1,bid:"docs_mobile",pid:"index",ignoreAjax:[/mcs\.snssdk\.com/],ignoreStatic:[]})</script><script src="//s3.pstatp.com/eesz/resource/bear/js/mobile_app.5c295dcfa288e8dbd617.js"></script></body><script>addEventListener("load",function(){var e,a,n,t,s,i;"1"!==window.User.sz&&(e=window,a=document,n="script",t="ga",e.GoogleAnalyticsObject=t,e.ga=e.ga||function(){(e.ga.q=e.ga.q||[]).push(arguments)},e.ga.l=1*new Date,s=a.createElement(n),i=a.getElementsByTagName(n)[0],s.async=1,s.src="//www.google-analytics.com/analytics.js",i.parentNode.insertBefore(s,i),ga("create","UA-103569331-1","auto"),ga("set","dimension1",window.User.id),ga("set","userId",window.User.id),ga("send","pageview"))})</script></html>

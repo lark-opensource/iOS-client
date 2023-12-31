@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Index</title>
+        <link rel="stylesheet" href="index.css" type="text/css" charset="utf-8">
+        <script src="functions.js" charset="utf-8"></script>
+    </head>
+    <body>
+        hello, you can test following links
+        <form action="../post" method="post" accept-charset="utf-8">
+            <button id="post_direct" name="btn" value="direct">Post Directly</button>
+        </form>
+        <form action="../redirect/307/post" method="post" accept-charset="utf-8">
+            <button id="post_redirect" name="btn" value="redirect/307"> Post With Redirect </button>
+        </form>
+        <button id="AJAX" type="button">AjAX Request</button><br/>
+        <form action="../redirect/307/post" method="put" accept-charset="utf-8">
+            TODO: 文件这个Value该怎么自动化测试?
+            <input type="file" name="file" id="input_file"/>
+            <button id="post_file" name="btn" value="redirect/307"> UploadFile </button>
+        </form>
+        can load iframe <br/>
+        <iframe id="hello" src="hello.html">
+        </iframe>
+
+        <a href="../../cache/get" target="_self" id="cache_get">cache_get</a><br/>
+        <a href="../../cache/count" target="_self" id="cache_count">cache_count</a><br/>
+        <a href="../redirect2Settings" target="_self" id="app_settings">APP Setting</a><br/>
+
+
+        <script charset="utf-8">
+            document.getElementById("AJAX").onclick = function (e) {
+                getURL("raw.html", function() { rpc('AJAX', this.responseText) })
+            }
+        </script>
+    </body>
+</html>

@@ -1,0 +1,1 @@
+../../../../ArtistOpenPlatformSDK/Classes/Effect/Manager/ARTEffectConfig.h

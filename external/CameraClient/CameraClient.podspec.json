@@ -1,0 +1,1462 @@
+{
+  "name": "CameraClient",
+  "version": "19.2.0.35-alpha.70-larktest.1.binary",
+  "summary": "A short description of CameraClient.",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://code.byted.org/ugc/CameraClient-iOS",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "chengfei xiao": "xiaochengfei@bytedance.com"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/aweme-rock/rock_binary/AWEDebugBinarySpecs/CameraClient/19.2.0.35-alpha.70-larktest.1.binary/1699604187/CameraClient.tar.xz"
+  },
+  "platforms": {
+    "ios": "12.0"
+  },
+  "pod_target_xcconfig": {
+    "OTHER_CPLUSPLUSFLAGS": "-fno-c++-static-destructors"
+  },
+  "default_subspecs": "CameraArch",
+  "preserve_paths": [
+    "rock_document/**/*.{h,m,mm,cpp,hpp,swift}",
+    "rock_document/rock-document-files.txt"
+  ],
+  "source_code": {
+    "git": "git@code.byted.org:ugc/CameraClient-iOS.git",
+    "commit": "87e0ed0514df92c9c0ff5d4b800561afe3d34961"
+  },
+  "binary_type": "rock",
+  "package_env": {
+    "id": null,
+    "xcode": "Xcode 14.1\nBuild version 14B47b\n"
+  },
+  "subspecs": [
+    {
+      "name": "ServiceBinding",
+      "source_files": "CameraClient/ServiceBinding/**/*.{h,m,mm,c}",
+      "vendored_libraries": [
+        "CameraClient/ServiceBinding/**/*.o"
+      ],
+      "exclude_files": [
+
+      ]
+    },
+    {
+      "name": "ReCamera",
+      "source_files": "CameraClient/ReCamera/**/*.{h,m,mm,c}",
+      "vendored_libraries": [
+        "CameraClient/ReCamera/**/*.o"
+      ],
+      "exclude_files": [
+
+      ]
+    },
+    {
+      "name": "MobileInfra",
+      "source_files": "CameraClient/MobileInfra/**/*.{h,m,mm,c}",
+      "dependencies": {
+        "libextobjc": [
+
+        ],
+        "CreationKitArch": [
+
+        ],
+        "CreativeKit/MobileInfra": [
+
+        ],
+        "CreativeKit/CameraArch": [
+
+        ],
+        "Masonry": [
+
+        ],
+        "pop": [
+
+        ],
+        "MJRefresh": [
+
+        ],
+        "ByteDanceKit/Utilities": [
+
+        ],
+        "ByteDanceKit/UIKit": [
+
+        ],
+        "TTNetworkManager": [
+
+        ],
+        "EffectPlatformSDK/ModelDistribute": [
+
+        ],
+        "KVOController": [
+
+        ],
+        "AWELazyRegister": [
+
+        ],
+        "YYText": [
+
+        ],
+        "ReactiveObjC": [
+
+        ],
+        "CreationKitInfra": [
+
+        ],
+        "NLEPlatform/Model": [
+
+        ],
+        "NLEPlatform/Adapter": [
+
+        ],
+        "CameraClientModel": [
+
+        ]
+      },
+      "vendored_libraries": [
+        "CameraClient/MobileInfra/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "CameraClient/MobileInfra/**/*.o",
+          "libCameraClient-3ff9af6.a"
+        ]
+      }
+    },
+    {
+      "name": "CameraArch",
+      "source_files": "CameraClient/CameraArch/**/*.{h,m,mm,c}",
+      "exclude_files": [
+        "CameraClient/CameraArch/Record/Manager/BDFileUploadService/**/*.{h,m,mm,c}",
+        "CameraClient/CameraArch/Record/Manager/TTUploadService/**/*.{h,m,mm,c}",
+        "CameraClient/CameraArch/Record/Manager/BDFileUploadService/**/*.o",
+        "CameraClient/CameraArch/Record/Manager/TTUploadService/**/*.o"
+      ],
+      "dependencies": {
+        "CameraClientModel": [
+
+        ],
+        "CameraClient/MobileInfra": [
+
+        ],
+        "IESInject/Core": [
+
+        ],
+        "IESLiveResourcesButler": [
+
+        ],
+        "CreativeKitSticker": [
+
+        ],
+        "CreativeKit/Performance": [
+
+        ],
+        "lottie-ios": [
+
+        ],
+        "AWEBaseLib": [
+
+        ],
+        "RSSwizzle": [
+
+        ],
+        "BDWebImage": [
+
+        ],
+        "HTSServiceKit": [
+
+        ],
+        "UITextView+Placeholder": [
+
+        ],
+        "libextobjc": [
+
+        ],
+        "IESVideoDetector": [
+
+        ],
+        "TTVideoEditor/Core": [
+
+        ],
+        "TTVideoEditor/IESMMCapture": [
+
+        ],
+        "TTVideoEditor/IESMMEffect": [
+
+        ],
+        "TTVideoEditor/VERecorderMode": [
+
+        ],
+        "TTVideoEditor/IESPhotoEffect": [
+
+        ],
+        "TTVideoEditor/IESMMAudioEffect": [
+
+        ],
+        "TTVideoEditor/IESMMAudioProcess": [
+
+        ],
+        "NLEPlatform/Model": [
+
+        ],
+        "NLEPlatform/Adapter": [
+
+        ],
+        "VideoTemplate/Core": [
+
+        ],
+        "VideoTemplate/GamePlay": [
+
+        ],
+        "TTVideoEditor/IESMMBingo": [
+
+        ],
+        "TTVideoEditor/IESMMCanvas": [
+
+        ],
+        "TTVideoEditor/TTVEAlgorithm": [
+
+        ],
+        "CreativeAlbumKit/Core": [
+
+        ],
+        "CreativeAlbumKit/Default": [
+
+        ],
+        "CreativeAlbumKit/DefaultBundle": [
+
+        ],
+        "CreationKitArch/CameraArch": [
+
+        ],
+        "CreationKitRTProtocol": [
+
+        ],
+        "CreationKitBeauty": [
+
+        ],
+        "CameraClient/Security": [
+
+        ],
+        "CreationKitComponents/Recorder/Filter/Core": [
+
+        ],
+        "CreationKitComponents/Recorder/BeautyPanelComponent/Core": [
+
+        ]
+      },
+      "vendored_libraries": [
+        "CameraClient/CameraArch/**/*.o"
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "CameraClient/CameraArch/**/*.o",
+          "libCameraClient-d3088e4.a"
+        ]
+      }
+    },
+    {
+      "name": "CameraComponents",
+      "source_files": "CameraClient/CameraComponents/**/*.{h,m,mm,c}",
+      "dependencies": {
+        "CameraClient/MVP": [
+
+        ],
+        "CameraClient/CameraArch": [
+
+        ],
+        "CameraClient/CameraClientSDK/Effect": [
+
+        ],
+        "CameraClient/CameraClientSDK/Accessibility": [
+
+        ],
+        "CreationKitBeauty": [
+
+        ],
+        "CameraClient/CameraClientSDK/StickerPannel/Core": [
+
+        ],
+        "CameraClient/CameraClientSDK/StickerBiz": [
+
+        ],
+        "CameraClient/CameraClientSDK/SelectMusic": [
+
+        ],
+        "CreationKitComponents/Recorder/BeautyPanelComponent": [
+
+        ],
+        "CameraClientModel": [
+
+        ],
+        "SmartScan": [
+
+        ],
+        "EffectSDK_iOS/OCInterface": [
+
+        ]
+      },
+      "vendored_libraries": [
+        "CameraClient/CameraComponents/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "CameraClient/CameraComponents/**/*.o",
+          "CameraClient/CameraComponents/**/*.o",
+          "libCameraClient-a5b9324.a",
+          "libCameraClient-a2540a0.a"
+        ]
+      }
+    },
+    {
+      "name": "MVP",
+      "subspecs": [
+        {
+          "name": "Recorder",
+          "source_files": [
+            "CameraClient/MVPComponents/Recorder/**/*.{h,m,mm,c}",
+            "CameraClient/CameraComponents/Recorder/SubmodeComponent/**/*.{h,m,mm,c}",
+            "CameraClient/CameraComponents/Recorder/QuickStory/**/*.{h,m,mm,c}",
+            "CameraClient/ComponentPlugins/Record/Beauty/**/*.{h,m,mm,c}",
+            "CameraClient/ComponentPlugins/Record/Filter/**/*.{h,m,mm,c}"
+          ],
+          "dependencies": {
+            "CreativeKit/Debug": [
+
+            ],
+            "CreationKitComponents/Recorder/BeautyPanelComponent/Service": [
+
+            ],
+            "CreationKitComponents/Recorder/Filter/Service": [
+
+            ],
+            "CreationKitBeauty": [
+
+            ],
+            "CameraClient/CameraArch": [
+
+            ],
+            "CameraClient/Security": [
+
+            ],
+            "CameraClient/Lynx": [
+
+            ],
+            "CameraClient/CameraClientSDK/Effect": [
+
+            ],
+            "TTVideoEditor/Core": [
+
+            ],
+            "TTVideoEditor/IESMMARCapture": [
+
+            ],
+            "TTVideoEditor/IESMMEffect": [
+
+            ],
+            "TTVideoEditor/IESMMCamera": [
+
+            ],
+            "TTVideoEditor/IESPhotoEffect": [
+
+            ],
+            "TTVideoEditor/IESMMAudioEffect": [
+
+            ],
+            "TTVideoEditor/IESMMAudioProcess": [
+
+            ],
+            "TTVideoEditor/PhotoFaceDetect": [
+
+            ],
+            "TTVideoEditor/VEFastcvSDK": [
+
+            ],
+            "TTVideoEditor/IESMMTracker": [
+
+            ],
+            "TTVideoEditor/HTSPhotoResource": [
+
+            ]
+          },
+          "vendored_libraries": [
+            "CameraClient/MVPComponents/Recorder/**/*.o",
+            "CameraClient/CameraComponents/Recorder/SubmodeComponent/**/*.o",
+            "CameraClient/CameraComponents/Recorder/QuickStory/**/*.o",
+            "CameraClient/ComponentPlugins/Record/Beauty/**/*.o",
+            "CameraClient/ComponentPlugins/Record/Filter/**/*.o"
+          ],
+          "exclude_files": [
+
+          ],
+          "ios": {
+            "vendored_libraries": [
+              "CameraClient/MVPComponents/Recorder/**/*.o",
+              "CameraClient/CameraComponents/Recorder/SubmodeComponent/**/*.o",
+              "CameraClient/CameraComponents/Recorder/QuickStory/**/*.o",
+              "CameraClient/ComponentPlugins/Record/Beauty/**/*.o",
+              "CameraClient/ComponentPlugins/Record/Filter/**/*.o",
+              "CameraClient/MVPComponents/Recorder/**/*.o",
+              "CameraClient/CameraComponents/Recorder/SubmodeComponent/**/*.o",
+              "CameraClient/CameraComponents/Recorder/QuickStory/**/*.o",
+              "CameraClient/ComponentPlugins/Record/Beauty/**/*.o",
+              "CameraClient/ComponentPlugins/Record/Filter/**/*.o",
+              "CameraClient/MVPComponents/Recorder/**/*.o",
+              "CameraClient/CameraComponents/Recorder/SubmodeComponent/**/*.o",
+              "CameraClient/CameraComponents/Recorder/QuickStory/**/*.o",
+              "CameraClient/ComponentPlugins/Record/Beauty/**/*.o",
+              "CameraClient/ComponentPlugins/Record/Filter/**/*.o",
+              "libCameraClient-806f2b8.a",
+              "libCameraClient-a5b9324.a",
+              "libCameraClient-6f37549.a"
+            ]
+          }
+        },
+        {
+          "name": "Editor",
+          "source_files": "CameraClient/MVPComponents/Edit/**/*.{h,m,mm,c}",
+          "dependencies": {
+            "CreativeKit": [
+
+            ],
+            "CreativeKit/Debug": [
+
+            ],
+            "CameraClient/CameraClientSDK/StickerPannel/Core": [
+
+            ],
+            "CameraClient/CameraClientSDK/StickerBiz": [
+
+            ],
+            "CameraClient/CameraArch": [
+
+            ],
+            "CameraClient/Security": [
+
+            ],
+            "CameraClient/Lynx": [
+
+            ],
+            "TTVideoEditor/Core": [
+
+            ],
+            "TTVideoEditor/IESMMARCapture": [
+
+            ],
+            "TTVideoEditor/IESMMEffect": [
+
+            ],
+            "TTVideoEditor/IESMMCamera": [
+
+            ],
+            "TTVideoEditor/IESPhotoEffect": [
+
+            ],
+            "TTVideoEditor/IESMMAudioEffect": [
+
+            ],
+            "TTVideoEditor/IESMMAudioProcess": [
+
+            ],
+            "TTVideoEditor/PhotoFaceDetect": [
+
+            ],
+            "TTVideoEditor/VEFastcvSDK": [
+
+            ],
+            "TTVideoEditor/IESMMTracker": [
+
+            ],
+            "TTVideoEditor/HTSPhotoResource": [
+
+            ]
+          },
+          "vendored_libraries": [
+            "CameraClient/MVPComponents/Edit/**/*.o"
+          ],
+          "exclude_files": [
+
+          ],
+          "ios": {
+            "vendored_libraries": [
+              "CameraClient/MVPComponents/Edit/**/*.o",
+              "libCameraClient-84fa41a.a"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "NLE",
+      "source_files": "CameraClient/NLE/**/*.{h,m,mm,c}",
+      "dependencies": {
+        "CameraClient/CameraArch": [
+
+        ]
+      }
+    },
+    {
+      "name": "Lynx",
+      "source_files": "CameraClient/Lynx/**/*.{h,m,mm,c}",
+      "dependencies": {
+        "BDXServiceCenter": [
+
+        ],
+        "BDXBridgeKit": [
+
+        ]
+      },
+      "vendored_libraries": [
+        "CameraClient/Lynx/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "CameraClient/Lynx/**/*.o",
+          "libCameraClient-5a52e7a.a"
+        ]
+      }
+    },
+    {
+      "name": "ComponentPlugins",
+      "source_files": "CameraClient/ComponentPlugins/**/*.{h,m,mm,c}",
+      "vendored_libraries": [
+        "CameraClient/ComponentPlugins/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "CameraClient/ComponentPlugins/**/*.o",
+          "libCameraClient-6f37549.a"
+        ]
+      }
+    },
+    {
+      "name": "Security",
+      "source_files": "CameraClient/Security/**/*.{h,m,mm,c}",
+      "vendored_libraries": [
+        "CameraClient/Security/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "CameraClient/Security/**/*.o",
+          "libCameraClient-32d8872.a"
+        ]
+      }
+    },
+    {
+      "name": "CameraResourcesBase",
+      "resource_bundles": {
+        "CameraResource_base": [
+          "CameraClient/CameraClientResources/BaseConfigResources/Config.plist"
+        ]
+      },
+      "dependencies": {
+        "IESLiveResourcesButler": [
+
+        ]
+      }
+    },
+    {
+      "name": "CutSame_MV",
+      "dependencies": {
+        "VideoTemplate/Core": [
+
+        ],
+        "VideoTemplate/GamePlay": [
+
+        ]
+      },
+      "subspecs": [
+        {
+          "name": "Common",
+          "source_files": "CameraClient/CutSame_MV/CutSame_MV_Common/**/*.{h,m,mm,c}",
+          "dependencies": {
+            "CameraClient/CameraArch": [
+
+            ]
+          },
+          "vendored_libraries": [
+            "CameraClient/CutSame_MV/CutSame_MV_Common/**/*.o"
+          ],
+          "exclude_files": [
+
+          ]
+        },
+        {
+          "name": "CutSameDefault",
+          "source_files": "CameraClient/CutSame_MV/CutSameDefault/**/*.{h,m,mm,c}",
+          "dependencies": {
+            "CameraClient/CameraArch": [
+
+            ]
+          }
+        },
+        {
+          "name": "CutSameImpl",
+          "source_files": "CameraClient/CutSame_MV/CutSameImpl/**/*.{h,m,mm,c}",
+          "dependencies": {
+            "CameraClient/CutSame_MV/Common": [
+
+            ]
+          },
+          "vendored_libraries": [
+            "CameraClient/CutSame_MV/CutSameImpl/**/*.o"
+          ],
+          "exclude_files": [
+
+          ]
+        },
+        {
+          "name": "MVCutSameStyle",
+          "source_files": "CameraClient/CutSame_MV/MVCutSameStyle/**/*.{h,m,mm,c}",
+          "dependencies": {
+            "CameraClient/CutSame_MV/Common": [
+
+            ]
+          },
+          "vendored_libraries": [
+            "CameraClient/CutSame_MV/MVCutSameStyle/**/*.o"
+          ],
+          "exclude_files": [
+
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CameraClientSDK",
+      "subspecs": [
+        {
+          "name": "Accessibility",
+          "source_files": "CameraClient/CameraClientSDK/Accessibility/**/*.{h,m,mm,c}",
+          "dependencies": {
+            "CameraClient/CameraArch": [
+
+            ]
+          },
+          "vendored_libraries": [
+            "CameraClient/CameraClientSDK/Accessibility/**/*.o"
+          ],
+          "exclude_files": [
+
+          ]
+        },
+        {
+          "name": "Effect",
+          "source_files": "CameraClient/CameraClientSDK/Effect/**/*.{h,m,mm,c}",
+          "dependencies": {
+            "CameraClient/CameraArch": [
+
+            ],
+            "EffectSDK_iOS/Core": [
+
+            ]
+          },
+          "vendored_libraries": [
+            "CameraClient/CameraClientSDK/Effect/**/*.o"
+          ],
+          "exclude_files": [
+
+          ],
+          "ios": {
+            "vendored_libraries": [
+              "CameraClient/CameraClientSDK/Effect/**/*.o",
+              "CameraClient/CameraClientSDK/Effect/**/*.o",
+              "libCameraClient-dcaf1a4.a",
+              "libCameraClient-90042aa.a"
+            ]
+          }
+        },
+        {
+          "name": "StickerPannel",
+          "subspecs": [
+            {
+              "name": "Core",
+              "source_files": "CameraClient/CameraClientSDK/StickerPannel/Core/**/*.{h,m,mm,c}",
+              "dependencies": {
+                "CameraClient/MobileInfra": [
+
+                ]
+              },
+              "vendored_libraries": [
+                "CameraClient/CameraClientSDK/StickerPannel/Core/**/*.o"
+              ],
+              "exclude_files": [
+
+              ]
+            },
+            {
+              "name": "SinglePanel",
+              "source_files": "CameraClient/CameraClientSDK/StickerPannel/SinglePanel/**/*.{h,m,mm,c}",
+              "dependencies": {
+                "CameraClient/CameraClientSDK/StickerPannel/Core": [
+
+                ]
+              },
+              "vendored_libraries": [
+                "CameraClient/CameraClientSDK/StickerPannel/SinglePanel/**/*.o"
+              ],
+              "exclude_files": [
+
+              ]
+            }
+          ]
+        },
+        {
+          "name": "StickerBiz",
+          "source_files": [
+            "CameraClient/CameraClientSDK/StickerBiz/**/*.{h,m,mm,c}",
+            "CameraClient/CameraClientSDK/StickerInjection/**/*.{h,m,mm,c}"
+          ],
+          "dependencies": {
+            "CreativeKitSticker": [
+
+            ],
+            "TTVideoEditor/Core": [
+
+            ],
+            "CameraClient/MobileInfra": [
+
+            ],
+            "CameraClient/CameraArch": [
+
+            ],
+            "CameraClientModel": [
+
+            ]
+          },
+          "vendored_libraries": [
+            "CameraClient/CameraClientSDK/StickerBiz/**/*.o",
+            "CameraClient/CameraClientSDK/StickerInjection/**/*.o"
+          ],
+          "exclude_files": [
+
+          ]
+        },
+        {
+          "name": "SelectMusic",
+          "source_files": "CameraClient/CameraClientSDK/SelectMusic/**/*.{h,m,mm,c}",
+          "dependencies": {
+            "CameraClient/CameraArch": [
+
+            ],
+            "AWEBaseModel": [
+
+            ]
+          },
+          "vendored_libraries": [
+            "CameraClient/CameraClientSDK/SelectMusic/**/*.o"
+          ],
+          "exclude_files": [
+
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Moment",
+      "source_files": "CameraClient/Moment/**/*.{h,m,mm,c}",
+      "dependencies": {
+        "CameraClient/CameraArch": [
+
+        ],
+        "EffectSDK_iOS": [
+
+        ],
+        "BDWCDB": [
+
+        ]
+      },
+      "vendored_libraries": [
+        "CameraClient/Moment/**/*.o"
+      ],
+      "exclude_files": [
+
+      ]
+    },
+    {
+      "name": "RuntimeDefaultImpl",
+      "source_files": "CameraClient/RuntimeDefaultImpl/**/*.{h,m,mm,c}",
+      "dependencies": {
+        "CreationKitInfra": [
+
+        ],
+        "CreativeKit": [
+
+        ],
+        "ByteDanceKit": [
+
+        ],
+        "AWELazyRegister": [
+
+        ],
+        "Masonry": [
+
+        ],
+        "YYCache": [
+
+        ]
+      },
+      "vendored_libraries": [
+        "CameraClient/RuntimeDefaultImpl/**/*.o"
+      ],
+      "exclude_files": [
+
+      ]
+    },
+    {
+      "name": "Debug",
+      "dependencies": {
+        "IESVideoDebug": [
+
+        ],
+        "BDFishhook": [
+
+        ],
+        "CameraClient/Moment": [
+
+        ]
+      },
+      "source_files": [
+        "CameraClient/Debug/**/*.{h,m,mm,c}",
+        "CameraClient/MomentDebug/**/*.{h,m,mm,c}"
+      ],
+      "private_header_files": "CameraClient/MomentDebug/**/*.{h}",
+      "vendored_libraries": [
+        "CameraClient/Debug/**/*.o",
+        "CameraClient/MomentDebug/**/*.o"
+      ],
+      "exclude_files": [
+
+      ]
+    },
+    {
+      "name": "TemplateOrientedCreation",
+      "source_files": "CameraClient/TemplateOrientedCreation/**/*.{h,m,mm,c}",
+      "dependencies": {
+        "CameraClient/CameraArch": [
+
+        ],
+        "CameraClient/Moment": [
+
+        ]
+      },
+      "vendored_libraries": [
+        "CameraClient/TemplateOrientedCreation/**/*.o"
+      ],
+      "exclude_files": [
+
+      ]
+    },
+    {
+      "name": "Tests",
+      "source_files": "CameraClient/Tests/src/**/*.{h,m,mm}",
+      "dependencies": {
+        "Baymax": [
+
+        ],
+        "OCMock": [
+
+        ]
+      },
+      "xcconfig": {
+        "HEADER_SEARCH_PATHS": "\"$(PODS_ROOT)/Headers/Private\"",
+        "SYSTEM_FRAMEWORK_SEARCH_PATHS": "$(inherited) \"$(PLATFORM_DIR)/Developer/Library/PrivateFrameworks\" \"$(PLATFORM_DIR)/Developer/Library/Frameworks\""
+      },
+      "vendored_libraries": [
+        "CameraClient/Tests/src/**/*.o"
+      ],
+      "exclude_files": [
+
+      ]
+    },
+    {
+      "name": "_Dummy",
+      "source_files": "CameraClient/Tests/_Dummy/CameraClientDummy.m",
+      "vendored_libraries": [
+
+      ],
+      "exclude_files": [
+
+      ]
+    },
+    {
+      "name": "DOUYIN",
+      "dependencies": {
+        "CameraClient/CutSame_MV/MVCutSameStyle": [
+
+        ],
+        "CameraClient/CutSame_MV/CutSameImpl": [
+
+        ],
+        "CameraClient/CameraComponents": [
+
+        ],
+        "CameraClient/ServiceBinding": [
+
+        ],
+        "VideoTemplate": [
+
+        ],
+        "CreativeKit/Debug": [
+
+        ],
+        "CameraClient/Moment": [
+
+        ],
+        "TTVideoEditor/AwemeMode": [
+
+        ],
+        "CameraClient/TemplateOrientedCreation": [
+
+        ],
+        "CameraClient/Lynx": [
+
+        ],
+        "CameraClient/CameraResourcesDOUYIN": [
+
+        ]
+      },
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "$(inherited)"
+      }
+    },
+    {
+      "name": "CameraResourcesDOUYIN",
+      "resource_bundles": {
+        "CameraResource_douyin": [
+          "CameraClient/CameraClientResources/Resources-A/Resources-D/color",
+          "CameraClient/CameraClientResources/Resources-A/Resources-D/image/*.xcassets",
+          "CameraClient/CameraClientResources/Resources-A/Resources-D/Config.plist",
+          "CameraClient/CameraClientResources/Resources-A/Resources-D/file",
+          "CameraClient/CameraClientResources/Resources-A/Resources-D/keyvalue",
+          "CameraClient/CameraClientResources/Resources-A/Resources-D/string",
+          "CameraClient/CameraClientResources/Resources-A/Resources-D/style",
+          "CameraClient/CameraClientResources/Resources-A/Resources-D/bundle"
+        ]
+      }
+    },
+    {
+      "name": "Lark",
+      "source_files": [
+        "CameraClient/CameraArch/**/*.{h,m,mm,c}",
+        "CameraClient/MVPComponents/Recorder/AuthComponent/**/*.{h,m,mm,c}",
+        "CameraClient/MVPComponents/Recorder/BeautyPanelComponent/**/*.{h,m,mm,c}",
+        "CameraClient/MVPComponents/Recorder/CameraSwapComponent/**/*.{h,m,mm,c}",
+        "CameraClient/MVPComponents/Recorder/CaptureComponent/**/*.{h,m,mm,c}",
+        "CameraClient/MVPComponents/Recorder/Filter/**/*.{h,m,mm,c}",
+        "CameraClient/MVPComponents/Recorder/FlashComponent/**/*.{h,m,mm,c}",
+        "CameraClient/MVPComponents/Recorder/FocusComponent/**/*.{h,m,mm,c}",
+        "CameraClient/MVPComponents/Recorder/GestureComponent/**/*.{h,m,mm,c}",
+        "CameraClient/MVPComponents/Recorder/RecordFlow/**/*.{h,m,mm,c}",
+        "CameraClient/MVPComponents/Recorder/SwitchModeComponent/**/*.{h,m,mm,c}",
+        "CameraClient/MVPComponents/Recorder/Sticker/**/*.{h,m,mm,c}",
+        "CameraClient/MVPComponents/Recorder/PropPanelComponent/**/*.{h,m,mm,c}",
+        "CameraClient/MVPComponents/Recorder/SelectPropComponent/**/*.{h,m,mm,c}",
+        "CameraClient/CameraComponents/Recorder/SplitTipComponent/**/*.{h,m,mm,c}",
+        "CameraClient/MVPComponents/Recorder/Karaoke/**/*.{h,m,mm,c}",
+        "CameraClient/MVPComponents/Recorder/LiteTheme/**/*.{h,m,mm,c}",
+        "CameraClient/MVPComponents/Recorder/Flower/ACCFlowerService.h",
+        "CameraClient/MVPComponents/Recorder/Flower/Scan/ACCScanService.h",
+        "CameraClient/MVPComponents/Recorder/Redpacket/**/*.{h,m,mm,c}",
+        "CameraClient/MVPComponents/Recorder/AR/ACCRecordARService.h",
+        "CameraClient/MVPComponents/Recorder/MeteorModeComponent/**/*.{h,m,mm,c}",
+        "CameraClient/CameraComponents/Recorder/SubmodeComponent/**/*.{h,m,mm,c}",
+        "CameraClient/CameraComponents/Recorder/QuickStory/**/*.{h,m,mm,c}",
+        "CameraClient/ComponentPlugins/Record/Beauty/**/*.{h,m,mm,c}",
+        "CameraClient/ComponentPlugins/Record/Filter/**/*.{h,m,mm,c}",
+        "CameraClient/MVPComponents/Edit/BizConfig/**/*.{h,m,mm,c}",
+        "CameraClient/MVPComponents/Edit/Common/Player/**/*.{h,m,mm,c}",
+        "CameraClient/MVPComponents/Edit/Common/View/**/*.{h,m,mm,c}",
+        "CameraClient/MVPComponents/Edit/Video/Music/*.{h,m}"
+      ],
+      "exclude_files": [
+        "CameraClient/CameraArch/Record/Manager/BDFileUploadService/**/*.{h,m,mm,c}",
+        "CameraClient/CameraArch/Record/Manager/TTUploadService/**/*.{h,m,mm,c}",
+        "CameraClient/MVPComponents/Recorder/Sticker/View/ACCPropGuideView.{h,m}",
+        "CameraClient/CameraArch/Record/Manager/BDFileUploadService/**/*.o",
+        "CameraClient/CameraArch/Record/Manager/TTUploadService/**/*.o",
+        "CameraClient/MVPComponents/Recorder/Sticker/View/ACCPropGuideView.o"
+      ],
+      "dependencies": {
+        "CreativeKit/Debug": [
+
+        ],
+        "CreationKitComponents/Recorder/BeautyPanelComponent/Service": [
+
+        ],
+        "CreationKitComponents/Recorder/Filter/Service": [
+
+        ],
+        "CreationKitBeauty": [
+
+        ],
+        "CameraClient/Security": [
+
+        ],
+        "CameraClient/Lynx": [
+
+        ],
+        "CameraClient/CameraClientSDK/Effect": [
+
+        ],
+        "TTVideoEditor/LarkMode": [
+
+        ],
+        "CameraClient/CameraResourcesLark": [
+
+        ]
+      },
+      "vendored_libraries": [
+        "CameraClient/CameraArch/**/*.o",
+        "CameraClient/MVPComponents/Recorder/AuthComponent/**/*.o",
+        "CameraClient/MVPComponents/Recorder/BeautyPanelComponent/**/*.o",
+        "CameraClient/MVPComponents/Recorder/CameraSwapComponent/**/*.o",
+        "CameraClient/MVPComponents/Recorder/CaptureComponent/**/*.o",
+        "CameraClient/MVPComponents/Recorder/Filter/**/*.o",
+        "CameraClient/MVPComponents/Recorder/FlashComponent/**/*.o",
+        "CameraClient/MVPComponents/Recorder/FocusComponent/**/*.o",
+        "CameraClient/MVPComponents/Recorder/GestureComponent/**/*.o",
+        "CameraClient/MVPComponents/Recorder/RecordFlow/**/*.o",
+        "CameraClient/MVPComponents/Recorder/SwitchModeComponent/**/*.o",
+        "CameraClient/MVPComponents/Recorder/Sticker/**/*.o",
+        "CameraClient/MVPComponents/Recorder/PropPanelComponent/**/*.o",
+        "CameraClient/MVPComponents/Recorder/SelectPropComponent/**/*.o",
+        "CameraClient/CameraComponents/Recorder/SplitTipComponent/**/*.o",
+        "CameraClient/MVPComponents/Recorder/Karaoke/**/*.o",
+        "CameraClient/MVPComponents/Recorder/LiteTheme/**/*.o",
+        "CameraClient/MVPComponents/Recorder/Redpacket/**/*.o",
+        "CameraClient/MVPComponents/Recorder/MeteorModeComponent/**/*.o",
+        "CameraClient/CameraComponents/Recorder/SubmodeComponent/**/*.o",
+        "CameraClient/CameraComponents/Recorder/QuickStory/**/*.o",
+        "CameraClient/ComponentPlugins/Record/Beauty/**/*.o",
+        "CameraClient/ComponentPlugins/Record/Filter/**/*.o",
+        "CameraClient/MVPComponents/Edit/BizConfig/**/*.o",
+        "CameraClient/MVPComponents/Edit/Common/Player/**/*.o",
+        "CameraClient/MVPComponents/Edit/Common/View/**/*.o",
+        "CameraClient/MVPComponents/Edit/Video/Music/*.o"
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "CameraClient/CameraArch/**/*.o",
+          "CameraClient/MVPComponents/Recorder/AuthComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/BeautyPanelComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/CameraSwapComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/CaptureComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Filter/**/*.o",
+          "CameraClient/MVPComponents/Recorder/FlashComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/FocusComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/GestureComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/RecordFlow/**/*.o",
+          "CameraClient/MVPComponents/Recorder/SwitchModeComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Sticker/**/*.o",
+          "CameraClient/MVPComponents/Recorder/PropPanelComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/SelectPropComponent/**/*.o",
+          "CameraClient/CameraComponents/Recorder/SplitTipComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Karaoke/**/*.o",
+          "CameraClient/MVPComponents/Recorder/LiteTheme/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Redpacket/**/*.o",
+          "CameraClient/MVPComponents/Recorder/MeteorModeComponent/**/*.o",
+          "CameraClient/CameraComponents/Recorder/SubmodeComponent/**/*.o",
+          "CameraClient/CameraComponents/Recorder/QuickStory/**/*.o",
+          "CameraClient/ComponentPlugins/Record/Beauty/**/*.o",
+          "CameraClient/ComponentPlugins/Record/Filter/**/*.o",
+          "CameraClient/MVPComponents/Edit/BizConfig/**/*.o",
+          "CameraClient/MVPComponents/Edit/Common/Player/**/*.o",
+          "CameraClient/MVPComponents/Edit/Common/View/**/*.o",
+          "CameraClient/MVPComponents/Edit/Video/Music/*.o",
+          "CameraClient/CameraArch/**/*.o",
+          "CameraClient/MVPComponents/Recorder/AuthComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/BeautyPanelComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/CameraSwapComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/CaptureComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Filter/**/*.o",
+          "CameraClient/MVPComponents/Recorder/FlashComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/FocusComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/GestureComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/RecordFlow/**/*.o",
+          "CameraClient/MVPComponents/Recorder/SwitchModeComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Sticker/**/*.o",
+          "CameraClient/MVPComponents/Recorder/PropPanelComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/SelectPropComponent/**/*.o",
+          "CameraClient/CameraComponents/Recorder/SplitTipComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Karaoke/**/*.o",
+          "CameraClient/MVPComponents/Recorder/LiteTheme/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Redpacket/**/*.o",
+          "CameraClient/MVPComponents/Recorder/MeteorModeComponent/**/*.o",
+          "CameraClient/CameraComponents/Recorder/SubmodeComponent/**/*.o",
+          "CameraClient/CameraComponents/Recorder/QuickStory/**/*.o",
+          "CameraClient/ComponentPlugins/Record/Beauty/**/*.o",
+          "CameraClient/ComponentPlugins/Record/Filter/**/*.o",
+          "CameraClient/MVPComponents/Edit/BizConfig/**/*.o",
+          "CameraClient/MVPComponents/Edit/Common/Player/**/*.o",
+          "CameraClient/MVPComponents/Edit/Common/View/**/*.o",
+          "CameraClient/MVPComponents/Edit/Video/Music/*.o",
+          "CameraClient/CameraArch/**/*.o",
+          "CameraClient/MVPComponents/Recorder/AuthComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/BeautyPanelComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/CameraSwapComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/CaptureComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Filter/**/*.o",
+          "CameraClient/MVPComponents/Recorder/FlashComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/FocusComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/GestureComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/RecordFlow/**/*.o",
+          "CameraClient/MVPComponents/Recorder/SwitchModeComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Sticker/**/*.o",
+          "CameraClient/MVPComponents/Recorder/PropPanelComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/SelectPropComponent/**/*.o",
+          "CameraClient/CameraComponents/Recorder/SplitTipComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Karaoke/**/*.o",
+          "CameraClient/MVPComponents/Recorder/LiteTheme/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Redpacket/**/*.o",
+          "CameraClient/MVPComponents/Recorder/MeteorModeComponent/**/*.o",
+          "CameraClient/CameraComponents/Recorder/SubmodeComponent/**/*.o",
+          "CameraClient/CameraComponents/Recorder/QuickStory/**/*.o",
+          "CameraClient/ComponentPlugins/Record/Beauty/**/*.o",
+          "CameraClient/ComponentPlugins/Record/Filter/**/*.o",
+          "CameraClient/MVPComponents/Edit/BizConfig/**/*.o",
+          "CameraClient/MVPComponents/Edit/Common/Player/**/*.o",
+          "CameraClient/MVPComponents/Edit/Common/View/**/*.o",
+          "CameraClient/MVPComponents/Edit/Video/Music/*.o",
+          "CameraClient/CameraArch/**/*.o",
+          "CameraClient/MVPComponents/Recorder/AuthComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/BeautyPanelComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/CameraSwapComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/CaptureComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Filter/**/*.o",
+          "CameraClient/MVPComponents/Recorder/FlashComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/FocusComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/GestureComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/RecordFlow/**/*.o",
+          "CameraClient/MVPComponents/Recorder/SwitchModeComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Sticker/**/*.o",
+          "CameraClient/MVPComponents/Recorder/PropPanelComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/SelectPropComponent/**/*.o",
+          "CameraClient/CameraComponents/Recorder/SplitTipComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Karaoke/**/*.o",
+          "CameraClient/MVPComponents/Recorder/LiteTheme/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Redpacket/**/*.o",
+          "CameraClient/MVPComponents/Recorder/MeteorModeComponent/**/*.o",
+          "CameraClient/CameraComponents/Recorder/SubmodeComponent/**/*.o",
+          "CameraClient/CameraComponents/Recorder/QuickStory/**/*.o",
+          "CameraClient/ComponentPlugins/Record/Beauty/**/*.o",
+          "CameraClient/ComponentPlugins/Record/Filter/**/*.o",
+          "CameraClient/MVPComponents/Edit/BizConfig/**/*.o",
+          "CameraClient/MVPComponents/Edit/Common/Player/**/*.o",
+          "CameraClient/MVPComponents/Edit/Common/View/**/*.o",
+          "CameraClient/MVPComponents/Edit/Video/Music/*.o",
+          "CameraClient/CameraArch/**/*.o",
+          "CameraClient/MVPComponents/Recorder/AuthComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/BeautyPanelComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/CameraSwapComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/CaptureComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Filter/**/*.o",
+          "CameraClient/MVPComponents/Recorder/FlashComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/FocusComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/GestureComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/RecordFlow/**/*.o",
+          "CameraClient/MVPComponents/Recorder/SwitchModeComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Sticker/**/*.o",
+          "CameraClient/MVPComponents/Recorder/PropPanelComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/SelectPropComponent/**/*.o",
+          "CameraClient/CameraComponents/Recorder/SplitTipComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Karaoke/**/*.o",
+          "CameraClient/MVPComponents/Recorder/LiteTheme/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Redpacket/**/*.o",
+          "CameraClient/MVPComponents/Recorder/MeteorModeComponent/**/*.o",
+          "CameraClient/CameraComponents/Recorder/SubmodeComponent/**/*.o",
+          "CameraClient/CameraComponents/Recorder/QuickStory/**/*.o",
+          "CameraClient/ComponentPlugins/Record/Beauty/**/*.o",
+          "CameraClient/ComponentPlugins/Record/Filter/**/*.o",
+          "CameraClient/MVPComponents/Edit/BizConfig/**/*.o",
+          "CameraClient/MVPComponents/Edit/Common/Player/**/*.o",
+          "CameraClient/MVPComponents/Edit/Common/View/**/*.o",
+          "CameraClient/MVPComponents/Edit/Video/Music/*.o",
+          "CameraClient/CameraArch/**/*.o",
+          "CameraClient/MVPComponents/Recorder/AuthComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/BeautyPanelComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/CameraSwapComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/CaptureComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Filter/**/*.o",
+          "CameraClient/MVPComponents/Recorder/FlashComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/FocusComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/GestureComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/RecordFlow/**/*.o",
+          "CameraClient/MVPComponents/Recorder/SwitchModeComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Sticker/**/*.o",
+          "CameraClient/MVPComponents/Recorder/PropPanelComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/SelectPropComponent/**/*.o",
+          "CameraClient/CameraComponents/Recorder/SplitTipComponent/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Karaoke/**/*.o",
+          "CameraClient/MVPComponents/Recorder/LiteTheme/**/*.o",
+          "CameraClient/MVPComponents/Recorder/Redpacket/**/*.o",
+          "CameraClient/MVPComponents/Recorder/MeteorModeComponent/**/*.o",
+          "CameraClient/CameraComponents/Recorder/SubmodeComponent/**/*.o",
+          "CameraClient/CameraComponents/Recorder/QuickStory/**/*.o",
+          "CameraClient/ComponentPlugins/Record/Beauty/**/*.o",
+          "CameraClient/ComponentPlugins/Record/Filter/**/*.o",
+          "CameraClient/MVPComponents/Edit/BizConfig/**/*.o",
+          "CameraClient/MVPComponents/Edit/Common/Player/**/*.o",
+          "CameraClient/MVPComponents/Edit/Common/View/**/*.o",
+          "CameraClient/MVPComponents/Edit/Video/Music/*.o",
+          "libCameraClient-84fa41a.a",
+          "libCameraClient-806f2b8.a",
+          "libCameraClient-a5b9324.a",
+          "libCameraClient-6f37549.a",
+          "libCameraClient-d3088e4.a",
+          "libCameraClient-a2540a0.a"
+        ]
+      }
+    },
+    {
+      "name": "CameraResourcesLark",
+      "resource_bundles": {
+        "CameraResource_lark": [
+          "CameraClient/CameraClientResources/Resources-A/Resources-Lark/color",
+          "CameraClient/CameraClientResources/Resources-A/Resources-Lark/image/*.xcassets",
+          "CameraClient/CameraClientResources/Resources-A/Resources-Lark/Config.plist",
+          "CameraClient/CameraClientResources/Resources-A/Resources-Lark/file",
+          "CameraClient/CameraClientResources/Resources-A/Resources-Lark/keyvalue",
+          "CameraClient/CameraClientResources/Resources-A/Resources-Lark/string",
+          "CameraClient/CameraClientResources/Resources-A/Resources-Lark/style",
+          "CameraClient/CameraClientResources/Resources-A/Resources-Lark/bundle"
+        ]
+      }
+    },
+    {
+      "name": "iMovie",
+      "dependencies": {
+        "CreativeKit/MobileInfra": [
+
+        ],
+        "CreativeKit/CameraArch": [
+
+        ],
+        "CreativeKit/Performance": [
+
+        ],
+        "IESInject/Core": [
+
+        ],
+        "TTVideoEditor/ProjectLV": [
+
+        ],
+        "VideoTemplate": [
+
+        ],
+        "Masonry": [
+
+        ],
+        "libextobjc": [
+
+        ],
+        "EffectPlatformSDK": [
+
+        ],
+        "Mantle": [
+
+        ],
+        "TTVideoEngine": [
+
+        ],
+        "KVOController": [
+
+        ],
+        "HTSServiceKit": [
+
+        ],
+        "FMDB": [
+
+        ],
+        "ReactiveObjC": [
+
+        ],
+        "BDWebImage": [
+
+        ],
+        "CameraClient/CameraResourcesiMovie": [
+
+        ]
+      },
+      "source_files": [
+        "CameraClient/MobileInfra/Redux/**/*.{h,m,mm,c}",
+        "CameraClient/iMovie/**/*.{h,m,mm,c}",
+        "CameraClient/CameraArch/Tools/**/*.{h,m,mm,c}",
+        "CameraClient/CameraClientSDK/Effect/Core/**/*.{h,m,mm,c}",
+        "CameraClient/CameraClientSDK/Filter/**/*.{h,m,mm,c}",
+        "CameraClient/ModuleInterface/Model/IESEffectModel+AWEExtension.{h,m}",
+        "CameraClient/ModuleInterface/Interface/I18nProtocol/ACCI18NConfigProtocol.h",
+        "CameraClient/ModuleInterface/Interface/CommonProtocol/ACCABTestProtocol.h",
+        "CameraClient/Classes/Common/Category/NSString+ACCAdditions.{h,m}",
+        "CameraClient/Classes/Common/Category/NSData+ACCAdditions.{h,m}",
+        "CameraClient/ModuleInterface/Interface/ConstantAndDefine/ACCCommonDefine.{h,m}",
+        "CameraClient/ModuleInterface/Interface/CommonProtocol/ACCVideoMusicProtocol.h",
+        "CameraClient/ModuleInterface/Interface/NetServiceProtocol/ACCMusicNetServiceProtocol.h",
+        "CameraClient/Classes/Record/Manager/AWEStickerMusicManager.{h,m}",
+        "CameraClient/BaseService/ModuleService/ACCModuleService.h",
+        "CameraClient/BaseService/ModuleService/ACCModuleFactory.{h,m}",
+        "CameraClient/BaseService/ModuleService/ACCModuleFactoryProtocol.h",
+        "CameraClient/ModuleInterface/Model/AWEVideoPublishResponseModel.{h,m}",
+        "CameraClient/ModuleInterface/Model/ACCVideoModel.{h,m}",
+        "CameraClient/BaseService/ModuleService/ACCModuleData.{h,m}",
+        "CameraClient/Classes/Record/Model/ACCPropRecommendMusicReponseModel.{h,m}",
+        "CameraClient/ModuleInterface/Model/ACCAwemeModel.{h,m}",
+        "CameraClient/ModuleInterface/Model/ACCRootModel.{h,m}",
+        "CameraClient/ModuleInterface/Model/ACCURLModel.{h,m}",
+        "CameraClient/ModuleInterface/Model/ACCUserModel.{h,m}",
+        "CameraClient/ModuleInterface/Model/ACCChallengeModel.{h,m}",
+        "CameraClient/ModuleInterface/Model/ACCMusicModel.{h,m}",
+        "CameraClient/ModuleInterface/Model/BaseApi/ACCBaseApiModel.{h,m}",
+        "CameraClient/Classes/Common/Category/NSDictionary+ACCAddBaseApiPropertyKey.{h,m}",
+        "CameraClient/Classes/Common/Category/NSObject+ACCSwizzle.{h,m}",
+        "CameraClient/Classes/Common/Define/AWEModernStickerDefine.h",
+        "CameraClient/Classes/Common/Define/ACCCommonDefine.h",
+        "CameraClient/CameraClientSDK/Beauty/Protocol/AWEComposerEffectProtocol.h",
+        "CameraClient/Classes/Common/Inject/Base/ACCBaseServiceContainerProtocol.h",
+        "CameraClient/CameraClientSDK/Beauty/Manager/**/*.{h,m}",
+        "CameraClient/CameraClientSDK/Beauty/Protocol/**/*.{h,m}",
+        "CameraClient/CameraClientSDK/Beauty/Model/**/*.{h,m}",
+        "CameraClient/CameraClientSDK/Beauty/ViewModel/**/*.{h,m}",
+        "CameraClient/CameraClientSDK/LiveBeauty/ViewModel/**/*.{h,m}",
+        "CameraClient/ModuleInterface/Interface/CommonProtocol/ACCSettingsProtocol.h",
+        "CameraClient/ModuleInterface/Interface/CommonProtocol/ACCLogProtocol.h",
+        "CameraClient/CameraComponents/Recorder/Filter/ACCRecordFilterDefines.h",
+        "CameraClient/Classes/Record/View/AWEVideoHintView.{h,m}",
+        "CameraClient/ModuleInterface/Interface/CommonProtocol/ACCRTLProtocol.h",
+        "CameraClient/CameraClientSDK/Beauty/View/AWEComposerBeautyCollectionViewCell.{h,m}",
+        "CameraClient/CameraClientSDK/Beauty/View/AWETitleRollingTextView.{h,m}",
+        "CameraClient/Classes/Record/View/AWETabTitleControl.{h,m}",
+        "CameraClient/CameraClientSDK/Beauty/ACCBeautyDefine.{h,m}",
+        "CameraClient/ModuleInterface/Interface/CommonProtocol/UI/ACCFontProtocol.h"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "$(inherited)"
+      },
+      "vendored_libraries": [
+        "CameraClient/MobileInfra/Redux/**/*.o",
+        "CameraClient/iMovie/**/*.o",
+        "CameraClient/CameraArch/Tools/**/*.o",
+        "CameraClient/CameraClientSDK/Effect/Core/**/*.o",
+        "CameraClient/CameraClientSDK/Filter/**/*.o",
+        "CameraClient/CameraClientSDK/Beauty/Manager/**/*.o",
+        "CameraClient/CameraClientSDK/Beauty/Protocol/**/*.o",
+        "CameraClient/CameraClientSDK/Beauty/Model/**/*.o",
+        "CameraClient/CameraClientSDK/Beauty/ViewModel/**/*.o",
+        "CameraClient/CameraClientSDK/LiveBeauty/ViewModel/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "CameraClient/MobileInfra/Redux/**/*.o",
+          "CameraClient/iMovie/**/*.o",
+          "CameraClient/CameraArch/Tools/**/*.o",
+          "CameraClient/CameraClientSDK/Effect/Core/**/*.o",
+          "CameraClient/CameraClientSDK/Filter/**/*.o",
+          "CameraClient/CameraClientSDK/Beauty/Manager/**/*.o",
+          "CameraClient/CameraClientSDK/Beauty/Protocol/**/*.o",
+          "CameraClient/CameraClientSDK/Beauty/Model/**/*.o",
+          "CameraClient/CameraClientSDK/Beauty/ViewModel/**/*.o",
+          "CameraClient/CameraClientSDK/LiveBeauty/ViewModel/**/*.o",
+          "libCameraClient-dcaf1a4.a"
+        ]
+      }
+    },
+    {
+      "name": "CameraResourcesiMovie",
+      "resource_bundles": {
+        "CameraResource_imovie": [
+          "CameraClient/CameraClientResources/Resources-A/Resources-LV/color",
+          "CameraClient/CameraClientResources/Resources-A/Resources-LV/image/*.xcassets",
+          "CameraClient/CameraClientResources/Resources-A/Resources-LV/Config.plist",
+          "CameraClient/CameraClientResources/Resources-A/Resources-LV/file",
+          "CameraClient/CameraClientResources/Resources-A/Resources-LV/keyvalue",
+          "CameraClient/CameraClientResources/Resources-A/Resources-LV/string",
+          "CameraClient/CameraClientResources/Resources-A/Resources-LV/style",
+          "CameraClient/CameraClientResources/Resources-A/Resources-LV/bundle"
+        ]
+      }
+    },
+    {
+      "name": "MVPR",
+      "dependencies": {
+        "CameraClient/CameraResourcesMVPR": [
+
+        ]
+      }
+    },
+    {
+      "name": "CameraResourcesMVPR",
+      "resource_bundles": {
+        "CameraResource_mvpr": [
+          "CameraClient/CameraClientResources/Resources-A/Resources-D/color",
+          "CameraClient/CameraClientResources/Resources-A/Resources-D/image/*.xcassets",
+          "CameraClient/CameraClientResources/Resources-A/Resources-D/Config.plist",
+          "CameraClient/CameraClientResources/Resources-A/Resources-D/file",
+          "CameraClient/CameraClientResources/Resources-A/Resources-D/keyvalue",
+          "CameraClient/CameraClientResources/Resources-A/Resources-D/string",
+          "CameraClient/CameraClientResources/Resources-A/Resources-D/style",
+          "CameraClient/CameraClientResources/Resources-A/Resources-D/bundle"
+        ]
+      }
+    },
+    {
+      "name": "EFFECTCAM",
+      "dependencies": {
+        "CameraClient/CameraComponents": [
+
+        ],
+        "CameraClient/ServiceBinding": [
+
+        ],
+        "CreativeKit/Debug": [
+
+        ],
+        "TTVideoEditor/AwemeMode": [
+
+        ],
+        "CameraClient/CameraResourcesEFFECTCAM": [
+
+        ]
+      },
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "$(inherited)"
+      }
+    },
+    {
+      "name": "CameraResourcesEFFECTCAM",
+      "resource_bundles": {
+        "CameraResource_effectcam": [
+          "CameraClient/CameraClientResources/Resources-A/Resources-EFFECTCAM/color",
+          "CameraClient/CameraClientResources/Resources-A/Resources-EFFECTCAM/image/*.xcassets",
+          "CameraClient/CameraClientResources/Resources-A/Resources-EFFECTCAM/Config.plist",
+          "CameraClient/CameraClientResources/Resources-A/Resources-EFFECTCAM/file",
+          "CameraClient/CameraClientResources/Resources-A/Resources-EFFECTCAM/keyvalue",
+          "CameraClient/CameraClientResources/Resources-A/Resources-EFFECTCAM/string",
+          "CameraClient/CameraClientResources/Resources-A/Resources-EFFECTCAM/style",
+          "CameraClient/CameraClientResources/Resources-A/Resources-EFFECTCAM/bundle"
+        ]
+      }
+    }
+  ]
+}

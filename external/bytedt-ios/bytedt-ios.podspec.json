@@ -1,0 +1,86 @@
+{
+  "name": "bytedt-ios",
+  "version": "2.0.3-lark",
+  "pod_target_xcconfig": {
+    "ENABLE_BITCODE": "NO",
+    "GCC_GENERATE_DEBUGGING_SYMBOLS": "YES",
+    "GCC_OPTIMIZATION_LEVEL": "s",
+    "STRIP_STYLE": "all",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "bytedt_ios_POD_VERSION=@\\\"9999_2.0.3-lark\\\""
+  },
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/MobileAI/bytedt-sdk",
+  "license": "MIT",
+  "authors": {
+    "曹佳鑫": "caojiaxin.leslie@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:MobileAI/mobileai_super.git",
+    "commit": "10d1382bbf65613a0d4133a42fcf3b8f27d97cfc"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "default_subspecs": "Core",
+  "subspecs": [
+    {
+      "name": "Core",
+      "ios": {
+        "source_files": "dist/bytedt/ios/Core/include/*.h",
+        "vendored_libraries": "dist/bytedt/ios/Core/libs/libbytedt.a",
+        "frameworks": [
+          "CoreML",
+          "Accelerate",
+          "AssetsLibrary"
+        ]
+      },
+      "dependencies": {
+        "protobuf_pty": [
+          ">=0.0.3"
+        ]
+      },
+      "libraries": "c++",
+      "compiler_flags": [
+        "-stdlib=libc++",
+        "-ffast-math",
+        "-DNDEBUG",
+        "-O3",
+        "-fvisibility=hidden"
+      ]
+    },
+    {
+      "name": "Train",
+      "ios": {
+        "source_files": "dist/bytedt/ios/Train/include/*.h",
+        "vendored_libraries": "dist/bytedt/ios/Train/libs/libbytedt_train.a",
+        "frameworks": [
+          "CoreML",
+          "Accelerate",
+          "AssetsLibrary"
+        ]
+      },
+      "libraries": "c++",
+      "compiler_flags": [
+        "-stdlib=libc++",
+        "-ffast-math",
+        "-DNDEBUG",
+        "-O3",
+        "-fvisibility=hidden"
+      ],
+      "dependencies": {
+        "bytedt-ios/Core": []
+      }
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "10558",
+    "app_id": "9999"
+  },
+  "repoId": "10558",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "bytedt_ios_POD_VERSION=@\\\"9999_2.0.3-lark\\\""
+  }
+}

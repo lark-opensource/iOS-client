@@ -1,0 +1,915 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "protobuf_pty_pod_hdrs",
+  srcs = [
+    ":protobuf_pty_root_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "protobuf_pty_private_includes",
+  include = [
+    "external/protobuf_pty/pod_support/Headers/Private/protobuf_pty/"
+  ],
+  deps = [],
+  external_name = "protobuf_pty"
+)
+gen_includes(
+  name = "protobuf_pty_public_includes",
+  include = [
+    "external/protobuf_pty/pod_support/Headers/Public/protobuf_pty/"
+  ],
+  deps = [],
+  external_name = "protobuf_pty"
+)
+filegroup(
+  name = "_protobuf_pty_hdrs",
+  srcs = [
+    ":protobuf_pty_root_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "protobuf_pty_xcode_hmapsource",
+  hdrs = [
+    ":_protobuf_pty_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "protobuf_pty_xcode_hmap",
+  dep = ":protobuf_pty_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/protobuf_pty/*-bitsky-generated.modulemap", "pod_support/Headers/Public/protobuf_pty/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "protobuf_pty_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libprotobuf_pty_protobuf_pty_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "protobuf_pty_custom_includes",
+  include = [
+    "external/src",
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "protobuf_pty",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "protobuf_pty_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":protobuf_pty_xcode_hmap"
+  ],
+  external_name = "protobuf_pty",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "protobuf_pty_root_hdrs",
+  srcs = [
+    "src/google/protobuf/any.h",
+    "src/google/protobuf/any.pb.h",
+    "src/google/protobuf/api.pb.h",
+    "src/google/protobuf/arena.h",
+    "src/google/protobuf/arena_impl.h",
+    "src/google/protobuf/arena_test_util.h",
+    "src/google/protobuf/arenastring.h",
+    "src/google/protobuf/descriptor.h",
+    "src/google/protobuf/descriptor.pb.h",
+    "src/google/protobuf/descriptor_database.h",
+    "src/google/protobuf/duration.pb.h",
+    "src/google/protobuf/dynamic_message.h",
+    "src/google/protobuf/empty.pb.h",
+    "src/google/protobuf/extension_set.h",
+    "src/google/protobuf/extension_set_inl.h",
+    "src/google/protobuf/field_mask.pb.h",
+    "src/google/protobuf/generated_enum_reflection.h",
+    "src/google/protobuf/generated_enum_util.h",
+    "src/google/protobuf/generated_message_reflection.h",
+    "src/google/protobuf/generated_message_table_driven.h",
+    "src/google/protobuf/generated_message_table_driven_lite.h",
+    "src/google/protobuf/generated_message_util.h",
+    "src/google/protobuf/has_bits.h",
+    "src/google/protobuf/implicit_weak_message.h",
+    "src/google/protobuf/io/coded_stream.h",
+    "src/google/protobuf/io/gzip_stream.h",
+    "src/google/protobuf/io/io_win32.h",
+    "src/google/protobuf/io/package_info.h",
+    "src/google/protobuf/io/printer.h",
+    "src/google/protobuf/io/strtod.h",
+    "src/google/protobuf/io/tokenizer.h",
+    "src/google/protobuf/io/zero_copy_stream.h",
+    "src/google/protobuf/io/zero_copy_stream_impl.h",
+    "src/google/protobuf/io/zero_copy_stream_impl_lite.h",
+    "src/google/protobuf/map.h",
+    "src/google/protobuf/map_entry.h",
+    "src/google/protobuf/map_entry_lite.h",
+    "src/google/protobuf/map_field.h",
+    "src/google/protobuf/map_field_inl.h",
+    "src/google/protobuf/map_field_lite.h",
+    "src/google/protobuf/map_type_handler.h",
+    "src/google/protobuf/message.h",
+    "src/google/protobuf/message_lite.h",
+    "src/google/protobuf/message_unittest.inc",
+    "src/google/protobuf/metadata.h",
+    "src/google/protobuf/metadata_lite.h",
+    "src/google/protobuf/package_info.h",
+    "src/google/protobuf/parse_context.h",
+    "src/google/protobuf/port.h",
+    "src/google/protobuf/port_def.inc",
+    "src/google/protobuf/port_undef.inc",
+    "src/google/protobuf/proto3_lite_unittest.inc",
+    "src/google/protobuf/reflection.h",
+    "src/google/protobuf/reflection_internal.h",
+    "src/google/protobuf/reflection_ops.h",
+    "src/google/protobuf/repeated_field.h",
+    "src/google/protobuf/service.h",
+    "src/google/protobuf/source_context.pb.h",
+    "src/google/protobuf/struct.pb.h",
+    "src/google/protobuf/stubs/bytestream.h",
+    "src/google/protobuf/stubs/callback.h",
+    "src/google/protobuf/stubs/casts.h",
+    "src/google/protobuf/stubs/common.h",
+    "src/google/protobuf/stubs/hash.h",
+    "src/google/protobuf/stubs/int128.h",
+    "src/google/protobuf/stubs/logging.h",
+    "src/google/protobuf/stubs/macros.h",
+    "src/google/protobuf/stubs/map_util.h",
+    "src/google/protobuf/stubs/mathutil.h",
+    "src/google/protobuf/stubs/mutex.h",
+    "src/google/protobuf/stubs/once.h",
+    "src/google/protobuf/stubs/platform_macros.h",
+    "src/google/protobuf/stubs/port.h",
+    "src/google/protobuf/stubs/status.h",
+    "src/google/protobuf/stubs/status_macros.h",
+    "src/google/protobuf/stubs/statusor.h",
+    "src/google/protobuf/stubs/stl_util.h",
+    "src/google/protobuf/stubs/stringpiece.h",
+    "src/google/protobuf/stubs/stringprintf.h",
+    "src/google/protobuf/stubs/strutil.h",
+    "src/google/protobuf/stubs/substitute.h",
+    "src/google/protobuf/stubs/template_util.h",
+    "src/google/protobuf/stubs/time.h",
+    "src/google/protobuf/test_util.inc",
+    "src/google/protobuf/text_format.h",
+    "src/google/protobuf/timestamp.pb.h",
+    "src/google/protobuf/type.pb.h",
+    "src/google/protobuf/unknown_field_set.h",
+    "src/google/protobuf/util/delimited_message_util.h",
+    "src/google/protobuf/util/field_comparator.h",
+    "src/google/protobuf/util/field_mask_util.h",
+    "src/google/protobuf/util/internal/constants.h",
+    "src/google/protobuf/util/internal/datapiece.h",
+    "src/google/protobuf/util/internal/default_value_objectwriter.h",
+    "src/google/protobuf/util/internal/error_listener.h",
+    "src/google/protobuf/util/internal/expecting_objectwriter.h",
+    "src/google/protobuf/util/internal/field_mask_utility.h",
+    "src/google/protobuf/util/internal/json_escaping.h",
+    "src/google/protobuf/util/internal/json_objectwriter.h",
+    "src/google/protobuf/util/internal/json_stream_parser.h",
+    "src/google/protobuf/util/internal/location_tracker.h",
+    "src/google/protobuf/util/internal/mock_error_listener.h",
+    "src/google/protobuf/util/internal/object_location_tracker.h",
+    "src/google/protobuf/util/internal/object_source.h",
+    "src/google/protobuf/util/internal/object_writer.h",
+    "src/google/protobuf/util/internal/proto_writer.h",
+    "src/google/protobuf/util/internal/protostream_objectsource.h",
+    "src/google/protobuf/util/internal/protostream_objectwriter.h",
+    "src/google/protobuf/util/internal/structured_objectwriter.h",
+    "src/google/protobuf/util/internal/type_info.h",
+    "src/google/protobuf/util/internal/type_info_test_helper.h",
+    "src/google/protobuf/util/internal/utility.h",
+    "src/google/protobuf/util/json_util.h",
+    "src/google/protobuf/util/message_differencer.h",
+    "src/google/protobuf/util/package_info.h",
+    "src/google/protobuf/util/time_util.h",
+    "src/google/protobuf/util/type_resolver.h",
+    "src/google/protobuf/util/type_resolver_util.h",
+    "src/google/protobuf/wire_format.h",
+    "src/google/protobuf/wire_format_lite.h",
+    "src/google/protobuf/wrappers.pb.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "protobuf_pty_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/any.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/any.pb.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/api.pb.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/arena.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/arena_impl.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/arena_test_util.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/arenastring.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/descriptor.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/descriptor.pb.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/descriptor_database.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/duration.pb.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/dynamic_message.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/empty.pb.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/extension_set.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/extension_set_inl.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/field_mask.pb.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/generated_enum_reflection.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/generated_enum_util.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/generated_message_reflection.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/generated_message_table_driven.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/generated_message_table_driven_lite.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/generated_message_util.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/has_bits.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/implicit_weak_message.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/io/coded_stream.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/io/gzip_stream.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/io/io_win32.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/io/package_info.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/io/printer.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/io/strtod.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/io/tokenizer.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/io/zero_copy_stream.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/io/zero_copy_stream_impl.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/io/zero_copy_stream_impl_lite.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/map.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/map_entry.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/map_entry_lite.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/map_field.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/map_field_inl.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/map_field_lite.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/map_type_handler.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/message.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/message_lite.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/message_unittest.inc",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/metadata.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/metadata_lite.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/package_info.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/parse_context.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/port.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/port_def.inc",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/port_undef.inc",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/proto3_lite_unittest.inc",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/reflection.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/reflection_internal.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/reflection_ops.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/repeated_field.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/service.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/source_context.pb.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/struct.pb.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/bytestream.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/callback.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/casts.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/common.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/hash.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/int128.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/logging.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/macros.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/map_util.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/mathutil.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/mutex.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/once.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/platform_macros.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/port.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/status.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/status_macros.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/statusor.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/stl_util.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/stringpiece.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/stringprintf.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/strutil.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/substitute.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/template_util.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/stubs/time.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/test_util.inc",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/text_format.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/timestamp.pb.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/type.pb.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/unknown_field_set.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/delimited_message_util.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/field_comparator.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/field_mask_util.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/internal/constants.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/internal/datapiece.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/internal/default_value_objectwriter.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/internal/error_listener.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/internal/expecting_objectwriter.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/internal/field_mask_utility.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/internal/json_escaping.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/internal/json_objectwriter.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/internal/json_stream_parser.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/internal/location_tracker.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/internal/mock_error_listener.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/internal/object_location_tracker.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/internal/object_source.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/internal/object_writer.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/internal/proto_writer.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/internal/protostream_objectsource.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/internal/protostream_objectwriter.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/internal/structured_objectwriter.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/internal/type_info.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/internal/type_info_test_helper.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/internal/utility.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/json_util.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/message_differencer.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/package_info.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/time_util.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/type_resolver.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/util/type_resolver_util.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/wire_format.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/wire_format_lite.h",
+    "pod_support/Headers/Private/protobuf_pty/google/protobuf/wrappers.pb.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/any.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/any.pb.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/api.pb.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/arena.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/arena_impl.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/arena_test_util.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/arenastring.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/descriptor.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/descriptor.pb.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/descriptor_database.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/duration.pb.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/dynamic_message.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/empty.pb.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/extension_set.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/extension_set_inl.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/field_mask.pb.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/generated_enum_reflection.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/generated_enum_util.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/generated_message_reflection.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/generated_message_table_driven.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/generated_message_table_driven_lite.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/generated_message_util.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/has_bits.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/implicit_weak_message.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/io/coded_stream.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/io/gzip_stream.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/io/io_win32.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/io/package_info.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/io/printer.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/io/strtod.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/io/tokenizer.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/io/zero_copy_stream.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/io/zero_copy_stream_impl.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/io/zero_copy_stream_impl_lite.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/map.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/map_entry.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/map_entry_lite.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/map_field.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/map_field_inl.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/map_field_lite.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/map_type_handler.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/message.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/message_lite.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/message_unittest.inc",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/metadata.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/metadata_lite.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/package_info.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/parse_context.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/port.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/port_def.inc",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/port_undef.inc",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/proto3_lite_unittest.inc",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/reflection.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/reflection_internal.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/reflection_ops.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/repeated_field.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/service.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/source_context.pb.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/struct.pb.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/bytestream.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/callback.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/casts.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/common.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/hash.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/int128.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/logging.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/macros.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/map_util.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/mathutil.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/mutex.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/once.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/platform_macros.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/port.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/status.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/status_macros.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/statusor.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/stl_util.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/stringpiece.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/stringprintf.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/strutil.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/substitute.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/template_util.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/stubs/time.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/test_util.inc",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/text_format.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/timestamp.pb.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/type.pb.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/unknown_field_set.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/delimited_message_util.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/field_comparator.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/field_mask_util.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/internal/constants.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/internal/datapiece.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/internal/default_value_objectwriter.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/internal/error_listener.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/internal/expecting_objectwriter.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/internal/field_mask_utility.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/internal/json_escaping.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/internal/json_objectwriter.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/internal/json_stream_parser.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/internal/location_tracker.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/internal/mock_error_listener.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/internal/object_location_tracker.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/internal/object_source.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/internal/object_writer.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/internal/proto_writer.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/internal/protostream_objectsource.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/internal/protostream_objectwriter.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/internal/structured_objectwriter.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/internal/type_info.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/internal/type_info_test_helper.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/internal/utility.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/json_util.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/message_differencer.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/package_info.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/time_util.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/type_resolver.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/util/type_resolver_util.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/wire_format.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/wire_format_lite.h",
+    "pod_support/Headers/Public/protobuf_pty/google/protobuf/wrappers.pb.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "protobuf_pty_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "protobuf_pty_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "protobuf_pty_module_map",
+  module_map = "pod_support/Headers/Public/protobuf_pty/protobuf_pty-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/protobuf_pty/protobuf_pty-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "protobuf_pty_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "protobuf_pty_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":protobuf_pty_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":protobuf_pty_private_includes",
+    ":protobuf_pty_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":protobuf_pty_VendoredLibraries",
+    ":protobuf_pty_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-D\"HAVE_PTHREAD=1\"",
+    "-Dprotobuf_pty_POD_VERSION=@\\\"9999_0.0.3\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "protobuf_pty",
+  deps = [
+    ":protobuf_pty_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "protobuf_pty_lib",
+  deps = [
+    ":protobuf_pty"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_protobuf_pty_module_map",
+  module_map = "@protobuf_pty//:pod_support/Headers/Public/protobuf_pty/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@protobuf_pty//:pod_support/Headers/Public/protobuf_pty/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_protobuf_pty_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@protobuf_pty//:protobuf_pty_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_library")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_library(
+  name = "Lark_protobuf_pty",
+  target_name = "Lark",
+  module_name = "protobuf_pty",
+  hdrs = ["@protobuf_pty//:protobuf_pty_root_pod_hdrs"],
+  srcs = [],
+  non_arc_srcs = [],
+  deps = ["@protobuf_pty//:protobuf_pty_VendoredLibraries"],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-D\"HAVE_PTHREAD=1\"",
+    "-Dprotobuf_pty_POD_VERSION=@\\\"9999_0.0.3\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "protobuf_pty_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "protobuf_pty_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["UIKit", "Foundation", "JavaScriptCore"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "protobuf_pty_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "protobuf_pty_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "protobuf_pty_dynamic", False),
+  tags = getattr(defs_external_objc_library, "protobuf_pty_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  header_mappings = {
+    "*": "*",
+    "src/google/protobuf/any.h": "google/protobuf/any.h",
+    "src/google/protobuf/any.pb.h": "google/protobuf/any.pb.h",
+    "src/google/protobuf/api.pb.h": "google/protobuf/api.pb.h",
+    "src/google/protobuf/arena.h": "google/protobuf/arena.h",
+    "src/google/protobuf/arena_impl.h": "google/protobuf/arena_impl.h",
+    "src/google/protobuf/arena_test_util.h": "google/protobuf/arena_test_util.h",
+    "src/google/protobuf/arenastring.h": "google/protobuf/arenastring.h",
+    "src/google/protobuf/descriptor.h": "google/protobuf/descriptor.h",
+    "src/google/protobuf/descriptor.pb.h": "google/protobuf/descriptor.pb.h",
+    "src/google/protobuf/descriptor_database.h": "google/protobuf/descriptor_database.h",
+    "src/google/protobuf/duration.pb.h": "google/protobuf/duration.pb.h",
+    "src/google/protobuf/dynamic_message.h": "google/protobuf/dynamic_message.h",
+    "src/google/protobuf/empty.pb.h": "google/protobuf/empty.pb.h",
+    "src/google/protobuf/extension_set.h": "google/protobuf/extension_set.h",
+    "src/google/protobuf/extension_set_inl.h": "google/protobuf/extension_set_inl.h",
+    "src/google/protobuf/field_mask.pb.h": "google/protobuf/field_mask.pb.h",
+    "src/google/protobuf/generated_enum_reflection.h": "google/protobuf/generated_enum_reflection.h",
+    "src/google/protobuf/generated_enum_util.h": "google/protobuf/generated_enum_util.h",
+    "src/google/protobuf/generated_message_reflection.h": "google/protobuf/generated_message_reflection.h",
+    "src/google/protobuf/generated_message_table_driven.h": "google/protobuf/generated_message_table_driven.h",
+    "src/google/protobuf/generated_message_table_driven_lite.h": "google/protobuf/generated_message_table_driven_lite.h",
+    "src/google/protobuf/generated_message_util.h": "google/protobuf/generated_message_util.h",
+    "src/google/protobuf/has_bits.h": "google/protobuf/has_bits.h",
+    "src/google/protobuf/implicit_weak_message.h": "google/protobuf/implicit_weak_message.h",
+    "src/google/protobuf/io/coded_stream.h": "google/protobuf/io/coded_stream.h",
+    "src/google/protobuf/io/gzip_stream.h": "google/protobuf/io/gzip_stream.h",
+    "src/google/protobuf/io/io_win32.h": "google/protobuf/io/io_win32.h",
+    "src/google/protobuf/io/package_info.h": "google/protobuf/io/package_info.h",
+    "src/google/protobuf/io/printer.h": "google/protobuf/io/printer.h",
+    "src/google/protobuf/io/strtod.h": "google/protobuf/io/strtod.h",
+    "src/google/protobuf/io/tokenizer.h": "google/protobuf/io/tokenizer.h",
+    "src/google/protobuf/io/zero_copy_stream.h": "google/protobuf/io/zero_copy_stream.h",
+    "src/google/protobuf/io/zero_copy_stream_impl.h": "google/protobuf/io/zero_copy_stream_impl.h",
+    "src/google/protobuf/io/zero_copy_stream_impl_lite.h": "google/protobuf/io/zero_copy_stream_impl_lite.h",
+    "src/google/protobuf/map.h": "google/protobuf/map.h",
+    "src/google/protobuf/map_entry.h": "google/protobuf/map_entry.h",
+    "src/google/protobuf/map_entry_lite.h": "google/protobuf/map_entry_lite.h",
+    "src/google/protobuf/map_field.h": "google/protobuf/map_field.h",
+    "src/google/protobuf/map_field_inl.h": "google/protobuf/map_field_inl.h",
+    "src/google/protobuf/map_field_lite.h": "google/protobuf/map_field_lite.h",
+    "src/google/protobuf/map_type_handler.h": "google/protobuf/map_type_handler.h",
+    "src/google/protobuf/message.h": "google/protobuf/message.h",
+    "src/google/protobuf/message_lite.h": "google/protobuf/message_lite.h",
+    "src/google/protobuf/message_unittest.inc": "google/protobuf/message_unittest.inc",
+    "src/google/protobuf/metadata.h": "google/protobuf/metadata.h",
+    "src/google/protobuf/metadata_lite.h": "google/protobuf/metadata_lite.h",
+    "src/google/protobuf/package_info.h": "google/protobuf/package_info.h",
+    "src/google/protobuf/parse_context.h": "google/protobuf/parse_context.h",
+    "src/google/protobuf/port.h": "google/protobuf/port.h",
+    "src/google/protobuf/port_def.inc": "google/protobuf/port_def.inc",
+    "src/google/protobuf/port_undef.inc": "google/protobuf/port_undef.inc",
+    "src/google/protobuf/proto3_lite_unittest.inc": "google/protobuf/proto3_lite_unittest.inc",
+    "src/google/protobuf/reflection.h": "google/protobuf/reflection.h",
+    "src/google/protobuf/reflection_internal.h": "google/protobuf/reflection_internal.h",
+    "src/google/protobuf/reflection_ops.h": "google/protobuf/reflection_ops.h",
+    "src/google/protobuf/repeated_field.h": "google/protobuf/repeated_field.h",
+    "src/google/protobuf/service.h": "google/protobuf/service.h",
+    "src/google/protobuf/source_context.pb.h": "google/protobuf/source_context.pb.h",
+    "src/google/protobuf/struct.pb.h": "google/protobuf/struct.pb.h",
+    "src/google/protobuf/stubs/bytestream.h": "google/protobuf/stubs/bytestream.h",
+    "src/google/protobuf/stubs/callback.h": "google/protobuf/stubs/callback.h",
+    "src/google/protobuf/stubs/casts.h": "google/protobuf/stubs/casts.h",
+    "src/google/protobuf/stubs/common.h": "google/protobuf/stubs/common.h",
+    "src/google/protobuf/stubs/hash.h": "google/protobuf/stubs/hash.h",
+    "src/google/protobuf/stubs/int128.h": "google/protobuf/stubs/int128.h",
+    "src/google/protobuf/stubs/logging.h": "google/protobuf/stubs/logging.h",
+    "src/google/protobuf/stubs/macros.h": "google/protobuf/stubs/macros.h",
+    "src/google/protobuf/stubs/map_util.h": "google/protobuf/stubs/map_util.h",
+    "src/google/protobuf/stubs/mathutil.h": "google/protobuf/stubs/mathutil.h",
+    "src/google/protobuf/stubs/mutex.h": "google/protobuf/stubs/mutex.h",
+    "src/google/protobuf/stubs/once.h": "google/protobuf/stubs/once.h",
+    "src/google/protobuf/stubs/platform_macros.h": "google/protobuf/stubs/platform_macros.h",
+    "src/google/protobuf/stubs/port.h": "google/protobuf/stubs/port.h",
+    "src/google/protobuf/stubs/status.h": "google/protobuf/stubs/status.h",
+    "src/google/protobuf/stubs/status_macros.h": "google/protobuf/stubs/status_macros.h",
+    "src/google/protobuf/stubs/statusor.h": "google/protobuf/stubs/statusor.h",
+    "src/google/protobuf/stubs/stl_util.h": "google/protobuf/stubs/stl_util.h",
+    "src/google/protobuf/stubs/stringpiece.h": "google/protobuf/stubs/stringpiece.h",
+    "src/google/protobuf/stubs/stringprintf.h": "google/protobuf/stubs/stringprintf.h",
+    "src/google/protobuf/stubs/strutil.h": "google/protobuf/stubs/strutil.h",
+    "src/google/protobuf/stubs/substitute.h": "google/protobuf/stubs/substitute.h",
+    "src/google/protobuf/stubs/template_util.h": "google/protobuf/stubs/template_util.h",
+    "src/google/protobuf/stubs/time.h": "google/protobuf/stubs/time.h",
+    "src/google/protobuf/test_util.inc": "google/protobuf/test_util.inc",
+    "src/google/protobuf/text_format.h": "google/protobuf/text_format.h",
+    "src/google/protobuf/timestamp.pb.h": "google/protobuf/timestamp.pb.h",
+    "src/google/protobuf/type.pb.h": "google/protobuf/type.pb.h",
+    "src/google/protobuf/unknown_field_set.h": "google/protobuf/unknown_field_set.h",
+    "src/google/protobuf/util/delimited_message_util.h": "google/protobuf/util/delimited_message_util.h",
+    "src/google/protobuf/util/field_comparator.h": "google/protobuf/util/field_comparator.h",
+    "src/google/protobuf/util/field_mask_util.h": "google/protobuf/util/field_mask_util.h",
+    "src/google/protobuf/util/internal/constants.h": "google/protobuf/util/internal/constants.h",
+    "src/google/protobuf/util/internal/datapiece.h": "google/protobuf/util/internal/datapiece.h",
+    "src/google/protobuf/util/internal/default_value_objectwriter.h": "google/protobuf/util/internal/default_value_objectwriter.h",
+    "src/google/protobuf/util/internal/error_listener.h": "google/protobuf/util/internal/error_listener.h",
+    "src/google/protobuf/util/internal/expecting_objectwriter.h": "google/protobuf/util/internal/expecting_objectwriter.h",
+    "src/google/protobuf/util/internal/field_mask_utility.h": "google/protobuf/util/internal/field_mask_utility.h",
+    "src/google/protobuf/util/internal/json_escaping.h": "google/protobuf/util/internal/json_escaping.h",
+    "src/google/protobuf/util/internal/json_objectwriter.h": "google/protobuf/util/internal/json_objectwriter.h",
+    "src/google/protobuf/util/internal/json_stream_parser.h": "google/protobuf/util/internal/json_stream_parser.h",
+    "src/google/protobuf/util/internal/location_tracker.h": "google/protobuf/util/internal/location_tracker.h",
+    "src/google/protobuf/util/internal/mock_error_listener.h": "google/protobuf/util/internal/mock_error_listener.h",
+    "src/google/protobuf/util/internal/object_location_tracker.h": "google/protobuf/util/internal/object_location_tracker.h",
+    "src/google/protobuf/util/internal/object_source.h": "google/protobuf/util/internal/object_source.h",
+    "src/google/protobuf/util/internal/object_writer.h": "google/protobuf/util/internal/object_writer.h",
+    "src/google/protobuf/util/internal/proto_writer.h": "google/protobuf/util/internal/proto_writer.h",
+    "src/google/protobuf/util/internal/protostream_objectsource.h": "google/protobuf/util/internal/protostream_objectsource.h",
+    "src/google/protobuf/util/internal/protostream_objectwriter.h": "google/protobuf/util/internal/protostream_objectwriter.h",
+    "src/google/protobuf/util/internal/structured_objectwriter.h": "google/protobuf/util/internal/structured_objectwriter.h",
+    "src/google/protobuf/util/internal/type_info.h": "google/protobuf/util/internal/type_info.h",
+    "src/google/protobuf/util/internal/type_info_test_helper.h": "google/protobuf/util/internal/type_info_test_helper.h",
+    "src/google/protobuf/util/internal/utility.h": "google/protobuf/util/internal/utility.h",
+    "src/google/protobuf/util/json_util.h": "google/protobuf/util/json_util.h",
+    "src/google/protobuf/util/message_differencer.h": "google/protobuf/util/message_differencer.h",
+    "src/google/protobuf/util/package_info.h": "google/protobuf/util/package_info.h",
+    "src/google/protobuf/util/time_util.h": "google/protobuf/util/time_util.h",
+    "src/google/protobuf/util/type_resolver.h": "google/protobuf/util/type_resolver.h",
+    "src/google/protobuf/util/type_resolver_util.h": "google/protobuf/util/type_resolver_util.h",
+    "src/google/protobuf/wire_format.h": "google/protobuf/wire_format.h",
+    "src/google/protobuf/wire_format_lite.h": "google/protobuf/wire_format_lite.h",
+    "src/google/protobuf/wrappers.pb.h": "google/protobuf/wrappers.pb.h",
+  },
+  xcconfig_by_build_setting = defs_xcconfigs.get("protobuf_pty", {}),
+  visibility = ["//visibility:public"],
+)

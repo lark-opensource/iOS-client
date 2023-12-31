@@ -1,0 +1,765 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "BDABTestSDK_pod_hdrs",
+  srcs = [
+    ":BDABTestSDK_root_pod_hdrs",
+    ":Core_pod_hdrs",
+    ":Settings_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "BDABTestSDK_private_includes",
+  include = [
+    "external/BDABTestSDK/pod_support/Headers/Private/BDABTestSDK/"
+  ],
+  deps = [],
+  external_name = "BDABTestSDK"
+)
+gen_includes(
+  name = "BDABTestSDK_public_includes",
+  include = [
+    "external/BDABTestSDK/pod_support/Headers/Public/BDABTestSDK/"
+  ],
+  deps = [],
+  external_name = "BDABTestSDK"
+)
+filegroup(
+  name = "_BDABTestSDK_hdrs",
+  srcs = [
+    ":BDABTestSDK_root_hdrs",
+    ":Core_hdrs",
+    ":Settings_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "BDABTestSDK_xcode_hmapsource",
+  hdrs = [
+    ":BDABTestSDK_root_hdrs",
+    ":Core_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "BDABTestSDK_xcode_hmap",
+  dep = ":BDABTestSDK_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/BDABTestSDK/*-bitsky-generated.modulemap", "pod_support/Headers/Public/BDABTestSDK/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "BDABTestSDK_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "BDABTestSDK",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "BDABTestSDK_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":BDABTestSDK_xcode_hmap"
+  ],
+  external_name = "BDABTestSDK",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDABTestSDK_root_hdrs",
+  srcs = [
+    "BDABTestSDK/Manager/BDABTestManager.h",
+    "BDABTestSDK/Models/BDABTestBaseExperiment.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDABTestSDK_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Public/BDABTestSDK/BDABTestBaseExperiment.h",
+    "pod_support/Headers/Public/BDABTestSDK/BDABTestManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDABTestSDK_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDABTestSDK_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "BDABTestSDK_module_map",
+  module_map = "pod_support/Headers/Public/BDABTestSDK/BDABTestSDK-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDABTestSDK/BDABTestSDK-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDABTestSDK_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "BDABTestSDK_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "CoreGraphics"
+  ],
+  deps = [
+    ":BDABTestSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDABTestSDK_private_includes",
+    ":BDABTestSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":BDABTestSDK_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDABTestSDK_POD_VERSION=@\\\"9999_1.0.4-rc.9\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDABTestSDK",
+  deps = [
+    ":BDABTestSDK_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "BDABTestSDK_lib",
+  deps = [
+    ":BDABTestSDK"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [
+    "BDABTestSDK/ClientAB/BDABKeychainStorage.h",
+    "BDABTestSDK/ClientAB/BDClientABDefine.h",
+    "BDABTestSDK/ClientAB/BDClientABManager.h",
+    "BDABTestSDK/ClientAB/BDClientABManagerUtil.h",
+    "BDABTestSDK/ClientAB/BDClientABStorageManager.h",
+    "BDABTestSDK/Manager/BDABTestExposureManager.h",
+    "BDABTestSDK/Manager/BDABTestManager+Cache.h",
+    "BDABTestSDK/Manager/BDABTestManager+Private.h",
+    "BDABTestSDK/Manager/BDABTestManager.h",
+    "BDABTestSDK/Models/BDABTestBaseExperiment+Private.h",
+    "BDABTestSDK/Models/BDABTestBaseExperiment.h",
+    "BDABTestSDK/Models/BDABTestExperimentItemModel.h",
+    "BDABTestSDK/Network/BDABTestExperimentUpdater.h",
+    "BDABTestSDK/Panel/BDABTestExperimentDetailViewController.h",
+    "BDABTestSDK/Panel/BDABTestPanelTableViewCell.h",
+    "BDABTestSDK/Panel/BDABTestValuePanelViewController.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDABTestSDK/BDABKeychainStorage.h",
+    "pod_support/Headers/Private/BDABTestSDK/BDABTestBaseExperiment+Private.h",
+    "pod_support/Headers/Private/BDABTestSDK/BDABTestBaseExperiment.h",
+    "pod_support/Headers/Private/BDABTestSDK/BDABTestExperimentDetailViewController.h",
+    "pod_support/Headers/Private/BDABTestSDK/BDABTestExperimentItemModel.h",
+    "pod_support/Headers/Private/BDABTestSDK/BDABTestExperimentUpdater.h",
+    "pod_support/Headers/Private/BDABTestSDK/BDABTestExposureManager.h",
+    "pod_support/Headers/Private/BDABTestSDK/BDABTestManager+Cache.h",
+    "pod_support/Headers/Private/BDABTestSDK/BDABTestManager+Private.h",
+    "pod_support/Headers/Private/BDABTestSDK/BDABTestManager.h",
+    "pod_support/Headers/Private/BDABTestSDK/BDABTestPanelTableViewCell.h",
+    "pod_support/Headers/Private/BDABTestSDK/BDABTestValuePanelViewController.h",
+    "pod_support/Headers/Private/BDABTestSDK/BDClientABDefine.h",
+    "pod_support/Headers/Private/BDABTestSDK/BDClientABManager.h",
+    "pod_support/Headers/Private/BDABTestSDK/BDClientABManagerUtil.h",
+    "pod_support/Headers/Private/BDABTestSDK/BDClientABStorageManager.h",
+    "pod_support/Headers/Public/BDABTestSDK/BDABKeychainStorage.h",
+    "pod_support/Headers/Public/BDABTestSDK/BDABTestBaseExperiment+Private.h",
+    "pod_support/Headers/Public/BDABTestSDK/BDABTestBaseExperiment.h",
+    "pod_support/Headers/Public/BDABTestSDK/BDABTestExperimentDetailViewController.h",
+    "pod_support/Headers/Public/BDABTestSDK/BDABTestExperimentItemModel.h",
+    "pod_support/Headers/Public/BDABTestSDK/BDABTestExperimentUpdater.h",
+    "pod_support/Headers/Public/BDABTestSDK/BDABTestExposureManager.h",
+    "pod_support/Headers/Public/BDABTestSDK/BDABTestManager+Cache.h",
+    "pod_support/Headers/Public/BDABTestSDK/BDABTestManager+Private.h",
+    "pod_support/Headers/Public/BDABTestSDK/BDABTestManager.h",
+    "pod_support/Headers/Public/BDABTestSDK/BDABTestPanelTableViewCell.h",
+    "pod_support/Headers/Public/BDABTestSDK/BDABTestValuePanelViewController.h",
+    "pod_support/Headers/Public/BDABTestSDK/BDClientABDefine.h",
+    "pod_support/Headers/Public/BDABTestSDK/BDClientABManager.h",
+    "pod_support/Headers/Public/BDABTestSDK/BDClientABManagerUtil.h",
+    "pod_support/Headers/Public/BDABTestSDK/BDClientABStorageManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/BDABTestSDK/BDABTestSDK_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDABTestSDK/BDABTestSDK_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_srcs",
+  srcs = [
+    "BDABTestSDK/ClientAB/BDABKeychainStorage.m",
+    "BDABTestSDK/Models/BDABTestBaseExperiment+Private.m",
+    "BDABTestSDK/Models/BDABTestBaseExperiment.m",
+    "BDABTestSDK/Panel/BDABTestExperimentDetailViewController.m",
+    "BDABTestSDK/Models/BDABTestExperimentItemModel.m",
+    "BDABTestSDK/Network/BDABTestExperimentUpdater.m",
+    "BDABTestSDK/Manager/BDABTestExposureManager.m",
+    "BDABTestSDK/Manager/BDABTestManager+Cache.m",
+    "BDABTestSDK/Manager/BDABTestManager.m",
+    "BDABTestSDK/Panel/BDABTestPanelTableViewCell.m",
+    "BDABTestSDK/Panel/BDABTestValuePanelViewController.m",
+    "BDABTestSDK/ClientAB/BDClientABManager.m",
+    "BDABTestSDK/ClientAB/BDClientABManagerUtil.m",
+    "BDABTestSDK/ClientAB/BDClientABStorageManager.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [
+    "Core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "CoreGraphics"
+  ],
+  deps = [
+    ":BDABTestSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDABTestSDK_private_includes",
+    ":BDABTestSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":Core_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDABTestSDK_POD_VERSION=@\\\"9999_1.0.4-rc.9\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Settings_hdrs",
+  srcs = [
+    "Subspec/Settings/BDABTestSettingsAdapter.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Settings_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Settings_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Settings_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Settings_module_map",
+  module_map = "pod_support/Headers/Public/BDABTestSDK/BDABTestSDK_Settings-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDABTestSDK/BDABTestSDK_Settings-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Settings_srcs",
+  srcs = [
+    "Subspec/Settings/BDABTestSettingsAdapter.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Settings_oc",
+  enable_modules = 1,
+  srcs = [
+    "Settings_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Settings_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "CoreGraphics"
+  ],
+  deps = [
+    ":BDABTestSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDABTestSDK_private_includes",
+    ":BDABTestSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":Settings_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDABTestSDK_POD_VERSION=@\\\"9999_1.0.4-rc.9\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Settings",
+  deps = [
+    ":Settings_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Settings_lib",
+  deps = [
+    ":Settings"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_BDABTestSDK_module_map",
+  module_map = "@BDABTestSDK//:pod_support/Headers/Public/BDABTestSDK/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@BDABTestSDK//:pod_support/Headers/Public/BDABTestSDK/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_BDABTestSDK_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@BDABTestSDK//:BDABTestSDK_objc_interface", "@BDABTestSDK//:Core_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_BDABTestSDK",
+  target_name = "Lark",
+  module_name = "BDABTestSDK",
+  hdrs = ["@BDABTestSDK//:BDABTestSDK_root_pod_hdrs", "@BDABTestSDK//:Core_pod_hdrs"],
+  srcs = ["@BDABTestSDK//:Core_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["BDTrackerProtocol", "TTNetworkManager"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDABTestSDK_POD_VERSION=@\\\"9999_1.0.4-rc.9\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "BDABTestSDK_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "BDABTestSDK_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["UIKit", "Foundation", "CoreGraphics"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "BDABTestSDK_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "BDABTestSDK_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "BDABTestSDK_dynamic", False),
+  tags = getattr(defs_external_objc_library, "BDABTestSDK_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("BDABTestSDK", {}),
+  visibility = ["//visibility:public"],
+)

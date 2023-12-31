@@ -1,0 +1,1 @@
+../../../../CreativeKitSticker/Classes/BaseSticker/ACCBaseStickerView+Private.h

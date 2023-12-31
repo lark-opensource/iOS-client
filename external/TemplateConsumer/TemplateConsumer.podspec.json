@@ -1,0 +1,187 @@
+{
+  "osx": {
+    "vendored_libraries": "ios-arch-osx/*_TemplateConsumer_*awesome_*.a"
+  },
+  "default_subspecs": [
+    "All"
+  ],
+  "platforms": {
+    "osx": "10.15",
+    "ios": "9.0"
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "TemplateConsumer_POD_VERSION=@\\\"9999_0.1.21.1-bugfix\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "__V_IPHONE_PLATFORM__ TemplateConsumer_POD_VERSION=@\\\"9999_0.1.21.1-bugfix\\\""
+  },
+  "_bytebus_platform": {
+    "repo_id": "15977",
+    "app_id": "9999"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/9999/TemplateConsumer/0.1.21.1-bugfix.1.binary/TemplateConsumer.framework.tar.xz"
+  },
+  "version": "0.1.21.1-bugfix.1.binary",
+  "source_files": [
+    "thirdparty/sha1/*.hpp",
+    "thirdparty/nlohmann/*.hpp",
+    "thirdparty/nlohmann/**/*.hpp"
+  ],
+  "homepage": "http://EXAMPLE/TemplateConsumer",
+  "repoId": "15977",
+  "subspecs": [
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_ScriptConsumer_*awesome_*.a"
+      },
+      "public_header_files": [
+        "ios/ScriptConsumer/Classes/ScriptModel/*.h",
+        "ios/ScriptConsumer/Classes/ScriptService/*.h"
+      ],
+      "name": "ScriptConsumer",
+      "xcconfig": {
+        "HEADER_SEARCH_PATHS": "\"$(PODS_TARGET_SRCROOT)/core/script\""
+      },
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_ScriptConsumer_*awesome_*.a"
+      },
+      "dependencies": {
+        "NLEPlatform": [],
+        "TemplateConsumer/Common": []
+      },
+      "source_files": [
+        "ios/ScriptConsumer/**/*.{h,mm,m}",
+        "core/script/**/*.{h,hpp,cpp,c}"
+      ]
+    },
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_Common_*awesome_*.a"
+      },
+      "public_header_files": [
+        "core/common/**/*.{h,hpp}"
+      ],
+      "name": "Common",
+      "xcconfig": {
+        "HEADER_SEARCH_PATHS": "\"$(PODS_TARGET_SRCROOT)/core/common\""
+      },
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Common_*awesome_*.a"
+      },
+      "source_files": [
+        "core/common/**/*.{h,hpp,cpp,c}"
+      ]
+    },
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_Movie_*awesome_*.a"
+      },
+      "public_header_files": [
+        "core/movie/**/*.{h,hpp}"
+      ],
+      "name": "Movie",
+      "xcconfig": {
+        "HEADER_SEARCH_PATHS": "\"$(PODS_TARGET_SRCROOT)/core/movie\""
+      },
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Movie_*awesome_*.a"
+      },
+      "dependencies": {
+        "NLEPlatform/Model": [],
+        "NLEPlatform/Movie": [],
+        "TemplateConsumer/Common": []
+      },
+      "source_files": [
+        "core/movie/**/*.{h,hpp,cpp,c,mm}"
+      ]
+    },
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_Cutsame_*awesome_*.a"
+      },
+      "public_header_files": [
+        "core/cutsame/**/*.{h,hpp}"
+      ],
+      "name": "Cutsame",
+      "xcconfig": {
+        "HEADER_SEARCH_PATHS": "\"$(PODS_TARGET_SRCROOT)/core/cutsame\" \"$(PODS_TARGET_SRCROOT)/thirdparty\""
+      },
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Cutsame_*awesome_*.a"
+      },
+      "dependencies": {
+        "NLEPlatform": [],
+        "TemplateConsumer/Common": []
+      },
+      "source_files": [
+        "core/cutsame/**/*.{h,hpp,cpp,c}",
+        "thirdparty/sha1/*.hpp",
+        "thirdparty/nlohmann/*.hpp",
+        "thirdparty/nlohmann/**/*.hpp"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "__V_IPHONE_PLATFORM__"
+      }
+    },
+    {
+      "dependencies": {
+        "TemplateConsumer/Movie": [],
+        "TemplateConsumer/Cutsame": []
+      },
+      "name": "All",
+      "preserve_paths": [
+        "**/*.bwp"
+      ]
+    }
+  ],
+  "prepare_command": "curl https://ios.bytedance.net/wlapi/tosDownload/iosbinary/platform/master/awesomecommand_xz.sh | bash ;",
+  "description": "framework_description",
+  "xcconfig": {
+    "CLANG_CXX_LIBRARY": "libc++",
+    "CC": "clang",
+    "CLANG_CXX_LANGUAGE_STANDARD": "c++14",
+    "OTHER_LDFLAGS": "-lc++",
+    "CXX": "clang++",
+    "HEADER_SEARCH_PATHS": "\"$(PODS_TARGET_SRCROOT)/thirdparty\" \"$(PODS_TARGET_SRCROOT)/thirdparty/nlohmann/*.hpp\" \"$(PODS_TARGET_SRCROOT)/thirdparty/sha1\""
+  },
+  "ios": {
+    "frameworks": [
+      "UIKit",
+      "Foundation",
+      "JavaScriptCore"
+    ],
+    "vendored_libraries": "ios-arch-iphone/*_TemplateConsumer_*awesome_*.a"
+  },
+  "authors": {
+    "xiebo": "xiebo.88@bytedance.com"
+  },
+  "source_code": {
+    "commit": "a644e7576daca21ce175d7474b5066d53e6d37ae",
+    "git": "git@code.byted.org:ies/TemplateConsumer.git"
+  },
+  "build_type": "system",
+  "name": "TemplateConsumer",
+  "license": {
+    "type": "MIT"
+  },
+  "build_file_count": 107,
+  "preserve_paths": [
+    "**/*.bwp"
+  ],
+  "summary": "framework_summary"
+}

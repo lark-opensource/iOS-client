@@ -1,0 +1,1 @@
+../../../../../Lynx/base/auto_reset.h

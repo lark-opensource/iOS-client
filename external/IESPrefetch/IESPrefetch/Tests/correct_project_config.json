@@ -1,0 +1,238 @@
+{
+    "project": "live_inapp",
+    "version": "0.0.2",
+    "hash": "^/home\\?",
+    "occasions": {
+        "launch_app":["launch_app_rule"]
+    },
+    "rules": {
+      "launch_app_rule": {
+          "prefetch_apis":["popularizeSummary", "testNested_post"]
+      },
+      "/falcon/live_inapp/page/guest_shop/index.html": {
+        "query": [{
+          "key": "uid"
+        }],
+        "prefetch_apis": [ "guestShopList" ]
+      },
+      "/falcon/live_inapp/page/feedback/index.html": {
+        "prefetch_apis": [ "feedbackList" ]
+      },
+      "/falcon/live_inapp/page/push_hot/index.html": [{
+        "hash": "#/home",
+        "prefetch_apis": [ "popularizeSummary" ]
+      }, {
+        "hash": "^/?",
+        "query": [{
+          "key": "item_id"
+        }, {
+          "key": "task_id"
+        }],
+        "prefetch_apis": [ "popularizeDetailWithItemAndTask" ]
+      }, {
+        "hash": "^/?",
+        "query": [{
+          "key": "item_id"
+        }],
+        "prefetch_apis": [ "popularizeCheckItem", "popularizeChoose" ]
+      }]
+    },
+    "restful_rules": {
+        "/share/item/:item_id": {
+            "prefetch_apis": [ "shareItemIdTask" ]
+        }
+    },
+    "prefetch_apis": {
+      "guestShopList": {
+        "expire": 30,
+        "url": "https://httpbin.org/get",
+        "method": "GET",
+        "params": {
+          "offset": {
+            "type": "static",
+            "value": 0
+          },
+          "count": {
+            "type": "static",
+            "value": 10
+          },
+          "isGuest": {
+            "type": "static",
+            "value": true
+          },
+          "userId": {
+            "type": "query",
+            "value": "uid"
+          }
+        }
+      },
+      "feedbackList": {
+        "expire": 3600,
+        "url": "https://httpbin.org/get",
+        "method": "GET",
+        "params": {
+          "appkey": {
+            "type": "variable",
+            "value": "feedback_appkey"
+          }
+        }
+      },
+      "popularizeSummary": {
+        "expire": 60,
+        "url": "https://httpbin.org/get",
+        "method": "GET"
+      },
+      "popularizeCheckItem": {
+        "expire": 1800,
+        "url": "https://httpbin.org/get",
+        "method": "GET",
+        "params": {
+          "item_id": {
+            "type": "query",
+            "value": "item_id"
+          }
+        }
+      },
+      "popularizeChoose": {
+        "expire": 60,
+        "url": "https://httpbin.org/get",
+        "params": {
+          "item_id": {
+            "type": "query",
+            "value": "item_id"
+          }
+        }
+      },
+      "popularizeDetailWithItemAndTask": {
+        "expire": 120,
+        "url": "https://httpbin.org/get",
+        "params": {
+          "item_id": {
+            "type": "query",
+            "value": "item_id"
+          },
+          "task_id": {
+            "type": "query",
+            "value": "task_id"
+          }
+        }
+      },
+      "shareItemIdTask": {
+        "expire": 60,
+        "url": "https://httpbin.org/get",
+        "params": {
+          "item_id": {
+            "type": "pathParam",
+            "value": "item_id"
+          }
+        }
+      },
+      "testNested_post": {
+        "expire": 60,
+        "url": "https://httpbin.org/post",
+        "method": "POST",
+        "data": {
+          "offset": {
+            "type": "static",
+            "value": 0
+          },
+          "count": {
+            "type": "static",
+            "value": 10
+          },
+          "isGuest": {
+            "type": "static",
+            "value": true
+          },
+          "userId": {
+            "type": "query",
+            "value": "uid"
+          },
+          "post-scene": {
+            "type": "nested",
+            "value": {
+              "post-scene-id1": {
+                "type": "static",
+                "value": 1
+              },
+              "post-scene-id2": {
+                "type": "query",
+                "value": "foo_key"
+              }
+            }
+          },
+          "post-block": {
+            "type": "nested",
+            "value": {
+              "post-block-xxx1": {
+                "type": "nested",
+                "value": {
+                  "post-block-xxx1-id1": {
+                    "type": "static",
+                    "dataType": "number",
+                    "value": 1
+                  },
+                  "post-block-xxx1-id2": {
+                    "type": "query",
+                    "value": "foo_key"
+                  },
+                  "post-block-xxx1-id3": {
+                    "type": "static",
+                    "value": "666"
+                  },
+                }
+              }
+            }
+          }
+        }
+      },
+      "testNested_get": {
+        "expire": 60,
+        "url": "https://httpbin.org/get",
+        "method": "GET",
+        "params": {
+          "offset": {
+            "type": "static",
+            "value": 0
+          },
+          "userId": {
+            "type": "query",
+            "value": "uid"
+          },
+          "get-scene": {
+            "type": "nested",
+            "value": {
+              "get-scene-id1": {
+                "type": "static",
+                "dataType": "number",
+                "value": 1
+              },
+              "get-scene-id2": {
+                "type": "query",
+                "value": "foo_key"
+              }
+            }
+          },
+          "get-block": {
+            "type": "nested",
+            "value": {
+              "get-block-xxx1": {
+                "type": "nested",
+                "value": {
+                  "get-block-xxx1-id1": {
+                    "type": "static",
+                    "dataType": "number",
+                    "value": 1
+                  },
+                  "get-block-xxx1-id2": {
+                    "type": "query",
+                    "value": "foo_key"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+}

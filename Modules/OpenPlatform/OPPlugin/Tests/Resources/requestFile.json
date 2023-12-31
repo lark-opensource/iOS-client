@@ -1,0 +1,65 @@
+{
+  "test_request_success()": {
+    "params": {
+      "url": "https://www.feishu.cn",
+      "method": "GET",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "requestTaskId": "rtyiombf-3y6276678432-fvueyguf23g7vyuce"
+    },
+    "responsePayload": {
+      "statusCode": 200,
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": "Hello World",
+      "requestTaskId": "rtyiombf-3y6276678432-fvueyguf23g7vyuce"
+    },
+    "extra": {
+      "url": "https://www.feishu.cn",
+      "statusCode": 200,
+      "cookies": []
+    },
+    "desc": "request 正常流程"
+  },
+  "test_request_save_cookie_success()": {
+    "params": {
+      "url": "https://www.feishu.cn",
+      "method": "GET",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "requestTaskId": "rtyiombf-3y6276678432-fvueyguf23g7vyuce"
+    },
+    "responsePayload": {
+      "statusCode": 200,
+      "headers": {
+        "Content-Type": "application/json",
+        "Set-Cookie": "test_request_save_cookie_success()=123; Path=/; Expires=Wed, 21 Oct 2015 07:28:00 GMT; HttpOnly"
+      },
+      "body": "Hello World",
+      "requestTaskId": "rtyiombf-3y6276678432-fvueyguf23g7vyuce"
+    },
+    "extra": {
+      "url": "https://www.feishu.cn",
+      "statusCode": 200,
+      "cookie": ["test_request_save_cookie_success()=123; Path=/;"]
+    },
+    "desc": "request 200 + Cookie 流程"
+  },
+  "test_request_canceled()": {
+    "params": {
+      "url": "https://www.feishu.cn",
+      "method": "GET",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "requestTaskId": "rtyiombf-3y6276678432-fvueyguf23g7vyuce"
+    },
+    "errResult": {
+      "errno": 301,
+      "errString": "Network request cancelled"
+    }
+  }
+}

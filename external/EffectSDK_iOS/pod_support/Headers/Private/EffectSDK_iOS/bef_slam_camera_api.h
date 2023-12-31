@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_slam_camera_api.h

@@ -1,0 +1,1 @@
+../../../../CreativeAlbumKit/Classes/Core/Protocol/CAKSelectedAssetsViewProtocol.h

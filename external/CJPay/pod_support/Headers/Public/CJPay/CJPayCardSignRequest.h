@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayAbility/VerifyModule/VerifyBase/SMS/Request/CJPayCardSignRequest.h

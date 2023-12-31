@@ -1,0 +1,517 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "YYText_pod_hdrs",
+  srcs = [
+    ":YYText_root_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "YYText_private_includes",
+  include = [
+    "external/YYText/pod_support/Headers/Private/YYText/"
+  ],
+  deps = [],
+  external_name = "YYText"
+)
+gen_includes(
+  name = "YYText_public_includes",
+  include = [
+    "external/YYText/pod_support/Headers/Public/YYText/"
+  ],
+  deps = [],
+  external_name = "YYText"
+)
+filegroup(
+  name = "_YYText_hdrs",
+  srcs = [
+    ":YYText_root_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "YYText_xcode_hmapsource",
+  hdrs = [
+    ":_YYText_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "YYText_xcode_hmap",
+  dep = ":YYText_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/YYText/*-bitsky-generated.modulemap", "pod_support/Headers/Public/YYText/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "YYText_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "YYText",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "YYText_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":YYText_xcode_hmap"
+  ],
+  external_name = "YYText",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "YYText_root_hdrs",
+  srcs = [
+    "YYText/Component/YYTextContainerView.h",
+    "YYText/Component/YYTextDebugOption.h",
+    "YYText/Component/YYTextEffectWindow.h",
+    "YYText/Component/YYTextInput.h",
+    "YYText/Component/YYTextKeyboardManager.h",
+    "YYText/Component/YYTextLayout.h",
+    "YYText/Component/YYTextLine.h",
+    "YYText/Component/YYTextMagnifier.h",
+    "YYText/Component/YYTextSelectionView.h",
+    "YYText/String/YYTextArchiver.h",
+    "YYText/String/YYTextAttribute.h",
+    "YYText/String/YYTextParser.h",
+    "YYText/String/YYTextRubyAnnotation.h",
+    "YYText/String/YYTextRunDelegate.h",
+    "YYText/Utility/NSAttributedString+YYText.h",
+    "YYText/Utility/NSParagraphStyle+YYText.h",
+    "YYText/Utility/UIPasteboard+YYText.h",
+    "YYText/Utility/UIView+YYText.h",
+    "YYText/Utility/YYTextAsyncLayer.h",
+    "YYText/Utility/YYTextTransaction.h",
+    "YYText/Utility/YYTextUtilities.h",
+    "YYText/Utility/YYTextWeakProxy.h",
+    "YYText/YYLabel.h",
+    "YYText/YYText.h",
+    "YYText/YYTextView.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "YYText_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/YYText/NSAttributedString+YYText.h",
+    "pod_support/Headers/Private/YYText/NSParagraphStyle+YYText.h",
+    "pod_support/Headers/Private/YYText/UIPasteboard+YYText.h",
+    "pod_support/Headers/Private/YYText/UIView+YYText.h",
+    "pod_support/Headers/Private/YYText/YYLabel.h",
+    "pod_support/Headers/Private/YYText/YYText.h",
+    "pod_support/Headers/Private/YYText/YYTextArchiver.h",
+    "pod_support/Headers/Private/YYText/YYTextAsyncLayer.h",
+    "pod_support/Headers/Private/YYText/YYTextAttribute.h",
+    "pod_support/Headers/Private/YYText/YYTextContainerView.h",
+    "pod_support/Headers/Private/YYText/YYTextDebugOption.h",
+    "pod_support/Headers/Private/YYText/YYTextEffectWindow.h",
+    "pod_support/Headers/Private/YYText/YYTextInput.h",
+    "pod_support/Headers/Private/YYText/YYTextKeyboardManager.h",
+    "pod_support/Headers/Private/YYText/YYTextLayout.h",
+    "pod_support/Headers/Private/YYText/YYTextLine.h",
+    "pod_support/Headers/Private/YYText/YYTextMagnifier.h",
+    "pod_support/Headers/Private/YYText/YYTextParser.h",
+    "pod_support/Headers/Private/YYText/YYTextRubyAnnotation.h",
+    "pod_support/Headers/Private/YYText/YYTextRunDelegate.h",
+    "pod_support/Headers/Private/YYText/YYTextSelectionView.h",
+    "pod_support/Headers/Private/YYText/YYTextTransaction.h",
+    "pod_support/Headers/Private/YYText/YYTextUtilities.h",
+    "pod_support/Headers/Private/YYText/YYTextView.h",
+    "pod_support/Headers/Private/YYText/YYTextWeakProxy.h",
+    "pod_support/Headers/Public/YYText/NSAttributedString+YYText.h",
+    "pod_support/Headers/Public/YYText/NSParagraphStyle+YYText.h",
+    "pod_support/Headers/Public/YYText/UIPasteboard+YYText.h",
+    "pod_support/Headers/Public/YYText/UIView+YYText.h",
+    "pod_support/Headers/Public/YYText/YYLabel.h",
+    "pod_support/Headers/Public/YYText/YYText.h",
+    "pod_support/Headers/Public/YYText/YYTextArchiver.h",
+    "pod_support/Headers/Public/YYText/YYTextAsyncLayer.h",
+    "pod_support/Headers/Public/YYText/YYTextAttribute.h",
+    "pod_support/Headers/Public/YYText/YYTextContainerView.h",
+    "pod_support/Headers/Public/YYText/YYTextDebugOption.h",
+    "pod_support/Headers/Public/YYText/YYTextEffectWindow.h",
+    "pod_support/Headers/Public/YYText/YYTextInput.h",
+    "pod_support/Headers/Public/YYText/YYTextKeyboardManager.h",
+    "pod_support/Headers/Public/YYText/YYTextLayout.h",
+    "pod_support/Headers/Public/YYText/YYTextLine.h",
+    "pod_support/Headers/Public/YYText/YYTextMagnifier.h",
+    "pod_support/Headers/Public/YYText/YYTextParser.h",
+    "pod_support/Headers/Public/YYText/YYTextRubyAnnotation.h",
+    "pod_support/Headers/Public/YYText/YYTextRunDelegate.h",
+    "pod_support/Headers/Public/YYText/YYTextSelectionView.h",
+    "pod_support/Headers/Public/YYText/YYTextTransaction.h",
+    "pod_support/Headers/Public/YYText/YYTextUtilities.h",
+    "pod_support/Headers/Public/YYText/YYTextView.h",
+    "pod_support/Headers/Public/YYText/YYTextWeakProxy.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "YYText_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "YYText_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "YYText_module_map",
+  module_map = "pod_support/Headers/Public/YYText/YYText-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/YYText/YYText-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "YYText_root_srcs",
+  srcs = [
+    "YYText/Utility/NSAttributedString+YYText.m",
+    "YYText/Utility/NSParagraphStyle+YYText.m",
+    "YYText/Utility/UIPasteboard+YYText.m",
+    "YYText/Utility/UIView+YYText.m",
+    "YYText/YYLabel.m",
+    "YYText/String/YYTextArchiver.m",
+    "YYText/Utility/YYTextAsyncLayer.m",
+    "YYText/String/YYTextAttribute.m",
+    "YYText/Component/YYTextContainerView.m",
+    "YYText/Component/YYTextDebugOption.m",
+    "YYText/Component/YYTextEffectWindow.m",
+    "YYText/Component/YYTextInput.m",
+    "YYText/Component/YYTextKeyboardManager.m",
+    "YYText/Component/YYTextLayout.m",
+    "YYText/Component/YYTextLine.m",
+    "YYText/Component/YYTextMagnifier.m",
+    "YYText/String/YYTextParser.m",
+    "YYText/String/YYTextRubyAnnotation.m",
+    "YYText/String/YYTextRunDelegate.m",
+    "YYText/Component/YYTextSelectionView.m",
+    "YYText/Utility/YYTextTransaction.m",
+    "YYText/Utility/YYTextUtilities.m",
+    "YYText/YYTextView.m",
+    "YYText/Utility/YYTextWeakProxy.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "YYText_oc",
+  enable_modules = 1,
+  srcs = [
+    "YYText_root_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "YYText_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "CoreFoundation",
+    "CoreText",
+    "QuartzCore",
+    "Accelerate",
+    "MobileCoreServices"
+  ],
+  deps = [
+    ":YYText_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":YYText_private_includes",
+    ":YYText_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":YYText_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "YYText",
+  deps = [
+    ":YYText_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "YYText_lib",
+  deps = [
+    ":YYText"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_YYText_module_map",
+  module_map = "@YYText//:pod_support/Headers/Public/YYText/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@YYText//:pod_support/Headers/Public/YYText/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_YYText_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@YYText//:YYText_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_YYText",
+  target_name = "Lark",
+  module_name = "YYText",
+  hdrs = ["@YYText//:YYText_root_pod_hdrs"],
+  srcs = ["@YYText//:YYText_root_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "YYText_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "YYText_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["UIKit", "CoreFoundation", "CoreText", "QuartzCore", "Accelerate", "MobileCoreServices"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "YYText_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "YYText_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "YYText_dynamic", False),
+  tags = getattr(defs_external_objc_library, "YYText_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("YYText", {}),
+  visibility = ["//visibility:public"],
+)

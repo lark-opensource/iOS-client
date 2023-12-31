@@ -1,0 +1,21 @@
+type: pipeline # 必填, 表示类型为pipeline
+
+jobs:
+  pre__check:
+    display_name: 前置检查
+    type: exec  # exec 任务
+    env:
+      type: freestyle
+      name: bits_ios
+    failed_approvers:
+      - kongkaikai@bytedance.com
+      - wangxiaohua@bytedance.com
+      - supeng.charlie@bytedance.com
+      - doujian@bytedance.com
+    settings:
+      os_type: 1
+      required_resource: 1
+      queue_id: 4
+      image_ref: "LarkBase:1.1.5"
+    script:
+      - echo 'success'

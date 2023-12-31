@@ -1,0 +1,1 @@
+../../../../CameraArch/Record/ComponentConfig/ACCRecorderViewModel.h

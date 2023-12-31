@@ -1,0 +1,79 @@
+{
+  "osx": {
+    "header_mappings_dir": "inc",
+    "vendored_libraries": [
+      "lib/libaudiosdk.a",
+      "ios-arch-osx/*_audiosdk_*awesome_*.a"
+    ],
+    "source_files": "inc/**/*.{h,hh,hpp,tpp}"
+  },
+  "static_framework": true,
+  "platforms": {
+    "osx": "10.11",
+    "ios": "8.0"
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "audiosdk_POD_VERSION=@\\\"9999_14.30.2-common\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "audiosdk_POD_VERSION=@\\\"9999_14.30.2-common\\\""
+  },
+  "_bytebus_platform": {
+    "repo_id": "3515",
+    "app_id": "9999"
+  },
+  "module_map": "audiosdk.modulemap",
+  "libraries": "c++",
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/9999/audiosdk/14.30.2-common.1.binary/audiosdk.framework.tar.xz"
+  },
+  "version": "14.30.2-common.1.binary",
+  "homepage": "https://code.byted.org/ies/sami_core_ios",
+  "repoId": "3515",
+  "prepare_command": "curl https://ios.bytedance.net/wlapi/tosDownload/iosbinary/platform/master/awesomecommand_xz.sh | bash ;",
+  "description": "framework_description",
+  "ios": {
+    "header_mappings_dir": "inc",
+    "frameworks": [
+      "Accelerate",
+      "AudioToolbox",
+      "CoreFoundation",
+      "UIKit",
+      "Foundation",
+      "JavaScriptCore"
+    ],
+    "vendored_libraries": [
+      "lib/libaudiosdk.a",
+      "ios-arch-iphone/*_audiosdk_*awesome_*.a"
+    ],
+    "source_files": "inc/**/*.{h,hh,hpp,tpp}"
+  },
+  "dependencies": {
+    "bytenn-ios": [],
+    "yaml-cpp": [
+      "~> 0.6.2"
+    ]
+  },
+  "authors": {
+    "zhuxiangning.zxn": "zhuxiangning.zxn@bytedance.com"
+  },
+  "source_code": {
+    "commit": "182781d45e4e4490be702eb9efcb73062fb1044b",
+    "git": "git@code.byted.org:ies/sami_core_ios.git"
+  },
+  "build_type": "system",
+  "name": "audiosdk",
+  "license": "MIT",
+  "build_file_count": 0,
+  "preserve_paths": [
+    "**/*.bwp"
+  ],
+  "summary": "framework_summary",
+  "frameworks": [
+    "Accelerate",
+    "AudioToolbox",
+    "CoreFoundation"
+  ]
+}

@@ -1,0 +1,1 @@
+../../../../BDXBridgeKit/Classes/Methods/UI/BDXBridgeConfigureStatusBarMethod.h

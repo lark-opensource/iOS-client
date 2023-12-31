@@ -1,0 +1,413 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "React-RCTImage_pod_hdrs",
+  srcs = [
+    ":React-RCTImage_root_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "React-RCTImage_private_includes",
+  include = [
+    "external/React-RCTImage/pod_support/Headers/Private/React-RCTImage/"
+  ],
+  deps = [],
+  external_name = "React-RCTImage"
+)
+gen_includes(
+  name = "React-RCTImage_public_includes",
+  include = [
+    "external/React-RCTImage/pod_support/Headers/Public/React-RCTImage/"
+  ],
+  deps = [],
+  external_name = "React-RCTImage"
+)
+filegroup(
+  name = "_React-RCTImage_hdrs",
+  srcs = [
+    ":React-RCTImage_root_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "React-RCTImage_xcode_hmapsource",
+  hdrs = [
+    ":_React-RCTImage_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "React-RCTImage_xcode_hmap",
+  dep = ":React-RCTImage_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/React-RCTImage/*-bitsky-generated.modulemap", "pod_support/Headers/Public/React-RCTImage/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "React-RCTImage_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "React-RCTImage",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "React-RCTImage_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "React-RCTImage_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "React-RCTImage_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "React-RCTImage_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "React-RCTImage_module_map",
+  module_map = "pod_support/Headers/Public/React-RCTImage/React-RCTImage-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/React-RCTImage/React-RCTImage-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "React-RCTImage_root_srcs",
+  srcs = [
+    "Libraries/Image/RCTAnimatedImage.m",
+    "Libraries/Image/RCTGIFImageDecoder.m",
+    "Libraries/Image/RCTImageBlurUtils.m",
+    "Libraries/Image/RCTImageCache.m",
+    "Libraries/Image/RCTImageShadowView.m",
+    "Libraries/Image/RCTImageUtils.m",
+    "Libraries/Image/RCTImageView.m",
+    "Libraries/Image/RCTImageViewManager.m",
+    "Libraries/Image/RCTLocalAssetImageLoader.m",
+    "Libraries/Image/RCTResizeMode.m",
+    "Libraries/Image/RCTUIImageViewAnimated.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "React-RCTImage_oc",
+  enable_modules = 1,
+  srcs = [
+    "React-RCTImage_root_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "React-RCTImage_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":React-RCTImage_private_includes",
+    ":React-RCTImage_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@React-Core//:RCTImageHeaders_objc_interface",
+    "@React-RCTNetwork//:React-RCTNetwork_objc_interface",
+    "@React-Core//:RCTImageHeaders_swift_interface",
+    "@React-RCTNetwork//:React-RCTNetwork_swift_interface",
+    ":React-RCTImage_objc_interface",
+    "@React-Core//:RCTImageHeaders_module_map",
+    "@React-RCTNetwork//:React-RCTNetwork_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "React-RCTImage",
+  deps = [
+    ":React-RCTImage_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "React-RCTImage_lib",
+  deps = [
+    ":React-RCTImage"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_React-RCTImage_module_map",
+  module_map = "@React-RCTImage//:pod_support/Headers/Public/React-RCTImage/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@React-RCTImage//:pod_support/Headers/Public/React-RCTImage/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_React-RCTImage_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@React-RCTImage//:React-RCTImage_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_React-RCTImage",
+  target_name = "Lark",
+  module_name = "RCTImage",
+  hdrs = ["@React-RCTImage//:React-RCTImage_root_pod_hdrs"],
+  srcs = ["@React-RCTImage//:React-RCTImage_root_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["React-Core", "React-RCTNetwork"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "React_RCTImage_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "React_RCTImage_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "React_RCTImage_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "React_RCTImage_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "React_RCTImage_dynamic", False),
+  tags = getattr(defs_external_objc_library, "React_RCTImage_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("React_RCTImage", {}),
+  visibility = ["//visibility:public"],
+)

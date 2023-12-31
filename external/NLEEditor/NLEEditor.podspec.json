@@ -1,0 +1,123 @@
+{
+  "_bytebus_platform": {
+    "repo_id": "16259",
+    "app_id": "9999"
+  },
+  "prepare_command": "curl https://ios.bytedance.net/wlapi/tosDownload/iosbinary/platform/master/awesomecommand_xz.sh | bash ;",
+  "preserve_paths": [
+    "**/*.bwp"
+  ],
+  "description": "framework_description",
+  "license": {
+    "type": "MIT"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "NLEEditor_POD_VERSION=@\\\"9999_0.0.0.511-lark\\\""
+  },
+  "ios": {
+    "libraries": "xml2",
+    "frameworks": [
+      "UIKit",
+      "Foundation",
+      "JavaScriptCore"
+    ]
+  },
+  "summary": "framework_summary",
+  "build_type": "system",
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/9999/NLEEditor/0.0.0.511-lark.1.binary/NLEEditor.framework.tar.xz"
+  },
+  "version": "0.0.0.511-lark.1.binary",
+  "build_file_count": 118,
+  "authors": {
+    "bytedance": "bytedance@bytedance.com"
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "NLEEditor_POD_VERSION=@\\\"9999_0.0.0.511-lark\\\""
+  },
+  "source_code": {
+    "commit": "46973ddf045995bf6b998d747802fd79ee53db53",
+    "git": "git@code.byted.org:ies/NLEEditor-iOS.git"
+  },
+  "homepage": "https://github.com/bytedance/NLEEditor-iOS",
+  "repoId": "16259",
+  "subspecs": [
+    {
+      "public_header_files": [
+        "NLEEditor/Classes/EditorArch/**/*.h"
+      ],
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "name": "EditorArch",
+      "resource_bundles": {
+        "EditorArch": [
+          "NLEEditor/Assets/EditorArch/*.xcassets",
+          "NLEEditor/Assets/styles/**",
+          "NLEEditor/Assets/lottie/**"
+        ]
+      },
+      "prefix_header_contents": "#ifdef __OBJC__\n#import \"DVEUIColorDefines.h\"\n#import \"DVEUIFontDefines.h\"\n#import \"DVEUILayoutDefines.h\"\n#import \"DVEConfigDefines.h\"\n#import <DVEFoundationKit/DVEMacros.h>\n#import <DVEFoundationKit/DVEGCDUtils.h>\n#endif",
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_EditorArch_*awesome_*.a"
+      },
+      "dependencies": {
+        "PocketSVG": [],
+        "MJExtension": [],
+        "MJRefresh": [],
+        "TTVideoEditor": [],
+        "NLEPlatform/Model": [],
+        "MBProgressHUD": [],
+        "ReactiveObjC": [],
+        "SGPagingView": [],
+        "lottie-ios": [],
+        "SDWebImage": []
+      },
+      "source_files": [
+        "NLEEditor/Classes/EditorArch/**/*"
+      ]
+    },
+    {
+      "name": "LiteEditor",
+      "resource_bundles": {
+        "DVELiteEditor": [
+          "NLEEditor/Assets/LiteEditor/*.xcassets"
+        ]
+      },
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_LiteEditor_*awesome_*.a"
+      },
+      "dependencies": {
+        "NLEEditor/EditorArch": [],
+        "DVETrackKit/DVELiteTrack": []
+      },
+      "source_files": [
+        "NLEEditor/Classes/LiteEditor/**/*"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "ENABLE_LITEEDITOR=1"
+      }
+    },
+    {
+      "dependencies": {
+        "NLEEditor/LiteEditor": [],
+        "NLEPlatform/Adapter": [],
+        "DVEFoundationKit/Adapter": [],
+        "DVETrackKit/Adapter": []
+      },
+      "name": "Adapter",
+      "preserve_paths": [
+        "**/*.bwp"
+      ]
+    }
+  ],
+  "name": "NLEEditor"
+}

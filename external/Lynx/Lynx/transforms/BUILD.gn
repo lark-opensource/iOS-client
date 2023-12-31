@@ -1,0 +1,95 @@
+# Copyright 2022 The Lynx Authors. All rights reserved.
+
+import("//Lynx/Lynx.gni")
+import("//testing/test.gni")
+
+if (is_android) {
+  import("//build/config/android/config.gni")
+}
+
+if (target_cpu == "arm" || target_cpu == "arm64") {
+  import("//build/config/arm.gni")
+}
+
+# transforms_shared_sources
+transforms_shared_sources = []
+transforms_sources_folders = [ "./" ]
+
+paths = ""
+foreach(folder_name, transforms_sources_folders) {
+  paths += rebase_path(folder_name) + ";"
+}
+output = exec_script("//build/read_file_names.py", ["-p", paths, "-b", rebase_path("./"), "-e", "unittest.cc"], "list lines", [])
+transforms_shared_sources += output
+# transforms_shared_sources end
+
+
+lynx_source_set("transforms") {
+
+  include_dirs = ["../../third_party"]
+
+  sources = transforms_shared_sources
+
+  public_deps = [
+    "//third_party/rapidjson",
+  ]
+  if (!is_android) {
+    public_deps += [
+      "//Lynx/base",
+      "//Lynx/lepus",
+    ]
+  }
+}
+
+lynx_source_set("transforms_oliver") {
+  include_dirs = ["../../third_party"]
+  sources = transforms_shared_sources
+}
+
+unittest_set("transforms_testset") {
+  testonly = true
+  sources = [
+    "quaternion_unittest.cc",
+    "transform_operation_unittest.cc",
+    "transform_operations_unittest.cc"
+  ]
+  deps = [
+    "//Lynx/shell:mock_tasm_delegate",
+    "//Lynx/tasm"
+  ]
+  public_deps = [
+    "//Lynx/transforms",
+  ]
+}
+
+unit_test("transforms_unittests") {
+  testonly = true
+  sources = [
+  ]
+  deps = [
+    "//Lynx/transforms",
+    "//Lynx/transforms:transforms_testset",
+    "//Lynx/tasm/react:dom"
+  ]
+}
+
+group("transforms_tests") {
+  testonly = true
+  deps = [
+    "//Lynx/transforms:transforms_unittests"
+  ]
+  public_deps = [
+    "//Lynx/transforms:transforms_testset"
+  ]
+}
+
+if (enable_gen_podspec) {
+  gen_subspec_file("transforms_podspec") {
+    module_name = "Lynx"
+    exclude_files = "Lynx/transforms/*unittest.cc"
+    parent_path = "subspecs-Native"
+    podspec_name = "transforms"
+    private_header_files = "Lynx/transforms/*.{h,hpp}"
+    sources = transforms_shared_sources
+  }
+}

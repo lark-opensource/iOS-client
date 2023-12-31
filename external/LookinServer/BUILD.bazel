@@ -1,0 +1,1484 @@
+load('@build_bazel_rules_swift//swift:swift.bzl', 'swift_library')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "LookinServer_pod_hdrs",
+  srcs = [
+    ":LookinServer_root_pod_hdrs",
+    ":Core_pod_hdrs",
+    ":Swift_pod_hdrs",
+    ":NoHook_pod_hdrs",
+    ":SwiftAndNoHook_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "LookinServer_private_includes",
+  include = [
+    "external/LookinServer/pod_support/Headers/Private/LookinServer/"
+  ],
+  deps = [],
+  external_name = "LookinServer"
+)
+gen_includes(
+  name = "LookinServer_public_includes",
+  include = [
+    "external/LookinServer/pod_support/Headers/Public/LookinServer/"
+  ],
+  deps = [],
+  external_name = "LookinServer"
+)
+filegroup(
+  name = "_LookinServer_hdrs",
+  srcs = [
+    ":LookinServer_root_hdrs",
+    ":Core_hdrs",
+    ":Swift_hdrs",
+    ":NoHook_hdrs",
+    ":SwiftAndNoHook_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "LookinServer_xcode_hmapsource",
+  hdrs = [
+    ":LookinServer_root_hdrs",
+    ":Core_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "LookinServer_xcode_hmap",
+  dep = ":LookinServer_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/LookinServer/*-bitsky-generated.modulemap", "pod_support/Headers/Public/LookinServer/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "LookinServer_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "LookinServer",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "LookinServer_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":LookinServer_xcode_hmap"
+  ],
+  external_name = "LookinServer",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "LookinServer_root_private_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "LookinServer_root_public_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "LookinServer_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "LookinServer_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "LookinServer_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "LookinServer_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "LookinServer_module_map",
+  module_map = "pod_support/Headers/Public/LookinServer/LookinServer-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/LookinServer/LookinServer-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "LookinServer_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "LookinServer_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit"
+  ],
+  deps = [
+    ":LookinServer_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":LookinServer_private_includes",
+    ":LookinServer_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":LookinServer_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DLookinServer_POD_VERSION=@\\\"8888_1.2.4\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "LookinServer",
+  deps = [
+    ":LookinServer_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "LookinServer_lib",
+  deps = [
+    ":LookinServer"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_private_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_public_hdrs",
+  srcs = [
+    "Src/Main/Server/Category/CALayer+LookinServer.h",
+    "Src/Main/Server/Category/NSObject+LookinServer.h",
+    "Src/Main/Server/Category/UIBlurEffect+LookinServer.h",
+    "Src/Main/Server/Category/UIColor+LookinServer.h",
+    "Src/Main/Server/Category/UIImage+LookinServer.h",
+    "Src/Main/Server/Category/UIImageView+LookinServer.h",
+    "Src/Main/Server/Category/UILabel+LookinServer.h",
+    "Src/Main/Server/Category/UITableView+LookinServer.h",
+    "Src/Main/Server/Category/UITextField+LookinServer.h",
+    "Src/Main/Server/Category/UITextView+LookinServer.h",
+    "Src/Main/Server/Category/UIView+LookinServer.h",
+    "Src/Main/Server/Category/UIViewController+LookinServer.h",
+    "Src/Main/Server/Category/UIVisualEffectView+LookinServer.h",
+    "Src/Main/Server/Connection/LKS_ConnectionManager.h",
+    "Src/Main/Server/Connection/LKS_RequestHandler.h",
+    "Src/Main/Server/Connection/RequestHandler/LKS_AttrModificationPatchHandler.h",
+    "Src/Main/Server/Connection/RequestHandler/LKS_CustomAttrModificationHandler.h",
+    "Src/Main/Server/Connection/RequestHandler/LKS_HierarchyDetailsHandler.h",
+    "Src/Main/Server/Connection/RequestHandler/LKS_InbuiltAttrModificationHandler.h",
+    "Src/Main/Server/LookinServer.h",
+    "Src/Main/Server/Others/LKS_AttrGroupsMaker.h",
+    "Src/Main/Server/Others/LKS_CustomAttrGroupsMaker.h",
+    "Src/Main/Server/Others/LKS_CustomAttrSetterManager.h",
+    "Src/Main/Server/Others/LKS_CustomDisplayItemsMaker.h",
+    "Src/Main/Server/Others/LKS_EventHandlerMaker.h",
+    "Src/Main/Server/Others/LKS_ExportManager.h",
+    "Src/Main/Server/Others/LKS_GestureTargetActionsSearcher.h",
+    "Src/Main/Server/Others/LKS_Helper.h",
+    "Src/Main/Server/Others/LKS_HierarchyDisplayItemsMaker.h",
+    "Src/Main/Server/Others/LKS_ObjectRegistry.h",
+    "Src/Main/Server/Others/LKS_TraceManager.h",
+    "Src/Main/Server/Others/LKSConfigManager.h",
+    "Src/Main/Server/Others/LookinServerDefines.h",
+    "Src/Main/Shared/Category/CALayer+Lookin.h",
+    "Src/Main/Shared/Category/Color+Lookin.h",
+    "Src/Main/Shared/Category/Image+Lookin.h",
+    "Src/Main/Shared/Category/NSArray+Lookin.h",
+    "Src/Main/Shared/Category/NSObject+Lookin.h",
+    "Src/Main/Shared/Category/NSSet+Lookin.h",
+    "Src/Main/Shared/Category/NSString+Lookin.h",
+    "Src/Main/Shared/LookinAppInfo.h",
+    "Src/Main/Shared/LookinAttribute.h",
+    "Src/Main/Shared/LookinAttributeModification.h",
+    "Src/Main/Shared/LookinAttributesGroup.h",
+    "Src/Main/Shared/LookinAttributesSection.h",
+    "Src/Main/Shared/LookinAttrIdentifiers.h",
+    "Src/Main/Shared/LookinAttrType.h",
+    "Src/Main/Shared/LookinAutoLayoutConstraint.h",
+    "Src/Main/Shared/LookinCodingValueType.h",
+    "Src/Main/Shared/LookinConnectionAttachment.h",
+    "Src/Main/Shared/LookinConnectionResponseAttachment.h",
+    "Src/Main/Shared/LookinCustomAttrModification.h",
+    "Src/Main/Shared/LookinCustomDisplayItemInfo.h",
+    "Src/Main/Shared/LookinDashboardBlueprint.h",
+    "Src/Main/Shared/LookinDefines.h",
+    "Src/Main/Shared/LookinDisplayItem.h",
+    "Src/Main/Shared/LookinDisplayItemDetail.h",
+    "Src/Main/Shared/LookinEventHandler.h",
+    "Src/Main/Shared/LookinHierarchyFile.h",
+    "Src/Main/Shared/LookinHierarchyInfo.h",
+    "Src/Main/Shared/LookinObject.h",
+    "Src/Main/Shared/LookinStaticAsyncUpdateTask.h",
+    "Src/Main/Shared/LookinTuple.h",
+    "Src/Main/Shared/LookinWeakContainer.h",
+    "Src/Main/Shared/Peertalk/Lookin_PTChannel.h",
+    "Src/Main/Shared/Peertalk/Lookin_PTPrivate.h",
+    "Src/Main/Shared/Peertalk/Lookin_PTProtocol.h",
+    "Src/Main/Shared/Peertalk/Lookin_PTUSBHub.h",
+    "Src/Main/Shared/Peertalk/Peertalk.h",
+    "Src/Base/LookinIvarTrace.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [
+    "Src/Base/LookinIvarTrace.h",
+    "Src/Main/Server/Category/CALayer+LookinServer.h",
+    "Src/Main/Server/Category/NSObject+LookinServer.h",
+    "Src/Main/Server/Category/UIBlurEffect+LookinServer.h",
+    "Src/Main/Server/Category/UIColor+LookinServer.h",
+    "Src/Main/Server/Category/UIImage+LookinServer.h",
+    "Src/Main/Server/Category/UIImageView+LookinServer.h",
+    "Src/Main/Server/Category/UILabel+LookinServer.h",
+    "Src/Main/Server/Category/UITableView+LookinServer.h",
+    "Src/Main/Server/Category/UITextField+LookinServer.h",
+    "Src/Main/Server/Category/UITextView+LookinServer.h",
+    "Src/Main/Server/Category/UIView+LookinServer.h",
+    "Src/Main/Server/Category/UIViewController+LookinServer.h",
+    "Src/Main/Server/Category/UIVisualEffectView+LookinServer.h",
+    "Src/Main/Server/Connection/LKS_ConnectionManager.h",
+    "Src/Main/Server/Connection/LKS_RequestHandler.h",
+    "Src/Main/Server/Connection/RequestHandler/LKS_AttrModificationPatchHandler.h",
+    "Src/Main/Server/Connection/RequestHandler/LKS_CustomAttrModificationHandler.h",
+    "Src/Main/Server/Connection/RequestHandler/LKS_HierarchyDetailsHandler.h",
+    "Src/Main/Server/Connection/RequestHandler/LKS_InbuiltAttrModificationHandler.h",
+    "Src/Main/Server/LookinServer.h",
+    "Src/Main/Server/Others/LKSConfigManager.h",
+    "Src/Main/Server/Others/LKS_AttrGroupsMaker.h",
+    "Src/Main/Server/Others/LKS_CustomAttrGroupsMaker.h",
+    "Src/Main/Server/Others/LKS_CustomAttrSetterManager.h",
+    "Src/Main/Server/Others/LKS_CustomDisplayItemsMaker.h",
+    "Src/Main/Server/Others/LKS_EventHandlerMaker.h",
+    "Src/Main/Server/Others/LKS_ExportManager.h",
+    "Src/Main/Server/Others/LKS_GestureTargetActionsSearcher.h",
+    "Src/Main/Server/Others/LKS_Helper.h",
+    "Src/Main/Server/Others/LKS_HierarchyDisplayItemsMaker.h",
+    "Src/Main/Server/Others/LKS_ObjectRegistry.h",
+    "Src/Main/Server/Others/LKS_TraceManager.h",
+    "Src/Main/Server/Others/LookinServerDefines.h",
+    "Src/Main/Shared/Category/CALayer+Lookin.h",
+    "Src/Main/Shared/Category/Color+Lookin.h",
+    "Src/Main/Shared/Category/Image+Lookin.h",
+    "Src/Main/Shared/Category/NSArray+Lookin.h",
+    "Src/Main/Shared/Category/NSObject+Lookin.h",
+    "Src/Main/Shared/Category/NSSet+Lookin.h",
+    "Src/Main/Shared/Category/NSString+Lookin.h",
+    "Src/Main/Shared/LookinAppInfo.h",
+    "Src/Main/Shared/LookinAttrIdentifiers.h",
+    "Src/Main/Shared/LookinAttrType.h",
+    "Src/Main/Shared/LookinAttribute.h",
+    "Src/Main/Shared/LookinAttributeModification.h",
+    "Src/Main/Shared/LookinAttributesGroup.h",
+    "Src/Main/Shared/LookinAttributesSection.h",
+    "Src/Main/Shared/LookinAutoLayoutConstraint.h",
+    "Src/Main/Shared/LookinCodingValueType.h",
+    "Src/Main/Shared/LookinConnectionAttachment.h",
+    "Src/Main/Shared/LookinConnectionResponseAttachment.h",
+    "Src/Main/Shared/LookinCustomAttrModification.h",
+    "Src/Main/Shared/LookinCustomDisplayItemInfo.h",
+    "Src/Main/Shared/LookinDashboardBlueprint.h",
+    "Src/Main/Shared/LookinDefines.h",
+    "Src/Main/Shared/LookinDisplayItem.h",
+    "Src/Main/Shared/LookinDisplayItemDetail.h",
+    "Src/Main/Shared/LookinEventHandler.h",
+    "Src/Main/Shared/LookinHierarchyFile.h",
+    "Src/Main/Shared/LookinHierarchyInfo.h",
+    "Src/Main/Shared/LookinObject.h",
+    "Src/Main/Shared/LookinStaticAsyncUpdateTask.h",
+    "Src/Main/Shared/LookinTuple.h",
+    "Src/Main/Shared/LookinWeakContainer.h",
+    "Src/Main/Shared/Peertalk/Lookin_PTChannel.h",
+    "Src/Main/Shared/Peertalk/Lookin_PTPrivate.h",
+    "Src/Main/Shared/Peertalk/Lookin_PTProtocol.h",
+    "Src/Main/Shared/Peertalk/Lookin_PTUSBHub.h",
+    "Src/Main/Shared/Peertalk/Peertalk.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/LookinServer/CALayer+Lookin.h",
+    "pod_support/Headers/Private/LookinServer/CALayer+LookinServer.h",
+    "pod_support/Headers/Private/LookinServer/Color+Lookin.h",
+    "pod_support/Headers/Private/LookinServer/Image+Lookin.h",
+    "pod_support/Headers/Private/LookinServer/LKSConfigManager.h",
+    "pod_support/Headers/Private/LookinServer/LKS_AttrGroupsMaker.h",
+    "pod_support/Headers/Private/LookinServer/LKS_AttrModificationPatchHandler.h",
+    "pod_support/Headers/Private/LookinServer/LKS_ConnectionManager.h",
+    "pod_support/Headers/Private/LookinServer/LKS_CustomAttrGroupsMaker.h",
+    "pod_support/Headers/Private/LookinServer/LKS_CustomAttrModificationHandler.h",
+    "pod_support/Headers/Private/LookinServer/LKS_CustomAttrSetterManager.h",
+    "pod_support/Headers/Private/LookinServer/LKS_CustomDisplayItemsMaker.h",
+    "pod_support/Headers/Private/LookinServer/LKS_EventHandlerMaker.h",
+    "pod_support/Headers/Private/LookinServer/LKS_ExportManager.h",
+    "pod_support/Headers/Private/LookinServer/LKS_GestureTargetActionsSearcher.h",
+    "pod_support/Headers/Private/LookinServer/LKS_Helper.h",
+    "pod_support/Headers/Private/LookinServer/LKS_HierarchyDetailsHandler.h",
+    "pod_support/Headers/Private/LookinServer/LKS_HierarchyDisplayItemsMaker.h",
+    "pod_support/Headers/Private/LookinServer/LKS_InbuiltAttrModificationHandler.h",
+    "pod_support/Headers/Private/LookinServer/LKS_ObjectRegistry.h",
+    "pod_support/Headers/Private/LookinServer/LKS_RequestHandler.h",
+    "pod_support/Headers/Private/LookinServer/LKS_TraceManager.h",
+    "pod_support/Headers/Private/LookinServer/LookinAppInfo.h",
+    "pod_support/Headers/Private/LookinServer/LookinAttrIdentifiers.h",
+    "pod_support/Headers/Private/LookinServer/LookinAttrType.h",
+    "pod_support/Headers/Private/LookinServer/LookinAttribute.h",
+    "pod_support/Headers/Private/LookinServer/LookinAttributeModification.h",
+    "pod_support/Headers/Private/LookinServer/LookinAttributesGroup.h",
+    "pod_support/Headers/Private/LookinServer/LookinAttributesSection.h",
+    "pod_support/Headers/Private/LookinServer/LookinAutoLayoutConstraint.h",
+    "pod_support/Headers/Private/LookinServer/LookinCodingValueType.h",
+    "pod_support/Headers/Private/LookinServer/LookinConnectionAttachment.h",
+    "pod_support/Headers/Private/LookinServer/LookinConnectionResponseAttachment.h",
+    "pod_support/Headers/Private/LookinServer/LookinCustomAttrModification.h",
+    "pod_support/Headers/Private/LookinServer/LookinCustomDisplayItemInfo.h",
+    "pod_support/Headers/Private/LookinServer/LookinDashboardBlueprint.h",
+    "pod_support/Headers/Private/LookinServer/LookinDefines.h",
+    "pod_support/Headers/Private/LookinServer/LookinDisplayItem.h",
+    "pod_support/Headers/Private/LookinServer/LookinDisplayItemDetail.h",
+    "pod_support/Headers/Private/LookinServer/LookinEventHandler.h",
+    "pod_support/Headers/Private/LookinServer/LookinHierarchyFile.h",
+    "pod_support/Headers/Private/LookinServer/LookinHierarchyInfo.h",
+    "pod_support/Headers/Private/LookinServer/LookinIvarTrace.h",
+    "pod_support/Headers/Private/LookinServer/LookinObject.h",
+    "pod_support/Headers/Private/LookinServer/LookinServer.h",
+    "pod_support/Headers/Private/LookinServer/LookinServerDefines.h",
+    "pod_support/Headers/Private/LookinServer/LookinStaticAsyncUpdateTask.h",
+    "pod_support/Headers/Private/LookinServer/LookinTuple.h",
+    "pod_support/Headers/Private/LookinServer/LookinWeakContainer.h",
+    "pod_support/Headers/Private/LookinServer/Lookin_PTChannel.h",
+    "pod_support/Headers/Private/LookinServer/Lookin_PTPrivate.h",
+    "pod_support/Headers/Private/LookinServer/Lookin_PTProtocol.h",
+    "pod_support/Headers/Private/LookinServer/Lookin_PTUSBHub.h",
+    "pod_support/Headers/Private/LookinServer/NSArray+Lookin.h",
+    "pod_support/Headers/Private/LookinServer/NSObject+Lookin.h",
+    "pod_support/Headers/Private/LookinServer/NSObject+LookinServer.h",
+    "pod_support/Headers/Private/LookinServer/NSSet+Lookin.h",
+    "pod_support/Headers/Private/LookinServer/NSString+Lookin.h",
+    "pod_support/Headers/Private/LookinServer/Peertalk.h",
+    "pod_support/Headers/Private/LookinServer/UIBlurEffect+LookinServer.h",
+    "pod_support/Headers/Private/LookinServer/UIColor+LookinServer.h",
+    "pod_support/Headers/Private/LookinServer/UIImage+LookinServer.h",
+    "pod_support/Headers/Private/LookinServer/UIImageView+LookinServer.h",
+    "pod_support/Headers/Private/LookinServer/UILabel+LookinServer.h",
+    "pod_support/Headers/Private/LookinServer/UITableView+LookinServer.h",
+    "pod_support/Headers/Private/LookinServer/UITextField+LookinServer.h",
+    "pod_support/Headers/Private/LookinServer/UITextView+LookinServer.h",
+    "pod_support/Headers/Private/LookinServer/UIView+LookinServer.h",
+    "pod_support/Headers/Private/LookinServer/UIViewController+LookinServer.h",
+    "pod_support/Headers/Private/LookinServer/UIVisualEffectView+LookinServer.h",
+    "pod_support/Headers/Public/LookinServer/CALayer+Lookin.h",
+    "pod_support/Headers/Public/LookinServer/CALayer+LookinServer.h",
+    "pod_support/Headers/Public/LookinServer/Color+Lookin.h",
+    "pod_support/Headers/Public/LookinServer/Image+Lookin.h",
+    "pod_support/Headers/Public/LookinServer/LKSConfigManager.h",
+    "pod_support/Headers/Public/LookinServer/LKS_AttrGroupsMaker.h",
+    "pod_support/Headers/Public/LookinServer/LKS_AttrModificationPatchHandler.h",
+    "pod_support/Headers/Public/LookinServer/LKS_ConnectionManager.h",
+    "pod_support/Headers/Public/LookinServer/LKS_CustomAttrGroupsMaker.h",
+    "pod_support/Headers/Public/LookinServer/LKS_CustomAttrModificationHandler.h",
+    "pod_support/Headers/Public/LookinServer/LKS_CustomAttrSetterManager.h",
+    "pod_support/Headers/Public/LookinServer/LKS_CustomDisplayItemsMaker.h",
+    "pod_support/Headers/Public/LookinServer/LKS_EventHandlerMaker.h",
+    "pod_support/Headers/Public/LookinServer/LKS_ExportManager.h",
+    "pod_support/Headers/Public/LookinServer/LKS_GestureTargetActionsSearcher.h",
+    "pod_support/Headers/Public/LookinServer/LKS_Helper.h",
+    "pod_support/Headers/Public/LookinServer/LKS_HierarchyDetailsHandler.h",
+    "pod_support/Headers/Public/LookinServer/LKS_HierarchyDisplayItemsMaker.h",
+    "pod_support/Headers/Public/LookinServer/LKS_InbuiltAttrModificationHandler.h",
+    "pod_support/Headers/Public/LookinServer/LKS_ObjectRegistry.h",
+    "pod_support/Headers/Public/LookinServer/LKS_RequestHandler.h",
+    "pod_support/Headers/Public/LookinServer/LKS_TraceManager.h",
+    "pod_support/Headers/Public/LookinServer/LookinAppInfo.h",
+    "pod_support/Headers/Public/LookinServer/LookinAttrIdentifiers.h",
+    "pod_support/Headers/Public/LookinServer/LookinAttrType.h",
+    "pod_support/Headers/Public/LookinServer/LookinAttribute.h",
+    "pod_support/Headers/Public/LookinServer/LookinAttributeModification.h",
+    "pod_support/Headers/Public/LookinServer/LookinAttributesGroup.h",
+    "pod_support/Headers/Public/LookinServer/LookinAttributesSection.h",
+    "pod_support/Headers/Public/LookinServer/LookinAutoLayoutConstraint.h",
+    "pod_support/Headers/Public/LookinServer/LookinCodingValueType.h",
+    "pod_support/Headers/Public/LookinServer/LookinConnectionAttachment.h",
+    "pod_support/Headers/Public/LookinServer/LookinConnectionResponseAttachment.h",
+    "pod_support/Headers/Public/LookinServer/LookinCustomAttrModification.h",
+    "pod_support/Headers/Public/LookinServer/LookinCustomDisplayItemInfo.h",
+    "pod_support/Headers/Public/LookinServer/LookinDashboardBlueprint.h",
+    "pod_support/Headers/Public/LookinServer/LookinDefines.h",
+    "pod_support/Headers/Public/LookinServer/LookinDisplayItem.h",
+    "pod_support/Headers/Public/LookinServer/LookinDisplayItemDetail.h",
+    "pod_support/Headers/Public/LookinServer/LookinEventHandler.h",
+    "pod_support/Headers/Public/LookinServer/LookinHierarchyFile.h",
+    "pod_support/Headers/Public/LookinServer/LookinHierarchyInfo.h",
+    "pod_support/Headers/Public/LookinServer/LookinIvarTrace.h",
+    "pod_support/Headers/Public/LookinServer/LookinObject.h",
+    "pod_support/Headers/Public/LookinServer/LookinServer.h",
+    "pod_support/Headers/Public/LookinServer/LookinServerDefines.h",
+    "pod_support/Headers/Public/LookinServer/LookinStaticAsyncUpdateTask.h",
+    "pod_support/Headers/Public/LookinServer/LookinTuple.h",
+    "pod_support/Headers/Public/LookinServer/LookinWeakContainer.h",
+    "pod_support/Headers/Public/LookinServer/Lookin_PTChannel.h",
+    "pod_support/Headers/Public/LookinServer/Lookin_PTPrivate.h",
+    "pod_support/Headers/Public/LookinServer/Lookin_PTProtocol.h",
+    "pod_support/Headers/Public/LookinServer/Lookin_PTUSBHub.h",
+    "pod_support/Headers/Public/LookinServer/NSArray+Lookin.h",
+    "pod_support/Headers/Public/LookinServer/NSObject+Lookin.h",
+    "pod_support/Headers/Public/LookinServer/NSObject+LookinServer.h",
+    "pod_support/Headers/Public/LookinServer/NSSet+Lookin.h",
+    "pod_support/Headers/Public/LookinServer/NSString+Lookin.h",
+    "pod_support/Headers/Public/LookinServer/Peertalk.h",
+    "pod_support/Headers/Public/LookinServer/UIBlurEffect+LookinServer.h",
+    "pod_support/Headers/Public/LookinServer/UIColor+LookinServer.h",
+    "pod_support/Headers/Public/LookinServer/UIImage+LookinServer.h",
+    "pod_support/Headers/Public/LookinServer/UIImageView+LookinServer.h",
+    "pod_support/Headers/Public/LookinServer/UILabel+LookinServer.h",
+    "pod_support/Headers/Public/LookinServer/UITableView+LookinServer.h",
+    "pod_support/Headers/Public/LookinServer/UITextField+LookinServer.h",
+    "pod_support/Headers/Public/LookinServer/UITextView+LookinServer.h",
+    "pod_support/Headers/Public/LookinServer/UIView+LookinServer.h",
+    "pod_support/Headers/Public/LookinServer/UIViewController+LookinServer.h",
+    "pod_support/Headers/Public/LookinServer/UIVisualEffectView+LookinServer.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/LookinServer/LookinServer_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/LookinServer/LookinServer_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_srcs",
+  srcs = [
+    "Src/Main/Shared/Category/CALayer+Lookin.m",
+    "Src/Main/Server/Category/CALayer+LookinServer.m",
+    "Src/Main/Shared/Category/Color+Lookin.m",
+    "Src/Main/Shared/Category/Image+Lookin.m",
+    "Src/Main/Server/Others/LKS_AttrGroupsMaker.m",
+    "Src/Main/Server/Connection/RequestHandler/LKS_AttrModificationPatchHandler.m",
+    "Src/Main/Server/Connection/LKS_ConnectionManager.m",
+    "Src/Main/Server/Others/LKS_CustomAttrGroupsMaker.m",
+    "Src/Main/Server/Connection/RequestHandler/LKS_CustomAttrModificationHandler.m",
+    "Src/Main/Server/Others/LKS_CustomAttrSetterManager.m",
+    "Src/Main/Server/Others/LKS_CustomDisplayItemsMaker.m",
+    "Src/Main/Server/Others/LKS_EventHandlerMaker.m",
+    "Src/Main/Server/Others/LKS_ExportManager.m",
+    "Src/Main/Server/Others/LKS_GestureTargetActionsSearcher.m",
+    "Src/Main/Server/Others/LKS_Helper.m",
+    "Src/Main/Server/Connection/RequestHandler/LKS_HierarchyDetailsHandler.m",
+    "Src/Main/Server/Others/LKS_HierarchyDisplayItemsMaker.m",
+    "Src/Main/Server/Connection/RequestHandler/LKS_InbuiltAttrModificationHandler.m",
+    "Src/Main/Server/Others/LKS_ObjectRegistry.m",
+    "Src/Main/Server/Connection/LKS_RequestHandler.m",
+    "Src/Main/Server/Others/LKS_TraceManager.m",
+    "Src/Main/Server/Others/LKSConfigManager.m",
+    "Src/Main/Shared/Peertalk/Lookin_PTChannel.m",
+    "Src/Main/Shared/Peertalk/Lookin_PTProtocol.m",
+    "Src/Main/Shared/Peertalk/Lookin_PTUSBHub.m",
+    "Src/Main/Shared/LookinAppInfo.m",
+    "Src/Main/Shared/LookinAttribute.m",
+    "Src/Main/Shared/LookinAttributeModification.m",
+    "Src/Main/Shared/LookinAttributesGroup.m",
+    "Src/Main/Shared/LookinAttributesSection.m",
+    "Src/Main/Shared/LookinAttrIdentifiers.m",
+    "Src/Main/Shared/LookinAutoLayoutConstraint.m",
+    "Src/Main/Shared/LookinConnectionAttachment.m",
+    "Src/Main/Shared/LookinConnectionResponseAttachment.m",
+    "Src/Main/Shared/LookinCustomAttrModification.m",
+    "Src/Main/Shared/LookinCustomDisplayItemInfo.m",
+    "Src/Main/Shared/LookinDashboardBlueprint.m",
+    "Src/Main/Shared/LookinDisplayItem.m",
+    "Src/Main/Shared/LookinDisplayItemDetail.m",
+    "Src/Main/Shared/LookinEventHandler.m",
+    "Src/Main/Shared/LookinHierarchyFile.m",
+    "Src/Main/Shared/LookinHierarchyInfo.m",
+    "Src/Base/LookinIvarTrace.m",
+    "Src/Main/Shared/LookinObject.m",
+    "Src/Main/Shared/LookinStaticAsyncUpdateTask.m",
+    "Src/Main/Shared/LookinTuple.m",
+    "Src/Main/Shared/LookinWeakContainer.m",
+    "Src/Main/Shared/Category/NSArray+Lookin.m",
+    "Src/Main/Shared/Category/NSObject+Lookin.m",
+    "Src/Main/Server/Category/NSObject+LookinServer.m",
+    "Src/Main/Shared/Category/NSSet+Lookin.m",
+    "Src/Main/Shared/Category/NSString+Lookin.m",
+    "Src/Main/Server/Category/UIBlurEffect+LookinServer.m",
+    "Src/Main/Server/Category/UIColor+LookinServer.m",
+    "Src/Main/Server/Category/UIImage+LookinServer.m",
+    "Src/Main/Server/Category/UIImageView+LookinServer.m",
+    "Src/Main/Server/Category/UILabel+LookinServer.m",
+    "Src/Main/Server/Category/UITableView+LookinServer.m",
+    "Src/Main/Server/Category/UITextField+LookinServer.m",
+    "Src/Main/Server/Category/UITextView+LookinServer.m",
+    "Src/Main/Server/Category/UIView+LookinServer.m",
+    "Src/Main/Server/Category/UIViewController+LookinServer.m",
+    "Src/Main/Server/Category/UIVisualEffectView+LookinServer.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [
+    "Core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit"
+  ],
+  deps = [
+    ":LookinServer_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":LookinServer_private_includes",
+    ":LookinServer_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Core_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DLookinServer_POD_VERSION=@\\\"8888_1.2.4\\\"",
+    "-DSHOULD_COMPILE_LOOKIN_SERVER=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Swift_private_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Swift_public_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Swift_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Swift_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Swift_swift_interface",
+  deps = [
+    ":Swift_swift"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Swift_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Swift_module_map",
+  module_map = "pod_support/Headers/Public/LookinServer/LookinServer_Swift-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/LookinServer/LookinServer_Swift-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Swift_swift_srcs",
+  srcs = [
+    "Src/Swift/LKS_SwiftTraceManager.swift"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+swift_library(
+  name = "Swift_swift",
+  module_name = "LookinServer",
+  srcs = [
+    "Swift_swift_srcs"
+  ],
+  deps = [
+    ":LookinServer_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_public_interface",
+    ":LookinServer_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Swift_module_map",
+    ":Swift_objc_interface"
+  ],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ) + [
+    "-DLOOKIN_SERVER_SWIFT_ENABLED",
+    "-Xcc",
+    "-DCOCOAPODS",
+    "-suppress-warnings",
+    "-import-underlying-module",
+    "-Xcc",
+    "-fobjc-weak",
+    "-Xcc",
+    "-stdlib=libc++",
+    "-Xcc",
+    "-DCOCOAPODS=1",
+    "-Xcc",
+    "-fdiagnostics-show-note-include-stack",
+    "-Xcc",
+    "-fno-common",
+    "-Xcc",
+    "-fmessage-length=0",
+    "-Xcc",
+    "-fpascal-strings",
+    "-Xcc",
+    "-fstrict-aliasing",
+    "-Xcc",
+    "-DLookinServer_POD_VERSION=@\\\"8888_1.2.4\\\"",
+    "-Xcc",
+    "-DLOOKIN_SERVER_SWIFT_ENABLED=1",
+    "-Xcc",
+    "-I.",
+    "-Xcc",
+    "-Wno-nullability-completeness",
+    "-Xcc",
+    "-Wno-nonnull",
+    "-Xcc",
+    "-Wno-nullability",
+    "-Xcc",
+    "-Wno-incomplete-umbrella"
+  ],
+  generates_header = True,
+  generated_header_name = "LookinServer-Swift.h",
+  features = [
+    "swift.no_generated_module_map",
+    "swift.opt_uses_wmo",
+    "swift.opt_uses_osize"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Swift_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Swift_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit"
+  ],
+  deps = [
+    ":LookinServer_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":LookinServer_private_includes",
+    ":LookinServer_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Swift_swift",
+    ":Swift_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DLookinServer_POD_VERSION=@\\\"8888_1.2.4\\\"",
+    "-DLOOKIN_SERVER_SWIFT_ENABLED=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Swift",
+  deps = [
+    ":Swift_oc",
+    ":Swift_swift"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Swift_lib",
+  deps = [
+    ":Swift"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NoHook_private_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NoHook_public_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NoHook_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NoHook_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "NoHook_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "NoHook_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "NoHook_module_map",
+  module_map = "pod_support/Headers/Public/LookinServer/LookinServer_NoHook-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/LookinServer/LookinServer_NoHook-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "NoHook_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "NoHook_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit"
+  ],
+  deps = [
+    ":LookinServer_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":LookinServer_private_includes",
+    ":LookinServer_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":NoHook_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DLookinServer_POD_VERSION=@\\\"8888_1.2.4\\\"",
+    "-DLOOKIN_SERVER_DISABLE_HOOK=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "NoHook",
+  deps = [
+    ":NoHook_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "NoHook_lib",
+  deps = [
+    ":NoHook"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SwiftAndNoHook_private_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SwiftAndNoHook_public_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SwiftAndNoHook_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SwiftAndNoHook_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SwiftAndNoHook_swift_interface",
+  deps = [
+    ":SwiftAndNoHook_swift"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SwiftAndNoHook_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "SwiftAndNoHook_module_map",
+  module_map = "pod_support/Headers/Public/LookinServer/LookinServer_SwiftAndNoHook-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/LookinServer/LookinServer_SwiftAndNoHook-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SwiftAndNoHook_swift_srcs",
+  srcs = [
+    "Src/Swift/LKS_SwiftTraceManager.swift"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+swift_library(
+  name = "SwiftAndNoHook_swift",
+  module_name = "LookinServer",
+  srcs = [
+    "SwiftAndNoHook_swift_srcs"
+  ],
+  deps = [
+    ":LookinServer_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_public_interface",
+    ":LookinServer_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":SwiftAndNoHook_module_map",
+    ":SwiftAndNoHook_objc_interface"
+  ],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ) + [
+    "-DLOOKIN_SERVER_SWIFT_ENABLED",
+    "-Xcc",
+    "-DCOCOAPODS",
+    "-suppress-warnings",
+    "-import-underlying-module",
+    "-Xcc",
+    "-fobjc-weak",
+    "-Xcc",
+    "-stdlib=libc++",
+    "-Xcc",
+    "-DCOCOAPODS=1",
+    "-Xcc",
+    "-fdiagnostics-show-note-include-stack",
+    "-Xcc",
+    "-fno-common",
+    "-Xcc",
+    "-fmessage-length=0",
+    "-Xcc",
+    "-fpascal-strings",
+    "-Xcc",
+    "-fstrict-aliasing",
+    "-Xcc",
+    "-DLookinServer_POD_VERSION=@\\\"8888_1.2.4\\\"",
+    "-Xcc",
+    "-DLOOKIN_SERVER_SWIFT_ENABLED=1",
+    "-Xcc",
+    "-DLOOKIN_SERVER_DISABLE_HOOK=1",
+    "-Xcc",
+    "-I.",
+    "-Xcc",
+    "-Wno-nullability-completeness",
+    "-Xcc",
+    "-Wno-nonnull",
+    "-Xcc",
+    "-Wno-nullability",
+    "-Xcc",
+    "-Wno-incomplete-umbrella"
+  ],
+  generates_header = True,
+  generated_header_name = "LookinServer-Swift.h",
+  features = [
+    "swift.no_generated_module_map",
+    "swift.opt_uses_wmo",
+    "swift.opt_uses_osize"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SwiftAndNoHook_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "SwiftAndNoHook_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit"
+  ],
+  deps = [
+    ":LookinServer_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":LookinServer_private_includes",
+    ":LookinServer_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":SwiftAndNoHook_swift",
+    ":SwiftAndNoHook_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DLookinServer_POD_VERSION=@\\\"8888_1.2.4\\\"",
+    "-DLOOKIN_SERVER_SWIFT_ENABLED=1",
+    "-DLOOKIN_SERVER_DISABLE_HOOK=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SwiftAndNoHook",
+  deps = [
+    ":SwiftAndNoHook_oc",
+    ":SwiftAndNoHook_swift"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "SwiftAndNoHook_lib",
+  deps = [
+    ":SwiftAndNoHook"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Lark_LookinServer_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@LookinServer//:LookinServer_objc_interface", "@LookinServer//:Core_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_LookinServer",
+  target_name = "Lark",
+  module_name = "LookinServer",
+  public_hdrs = ["@LookinServer//:LookinServer_root_public_hdrs", "@LookinServer//:Core_public_hdrs"],
+  private_hdrs = ["@LookinServer//:LookinServer_root_private_hdrs", "@LookinServer//:Core_private_hdrs"],
+  srcs = ["@LookinServer//:Core_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DLookinServer_POD_VERSION=@\\\"8888_1.2.4\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-DSHOULD_COMPILE_LOOKIN_SERVER=1",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "LookinServer_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "LookinServer_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["UIKit"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "LookinServer_features", []),
+  cxx_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "LookinServer_cpp_features", []),
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "LookinServer_objc_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "LookinServer_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "LookinServer_dynamic", False),
+  tags = getattr(defs_external_objc_library, "LookinServer_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("LookinServer", {}),
+  visibility = ["//visibility:public"],
+)

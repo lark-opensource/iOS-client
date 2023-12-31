@@ -1,0 +1,1 @@
+../../../../BDModel/Classes/BDMappingStrategy.h

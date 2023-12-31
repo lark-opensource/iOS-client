@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayComponent/Base/Category/BDImageView+CJPay.h

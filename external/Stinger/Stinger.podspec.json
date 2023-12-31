@@ -1,0 +1,53 @@
+{
+  "name": "Stinger",
+  "version": "1.0.5",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://github.com/eleme/Stinger",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "Assuner-Lee": "yongguang.li@ele.me"
+  },
+  "source": {
+    "git": "git@code.byted.org:iOS_Library/Stinger.git",
+    "commit": "1367bcebfa1772ef66aa0948a9790778c2aa58c9"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "pod_target_xcconfig": {
+    "DEFINES_MODULE": "YES",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "Stinger_POD_VERSION=@\\\"9999_1.0.5\\\""
+  },
+  "default_subspecs": [
+    "Core",
+    "libffi"
+  ],
+  "subspecs": [
+    {
+      "name": "libffi",
+      "source_files": "Stinger/libffi/**/*.{h,c,m,S}",
+      "public_header_files": "Stinger/libffi/**/*.{h}"
+    },
+    {
+      "name": "Core",
+      "source_files": "Stinger/Classes/**/*",
+      "public_header_files": "Stinger/Classes/**/*.{h}",
+      "dependencies": {
+        "Stinger/libffi": []
+      }
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "6338",
+    "app_id": "9999"
+  },
+  "repoId": "6338",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "Stinger_POD_VERSION=@\\\"9999_1.0.5\\\""
+  }
+}

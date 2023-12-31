@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/WatchdogProtect/Common/Public/HMDWatchdogProtectManager.h

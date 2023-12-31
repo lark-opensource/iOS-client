@@ -1,0 +1,404 @@
+{
+  "name": "BDWebKit",
+  "version": "2.0.5-douyin",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/iOS_Library/BDWebKit",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": "Bytedance, Inc.",
+  "source": {
+    "git": "git@code.byted.org:iOS_Library/BDWebKit.git",
+    "commit": "d6a70b6b1fc66a780040540b2131c33f0c78bb2a"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "frameworks": [
+    "UIKit",
+    "WebKit"
+  ],
+  "dependencies": {
+    "BDAlogProtocol": [],
+    "BDWebCore": [
+      ">=2.0.0.0"
+    ],
+    "ByteDanceKit": []
+  },
+  "default_subspecs": "Core",
+  "subspecs": [
+    {
+      "name": "Core",
+      "requires_arc": true,
+      "source_files": "BDWebKit/Classes/Core/**/*.{h,m}",
+      "dependencies": {
+        "BDTrackerProtocol": [],
+        "TTReachability": [],
+        "Heimdallr/DeviceInfo": []
+      }
+    },
+    {
+      "name": "SecureLink",
+      "public_header_files": "BDWebKit/Classes/SecureLink/*.h",
+      "source_files": "BDWebKit/Classes/SecureLink/*.{h,m}",
+      "dependencies": {
+        "BDWebKit/Core": [],
+        "ByteDanceKit": [],
+        "TTReachability": [],
+        "BDTrackerProtocol": []
+      }
+    },
+    {
+      "name": "SCCWebView",
+      "public_header_files": "BDWebKit/Classes/SCCWebView/*.h",
+      "source_files": "BDWebKit/Classes/SCCWebView/*.{h,m}",
+      "dependencies": {
+        "BDWebKit/Core": [],
+        "BDWebKit/Interceptor": [],
+        "ByteDanceKit": [],
+        "TTNetworkManager": []
+      }
+    },
+    {
+      "name": "Cookie",
+      "public_header_files": "BDWebKit/Classes/Cookie/*.h",
+      "source_files": "BDWebKit/Classes/Cookie/*.{h,m}",
+      "dependencies": {
+        "BDWebKit/Core": [],
+        "ByteDanceKit": []
+      }
+    },
+    {
+      "name": "BDWKPrecreator",
+      "dependencies": {
+        "BDWebKit/Precreator": []
+      }
+    },
+    {
+      "name": "Precreator",
+      "requires_arc": true,
+      "source_files": "BDWebKit/Classes/Precreator/**/*.{h,m,mm}",
+      "frameworks": [
+        "Foundation",
+        "UIKit"
+      ]
+    },
+    {
+      "name": "Interceptor",
+      "requires_arc": true,
+      "source_files": "BDWebKit/Classes/Interceptor/**/*.{h,m,mm}",
+      "dependencies": {
+        "BDWebKit/Core": []
+      },
+      "frameworks": [
+        "Foundation",
+        "UIKit"
+      ]
+    },
+    {
+      "name": "Keyboard",
+      "source_files": "BDWebKit/Classes/Keyboard/**/*.{h,m,mm}",
+      "frameworks": [
+        "Foundation",
+        "UIKit"
+      ]
+    },
+    {
+      "name": "TTNet",
+      "requires_arc": true,
+      "source_files": "BDWebKit/Classes/TTNet/**/*.{h,m,mm}",
+      "dependencies": {
+        "BDWebKit/Core": [],
+        "BDWebKit/Precreator": [],
+        "TTNetworkManager": [
+          ">= 2.2.18"
+        ],
+        "BDTrackerProtocol": [],
+        "BDWebKit/SSL": [],
+        "BDWebKit/Interceptor": []
+      },
+      "frameworks": [
+        "Foundation",
+        "UIKit"
+      ]
+    },
+    {
+      "name": "Preload",
+      "source_files": "BDWebKit/Classes/Preload/**/*.{h,m,mm}",
+      "dependencies": {
+        "BDWebKit/Core": [],
+        "BDWebKit/Precreator": [],
+        "ByteDanceKit": []
+      },
+      "frameworks": [
+        "Foundation",
+        "UIKit"
+      ]
+    },
+    {
+      "name": "SSL",
+      "requires_arc": true,
+      "source_files": "BDWebKit/Classes/SSL/**/*.{h,m,mm}",
+      "dependencies": {
+        "BDWebKit/Core": [],
+        "BDWebKit/CrashFix": [],
+        "ByteDanceKit/UIKit": [],
+        "BDTrackerProtocol": []
+      },
+      "frameworks": [
+        "Foundation",
+        "UIKit"
+      ],
+      "resource_bundles": {
+        "BDWebKit": [
+          "BDWebKit/Assets/**/*"
+        ]
+      }
+    },
+    {
+      "name": "Falcon",
+      "dependencies": {
+        "BDWebKit/Core": [],
+        "BDWebKit/Interceptor": [],
+        "BDWebKit/TTNet": [],
+        "IESGeckoKit/Core": [
+          ">=0.5.4-rc"
+        ],
+        "BDAlogProtocol": [],
+        "BDTrackerProtocol": []
+      },
+      "source_files": "BDWebKit/Classes/Falcon/**/*",
+      "subspecs": [
+        {
+          "name": "WebP",
+          "source_files": "BDWebKit/Classes/Falcon/WebP/**/*",
+          "dependencies": {
+            "libwebp": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "ResourceLoader",
+      "dependencies": {
+        "BDWebKit/Core": [],
+        "BDWebKit/Interceptor": [],
+        "BDAlogProtocol": [],
+        "BDXResourceLoader": [
+          ">=3.0.2-rc.6"
+        ]
+      },
+      "source_files": "BDWebKit/Classes/ResourceLoader/Core/**/*.{h,m}",
+      "public_header_files": "BDWebKit/Classes/ResourceLoader/Core/*.h",
+      "subspecs": [
+        {
+          "name": "RLFalcon",
+          "dependencies": {
+            "BDWebKit/Falcon": []
+          },
+          "source_files": "BDWebKit/Classes/ResourceLoader/Falcon/**/*.{h,m}",
+          "public_header_files": "BDWebKit/Classes/ResourceLoader/Falcon/*.h"
+        },
+        {
+          "name": "RLTTNet",
+          "dependencies": {
+            "BDWebKit/Interceptor": []
+          },
+          "source_files": "BDWebKit/Classes/ResourceLoader/TTNet/**/*.{h,m}",
+          "public_header_files": "BDWebKit/Classes/ResourceLoader/TTNet/*.h"
+        }
+      ]
+    },
+    {
+      "name": "ResourcePreload",
+      "subspecs": [
+        {
+          "name": "PreloadCore",
+          "dependencies": {
+            "BDPreloadSDK": []
+          },
+          "source_files": "BDWebKit/Classes/ResourcePreload/PreloadCore/**/*.{h,m}",
+          "public_header_files": "BDWebKit/Classes/ResourcePreload/PreloadCore/**/*.h"
+        },
+        {
+          "name": "FalconInterceptor",
+          "dependencies": {
+            "BDWebKit/Falcon": [],
+            "BDWebKit/ResourcePreload/PreloadCore": []
+          },
+          "source_files": "BDWebKit/Classes/ResourcePreload/FalconInterceptor/**/*.{h,m}",
+          "public_header_files": "BDWebKit/Classes/ResourcePreload/FalconInterceptor/**/*.h"
+        },
+        {
+          "name": "RLGlobalProcessor",
+          "dependencies": {
+            "BDXResourceLoader": [
+              ">=3.0.2-rc.6"
+            ],
+            "BDXServiceCenter": [
+              ">=3.0.2-rc.6"
+            ],
+            "BDWebKit/ResourcePreload/PreloadCore": []
+          },
+          "source_files": "BDWebKit/Classes/ResourcePreload/RLGlobalProcessor/**/*.{h,m}",
+          "public_header_files": "BDWebKit/Classes/ResourcePreload/RLGlobalProcessor/**/*.h"
+        }
+      ]
+    },
+    {
+      "name": "Forest",
+      "dependencies": {
+        "BDWebKit/Core": [],
+        "BDWebKit/Interceptor": [],
+        "BDWebKit/TTNet": [],
+        "IESGeckoKit/Core": [
+          ">=3.1.28"
+        ],
+        "IESForestKit/Core": []
+      },
+      "source_files": "BDWebKit/Classes/Forest/**/*"
+    },
+    {
+      "name": "Offline",
+      "requires_arc": true,
+      "source_files": "BDWebKit/Classes/Offline/**/*.{h,m}",
+      "dependencies": {
+        "BDWebKit/Falcon": [],
+        "BDWebKit/Resource": [],
+        "BDWebKit/Core": [],
+        "BDPreloadSDK/WebView": [],
+        "TTNetworkManager": [],
+        "BDAlogProtocol": [],
+        "ByteDanceKit": []
+      }
+    },
+    {
+      "name": "Resource",
+      "requires_arc": true,
+      "source_files": "BDWebKit/Classes/Resource/**/*.{h,m}",
+      "dependencies": {
+        "IESGeckoKit/Core": [
+          ">=0.5.4-rc"
+        ]
+      }
+    },
+    {
+      "name": "Prefetch",
+      "requires_arc": true,
+      "dependencies": {
+        "IESPrefetch": [
+          ">= 1.0.0"
+        ],
+        "IESGeckoKit/Core": [
+          ">=0.5.4-rc"
+        ],
+        "IESJSBridgeCore/Core": []
+      },
+      "source_files": "BDWebKit/Classes/Prefetch/**/*.{h,m}"
+    },
+    {
+      "name": "BlankDetect",
+      "requires_arc": true,
+      "source_files": "BDWebKit/Classes/BlankDetect/**/*.{h,m}",
+      "dependencies": {
+        "BDWebKit/Core": [],
+        "BDTrackerProtocol": []
+      }
+    },
+    {
+      "name": "ADBlock",
+      "requires_arc": true,
+      "source_files": "BDWebKit/Classes/ADBlock/**/*.{h,m}",
+      "dependencies": {
+        "BDWebKit/Core": [],
+        "BDTrackerProtocol": []
+      }
+    },
+    {
+      "name": "CrashFix",
+      "requires_arc": true,
+      "source_files": "BDWebKit/Classes/CrashFix/**/*.{h,m}",
+      "dependencies": {
+        "BDWebKit/Core": [],
+        "BDTrackerProtocol": []
+      }
+    },
+    {
+      "name": "CSRF",
+      "requires_arc": true,
+      "source_files": "BDWebKit/Classes/CSRF/**/*.{h,m}",
+      "dependencies": {
+        "ByteDanceKit": [],
+        "BDWebKit/Core": [],
+        "BDTrackerProtocol": []
+      }
+    },
+    {
+      "name": "Security",
+      "requires_arc": true,
+      "source_files": "BDWebKit/Classes/Security/**/*.{h,m}",
+      "dependencies": {
+        "ByteDanceKit": [],
+        "BDWebKit/Core": [],
+        "BDTrackerProtocol": []
+      }
+    },
+    {
+      "name": "Native",
+      "subspecs": [
+        {
+          "name": "Base",
+          "requires_arc": true,
+          "source_files": "BDWebKit/Classes/Native/Base/**/*.{h,m}",
+          "public_header_files": "BDWebKit/Classes/Native/*.h",
+          "dependencies": {
+            "ByteDanceKit": [],
+            "BDWebKit/Core": []
+          }
+        },
+        {
+          "name": "NativeLiveVideo",
+          "source_files": "BDWebKit/Classes/Native/Live/**/*.{h,m}",
+          "dependencies": {
+            "BDWebKit/Native/Base": [],
+            "TTVideoLive": [
+              "~>1.1"
+            ],
+            "AWELazyRegister": [
+              "~> 11.2.0"
+            ],
+            "BDWebImage": []
+          }
+        },
+        {
+          "name": "NativeLottieView",
+          "source_files": "BDWebKit/Classes/Native/Lottie/**/*.{h,m}",
+          "dependencies": {
+            "BDWebKit/Native/Base": [],
+            "lottie-ios": [
+              "~> 2.6.5"
+            ],
+            "BDWebImage": [],
+            "TTNetworkManager": [
+              ">= 2.2.18"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "4455",
+    "app_id": "9999"
+  },
+  "repoId": "4455",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDWebKit_POD_VERSION=@\\\"9999_2.0.5-douyin\\\""
+  }
+}

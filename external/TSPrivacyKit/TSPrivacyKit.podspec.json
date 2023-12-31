@@ -1,0 +1,818 @@
+{
+  "name": "TSPrivacyKit",
+  "version": "0.4.0.49-lark",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/ugc/TSPrivacyKit",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "pengyan.td": "pengyan.td@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:ugc/TSPrivacyKit.git",
+    "commit": "73b61c82e05495fa76c7ba071607920794f7fb32"
+  },
+  "compiler_flags": [
+    "-Wall",
+    "-Wno-pragmas"
+  ],
+  "platforms": {
+    "ios": "9.0"
+  },
+  "default_subspecs": "ModuleInterface",
+  "frameworks": "AVFoundation",
+  "testspecs": [
+    {
+      "name": "Tests",
+      "test_type": "unit",
+      "source_files": "TSPrivacyKit/Tests/src/**/*.{h,m,mm}",
+      "public_header_files": "TSPrivacyKit/Tests/src/**/*.h",
+      "dependencies": {
+        "TSPrivacyKit/Core": [],
+        "OCMock": []
+      },
+      "requires_app_host": true,
+      "xcconfig": {
+        "DEBUG_INFORMATION_FORMAT": "dwarf-with-dsym"
+      },
+      "scheme": {
+        "code_coverage": true,
+        "environment_variables": {
+          "UNIT_TEST": "1"
+        },
+        "launch_arguments": []
+      }
+    }
+  ],
+  "subspecs": [
+    {
+      "name": "NetworkCore",
+      "source_files": "TSPrivacyKit/Classes/Network/Core/**/*.{h,m,mm,c,s}",
+      "public_header_files": "TSPrivacyKit/Classes/Network/Core/**/*.h",
+      "dependencies": {
+        "TSPrivacyKit/Core": []
+      }
+    },
+    {
+      "name": "NetworkCustom",
+      "source_files": "TSPrivacyKit/Classes/Network/Custom/**/*.{h,m,mm,c,s}",
+      "public_header_files": "TSPrivacyKit/Classes/Network/Custom/**/*.h",
+      "dependencies": {
+        "TSPrivacyKit/NetworkCore": []
+      }
+    },
+    {
+      "name": "NetworkModuleInterface",
+      "source_files": "TSPrivacyKit/Classes/Network/ModuleInterface/**/*.{h,m,mm,c,s}",
+      "public_header_files": "TSPrivacyKit/Classes/Network/ModuleInterface/**/*.h",
+      "dependencies": {
+        "TSPrivacyKit/NetworkCore": []
+      }
+    },
+    {
+      "name": "NetworkPipeline",
+      "dependencies": {
+        "TSPrivacyKit/NetworkCore": []
+      },
+      "subspecs": [
+        {
+          "name": "TTNet",
+          "source_files": "TSPrivacyKit/Classes/Network/Pipelines/TTNet/**/*.{h,m,mm,c,s}",
+          "public_header_files": "TSPrivacyKit/Classes/Network/Pipelines/TTNet/**/*.h",
+          "dependencies": {
+            "TTNetworkManager": []
+          }
+        },
+        {
+          "name": "TTNetRedirect",
+          "source_files": "TSPrivacyKit/Classes/Network/Pipelines/TTNetRedirect/**/*.{h,m,mm,c,s}",
+          "public_header_files": "TSPrivacyKit/Classes/Network/Pipelines/TTNetRedirect/**/*.h",
+          "dependencies": {
+            "TTNetworkManager": []
+          }
+        },
+        {
+          "name": "URLProtocol",
+          "source_files": "TSPrivacyKit/Classes/Network/Pipelines/URLProtocol/**/*.{h,m,mm,c,s}",
+          "public_header_files": "TSPrivacyKit/Classes/Network/Pipelines/URLProtocol/**/*.h"
+        }
+      ]
+    },
+    {
+      "name": "NetworkBacktrace",
+      "dependencies": {
+        "TSPrivacyKit/NetworkCore": []
+      },
+      "subspecs": [
+        {
+          "name": "TTNetBacktrace",
+          "source_files": "TSPrivacyKit/Classes/Network/Backtraces/TTNet/**/*.{h,m,mm,c,s}",
+          "public_header_files": "TSPrivacyKit/Classes/Network/Backtraces/TTNet/**/*.h",
+          "dependencies": {
+            "TTNetworkManager": []
+          }
+        },
+        {
+          "name": "BDWebImageBacktrace",
+          "source_files": "TSPrivacyKit/Classes/Network/Backtraces/BDWebImage/**/*.{h,m,mm,c,s}",
+          "public_header_files": "TSPrivacyKit/Classes/Network/Backtraces/BDWebImage/**/*.h",
+          "dependencies": {
+            "BDWebImage": []
+          }
+        },
+        {
+          "name": "URLProtocolBacktrace",
+          "source_files": "TSPrivacyKit/Classes/Network/Backtraces/URLProtocol/**/*.{h,m,mm,c,s}",
+          "public_header_files": "TSPrivacyKit/Classes/Network/Backtraces/URLProtocol/**/*.h"
+        }
+      ]
+    },
+    {
+      "name": "APICustom",
+      "source_files": "TSPrivacyKit/Classes/Custom/**/*.{h,m,mm,c,s}",
+      "public_header_files": "TSPrivacyKit/Classes/Custom/**/*.h",
+      "dependencies": {
+        "TSPrivacyKit/Core": [],
+        "ByteDanceKit": [],
+        "TSPrivacyKit/Cache/CacheDefault": []
+      }
+    },
+    {
+      "name": "Core",
+      "source_files": "TSPrivacyKit/Classes/Core/**/*.{h,m,mm,c,s}",
+      "public_header_files": "TSPrivacyKit/Classes/Core/**/*.h",
+      "dependencies": {
+        "BDFishhook": [],
+        "ByteDanceKit/Foundation": [],
+        "ByteDanceKit/UIKit": [],
+        "PNSServiceKit/Service": [
+          ">= 1.1.6"
+        ],
+        "PNSServiceKit/Protocol": [
+          ">= 1.1.6"
+        ],
+        "TSPrivacyKit/TSPKUtil": [],
+        "BDModel": []
+      }
+    },
+    {
+      "name": "Cache",
+      "subspecs": [
+        {
+          "name": "CacheCore",
+          "source_files": "TSPrivacyKit/Classes/Cache/Core/**/*.{h,m,mm,c,s}",
+          "public_header_files": "TSPrivacyKit/Classes/Cache/Core/**/*.h"
+        },
+        {
+          "name": "CacheDefault",
+          "source_files": "TSPrivacyKit/Classes/Cache/Default/**/*.{h,m,mm,c,s}",
+          "public_header_files": "TSPrivacyKit/Classes/Cache/Default/**/*.h",
+          "dependencies": {
+            "TSPrivacyKit/Cache/CacheCore": [],
+            "TSPrivacyKit/TSPKUtil": [],
+            "PNSServiceKit/Service": [
+              ">= 1.1.6"
+            ],
+            "PNSServiceKit/Protocol": [
+              ">= 1.1.6"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Aspect",
+      "dependencies": {
+        "TSPrivacyKit/Core": []
+      },
+      "source_files": "TSPrivacyKit/Classes/Aspect/**/*.{h,m,mm,c,s}",
+      "public_header_files": "TSPrivacyKit/Classes/Aspect/**/*.h"
+    },
+    {
+      "name": "Impls",
+      "source_files": "TSPrivacyKit/Classes/Impls/**/*.{h,m,mm,c}",
+      "public_header_files": "TSPrivacyKit/Classes/Impls/**/*.h",
+      "subspecs": [
+        {
+          "name": "Consumer",
+          "dependencies": {
+            "TSPrivacyKit/Core": []
+          },
+          "source_files": "TSPrivacyKit/Classes/Impls/Consumer/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Impls/Consumer/**/*.h"
+        },
+        {
+          "name": "HostEnv",
+          "dependencies": {
+            "TSPrivacyKit/Core": [],
+            "TTNetworkManager": [],
+            "TTReachability": [],
+            "Heimdallr/UserException": []
+          },
+          "source_files": "TSPrivacyKit/Classes/Impls/HostEnv/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Impls/HostEnv/**/*.h"
+        }
+      ]
+    },
+    {
+      "name": "ModuleInterface",
+      "dependencies": {
+        "TSPrivacyKit/APICustom": []
+      },
+      "source_files": "TSPrivacyKit/Classes/ModuleInterface/**/*.{h,m,mm,c}",
+      "public_header_files": "TSPrivacyKit/Classes/ModuleInterface/**/*.h"
+    },
+    {
+      "name": "Debug",
+      "dependencies": {
+        "TSPrivacyKit/Core": []
+      },
+      "source_files": "TSPrivacyKit/Classes/Debug/**/*.{h,m,mm,c}",
+      "public_header_files": "TSPrivacyKit/Classes/Debug/**/*.h"
+    },
+    {
+      "name": "TSPKUtil",
+      "source_files": "TSPrivacyKit/Classes/Util/**/*.{h,m,mm,c}",
+      "public_header_files": "TSPrivacyKit/Classes/Util/**/*.h"
+    },
+    {
+      "name": "Pipelines",
+      "dependencies": {
+        "TSPrivacyKit/Core": []
+      },
+      "subspecs": [
+        {
+          "name": "Album",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/Album/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/Album/**/*.h",
+          "subspecs": [
+            {
+              "name": "ALAssetsLibrary",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Album/ALAssetsLibrary/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Album/ALAssetsLibrary/**/*.h"
+            },
+            {
+              "name": "PHAsset",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Album/PHAsset/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Album/PHAsset/**/*.h"
+            },
+            {
+              "name": "PHAssetChangeRequest",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Album/PHAssetChangeRequest/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Album/PHAssetChangeRequest/**/*.h"
+            },
+            {
+              "name": "PHAssetCollection",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Album/PHAssetCollection/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Album/PHAssetCollection/**/*.h"
+            },
+            {
+              "name": "PHCollectionList",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Album/PHCollectionList/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Album/PHCollectionList/**/*.h"
+            },
+            {
+              "name": "PHImageManager",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Album/PHImageManager/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Album/PHImageManager/**/*.h"
+            },
+            {
+              "name": "PHPhotoLibrary",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Album/PHPhotoLibrary/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Album/PHPhotoLibrary/**/*.h"
+            },
+            {
+              "name": "PHPickerViewController",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Album/PHPickerViewController/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Album/PHPickerViewController/**/*.h"
+            },
+            {
+              "name": "UIImagePickerController",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Album/UIImagePickerController/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Album/UIImagePickerController/**/*.h"
+            }
+          ]
+        },
+        {
+          "name": "Audio",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/Audio/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/Audio/**/*.h",
+          "subspecs": [
+            {
+              "name": "AudioOutput",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Audio/AudioOutput/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Audio/AudioOutput/**/*.h"
+            },
+            {
+              "name": "AUGraph",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Audio/AUGraph/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Audio/AUGraph/**/*.h"
+            },
+            {
+              "name": "AudioQueue",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Audio/AudioQueue/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Audio/AudioQueue/**/*.h"
+            },
+            {
+              "name": "AVAudioRecorder",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Audio/AVAudioRecorder/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Audio/AVAudioRecorder/**/*.h"
+            },
+            {
+              "name": "AVAudioSession",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Audio/AVAudioSession/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Audio/AVAudioSession/**/*.h"
+            },
+            {
+              "name": "AVCaptureDeviceAudio",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Audio/AVCaptureDevice/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Audio/AVCaptureDevice/**/*.h"
+            }
+          ]
+        },
+        {
+          "name": "Calendar",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/Calendar/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/Calendar/**/*.h",
+          "subspecs": [
+            {
+              "name": "EKEventStore",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Calendar/EKEventStore/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Calendar/EKEventStore/**/*.h"
+            },
+            {
+              "name": "EKEvent",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Calendar/EKEvent/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Calendar/EKEvent/**/*.h"
+            }
+          ]
+        },
+        {
+          "name": "CallCenter",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/CallCenter/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/CallCenter/**/*.h",
+          "subspecs": [
+            {
+              "name": "CTCallCenter",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/CallCenter/CTCallCenter/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/CallCenter/CTCallCenter/**/*.h"
+            }
+          ]
+        },
+        {
+          "name": "Clipboard",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/Clipboard/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/Clipboard/**/*.h",
+          "subspecs": [
+            {
+              "name": "UIPasteboard",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Clipboard/UIPasteboard/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Clipboard/UIPasteboard/**/*.h"
+            }
+          ]
+        },
+        {
+          "name": "Contact",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/Contact/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/Contact/**/*.h",
+          "subspecs": [
+            {
+              "name": "ABPerson",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Contact/ABPerson/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Contact/ABPerson/**/*.h"
+            },
+            {
+              "name": "CNContactStore",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Contact/CNContactStore/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Contact/CNContactStore/**/*.h"
+            },
+            {
+              "name": "CNContact",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Contact/CNContact/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Contact/CNContact/**/*.h"
+            }
+          ]
+        },
+        {
+          "name": "LocalNetwork",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/LocalNetwork/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/LocalNetwork/**/*.h",
+          "subspecs": [
+            {
+              "name": "CFHost",
+              "source_files": [
+                "TSPrivacyKit/Classes/Pipelines/LocalNetwork/CFHost/**/*.{h,m,mm,c}",
+                "TSPrivacyKit/Classes/Pipelines/LocalNetwork/TSPKLocalNetworkBasePipeline.{h,m}"
+              ],
+              "public_header_files": [
+                "TSPrivacyKit/Classes/Pipelines/LocalNetwork/CFHost/**/*.h",
+                "TSPrivacyKit/Classes/Pipelines/LocalNetwork/TSPKLocalNetworkBasePipeline.h"
+              ]
+            },
+            {
+              "name": "dns_sd",
+              "source_files": [
+                "TSPrivacyKit/Classes/Pipelines/LocalNetwork/dns_sd/**/*.{h,m,mm,c}",
+                "TSPrivacyKit/Classes/Pipelines/LocalNetwork/TSPKLocalNetworkBasePipeline.{h,m}"
+              ],
+              "public_header_files": [
+                "TSPrivacyKit/Classes/Pipelines/LocalNetwork/dns_sd/**/*.h",
+                "TSPrivacyKit/Classes/Pipelines/LocalNetwork/TSPKLocalNetworkBasePipeline.h"
+              ]
+            },
+            {
+              "name": "netdb",
+              "source_files": [
+                "TSPrivacyKit/Classes/Pipelines/LocalNetwork/netdb/**/*.{h,m,mm,c}",
+                "TSPrivacyKit/Classes/Pipelines/LocalNetwork/TSPKLocalNetworkBasePipeline.{h,m}"
+              ],
+              "public_header_files": [
+                "TSPrivacyKit/Classes/Pipelines/LocalNetwork/netdb/**/*.h",
+                "TSPrivacyKit/Classes/Pipelines/LocalNetwork/TSPKLocalNetworkBasePipeline.h"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Health",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/Health/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/Health/**/*.h",
+          "subspecs": [
+            {
+              "name": "HKHealthStore",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Health/HKHealthStore/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Health/HKHealthStore/**/*.h"
+            }
+          ]
+        },
+        {
+          "name": "IDFA",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/IDFA/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/IDFA/**/*.h",
+          "subspecs": [
+            {
+              "name": "ASIdentifierManager",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/IDFA/ASIdentifierManager/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/IDFA/ASIdentifierManager/**/*.h"
+            },
+            {
+              "name": "ATTrackingManager",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/IDFA/ATTrackingManager/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/IDFA/ATTrackingManager/**/*.h"
+            }
+          ]
+        },
+        {
+          "name": "IDFV",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/IDFV/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/IDFV/**/*.h",
+          "subspecs": [
+            {
+              "name": "UIDeviceIDFV",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/IDFV/UIDevice/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/IDFV/UIDevice/**/*.h"
+            }
+          ]
+        },
+        {
+          "name": "Location",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/Location/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/Location/**/*.h",
+          "subspecs": [
+            {
+              "name": "CLLocationManagerLocation",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Location/CLLocationManager/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Location/CLLocationManager/**/*.h",
+              "subspecs": [
+                {
+                  "name": "Normal",
+                  "source_files": "TSPrivacyKit/Classes/Pipelines/Location/CLLocationManager/TSPKLocationOfCLLocationManagerPipeline.{h,m,mm,c}",
+                  "public_header_files": "TSPrivacyKit/Classes/Pipelines/Location/CLLocationManager/TSPKLocationOfCLLocationManagerPipeline.h"
+                },
+                {
+                  "name": "RequestAlwaysAuthorization",
+                  "source_files": "TSPrivacyKit/Classes/Pipelines/Location/CLLocationManager/TSPKLocationOfCLLocationManagerReqAlwaysAuthPipeline.{h,m,mm,c}",
+                  "public_header_files": "TSPrivacyKit/Classes/Pipelines/Location/CLLocationManager/TSPKLocationOfCLLocationManagerReqAlwaysAuthPipeline.h"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "LockID",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/LockID/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/LockID/**/*.h",
+          "subspecs": [
+            {
+              "name": "LAContext",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/LockID/LAContext/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/LockID/LAContext/**/*.h"
+            }
+          ]
+        },
+        {
+          "name": "Media",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/Media/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/Media/**/*.h",
+          "subspecs": [
+            {
+              "name": "MPMediaLibrary",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Media/MPMediaLibrary/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Media/MPMediaLibrary/**/*.h"
+            },
+            {
+              "name": "MPMediaQuery",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Media/MPMediaQuery/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Media/MPMediaQuery/**/*.h"
+            }
+          ]
+        },
+        {
+          "name": "Message",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/Message/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/Message/**/*.h",
+          "subspecs": [
+            {
+              "name": "MFMessageComposeViewController",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Message/MFMessageComposeViewController/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Message/MFMessageComposeViewController/**/*.h"
+            }
+          ]
+        },
+        {
+          "name": "Motion",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/Motion/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/Motion/**/*.h",
+          "subspecs": [
+            {
+              "name": "CLLocationManagerMotion",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Motion/CLLocationManager/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Motion/CLLocationManager/**/*.h"
+            },
+            {
+              "name": "CMAltimeter",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Motion/CMAltimeter/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Motion/CMAltimeter/**/*.h"
+            },
+            {
+              "name": "CMMotionActivityManager",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Motion/CMMotionActivityManager/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Motion/CMMotionActivityManager/**/*.h"
+            },
+            {
+              "name": "CMMotionManager",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Motion/CMMotionManager/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Motion/CMMotionManager/**/*.h"
+            },
+            {
+              "name": "CMPedometer",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Motion/CMPedometer/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Motion/CMPedometer/**/*.h"
+            },
+            {
+              "name": "UIDeviceMotion",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Motion/UIDevice/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Motion/UIDevice/**/*.h"
+            }
+          ]
+        },
+        {
+          "name": "Push",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/Push/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/Push/**/*.h",
+          "subspecs": [
+            {
+              "name": "UNUserNotificationCenter",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Push/UNUserNotificationCenter/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Push/UNUserNotificationCenter/**/*.h"
+            }
+          ]
+        },
+        {
+          "name": "ScreenRecorder",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/ScreenRecorder/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/ScreenRecorder/**/*.h",
+          "subspecs": [
+            {
+              "name": "RPScreenRecorder",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/ScreenRecorder/RPScreenRecorder/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/ScreenRecorder/RPScreenRecorder/**/*.h"
+            },
+            {
+              "name": "RPSystemBroadcastPickerView",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/ScreenRecorder/RPSystemBroadcastPickerView/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/ScreenRecorder/RPSystemBroadcastPickerView/**/*.h"
+            }
+          ]
+        },
+        {
+          "name": "SnapShot",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/SnapShot/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/SnapShot/**/*.h",
+          "subspecs": [
+            {
+              "name": "UIGraphics",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/SnapShot/UIGraphics/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/SnapShot/UIGraphics/**/*.h"
+            },
+            {
+              "name": "UIView",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/SnapShot/UIView/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/SnapShot/UIView/**/*.h"
+            }
+          ]
+        },
+        {
+          "name": "Video",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/Video/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/Video/**/*.h",
+          "subspecs": [
+            {
+              "name": "AVCaptureDeviceVideo",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Video/AVCaptureDevice/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Video/AVCaptureDevice/**/*.h"
+            },
+            {
+              "name": "AVCaptureSession",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Video/AVCaptureSession/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Video/AVCaptureSession/**/*.h"
+            },
+            {
+              "name": "AVCaptureStillImageOutput",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Video/AVCaptureStillImageOutput/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Video/AVCaptureStillImageOutput/**/*.h"
+            },
+            {
+              "name": "ARSession",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Video/ARSession/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Video/ARSession/**/*.h"
+            }
+          ]
+        },
+        {
+          "name": "Network",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/Network/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/Network/**/*.h",
+          "subspecs": [
+            {
+              "name": "CLGeocoder",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Network/CLGeocoder/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Network/CLGeocoder/**/*.h"
+            },
+            {
+              "name": "CTCarrier",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Network/CTCarrier/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Network/CTCarrier/**/*.h"
+            },
+            {
+              "name": "CTTelephonyNetworkInfo",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Network/CTTelephonyNetworkInfo/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Network/CTTelephonyNetworkInfo/**/*.h"
+            },
+            {
+              "name": "NSLocale",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Network/NSLocale/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Network/NSLocale/**/*.h"
+            }
+          ]
+        },
+        {
+          "name": "IP",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/IP/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/IP/**/*.h",
+          "subspecs": [
+            {
+              "name": "ifaddrs",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/IP/ifaddrs/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/IP/ifaddrs/**/*.h"
+            }
+          ]
+        },
+        {
+          "name": "Wifi",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/Wifi/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/Wifi/**/*.h",
+          "subspecs": [
+            {
+              "name": "CaptiveNetwork",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Wifi/CaptiveNetwork/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Wifi/CaptiveNetwork/**/*.h"
+            },
+            {
+              "name": "NEHotspotNetwork",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Wifi/NEHotspotNetwork/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Wifi/NEHotspotNetwork/**/*.h"
+            }
+          ]
+        },
+        {
+          "name": "Application",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/Application/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/Application/**/*.h",
+          "subspecs": [
+            {
+              "name": "UIApplication",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/Application/UIApplication/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/Application/UIApplication/**/*.h"
+            }
+          ]
+        },
+        {
+          "name": "OpenUDID",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/OpenUDID/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/OpenUDID/**/*.h",
+          "dependencies": {
+            "OpenUDID": []
+          }
+        },
+        {
+          "name": "CIAD",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/CIAD/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/CIAD/**/*.h",
+          "dependencies": {
+            "BDInstall": []
+          },
+          "subspecs": [
+            {
+              "name": "CIADOfBDInstall",
+              "source_files": "TSPrivacyKit/Classes/Pipelines/CIAD/BDInstall/**/*.{h,m,mm,c}",
+              "public_header_files": "TSPrivacyKit/Classes/Pipelines/CIAD/BDInstall/**/*.h",
+              "dependencies": {
+                "BDInstall": []
+              }
+            }
+          ]
+        },
+        {
+          "name": "BaseUserInput",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/UserInput/TSPKUserInputBasePipeline.{h,m}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/UserInput/TSPKUserInputBasePipeline.{h,m}"
+        },
+        {
+          "name": "UserInput",
+          "source_files": "TSPrivacyKit/Classes/Pipelines/UserInput/**/*.{h,m,mm,c}",
+          "public_header_files": "TSPrivacyKit/Classes/Pipelines/UserInput/**/*.h",
+          "subspecs": [
+            {
+              "name": "UserInputOfUITextField",
+              "source_files": [
+                "TSPrivacyKit/Classes/Pipelines/UserInput/UITextField/**/*.{h,m,mm,c}",
+                "TSPrivacyKit/Classes/Pipelines/UserInput/TSPKUserInputBasePipeline.{h,m}"
+              ],
+              "public_header_files": [
+                "TSPrivacyKit/Classes/Pipelines/UserInput/UITextField/**/*.h",
+                "TSPrivacyKit/Classes/Pipelines/UserInput/TSPKUserInputBasePipeline.{h,m}"
+              ]
+            },
+            {
+              "name": "UserInputOfUITextView",
+              "source_files": [
+                "TSPrivacyKit/Classes/Pipelines/UserInput/UITextView/**/*.{h,m,mm,c}",
+                "TSPrivacyKit/Classes/Pipelines/UserInput/TSPKUserInputBasePipeline.{h,m}"
+              ],
+              "public_header_files": [
+                "TSPrivacyKit/Classes/Pipelines/UserInput/UITextView/**/*.h",
+                "TSPrivacyKit/Classes/Pipelines/UserInput/TSPKUserInputBasePipeline.{h,m}"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "CustomUserInput",
+          "subspecs": [
+            {
+              "name": "UserInputOfYYTextView",
+              "source_files": [
+                "TSPrivacyKit/Classes/Pipelines/CustomUserInput/YYTextView/**/*.{h,m,mm,c}",
+                "TSPrivacyKit/Classes/Pipelines/UserInput/TSPKUserInputBasePipeline.{h,m}"
+              ],
+              "public_header_files": [
+                "TSPrivacyKit/Classes/Pipelines/CustomUserInput/YYTextView/**/*.h",
+                "TSPrivacyKit/Classes/Pipelines/UserInput/TSPKUserInputBasePipeline.{h,m}"
+              ],
+              "dependencies": {
+                "YYText": []
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "9446",
+    "app_id": "1128"
+  },
+  "repoId": "9446",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "TSPrivacyKit_POD_VERSION=@\\\"1128_0.4.0.49-lark\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS[config=Release]": "$(inherited) NDEBUG=1",
+    "GCC_PREPROCESSOR_DEFINITIONS": "TSPrivacyKit_POD_VERSION=@\\\"1128_0.4.0.49-lark\\\""
+  }
+}

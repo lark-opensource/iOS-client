@@ -1,0 +1,35 @@
+debug_dependency 'Heimdallr',
+  '0.7.28-rc.12',
+  :subspecs => [
+    'Protect',
+    'Monitors',
+    'TTMonitor',
+    'HMDStart',
+    'HMDANR',
+    'UITracker',
+    'HMDWatchDog',
+    'CrashDetector',
+    'UserException',
+    'HMDOOMCrash',
+    'HMDOOM',
+    'MemoryGraph',
+    'UIFrozen',
+    'WatchdogProtect',
+    'ALog',
+    'Zombie',
+    'HMDCoreDump',
+    'CPUException',
+    'ProtectCustomCatch',
+    'HMDMetricKit',
+    'CloudCommand',
+    'TTNet',
+    'NetworkTraffic',
+    'HMDFDMonitor',
+    'Dart',
+    'HMDDomestic'
+  ]
+debug_dependency 'gaia_lib_publish', :subspecs => ['gaia', 'Math', 'Thread']
+debug_dependency 'TTVideoEditor', :subspecs => ['LarkMode', 'TTVEImage'], :source => 'git@code.byted.org:iOS_Library/privatethird_binary_repo.git'
+
+
+eval_tonic 'pod_pre_install_0.1'

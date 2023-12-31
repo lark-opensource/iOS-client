@@ -1,0 +1,107 @@
+//
+//  BDDDYHTSHeader.h
+//  BDDynamically
+//
+//  Created by hopo on 2019/11/3.
+//
+
+#ifndef BDDDYHTSHeader_h
+#define BDDDYHTSHeader_h
+
+#define BDHotSoon 1
+
+
+#if BDHotSoon
+#define BDDYCUpdateStrategy HTSDHippopotamus
+#define BDDYCModuleModel HTSDBearLeft
+#define BDDYCMonitorImpl HTSDMonkey
+#define BDDYCZipArchive HTSDAlligator
+#define BDDYCHTTPBodyPart HTSDPenguin
+#define BDDYCSessionDelegate HTSDAntelope
+#define BDDYCDownloader HTSDEmu
+#define BDDYCModuleSessionTask HTSCaraway
+#define BDDYCSessionTask TTDWheatStrawHunter
+#define BDDYCSecurity HTSDLeopard
+#define BDDYCModuleRequest HTSDChimpanzee
+#define BDDYCModuleManager HTSDGiraffe
+#define BDDYCModuleOperatingStatus HTSDPanda
+#define BDDYCModuleListSessionTask HTSDGorilla
+#define BDDYCUtils HTSDOstrich
+#define BDDYCPatchModel HTSDElephant
+#define BDDYCMultipartBodyStream HTSKangaroo
+#define BDDYCStreamingMultipartFormData HTSDLion
+#define BDDYCResourceManager HTSDCamel
+#define BDDYCDevice HTSDPolarBear
+#define BDDYCModuleModelDownloadingStatus HTSDReindeer
+
+#define BDBDQuaterback HTSDLogText
+#define BDQBConfiguration HTSDPresentiments
+
+#define startEngine bd_retargetedPreviewWithTarget
+#define runBrady bd_stringByEvaluatingJavaScriptFromString
+#define closeBrady bd_detectsPhoneNumbers
+#define loadDYCModule bd_dataDetectorTypes
+#define errorBlock bd_allowsInlineMediaPlayback
+//#define loadAndReturnError t78b0f0758b8466b8e8a6d2133a7911c0
+//#define unload t3148c1152fb3f360ac22e3c775270258
+#define unloadAndRemove bd_paginationMode
+#define operatingStatus bd_allowsPictureInPictureMediaPlayback
+#define create bd_allowedChildViewControllersForUnwindingFromSource
+#define decryptedDataAtPath bd_childViewControllerContainingSegueSource
+#define addModule bd_viewControllerForUnwindSegueAction
+#define addModules bd_shouldStartLoadWithRequest
+#define addFailedModule bd_viewWillAppear
+#define addLoadedModule bd_viewDidAppear
+#define removeModule bd_viewWillDisappear
+#define removeModuleForName bd_viewDidDisappear
+#define saveToFile bd_viewWillLayoutSubviews
+#define needsUpdateCompareToObject bd_viewDidLayoutSubviews
+#define containsAvailableUrl bd_didReceiveMemoryWarning
+#define startDownloadUrl bd_presentViewController
+#define recordError bd_initWithWindowScene
+#define forDownloadUrl bd_presentModalViewController
+#define isHigherToObject bd_dismissModalViewControllerAnimated
+#define retryWhenLargerThan bd_becomeKeyWindow
+#define appendPartWithFileURL bd_targetViewControllerForAction
+#define appendPartWithInputStream bd_showViewController
+#define appendPartWithFileData bd_showDetailViewController
+#define appendPartWithFormData bd_makeKeyWindow
+#define appendPartWithFormJSONObject bd_attemptRotationToDeviceOrientation
+#define appendPartWithHeaders bd_bdtextxxx
+#define throttleBandwidthWithPacketSize bd_willRotateToInterfaceOrientation
+//#define read t3f6270aec020a72197b4285c41b0485b
+#define setInitialAndFinalBoundaries bd_UIWindowLevelNormal
+#define appendHTTPBodyPart bd_willAnimateRotationToInterfaceOrientation
+#define getBuffer bd_willAnimateFirstHalfOfRotationToInterfaceOrientation
+#define propertyForKey bd_didAnimateFirstHalfOfRotationToInterfaceOrientation
+#define setProperty bd_willAnimateSecondHalfOfRotationFromInterfaceOrientation
+//#define scheduleInRunLoop t271decd1c782f881bca1b44979da345d
+#define removeFromRunLoop bd_addChildViewController
+#define _scheduleInCFRunLoop bd_removeFromParentViewController
+#define _unscheduleFromCFRunLoop bd_transitionFromViewController
+#define _setCFClientFlags bd_beginAppearanceTransition
+//#define readData t7fce346b76893d9a4208c964658ba48d
+//#define URLSession bd_setOverrideTraitCollection
+//#define cancel t586bad362020bf2055009294d6d420b6
+#define addModuleTask bd_automaticallyForwardAppearanceAndRotationMethodsToChildViewControllers
+#define forModuleModel bd_shouldAutomaticallyForwardRotationMethods
+#define cancelTaskForModuleModel bd_willMoveToParentViewController
+#define applicationWillEnterForeground bd_didMoveToParentViewController
+#define UnzipOpenFile bd_encodeRestorableStateWithCoder
+#define UnzipFileTo bd_decodeRestorableStateWithCoder
+#define overWrite bd_applicationFinishedRestoringState
+#define Password bd_viewLayoutMarginsDidChange
+#define bddyc_containsString bd_viewSafeAreaInsetsDidChange
+
+#endif
+
+#if  BDHotSoon
+//#define BDBDConfiguration HTSDPresentiment
+//#define BDDYCModuleConfig HTSDUnscathed
+#define BDDYCURL HTSDSanction
+//#define BDDYCModule HTSDGallant
+//#define BDDYCMonitorClass HTSDImpede
+//#define BDDYCMain HTSDWrit
+#endif
+
+#endif /* BDDDYHTSHeader_h */

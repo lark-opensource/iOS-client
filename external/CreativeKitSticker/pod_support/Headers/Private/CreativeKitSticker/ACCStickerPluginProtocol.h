@@ -1,0 +1,1 @@
+../../../../CreativeKitSticker/Classes/StickerContainer/ACCStickerPluginProtocol.h

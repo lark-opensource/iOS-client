@@ -1,0 +1,73 @@
+# Copyright 2022 The Lynx Authors. All rights reserved.
+import("//LynxDevtool/devtool.gni")
+
+assert(is_ios)
+
+devtool_source_set("devtool") {
+  sources = [
+    "DevtoolAgentDarwin.h",
+    "DevtoolAgentDarwin.mm",
+    "DevtoolLepusManagerDarwin.h",
+    "DevtoolLepusManagerDarwin.mm",
+    "DevtoolMonitorView.h",
+    "DevtoolMonitorView.m",
+    "DevtoolWebSocketModule.h",
+    "DevtoolWebSocketModule.m",
+    "EmulateEvent/LynxIOHIDEvent+KIF.h",
+    "EmulateEvent/LynxIOHIDEvent+KIF.m",
+    "EmulateEvent/LynxUIEvent+EmulateEvent.h",
+    "EmulateEvent/LynxUIEvent+EmulateEvent.m",
+    "EmulateEvent/LynxUITouch+EmulateTouch.h",
+    "EmulateEvent/LynxUITouch+EmulateTouch.m",
+    "Helper/LynxDeviceInfoHelper.h",
+    "Helper/LynxDeviceInfoHelper.m",
+    "Helper/LynxEmulateTouchHelper.h",
+    "Helper/LynxEmulateTouchHelper.mm",
+    "Helper/TestBenchTraceProfileHelper.h",
+    "Helper/TestBenchTraceProfileHelper.mm",
+    "Helper/TestbenchDumpFileHelper.h",
+    "Helper/TestbenchDumpFileHelper.mm",
+    "Helper/LynxUITreeHelper.h",
+    "Helper/LynxUITreeHelper.mm",
+    "LynxFPSGraph.h",
+    "LynxFPSGraph.m",
+    "LynxInspectorOwner.h",
+    "LynxInspectorOwner.mm",
+    "LynxPerfMonitorDarwin.h",
+    "LynxPerfMonitorDarwin.mm",
+  ]
+  include_dirs = [
+    "//Lynx/lepus",
+    "//Darwin/iOS/Headers/Private",
+    "//Darwin/iOS/Headers/Private/Lynx",
+    "//Darwin/iOS/Headers/Private/LynxDevtool",
+    "//Darwin/iOS/Headers/Private/LynxDevtool/Memory",
+  ]
+  configs = [
+    ":private_config",
+    "//third_party/ios_deps:ios_deps_public_config",
+  ]
+
+  deps = [ "//Darwin/Common/LynxDevtool:devtool" ]
+}
+
+config("private_config") {
+  include_dirs = [
+    "//Darwin/iOS/Headers/Private",
+    "//Darwin/iOS/Headers/Private/Lynx",
+    "//Darwin/iOS/Headers/Private/LynxDevtool",
+  ]
+  frameworks = [
+    "IOKit.framework",
+    "UIKit.framework",
+  ]
+  cflags = [
+    "-I.",
+    "-Wno-deprecated",
+    "-Wno-documentation",
+    "-Wno-error",
+  ]
+  cflags_cc = [ "-fno-aligned-allocation" ]
+  cflags_objc = [ "-fobjc-arc" ]
+  cflags_objcc = [ "-fobjc-arc" ]
+}

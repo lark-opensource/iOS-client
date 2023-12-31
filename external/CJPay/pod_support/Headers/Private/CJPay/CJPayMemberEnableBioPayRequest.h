@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayAbility/VerifyModule/Biopayment/Net/CJPayMemberEnableBioPayRequest.h

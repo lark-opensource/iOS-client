@@ -1,0 +1,3204 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "TTVideoEngine_pod_hdrs",
+  srcs = [
+    ":TTVideoEngine_root_pod_hdrs",
+    ":NewLogger_pod_hdrs",
+    ":TraceReport_pod_hdrs",
+    ":Private_pod_hdrs",
+    ":Public_pod_hdrs",
+    ":OldModel_pod_hdrs",
+    ":DebugTools_pod_hdrs",
+    ":NewModel_pod_hdrs",
+    ":Base_pod_hdrs",
+    ":DualCore_pod_hdrs",
+    ":Boe_pod_hdrs",
+    ":CN_pod_hdrs",
+    ":SG_pod_hdrs",
+    ":UE_pod_hdrs",
+    ":NetworkPredictor_pod_hdrs",
+    ":VR_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "TTVideoEngine_private_includes",
+  include = [
+    "external/TTVideoEngine/pod_support/Headers/Private/TTVideoEngine/"
+  ],
+  deps = [],
+  external_name = "TTVideoEngine"
+)
+gen_includes(
+  name = "TTVideoEngine_public_includes",
+  include = [
+    "external/TTVideoEngine/pod_support/Headers/Public/TTVideoEngine/"
+  ],
+  deps = [],
+  external_name = "TTVideoEngine"
+)
+filegroup(
+  name = "_TTVideoEngine_hdrs",
+  srcs = [
+    ":TTVideoEngine_root_hdrs",
+    ":NewLogger_hdrs",
+    ":TraceReport_hdrs",
+    ":Private_hdrs",
+    ":Public_hdrs",
+    ":OldModel_hdrs",
+    ":DebugTools_hdrs",
+    ":NewModel_hdrs",
+    ":Base_hdrs",
+    ":DualCore_hdrs",
+    ":Boe_hdrs",
+    ":CN_hdrs",
+    ":SG_hdrs",
+    ":UE_hdrs",
+    ":NetworkPredictor_hdrs",
+    ":VR_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "TTVideoEngine_xcode_hmapsource",
+  hdrs = [
+    ":TTVideoEngine_root_hdrs",
+    ":Base_hdrs",
+    ":CN_hdrs",
+    ":NewLogger_hdrs",
+    ":OldModel_hdrs",
+    ":Private_hdrs",
+    ":Public_hdrs",
+    ":TraceReport_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "TTVideoEngine_xcode_hmap",
+  dep = ":TTVideoEngine_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/TTVideoEngine/*-bitsky-generated.modulemap", "pod_support/Headers/Public/TTVideoEngine/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "TTVideoEngine_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "TTVideoEngine",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "TTVideoEngine_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":TTVideoEngine_xcode_hmap"
+  ],
+  external_name = "TTVideoEngine",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTVideoEngine_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTVideoEngine_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTVideoEngine_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTVideoEngine_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TTVideoEngine_module_map",
+  module_map = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTVideoEngine_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "TTVideoEngine_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTVideoEngine_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTVideoEngine_private_includes",
+    ":TTVideoEngine_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ABRInterface//:ABRInterface_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_objc_interface",
+    "@TTNetworkPredict//:interface_objc_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_objc_interface",
+    "@TTTopSignature//:TTTopSignature_objc_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_objc_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_objc_interface",
+    "@VCVodSettings//:VCVodSettings_objc_interface",
+    "@ABRInterface//:ABRInterface_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_swift_interface",
+    "@TTNetworkPredict//:interface_swift_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_swift_interface",
+    "@TTTopSignature//:TTTopSignature_swift_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_swift_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_swift_interface",
+    "@VCVodSettings//:VCVodSettings_swift_interface",
+    ":TTVideoEngine_objc_interface",
+    "@ABRInterface//:ABRInterface_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_module_map",
+    "@TTNetworkPredict//:interface_module_map",
+    "@TTPlayerSDK//:TTPlayerSDK_module_map",
+    "@TTTopSignature//:TTTopSignature_module_map",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_module_map",
+    "@VCPreloadStrategy//:VCPreloadStrategy_module_map",
+    "@VCVodSettings//:VCVodSettings_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTVideoEngine_POD_VERSION=@\\\"9999_1.10.108.111-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTVideoEngine",
+  deps = [
+    ":TTVideoEngine_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TTVideoEngine_lib",
+  deps = [
+    ":TTVideoEngine"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NewLogger_hdrs",
+  srcs = [
+    "TTVideoEngine/Classes/NewLogger/TTVideoEngineEventNetworkPredictorSample.h",
+    "TTVideoEngine/Classes/NewLogger/TTVideoEngineEventOneAVRenderCheck.h",
+    "TTVideoEngine/Classes/NewLogger/TTVideoEngineEventOneError.h",
+    "TTVideoEngine/Classes/NewLogger/TTVideoEngineEventOneEvent.h",
+    "TTVideoEngine/Classes/NewLogger/TTVideoEngineEventOneOpera.h",
+    "TTVideoEngine/Classes/NewLogger/TTVideoEngineEventOneOutSync.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NewLogger_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineEventNetworkPredictorSample.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineEventOneAVRenderCheck.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineEventOneError.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineEventOneEvent.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineEventOneOpera.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineEventOneOutSync.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "NewLogger_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "NewLogger_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "NewLogger_module_map",
+  module_map = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_NewLogger-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_NewLogger-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NewLogger_srcs",
+  srcs = [
+    "TTVideoEngine/Classes/NewLogger/TTVideoEngineEventNetworkPredictorSample.m",
+    "TTVideoEngine/Classes/NewLogger/TTVideoEngineEventOneAVRenderCheck.m",
+    "TTVideoEngine/Classes/NewLogger/TTVideoEngineEventOneError.m",
+    "TTVideoEngine/Classes/NewLogger/TTVideoEngineEventOneEvent.m",
+    "TTVideoEngine/Classes/NewLogger/TTVideoEngineEventOneOpera.m",
+    "TTVideoEngine/Classes/NewLogger/TTVideoEngineEventOneOutSync.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "NewLogger_oc",
+  enable_modules = 1,
+  srcs = [
+    "NewLogger_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "NewLogger_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTVideoEngine_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTVideoEngine_private_includes",
+    ":TTVideoEngine_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ABRInterface//:ABRInterface_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_objc_interface",
+    "@TTNetworkPredict//:interface_objc_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_objc_interface",
+    "@TTTopSignature//:TTTopSignature_objc_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_objc_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_objc_interface",
+    "@VCVodSettings//:VCVodSettings_objc_interface",
+    "@ABRInterface//:ABRInterface_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_swift_interface",
+    "@TTNetworkPredict//:interface_swift_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_swift_interface",
+    "@TTTopSignature//:TTTopSignature_swift_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_swift_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_swift_interface",
+    "@VCVodSettings//:VCVodSettings_swift_interface",
+    ":NewLogger_objc_interface",
+    "@ABRInterface//:ABRInterface_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_module_map",
+    "@TTNetworkPredict//:interface_module_map",
+    "@TTPlayerSDK//:TTPlayerSDK_module_map",
+    "@TTTopSignature//:TTTopSignature_module_map",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_module_map",
+    "@VCPreloadStrategy//:VCPreloadStrategy_module_map",
+    "@VCVodSettings//:VCVodSettings_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTVideoEngine_POD_VERSION=@\\\"9999_1.10.108.111-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "NewLogger",
+  deps = [
+    ":NewLogger_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "NewLogger_lib",
+  deps = [
+    ":NewLogger"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TraceReport_hdrs",
+  srcs = [
+    "TTVideoEngine/Classes/TraceReport/TTVideoEngineReportHelper.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TraceReport_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineReportHelper.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TraceReport_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TraceReport_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TraceReport_module_map",
+  module_map = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_TraceReport-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_TraceReport-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TraceReport_srcs",
+  srcs = [
+    "TTVideoEngine/Classes/TraceReport/TTVideoEngineReportHelper.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TraceReport_oc",
+  enable_modules = 1,
+  srcs = [
+    "TraceReport_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "TraceReport_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTVideoEngine_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTVideoEngine_private_includes",
+    ":TTVideoEngine_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@ABRInterface//:ABRInterface_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_objc_interface",
+    "@TTNetworkPredict//:interface_objc_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_objc_interface",
+    "@TTTopSignature//:TTTopSignature_objc_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_objc_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_objc_interface",
+    "@VCVodSettings//:VCVodSettings_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    "@ABRInterface//:ABRInterface_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_swift_interface",
+    "@TTNetworkPredict//:interface_swift_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_swift_interface",
+    "@TTTopSignature//:TTTopSignature_swift_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_swift_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_swift_interface",
+    "@VCVodSettings//:VCVodSettings_swift_interface",
+    ":TraceReport_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map",
+    "@ABRInterface//:ABRInterface_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_module_map",
+    "@TTNetworkPredict//:interface_module_map",
+    "@TTPlayerSDK//:TTPlayerSDK_module_map",
+    "@TTTopSignature//:TTTopSignature_module_map",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_module_map",
+    "@VCPreloadStrategy//:VCPreloadStrategy_module_map",
+    "@VCVodSettings//:VCVodSettings_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTVideoEngine_POD_VERSION=@\\\"9999_1.10.108.111-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TraceReport",
+  deps = [
+    ":TraceReport_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TraceReport_lib",
+  deps = [
+    ":TraceReport"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Private_hdrs",
+  srcs = [
+    "TTVideoEngine/Classes/Private/DNS/TTVideoEngineCFHostDNS.h",
+    "TTVideoEngine/Classes/Private/DNS/TTVideoEngineDNS.h",
+    "TTVideoEngine/Classes/Private/DNS/TTVideoEngineDNSBase.h",
+    "TTVideoEngine/Classes/Private/DNS/TTVideoEngineDNSCache.h",
+    "TTVideoEngine/Classes/Private/DNS/TTVideoEngineDNSParser.h",
+    "TTVideoEngine/Classes/Private/DNS/TTVideoEngineDNSServerIP.h",
+    "TTVideoEngine/Classes/Private/DNS/TTVideoEngineHTTPDNS.h",
+    "TTVideoEngine/Classes/Private/DNS/TTVideoNetUtils.h",
+    "TTVideoEngine/Classes/Private/Debug/TTVideoEngineLogView.h",
+    "TTVideoEngine/Classes/Private/Download/TTVideoEngineDownloadTask+Private.h",
+    "TTVideoEngine/Classes/Private/Download/TTVideoEngineDownloader+Private.h",
+    "TTVideoEngine/Classes/Private/Fetcher/TTVideoEngineFetcherMaker.h",
+    "TTVideoEngine/Classes/Private/Fetcher/TTVideoEngineMDLFetcher.h",
+    "TTVideoEngine/Classes/Private/Log/TTVideoEngineEvent.h",
+    "TTVideoEngine/Classes/Private/Log/TTVideoEngineEventBase.h",
+    "TTVideoEngine/Classes/Private/Log/TTVideoEngineEventListModel.h",
+    "TTVideoEngine/Classes/Private/Log/TTVideoEngineEventLogger.h",
+    "TTVideoEngine/Classes/Private/Log/TTVideoEngineEventLoggerProtocol.h",
+    "TTVideoEngine/Classes/Private/Log/TTVideoEngineEventNetworkSpeedPredictorSampleProtocol.h",
+    "TTVideoEngine/Classes/Private/Log/TTVideoEngineEventOneAVRenderCheckProtocol.h",
+    "TTVideoEngine/Classes/Private/Log/TTVideoEngineEventOneErrorProtocol.h",
+    "TTVideoEngine/Classes/Private/Log/TTVideoEngineEventOneEventProtocol.h",
+    "TTVideoEngine/Classes/Private/Log/TTVideoEngineEventOneOperaProtocol.h",
+    "TTVideoEngine/Classes/Private/Log/TTVideoEngineEventOneOutSyncProtocol.h",
+    "TTVideoEngine/Classes/Private/MDLPreload/TTVideoEnginePreloader+Private.h",
+    "TTVideoEngine/Classes/Private/Model/PlaySources/TTVideoEnginePlayBaseSource.h",
+    "TTVideoEngine/Classes/Private/Model/PlaySources/TTVideoEnginePlayInfoSource.h",
+    "TTVideoEngine/Classes/Private/Model/PlaySources/TTVideoEnginePlayModelSource.h",
+    "TTVideoEngine/Classes/Private/Model/PlaySources/TTVideoEnginePlayPlayItemSource.h",
+    "TTVideoEngine/Classes/Private/Model/PlaySources/TTVideoEnginePlayPreloadSource.h",
+    "TTVideoEngine/Classes/Private/Model/PlaySources/TTVideoEnginePlaySource.h",
+    "TTVideoEngine/Classes/Private/Model/PlaySources/TTVideoEnginePlaySourceHeader.h",
+    "TTVideoEngine/Classes/Private/Model/PlaySources/TTVideoEnginePlayUrlSource.h",
+    "TTVideoEngine/Classes/Private/Model/PlaySources/TTVideoEnginePlayUrlsSource.h",
+    "TTVideoEngine/Classes/Private/Model/PlaySources/TTVideoEnginePlayVidSource.h",
+    "TTVideoEngine/Classes/Private/Model/TTVideoEngineKVStorage.h",
+    "TTVideoEngine/Classes/Private/Model/TTVideoEngineModelCache.h",
+    "TTVideoEngine/Classes/Private/Player/Own/TTVideoEngineOwnPlayer.h",
+    "TTVideoEngine/Classes/Private/Player/SYS/TTVideoEngineMoviePlayerLayerView.h",
+    "TTVideoEngine/Classes/Private/Player/SYS/TTVideoEngineSYSAVPlayer.h",
+    "TTVideoEngine/Classes/Private/Player/TTVideoEnginePlayer.h",
+    "TTVideoEngine/Classes/Private/Player/TTVideoEnginePlayerDefinePrivate.h",
+    "TTVideoEngine/Classes/Private/Player/TTVideoEnginePlayerProtocol.h",
+    "TTVideoEngine/Classes/Private/Strategy/TTVideoEngineStrategyEvent.h",
+    "TTVideoEngine/Classes/Private/TTVideoEngine+Private.h",
+    "TTVideoEngine/Classes/Private/TTVideoEngineAVAIBarrager.h",
+    "TTVideoEngine/Classes/Private/TTVideoEngineActionManager.h",
+    "TTVideoEngine/Classes/Private/TTVideoEngineFragmentLoader.h",
+    "TTVideoEngine/Classes/Private/TTVideoEngineOptions.h",
+    "TTVideoEngine/Classes/Private/TTVideoEnginePlayerViewWrapper.h",
+    "TTVideoEngine/Classes/Private/TTVideoEnginePortraitEngine.h",
+    "TTVideoEngine/Classes/Private/TTVideoEnginePortraitProtocol.h",
+    "TTVideoEngine/Classes/Private/TTVideoEngineStartUpSelector.h",
+    "TTVideoEngine/Classes/Private/TTVideoEngineUtilPrivate.h",
+    "TTVideoEngine/Classes/Private/Tools/NSArray+TTVideoEngine.h",
+    "TTVideoEngine/Classes/Private/Tools/NSDictionary+TTVideoEngine.h",
+    "TTVideoEngine/Classes/Private/Tools/NSError+TTVideoEngine.h",
+    "TTVideoEngine/Classes/Private/Tools/NSObject+TTVideoEngine.h",
+    "TTVideoEngine/Classes/Private/Tools/NSString+TTVideoEngine.h",
+    "TTVideoEngine/Classes/Private/Tools/NSTimer+TTVideoEngine.h",
+    "TTVideoEngine/Classes/Private/Tools/TTVideoEngineCollector.h",
+    "TTVideoEngine/Classes/Private/Tools/TTVideoEnginePerformanceCollector.h",
+    "TTVideoEngine/Classes/Private/Tools/TTVideoEnginePlayDuration.h",
+    "TTVideoEngine/Classes/Private/Tools/TTVideoEnginePreloadQueue.h",
+    "TTVideoEngine/Classes/Private/ttvideoenginecacheutils.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Private_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTVideoEngine/NSArray+TTVideoEngine.h",
+    "pod_support/Headers/Private/TTVideoEngine/NSDictionary+TTVideoEngine.h",
+    "pod_support/Headers/Private/TTVideoEngine/NSError+TTVideoEngine.h",
+    "pod_support/Headers/Private/TTVideoEngine/NSObject+TTVideoEngine.h",
+    "pod_support/Headers/Private/TTVideoEngine/NSString+TTVideoEngine.h",
+    "pod_support/Headers/Private/TTVideoEngine/NSTimer+TTVideoEngine.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngine+Private.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineAVAIBarrager.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineActionManager.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineCFHostDNS.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineCollector.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineDNS.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineDNSBase.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineDNSCache.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineDNSParser.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineDNSServerIP.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineDownloadTask+Private.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineDownloader+Private.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineEvent.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineEventBase.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineEventListModel.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineEventLogger.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineEventLoggerProtocol.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineEventNetworkSpeedPredictorSampleProtocol.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineEventOneAVRenderCheckProtocol.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineEventOneErrorProtocol.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineEventOneEventProtocol.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineEventOneOperaProtocol.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineEventOneOutSyncProtocol.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineFetcherMaker.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineFragmentLoader.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineHTTPDNS.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineKVStorage.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineLogView.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineMDLFetcher.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineModelCache.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineMoviePlayerLayerView.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineOptions.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineOwnPlayer.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePerformanceCollector.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePlayBaseSource.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePlayDuration.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePlayInfoSource.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePlayModelSource.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePlayPlayItemSource.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePlayPreloadSource.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePlaySource.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePlaySourceHeader.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePlayUrlSource.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePlayUrlsSource.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePlayVidSource.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePlayer.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePlayerDefinePrivate.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePlayerProtocol.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePlayerViewWrapper.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePortraitEngine.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePortraitProtocol.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePreloadQueue.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePreloader+Private.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineSYSAVPlayer.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineStartUpSelector.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineStrategyEvent.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineUtilPrivate.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoNetUtils.h",
+    "pod_support/Headers/Private/TTVideoEngine/ttvideoenginecacheutils.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Private_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Private_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Private_module_map",
+  module_map = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_Private-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_Private-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Private_srcs",
+  srcs = [
+    "TTVideoEngine/Classes/Private/Tools/NSArray+TTVideoEngine.m",
+    "TTVideoEngine/Classes/Private/Tools/NSDictionary+TTVideoEngine.m",
+    "TTVideoEngine/Classes/Private/Tools/NSError+TTVideoEngine.m",
+    "TTVideoEngine/Classes/Private/Tools/NSObject+TTVideoEngine.m",
+    "TTVideoEngine/Classes/Private/Tools/NSString+TTVideoEngine.m",
+    "TTVideoEngine/Classes/Private/Tools/NSTimer+TTVideoEngine.m",
+    "TTVideoEngine/Classes/Private/TTVideoEngine+Private.m",
+    "TTVideoEngine/Classes/Private/TTVideoEngineActionManager.m",
+    "TTVideoEngine/Classes/Private/TTVideoEngineAVAIBarrager.m",
+    "TTVideoEngine/Classes/Private/ttvideoenginecacheutils.c",
+    "TTVideoEngine/Classes/Private/DNS/TTVideoEngineCFHostDNS.m",
+    "TTVideoEngine/Classes/Private/Tools/TTVideoEngineCollector.m",
+    "TTVideoEngine/Classes/Private/DNS/TTVideoEngineDNSBase.m",
+    "TTVideoEngine/Classes/Private/DNS/TTVideoEngineDNSCache.m",
+    "TTVideoEngine/Classes/Private/DNS/TTVideoEngineDNSParser.m",
+    "TTVideoEngine/Classes/Private/DNS/TTVideoEngineDNSServerIP.m",
+    "TTVideoEngine/Classes/Private/Log/TTVideoEngineEvent.m",
+    "TTVideoEngine/Classes/Private/Log/TTVideoEngineEventBase.m",
+    "TTVideoEngine/Classes/Private/Log/TTVideoEngineEventListModel.m",
+    "TTVideoEngine/Classes/Private/Log/TTVideoEngineEventLogger.m",
+    "TTVideoEngine/Classes/Private/Fetcher/TTVideoEngineFetcherMaker.m",
+    "TTVideoEngine/Classes/Private/TTVideoEngineFragmentLoader.m",
+    "TTVideoEngine/Classes/Private/DNS/TTVideoEngineHTTPDNS.m",
+    "TTVideoEngine/Classes/Private/Model/TTVideoEngineKVStorage.m",
+    "TTVideoEngine/Classes/Private/Debug/TTVideoEngineLogView.m",
+    "TTVideoEngine/Classes/Private/Fetcher/TTVideoEngineMDLFetcher.m",
+    "TTVideoEngine/Classes/Private/Model/TTVideoEngineModelCache.m",
+    "TTVideoEngine/Classes/Private/Player/SYS/TTVideoEngineMoviePlayerLayerView.m",
+    "TTVideoEngine/Classes/Private/TTVideoEngineOptions.m",
+    "TTVideoEngine/Classes/Private/Player/Own/TTVideoEngineOwnPlayer.m",
+    "TTVideoEngine/Classes/Private/Tools/TTVideoEnginePerformanceCollector.m",
+    "TTVideoEngine/Classes/Private/Model/PlaySources/TTVideoEnginePlayBaseSource.m",
+    "TTVideoEngine/Classes/Private/Tools/TTVideoEnginePlayDuration.m",
+    "TTVideoEngine/Classes/Private/Player/TTVideoEnginePlayer.m",
+    "TTVideoEngine/Classes/Private/TTVideoEnginePlayerViewWrapper.m",
+    "TTVideoEngine/Classes/Private/Model/PlaySources/TTVideoEnginePlayInfoSource.m",
+    "TTVideoEngine/Classes/Private/Model/PlaySources/TTVideoEnginePlayModelSource.m",
+    "TTVideoEngine/Classes/Private/Model/PlaySources/TTVideoEnginePlayPlayItemSource.m",
+    "TTVideoEngine/Classes/Private/Model/PlaySources/TTVideoEnginePlayPreloadSource.m",
+    "TTVideoEngine/Classes/Private/Model/PlaySources/TTVideoEnginePlayUrlSource.m",
+    "TTVideoEngine/Classes/Private/Model/PlaySources/TTVideoEnginePlayUrlsSource.m",
+    "TTVideoEngine/Classes/Private/Model/PlaySources/TTVideoEnginePlayVidSource.m",
+    "TTVideoEngine/Classes/Private/TTVideoEnginePortraitEngine.m",
+    "TTVideoEngine/Classes/Private/MDLPreload/TTVideoEnginePreloader+Private.m",
+    "TTVideoEngine/Classes/Private/Tools/TTVideoEnginePreloadQueue.m",
+    "TTVideoEngine/Classes/Private/TTVideoEngineStartUpSelector.m",
+    "TTVideoEngine/Classes/Private/Strategy/TTVideoEngineStrategyEvent.m",
+    "TTVideoEngine/Classes/Private/Player/SYS/TTVideoEngineSYSAVPlayer.m",
+    "TTVideoEngine/Classes/Private/TTVideoEngineUtilPrivate.m",
+    "TTVideoEngine/Classes/Private/Player/Preload/TTVideoFetcherWrapper.mm",
+    "TTVideoEngine/Classes/Private/DNS/TTVideoNetUtils.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Private_oc",
+  enable_modules = 1,
+  srcs = [
+    "Private_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Private_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_dylibs = [
+    "sqlite3"
+  ],
+  deps = [
+    ":TTVideoEngine_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTVideoEngine_private_includes",
+    ":TTVideoEngine_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ABRInterface//:ABRInterface_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_objc_interface",
+    "@TTNetworkPredict//:interface_objc_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_objc_interface",
+    "@TTTopSignature//:TTTopSignature_objc_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_objc_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_objc_interface",
+    "@VCVodSettings//:VCVodSettings_objc_interface",
+    "@ABRInterface//:ABRInterface_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_swift_interface",
+    "@TTNetworkPredict//:interface_swift_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_swift_interface",
+    "@TTTopSignature//:TTTopSignature_swift_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_swift_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_swift_interface",
+    "@VCVodSettings//:VCVodSettings_swift_interface",
+    ":Private_objc_interface",
+    "@ABRInterface//:ABRInterface_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_module_map",
+    "@TTNetworkPredict//:interface_module_map",
+    "@TTPlayerSDK//:TTPlayerSDK_module_map",
+    "@TTTopSignature//:TTTopSignature_module_map",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_module_map",
+    "@VCPreloadStrategy//:VCPreloadStrategy_module_map",
+    "@VCVodSettings//:VCVodSettings_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTVideoEngine_POD_VERSION=@\\\"9999_1.10.108.111-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Private",
+  deps = [
+    ":Private_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Private_lib",
+  deps = [
+    ":Private"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Public_hdrs",
+  srcs = [
+    "TTVideoEngine/Classes/Public/AccessLog/TTVideoEngineAVPlayerItemAccessLog.h",
+    "TTVideoEngine/Classes/Public/AccessLog/TTVideoEngineAVPlayerItemAccessLogEvent.h",
+    "TTVideoEngine/Classes/Public/Download/TTVideoEngineDownloader.h",
+    "TTVideoEngine/Classes/Public/Log/TTVideoEngineEventManager.h",
+    "TTVideoEngine/Classes/Public/MDLPreload/TTVideoEngineLoadProgress.h",
+    "TTVideoEngine/Classes/Public/MDLPreload/TTVideoEnginePreloader.h",
+    "TTVideoEngine/Classes/Public/Models/TTVideoEngineKeys.h",
+    "TTVideoEngine/Classes/Public/Models/TTVideoEngineModel.h",
+    "TTVideoEngine/Classes/Public/Models/TTVideoEngineModelDef.h",
+    "TTVideoEngine/Classes/Public/Models/TTVideoEnginePlayInfo.h",
+    "TTVideoEngine/Classes/Public/Models/TTVideoEnginePlayItem.h",
+    "TTVideoEngine/Classes/Public/Models/TTVideoEngineSource.h",
+    "TTVideoEngine/Classes/Public/Models/TTVideoEngineVideoInfo.h",
+    "TTVideoEngine/Classes/Public/NetClient/TTVideoEngineNetClient.h",
+    "TTVideoEngine/Classes/Public/NetClient/TTVideoEngineNetwork.h",
+    "TTVideoEngine/Classes/Public/NetworkPredictorInterface/TTVideoEngineNetworkPredictorAction.h",
+    "TTVideoEngine/Classes/Public/NetworkPredictorInterface/TTVideoEngineNetworkPredictorReaction.h",
+    "TTVideoEngine/Classes/Public/NetworkPredictorInterface/TTVideoEngineNetworkSpeedPredictorConfigModel.h",
+    "TTVideoEngine/Classes/Public/Settings/TTVideoEngineSettings.h",
+    "TTVideoEngine/Classes/Public/Strategy/TTVideoEngineStrategy.h",
+    "TTVideoEngine/Classes/Public/Strategy/TTVideoEngineStrategyScene.h",
+    "TTVideoEngine/Classes/Public/TTVideoEngine+AIBarrage.h",
+    "TTVideoEngine/Classes/Public/TTVideoEngine+AsyncInit.h",
+    "TTVideoEngine/Classes/Public/TTVideoEngine+Audio.h",
+    "TTVideoEngine/Classes/Public/TTVideoEngine+AutoRes.h",
+    "TTVideoEngine/Classes/Public/TTVideoEngine+Mask.h",
+    "TTVideoEngine/Classes/Public/TTVideoEngine+MediaTrackInfo.h",
+    "TTVideoEngine/Classes/Public/TTVideoEngine+Options.h",
+    "TTVideoEngine/Classes/Public/TTVideoEngine+Preload.h",
+    "TTVideoEngine/Classes/Public/TTVideoEngine+SubTitle.h",
+    "TTVideoEngine/Classes/Public/TTVideoEngine+Tracker.h",
+    "TTVideoEngine/Classes/Public/TTVideoEngine+VR.h",
+    "TTVideoEngine/Classes/Public/TTVideoEngine+Video.h",
+    "TTVideoEngine/Classes/Public/TTVideoEngine.h",
+    "TTVideoEngine/Classes/Public/TTVideoEngineAuthTimer.h",
+    "TTVideoEngine/Classes/Public/TTVideoEngineExtraInfo.h",
+    "TTVideoEngine/Classes/Public/TTVideoEngineFragment.h",
+    "TTVideoEngine/Classes/Public/TTVideoEngineHeader.h",
+    "TTVideoEngine/Classes/Public/TTVideoEnginePool.h",
+    "TTVideoEngine/Classes/Public/Utils/TTVideoEnginePlayerDefine.h",
+    "TTVideoEngine/Classes/Public/Utils/TTVideoEnginePublicProtocol.h",
+    "TTVideoEngine/Classes/Public/Utils/TTVideoEngineUtil.h",
+    "TTVideoEngine/Classes/Public/VRInterface/TTVideoEngineVRAction.h",
+    "TTVideoEngine/Classes/Public/VRInterface/TTVideoEngineVRModel.h",
+    "TTVideoEngine/Classes/Public/VRInterface/TTVideoEngineVRReaction.h",
+    "TTVideoEngine/Classes/Public/old_PreloadItem/TTAVPreloaderItem.h",
+    "TTVideoEngine/Classes/Public/old_PreloadItem/TTVideoPreloader.h",
+    "TTVideoEngine/Classes/Public/old_VidCacheManager/TTVideoCacheManager.h",
+    "TTVideoEngine/Classes/Public/other_use/TTVideoEngineInfoFetcher.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Public_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTVideoEngine/TTAVPreloaderItem.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoCacheManager.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngine+AIBarrage.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngine+AsyncInit.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngine+Audio.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngine+AutoRes.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngine+Mask.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngine+MediaTrackInfo.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngine+Options.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngine+Preload.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngine+SubTitle.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngine+Tracker.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngine+VR.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngine+Video.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngine.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineAVPlayerItemAccessLog.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineAVPlayerItemAccessLogEvent.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineAuthTimer.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineDownloader.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineEventManager.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineExtraInfo.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineFragment.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineHeader.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineInfoFetcher.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineKeys.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineLoadProgress.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineModel.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineModelDef.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineNetClient.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineNetwork.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineNetworkPredictorAction.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineNetworkPredictorReaction.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineNetworkSpeedPredictorConfigModel.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePlayInfo.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePlayItem.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePlayerDefine.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePool.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePreloader.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEnginePublicProtocol.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineSettings.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineSource.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineStrategy.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineStrategyScene.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineUtil.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineVRAction.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineVRModel.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineVRReaction.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineVideoInfo.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoPreloader.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTAVPreloaderItem.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoCacheManager.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine+AIBarrage.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine+AsyncInit.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine+Audio.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine+AutoRes.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine+Mask.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine+MediaTrackInfo.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine+Options.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine+Preload.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine+SubTitle.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine+Tracker.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine+VR.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine+Video.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineAVPlayerItemAccessLog.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineAVPlayerItemAccessLogEvent.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineAuthTimer.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineDownloader.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineEventManager.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineExtraInfo.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineFragment.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineHeader.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineInfoFetcher.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineKeys.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineLoadProgress.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineModel.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineModelDef.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineNetClient.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineNetwork.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineNetworkPredictorAction.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineNetworkPredictorReaction.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineNetworkSpeedPredictorConfigModel.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEnginePlayInfo.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEnginePlayItem.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEnginePlayerDefine.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEnginePool.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEnginePreloader.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEnginePublicProtocol.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineSettings.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineSource.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineStrategy.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineStrategyScene.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineUtil.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineVRAction.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineVRModel.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineVRReaction.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineVideoInfo.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoPreloader.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Public_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Public_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Public_module_map",
+  module_map = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_Public-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_Public-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Public_srcs",
+  srcs = [
+    "TTVideoEngine/Classes/Public/old_PreloadItem/TTAVPreloaderItem.m",
+    "TTVideoEngine/Classes/Public/old_VidCacheManager/TTVideoCacheManager.m",
+    "TTVideoEngine/Classes/Public/TTVideoEngine+AsyncInit.m",
+    "TTVideoEngine/Classes/Public/TTVideoEngine+Audio.m",
+    "TTVideoEngine/Classes/Public/TTVideoEngine+AutoRes.m",
+    "TTVideoEngine/Classes/Public/TTVideoEngine+MediaTrackInfo.m",
+    "TTVideoEngine/Classes/Public/TTVideoEngine+Options.m",
+    "TTVideoEngine/Classes/Public/TTVideoEngine+Preload.m",
+    "TTVideoEngine/Classes/Public/TTVideoEngine+SubTitle.m",
+    "TTVideoEngine/Classes/Public/TTVideoEngine+Tracker.m",
+    "TTVideoEngine/Classes/Public/TTVideoEngine+Video.m",
+    "TTVideoEngine/Classes/Public/TTVideoEngine+VR.m",
+    "TTVideoEngine/Classes/Public/TTVideoEngine.m",
+    "TTVideoEngine/Classes/Public/TTVideoEngineAuthTimer.m",
+    "TTVideoEngine/Classes/Public/AccessLog/TTVideoEngineAVPlayerItemAccessLog.m",
+    "TTVideoEngine/Classes/Public/AccessLog/TTVideoEngineAVPlayerItemAccessLogEvent.m",
+    "TTVideoEngine/Classes/Public/Download/TTVideoEngineDownloader.m",
+    "TTVideoEngine/Classes/Public/Log/TTVideoEngineEventManager.m",
+    "TTVideoEngine/Classes/Public/TTVideoEngineExtraInfo.m",
+    "TTVideoEngine/Classes/Public/other_use/TTVideoEngineInfoFetcher.m",
+    "TTVideoEngine/Classes/Public/Models/TTVideoEngineKeys.m",
+    "TTVideoEngine/Classes/Public/MDLPreload/TTVideoEngineLoadProgress.m",
+    "TTVideoEngine/Classes/Public/Models/TTVideoEngineModel.m",
+    "TTVideoEngine/Classes/Public/NetClient/TTVideoEngineNetwork.m",
+    "TTVideoEngine/Classes/Public/NetworkPredictorInterface/TTVideoEngineNetworkSpeedPredictorConfigModel.m",
+    "TTVideoEngine/Classes/Public/Models/TTVideoEnginePlayInfo.m",
+    "TTVideoEngine/Classes/Public/Models/TTVideoEnginePlayItem.m",
+    "TTVideoEngine/Classes/Public/TTVideoEnginePool.m",
+    "TTVideoEngine/Classes/Public/MDLPreload/TTVideoEnginePreloader.m",
+    "TTVideoEngine/Classes/Public/Settings/TTVideoEngineSettings.m",
+    "TTVideoEngine/Classes/Public/Strategy/TTVideoEngineStrategy.m",
+    "TTVideoEngine/Classes/Public/Strategy/TTVideoEngineStrategyScene.m",
+    "TTVideoEngine/Classes/Public/Utils/TTVideoEngineUtil.mm",
+    "TTVideoEngine/Classes/Public/Models/TTVideoEngineVideoInfo.m",
+    "TTVideoEngine/Classes/Public/VRInterface/TTVideoEngineVRModel.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Public_oc",
+  enable_modules = 1,
+  srcs = [
+    "Public_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Public_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTVideoEngine_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTVideoEngine_private_includes",
+    ":TTVideoEngine_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ABRInterface//:ABRInterface_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_objc_interface",
+    "@TTNetworkPredict//:interface_objc_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_objc_interface",
+    "@TTTopSignature//:TTTopSignature_objc_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_objc_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_objc_interface",
+    "@VCVodSettings//:VCVodSettings_objc_interface",
+    "@ABRInterface//:ABRInterface_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_swift_interface",
+    "@TTNetworkPredict//:interface_swift_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_swift_interface",
+    "@TTTopSignature//:TTTopSignature_swift_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_swift_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_swift_interface",
+    "@VCVodSettings//:VCVodSettings_swift_interface",
+    ":Public_objc_interface",
+    "@ABRInterface//:ABRInterface_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_module_map",
+    "@TTNetworkPredict//:interface_module_map",
+    "@TTPlayerSDK//:TTPlayerSDK_module_map",
+    "@TTTopSignature//:TTTopSignature_module_map",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_module_map",
+    "@VCPreloadStrategy//:VCPreloadStrategy_module_map",
+    "@VCVodSettings//:VCVodSettings_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTVideoEngine_POD_VERSION=@\\\"9999_1.10.108.111-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Public",
+  deps = [
+    ":Public_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Public_lib",
+  deps = [
+    ":Public"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "OldModel_hdrs",
+  srcs = [
+    "TTVideoEngine/Classes/ModelFormatJson/TTVideoEngineInfoModel.h",
+    "TTVideoEngine/Classes/ModelFormatJson/TTVideoEngineMaskInfo.h",
+    "TTVideoEngine/Classes/ModelFormatJson/TTVideoEngineThumbInfo.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "OldModel_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineInfoModel.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineMaskInfo.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineThumbInfo.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineInfoModel.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineMaskInfo.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineThumbInfo.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "OldModel_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "OldModel_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "OldModel_module_map",
+  module_map = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_OldModel-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_OldModel-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "OldModel_srcs",
+  srcs = [
+    "TTVideoEngine/Classes/ModelFormatJson/TTVideoEngineInfoModel.m",
+    "TTVideoEngine/Classes/ModelFormatJson/TTVideoEngineMaskInfo.m",
+    "TTVideoEngine/Classes/ModelFormatJson/TTVideoEngineThumbInfo.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "OldModel_oc",
+  enable_modules = 1,
+  srcs = [
+    "OldModel_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "OldModel_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTVideoEngine_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTVideoEngine_private_includes",
+    ":TTVideoEngine_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ABRInterface//:ABRInterface_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_objc_interface",
+    "@TTNetworkPredict//:interface_objc_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_objc_interface",
+    "@TTTopSignature//:TTTopSignature_objc_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_objc_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_objc_interface",
+    "@VCVodSettings//:VCVodSettings_objc_interface",
+    "@ABRInterface//:ABRInterface_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_swift_interface",
+    "@TTNetworkPredict//:interface_swift_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_swift_interface",
+    "@TTTopSignature//:TTTopSignature_swift_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_swift_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_swift_interface",
+    "@VCVodSettings//:VCVodSettings_swift_interface",
+    ":OldModel_objc_interface",
+    "@ABRInterface//:ABRInterface_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_module_map",
+    "@TTNetworkPredict//:interface_module_map",
+    "@TTPlayerSDK//:TTPlayerSDK_module_map",
+    "@TTTopSignature//:TTTopSignature_module_map",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_module_map",
+    "@VCPreloadStrategy//:VCPreloadStrategy_module_map",
+    "@VCVodSettings//:VCVodSettings_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTVideoEngine_POD_VERSION=@\\\"9999_1.10.108.111-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "OldModel",
+  deps = [
+    ":OldModel_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "OldModel_lib",
+  deps = [
+    ":OldModel"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DebugTools_hdrs",
+  srcs = [
+    "TTVideoEngine/Classes/Debug/TTVideoEngineDebugTools.h",
+    "TTVideoEngine/Classes/Debug/TTVideoEngineDebugVideoInfoBusiness.h",
+    "TTVideoEngine/Classes/Debug/TTVideoEngineDebugVideoInfoView.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DebugTools_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DebugTools_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DebugTools_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "DebugTools_module_map",
+  module_map = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_DebugTools-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_DebugTools-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DebugTools_srcs",
+  srcs = [
+    "TTVideoEngine/Classes/Debug/TTVideoEngineDebugTools.m",
+    "TTVideoEngine/Classes/Debug/TTVideoEngineDebugVideoInfoBusiness.m",
+    "TTVideoEngine/Classes/Debug/TTVideoEngineDebugVideoInfoView.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DebugTools_oc",
+  enable_modules = 1,
+  srcs = [
+    "DebugTools_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "DebugTools_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTVideoEngine_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTVideoEngine_private_includes",
+    ":TTVideoEngine_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ABRInterface//:ABRInterface_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_objc_interface",
+    "@TTNetworkPredict//:interface_objc_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_objc_interface",
+    "@TTTopSignature//:TTTopSignature_objc_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_objc_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_objc_interface",
+    "@VCVodSettings//:VCVodSettings_objc_interface",
+    "@ABRInterface//:ABRInterface_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_swift_interface",
+    "@TTNetworkPredict//:interface_swift_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_swift_interface",
+    "@TTTopSignature//:TTTopSignature_swift_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_swift_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_swift_interface",
+    "@VCVodSettings//:VCVodSettings_swift_interface",
+    ":DebugTools_objc_interface",
+    "@ABRInterface//:ABRInterface_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_module_map",
+    "@TTNetworkPredict//:interface_module_map",
+    "@TTPlayerSDK//:TTPlayerSDK_module_map",
+    "@TTTopSignature//:TTTopSignature_module_map",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_module_map",
+    "@VCPreloadStrategy//:VCPreloadStrategy_module_map",
+    "@VCVodSettings//:VCVodSettings_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTVideoEngine_POD_VERSION=@\\\"9999_1.10.108.111-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DebugTools",
+  deps = [
+    ":DebugTools_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "DebugTools_lib",
+  deps = [
+    ":DebugTools"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NewModel_hdrs",
+  srcs = [
+    "TTVideoEngine/Classes/ModelFormatPb/TTVideoEngineInfoModel+Protobuf.h",
+    "TTVideoEngine/Classes/ModelFormatPb/TTVideoEngineModelPb.pbobjc.h",
+    "TTVideoEngine/Classes/ModelFormatPb/TTVideoEngineThumbInfo+Protobuf.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NewModel_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "NewModel_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "NewModel_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "NewModel_module_map",
+  module_map = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_NewModel-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_NewModel-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NewModel_srcs",
+  srcs = [
+    "TTVideoEngine/Classes/ModelFormatPb/TTVideoEngineInfoModel+Protobuf.m",
+    "TTVideoEngine/Classes/ModelFormatPb/TTVideoEngineModelPb.pbobjc.m",
+    "TTVideoEngine/Classes/ModelFormatPb/TTVideoEngineThumbInfo+Protobuf.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "NewModel_oc",
+  enable_modules = 1,
+  srcs = [
+    "NewModel_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "NewModel_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTVideoEngine_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTVideoEngine_private_includes",
+    ":TTVideoEngine_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Protobuf//:Protobuf_objc_interface",
+    "@ABRInterface//:ABRInterface_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_objc_interface",
+    "@TTNetworkPredict//:interface_objc_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_objc_interface",
+    "@TTTopSignature//:TTTopSignature_objc_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_objc_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_objc_interface",
+    "@VCVodSettings//:VCVodSettings_objc_interface",
+    "@Protobuf//:Protobuf_swift_interface",
+    "@ABRInterface//:ABRInterface_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_swift_interface",
+    "@TTNetworkPredict//:interface_swift_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_swift_interface",
+    "@TTTopSignature//:TTTopSignature_swift_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_swift_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_swift_interface",
+    "@VCVodSettings//:VCVodSettings_swift_interface",
+    ":NewModel_objc_interface",
+    "@Protobuf//:Protobuf_module_map",
+    "@ABRInterface//:ABRInterface_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_module_map",
+    "@TTNetworkPredict//:interface_module_map",
+    "@TTPlayerSDK//:TTPlayerSDK_module_map",
+    "@TTTopSignature//:TTTopSignature_module_map",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_module_map",
+    "@VCPreloadStrategy//:VCPreloadStrategy_module_map",
+    "@VCVodSettings//:VCVodSettings_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTVideoEngine_POD_VERSION=@\\\"9999_1.10.108.111-lark\\\"",
+    "-DGPB_USE_PROTOBUF_FRAMEWORK_IMPORTS=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "NewModel",
+  deps = [
+    ":NewModel_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "NewModel_lib",
+  deps = [
+    ":NewModel"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Base_hdrs",
+  srcs = [
+    "TTVideoEngine/Classes/DualCore/Base/TTVideoEngineDualCore.h",
+    "TTVideoEngine/Classes/DualCore/Base/TTVideoEngineOwnPlayerVanGuard.h",
+    "TTVideoEngine/Classes/EnvConfig/Base/TTVideoEngineEnvConfig.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Base_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineDualCore.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineEnvConfig.h",
+    "pod_support/Headers/Private/TTVideoEngine/TTVideoEngineOwnPlayerVanGuard.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineDualCore.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineEnvConfig.h",
+    "pod_support/Headers/Public/TTVideoEngine/TTVideoEngineOwnPlayerVanGuard.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Base_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Base_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Base_module_map",
+  module_map = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_Base-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_Base-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Base_srcs",
+  srcs = [
+    "TTVideoEngine/Classes/EnvConfig/Base/TTVideoEngineEnvConfig.m",
+    "TTVideoEngine/Classes/DualCore/Base/TTVideoEngineOwnPlayerVanGuard.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Base_oc",
+  enable_modules = 1,
+  srcs = [
+    "Base_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Base_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTVideoEngine_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTVideoEngine_private_includes",
+    ":TTVideoEngine_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ABRInterface//:ABRInterface_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_objc_interface",
+    "@TTNetworkPredict//:interface_objc_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_objc_interface",
+    "@TTTopSignature//:TTTopSignature_objc_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_objc_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_objc_interface",
+    "@VCVodSettings//:VCVodSettings_objc_interface",
+    "@ABRInterface//:ABRInterface_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_swift_interface",
+    "@TTNetworkPredict//:interface_swift_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_swift_interface",
+    "@TTTopSignature//:TTTopSignature_swift_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_swift_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_swift_interface",
+    "@VCVodSettings//:VCVodSettings_swift_interface",
+    ":Base_objc_interface",
+    "@ABRInterface//:ABRInterface_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_module_map",
+    "@TTNetworkPredict//:interface_module_map",
+    "@TTPlayerSDK//:TTPlayerSDK_module_map",
+    "@TTTopSignature//:TTTopSignature_module_map",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_module_map",
+    "@VCPreloadStrategy//:VCPreloadStrategy_module_map",
+    "@VCVodSettings//:VCVodSettings_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTVideoEngine_POD_VERSION=@\\\"9999_1.10.108.111-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Base",
+  deps = [
+    ":Base_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Base_lib",
+  deps = [
+    ":Base"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DualCore_hdrs",
+  srcs = [
+    "TTVideoEngine/Classes/DualCore/RearGuard/TTVideoEngineOwnPlayerRearGuard.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DualCore_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DualCore_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DualCore_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "DualCore_module_map",
+  module_map = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_DualCore-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_DualCore-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DualCore_srcs",
+  srcs = [
+    "TTVideoEngine/Classes/DualCore/RearGuard/TTVideoEngineOwnPlayerRearGuard.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DualCore_oc",
+  enable_modules = 1,
+  srcs = [
+    "DualCore_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "DualCore_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTVideoEngine_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTVideoEngine_private_includes",
+    ":TTVideoEngine_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ABRInterface//:ABRInterface_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_objc_interface",
+    "@TTNetworkPredict//:interface_objc_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_objc_interface",
+    "@TTTopSignature//:TTTopSignature_objc_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_objc_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_objc_interface",
+    "@VCVodSettings//:VCVodSettings_objc_interface",
+    "@ABRInterface//:ABRInterface_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_swift_interface",
+    "@TTNetworkPredict//:interface_swift_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_swift_interface",
+    "@TTTopSignature//:TTTopSignature_swift_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_swift_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_swift_interface",
+    "@VCVodSettings//:VCVodSettings_swift_interface",
+    ":DualCore_objc_interface",
+    "@ABRInterface//:ABRInterface_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_module_map",
+    "@TTNetworkPredict//:interface_module_map",
+    "@TTPlayerSDK//:TTPlayerSDK_module_map",
+    "@TTTopSignature//:TTTopSignature_module_map",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_module_map",
+    "@VCPreloadStrategy//:VCPreloadStrategy_module_map",
+    "@VCVodSettings//:VCVodSettings_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTVideoEngine_POD_VERSION=@\\\"9999_1.10.108.111-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DualCore",
+  deps = [
+    ":DualCore_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "DualCore_lib",
+  deps = [
+    ":DualCore"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Boe_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Boe_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Boe_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Boe_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Boe_module_map",
+  module_map = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_Boe-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_Boe-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Boe_srcs",
+  srcs = [
+    "TTVideoEngine/Classes/EnvConfig/Boe/TTVideoEngineEnvConfig+Boe.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Boe_oc",
+  enable_modules = 1,
+  srcs = [
+    "Boe_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Boe_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTVideoEngine_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTVideoEngine_private_includes",
+    ":TTVideoEngine_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ABRInterface//:ABRInterface_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_objc_interface",
+    "@TTNetworkPredict//:interface_objc_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_objc_interface",
+    "@TTTopSignature//:TTTopSignature_objc_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_objc_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_objc_interface",
+    "@VCVodSettings//:VCVodSettings_objc_interface",
+    "@ABRInterface//:ABRInterface_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_swift_interface",
+    "@TTNetworkPredict//:interface_swift_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_swift_interface",
+    "@TTTopSignature//:TTTopSignature_swift_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_swift_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_swift_interface",
+    "@VCVodSettings//:VCVodSettings_swift_interface",
+    ":Boe_objc_interface",
+    "@ABRInterface//:ABRInterface_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_module_map",
+    "@TTNetworkPredict//:interface_module_map",
+    "@TTPlayerSDK//:TTPlayerSDK_module_map",
+    "@TTTopSignature//:TTTopSignature_module_map",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_module_map",
+    "@VCPreloadStrategy//:VCPreloadStrategy_module_map",
+    "@VCVodSettings//:VCVodSettings_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTVideoEngine_POD_VERSION=@\\\"9999_1.10.108.111-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Boe",
+  deps = [
+    ":Boe_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Boe_lib",
+  deps = [
+    ":Boe"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CN_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CN_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CN_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CN_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "CN_module_map",
+  module_map = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_CN-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_CN-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CN_srcs",
+  srcs = [
+    "TTVideoEngine/Classes/EnvConfig/CN/TTVideoEngineEnvConfig+CN.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CN_oc",
+  enable_modules = 1,
+  srcs = [
+    "CN_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "CN_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTVideoEngine_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTVideoEngine_private_includes",
+    ":TTVideoEngine_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ABRInterface//:ABRInterface_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_objc_interface",
+    "@TTNetworkPredict//:interface_objc_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_objc_interface",
+    "@TTTopSignature//:TTTopSignature_objc_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_objc_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_objc_interface",
+    "@VCVodSettings//:VCVodSettings_objc_interface",
+    "@ABRInterface//:ABRInterface_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_swift_interface",
+    "@TTNetworkPredict//:interface_swift_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_swift_interface",
+    "@TTTopSignature//:TTTopSignature_swift_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_swift_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_swift_interface",
+    "@VCVodSettings//:VCVodSettings_swift_interface",
+    ":CN_objc_interface",
+    "@ABRInterface//:ABRInterface_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_module_map",
+    "@TTNetworkPredict//:interface_module_map",
+    "@TTPlayerSDK//:TTPlayerSDK_module_map",
+    "@TTTopSignature//:TTTopSignature_module_map",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_module_map",
+    "@VCPreloadStrategy//:VCPreloadStrategy_module_map",
+    "@VCVodSettings//:VCVodSettings_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTVideoEngine_POD_VERSION=@\\\"9999_1.10.108.111-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CN",
+  deps = [
+    ":CN_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "CN_lib",
+  deps = [
+    ":CN"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SG_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SG_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SG_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SG_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "SG_module_map",
+  module_map = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_SG-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_SG-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SG_srcs",
+  srcs = [
+    "TTVideoEngine/Classes/EnvConfig/SG/TTVideoEngineEnvConfig+SG.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SG_oc",
+  enable_modules = 1,
+  srcs = [
+    "SG_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "SG_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTVideoEngine_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTVideoEngine_private_includes",
+    ":TTVideoEngine_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ABRInterface//:ABRInterface_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_objc_interface",
+    "@TTNetworkPredict//:interface_objc_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_objc_interface",
+    "@TTTopSignature//:TTTopSignature_objc_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_objc_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_objc_interface",
+    "@VCVodSettings//:VCVodSettings_objc_interface",
+    "@ABRInterface//:ABRInterface_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_swift_interface",
+    "@TTNetworkPredict//:interface_swift_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_swift_interface",
+    "@TTTopSignature//:TTTopSignature_swift_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_swift_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_swift_interface",
+    "@VCVodSettings//:VCVodSettings_swift_interface",
+    ":SG_objc_interface",
+    "@ABRInterface//:ABRInterface_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_module_map",
+    "@TTNetworkPredict//:interface_module_map",
+    "@TTPlayerSDK//:TTPlayerSDK_module_map",
+    "@TTTopSignature//:TTTopSignature_module_map",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_module_map",
+    "@VCPreloadStrategy//:VCPreloadStrategy_module_map",
+    "@VCVodSettings//:VCVodSettings_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTVideoEngine_POD_VERSION=@\\\"9999_1.10.108.111-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SG",
+  deps = [
+    ":SG_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "SG_lib",
+  deps = [
+    ":SG"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "UE_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "UE_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "UE_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "UE_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "UE_module_map",
+  module_map = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_UE-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_UE-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "UE_srcs",
+  srcs = [
+    "TTVideoEngine/Classes/EnvConfig/UE/TTVideoEngineEnvConfig+UE.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "UE_oc",
+  enable_modules = 1,
+  srcs = [
+    "UE_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "UE_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTVideoEngine_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTVideoEngine_private_includes",
+    ":TTVideoEngine_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ABRInterface//:ABRInterface_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_objc_interface",
+    "@TTNetworkPredict//:interface_objc_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_objc_interface",
+    "@TTTopSignature//:TTTopSignature_objc_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_objc_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_objc_interface",
+    "@VCVodSettings//:VCVodSettings_objc_interface",
+    "@ABRInterface//:ABRInterface_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_swift_interface",
+    "@TTNetworkPredict//:interface_swift_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_swift_interface",
+    "@TTTopSignature//:TTTopSignature_swift_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_swift_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_swift_interface",
+    "@VCVodSettings//:VCVodSettings_swift_interface",
+    ":UE_objc_interface",
+    "@ABRInterface//:ABRInterface_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_module_map",
+    "@TTNetworkPredict//:interface_module_map",
+    "@TTPlayerSDK//:TTPlayerSDK_module_map",
+    "@TTTopSignature//:TTTopSignature_module_map",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_module_map",
+    "@VCPreloadStrategy//:VCPreloadStrategy_module_map",
+    "@VCVodSettings//:VCVodSettings_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTVideoEngine_POD_VERSION=@\\\"9999_1.10.108.111-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "UE",
+  deps = [
+    ":UE_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "UE_lib",
+  deps = [
+    ":UE"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NetworkPredictor_hdrs",
+  srcs = [
+    "TTVideoEngine/Classes/NetworkPredictor/TTVideoEngineNetworkPredictorFragment.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NetworkPredictor_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "NetworkPredictor_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "NetworkPredictor_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "NetworkPredictor_module_map",
+  module_map = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_NetworkPredictor-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_NetworkPredictor-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NetworkPredictor_srcs",
+  srcs = [
+    "TTVideoEngine/Classes/NetworkPredictor/TTVideoEngineNetworkPredictorFragment.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "NetworkPredictor_oc",
+  enable_modules = 1,
+  srcs = [
+    "NetworkPredictor_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "NetworkPredictor_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTVideoEngine_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTVideoEngine_private_includes",
+    ":TTVideoEngine_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ABRInterface//:ABRInterface_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_objc_interface",
+    "@TTNetworkPredict//:interface_objc_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_objc_interface",
+    "@TTTopSignature//:TTTopSignature_objc_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_objc_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_objc_interface",
+    "@VCVodSettings//:VCVodSettings_objc_interface",
+    "@ABRInterface//:ABRInterface_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_swift_interface",
+    "@TTNetworkPredict//:interface_swift_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_swift_interface",
+    "@TTTopSignature//:TTTopSignature_swift_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_swift_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_swift_interface",
+    "@VCVodSettings//:VCVodSettings_swift_interface",
+    ":NetworkPredictor_objc_interface",
+    "@ABRInterface//:ABRInterface_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_module_map",
+    "@TTNetworkPredict//:interface_module_map",
+    "@TTPlayerSDK//:TTPlayerSDK_module_map",
+    "@TTTopSignature//:TTTopSignature_module_map",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_module_map",
+    "@VCPreloadStrategy//:VCPreloadStrategy_module_map",
+    "@VCVodSettings//:VCVodSettings_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTVideoEngine_POD_VERSION=@\\\"9999_1.10.108.111-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "NetworkPredictor",
+  deps = [
+    ":NetworkPredictor_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "NetworkPredictor_lib",
+  deps = [
+    ":NetworkPredictor"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "VR_hdrs",
+  srcs = [
+    "TTVideoEngine/Classes/VR/TTVideoEngineVRFragment.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "VR_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "VR_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "VR_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "VR_module_map",
+  module_map = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_VR-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTVideoEngine/TTVideoEngine_VR-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "VR_srcs",
+  srcs = [
+    "TTVideoEngine/Classes/VR/TTVideoEngineVRFragment.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "VR_oc",
+  enable_modules = 1,
+  srcs = [
+    "VR_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "VR_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTVideoEngine_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTVideoEngine_private_includes",
+    ":TTVideoEngine_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ABRInterface//:ABRInterface_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_objc_interface",
+    "@TTNetworkPredict//:interface_objc_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_objc_interface",
+    "@TTTopSignature//:TTTopSignature_objc_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_objc_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_objc_interface",
+    "@VCVodSettings//:VCVodSettings_objc_interface",
+    "@ABRInterface//:ABRInterface_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_swift_interface",
+    "@TTNetworkPredict//:interface_swift_interface",
+    "@TTPlayerSDK//:TTPlayerSDK_swift_interface",
+    "@TTTopSignature//:TTTopSignature_swift_interface",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_swift_interface",
+    "@VCPreloadStrategy//:VCPreloadStrategy_swift_interface",
+    "@VCVodSettings//:VCVodSettings_swift_interface",
+    ":VR_objc_interface",
+    "@ABRInterface//:ABRInterface_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@MDLMediaDataLoader//:MDLMediaDataLoader_module_map",
+    "@TTNetworkPredict//:interface_module_map",
+    "@TTPlayerSDK//:TTPlayerSDK_module_map",
+    "@TTTopSignature//:TTTopSignature_module_map",
+    "@VCNVCloudNetwork//:VCNVCloudNetwork_module_map",
+    "@VCPreloadStrategy//:VCPreloadStrategy_module_map",
+    "@VCVodSettings//:VCVodSettings_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTVideoEngine_POD_VERSION=@\\\"9999_1.10.108.111-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "VR",
+  deps = [
+    ":VR_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "VR_lib",
+  deps = [
+    ":VR"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_TTVideoEngine_module_map",
+  module_map = "@TTVideoEngine//:pod_support/Headers/Public/TTVideoEngine/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@TTVideoEngine//:pod_support/Headers/Public/TTVideoEngine/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_TTVideoEngine_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@TTVideoEngine//:Base_objc_interface", "@TTVideoEngine//:CN_objc_interface", "@TTVideoEngine//:NewLogger_objc_interface", "@TTVideoEngine//:OldModel_objc_interface", "@TTVideoEngine//:Private_objc_interface", "@TTVideoEngine//:Public_objc_interface", "@TTVideoEngine//:TTVideoEngine_objc_interface", "@TTVideoEngine//:TraceReport_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_TTVideoEngine",
+  target_name = "Lark",
+  module_name = "TTVideoEngine",
+  hdrs = ["@TTVideoEngine//:Base_pod_hdrs", "@TTVideoEngine//:CN_pod_hdrs", "@TTVideoEngine//:NewLogger_pod_hdrs", "@TTVideoEngine//:OldModel_pod_hdrs", "@TTVideoEngine//:Private_pod_hdrs", "@TTVideoEngine//:Public_pod_hdrs", "@TTVideoEngine//:TTVideoEngine_root_pod_hdrs", "@TTVideoEngine//:TraceReport_pod_hdrs"],
+  srcs = ["@TTVideoEngine//:Base_srcs", "@TTVideoEngine//:CN_srcs", "@TTVideoEngine//:NewLogger_srcs", "@TTVideoEngine//:OldModel_srcs", "@TTVideoEngine//:Private_srcs", "@TTVideoEngine//:Public_srcs", "@TTVideoEngine//:TraceReport_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["ABRInterface", "BDAlogProtocol", "MDLMediaDataLoader", "TTNetworkPredict", "TTPlayerSDK", "TTTopSignature", "VCNVCloudNetwork", "VCPreloadStrategy", "VCVodSettings", "BDTrackerProtocol"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTVideoEngine_POD_VERSION=@\\\"9999_1.10.108.111-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "TTVideoEngine_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "TTVideoEngine_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = ["sqlite3"],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "TTVideoEngine_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "TTVideoEngine_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "TTVideoEngine_dynamic", False),
+  tags = getattr(defs_external_objc_library, "TTVideoEngine_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("TTVideoEngine", {}),
+  visibility = ["//visibility:public"],
+)

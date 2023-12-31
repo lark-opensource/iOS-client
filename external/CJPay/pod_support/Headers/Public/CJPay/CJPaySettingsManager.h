@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayKit/Base/Settings/Manager/CJPaySettingsManager.h

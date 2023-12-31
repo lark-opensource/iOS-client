@@ -1,0 +1,6 @@
+eval_tonic 'lark-project-template-0.1.0'
+debug_dependency 'CryptoSwift', '1.3.3'
+
+%w[UniverseDesignTheme UniverseDesignColor LarkLocalizations LarkTimeFormatUtils FigmaKit].each do |name|
+	debug_dependency name, :integration => :local
+end

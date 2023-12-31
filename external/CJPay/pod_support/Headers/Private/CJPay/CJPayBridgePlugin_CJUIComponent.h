@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayAbility/PayManage/CJPayBridgePlugin_CJUIComponent.h

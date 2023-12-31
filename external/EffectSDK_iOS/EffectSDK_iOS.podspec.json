@@ -1,0 +1,225 @@
+{
+  "default_subspecs": [
+    "Core"
+  ],
+  "extra": {
+    "bytedance_source_depends": {
+      "project": "effect_sdk",
+      "sha1": "1442dc92210",
+      "git": "git@code.byted.org:ies/effect_sdk.git",
+      "extra": {
+        "native_source_depends": [
+          {
+            "binary_md5": "",
+            "git": "git@code.byted.org:us-cv/protobuf.git",
+            "binary_name": "libprotoobuf-lite.a",
+            "module": "protobuf-lib",
+            "sha1": "ee891512"
+          },
+          {
+            "binary_md5": "",
+            "git": "git@code.byted.org:ies/bytenn-cpu.git",
+            "binary_name": "",
+            "module": "espresso-sdk",
+            "sha1": "20a373258b723f368e6c56e5574d742ab93e8f34"
+          },
+          {
+            "binary_md5": "",
+            "git": "git@code.byted.org:lab-cv/mobilecv.git",
+            "binary_name": "",
+            "module": "mobilecv",
+            "sha1": "455e9d0ca346a634a684b9842d0f772583260640"
+          },
+          {
+            "binary_md5": "",
+            "git": "git@code.byted.org:us-cv/nail-slam.git",
+            "binary_name": "libNailSLAM.a",
+            "module": "slam-sdk",
+            "sha1": "fee3fe7b7"
+          },
+          {
+            "binary_md5": "",
+            "git": "git@code.byted.org:lab-cv/ceres-solver.git",
+            "binary_name": "libceres.a",
+            "module": "ceres",
+            "sha1": "4d8e084b"
+          },
+          {
+            "binary_md5": "",
+            "git": "git@code.byted.org:ies/bach",
+            "binary_name": "",
+            "module": "bach",
+            "sha1": "lark/1450_re/add_dm"
+          },
+          {
+            "binary_md5": "",
+            "git": "git@code.byted.org:ies/jazz.git",
+            "binary_name": "",
+            "module": "jazz",
+            "sha1": "8c2fabbf"
+          },
+          {
+            "binary_md5": "",
+            "git": "git@code.byted.org:ies/EffectModuleSDK.git",
+            "binary_name": "",
+            "module": "effectupdate",
+            "sha1": "957f3c5"
+          }
+        ]
+      }
+    }
+  },
+  "platforms": {
+    "osx": "10.12",
+    "ios": "8.0"
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "EffectSDK_iOS_POD_VERSION=@\\\"9999_14.5.0.275-LarkMobile\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "EffectSDK_iOS_POD_VERSION=@\\\"9999_14.5.0.275-LarkMobile\\\""
+  },
+  "_bytebus_platform": {
+    "repo_id": "439",
+    "app_id": "9999"
+  },
+  "module_map": "libEffectSDK/inc/EffectSdk.modulemap",
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/9999/EffectSDK_iOS/14.5.0.275-LarkMobile.1.binary/EffectSDK_iOS.framework.tar.xz"
+  },
+  "version": "14.5.0.275-LarkMobile.1.binary",
+  "homepage": "https://code.byted.org/ies/EffectSDK_iOS",
+  "repoId": "439",
+  "subspecs": [
+    {
+      "header_mappings_dir": "libEffectSDK/inc",
+      "public_header_files": "libEffectSDK/inc/**/*.h",
+      "vendored_libraries": "libEffectSDK/lib/Release/libeffect-sdk.a",
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_Core_*awesome_*.a"
+      },
+      "name": "Core",
+      "requires_arc": true,
+      "source_files": [
+        "libEffectSDK/inc/**/*.{h,m}",
+        "libEffectSDK/inc/EffectSdk-umbrella.h",
+        "libEffectSDK/inc/EffectSdk.modulemap"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Core_*awesome_*.a"
+      },
+      "libraries": [
+        "z",
+        "c++"
+      ],
+      "frameworks": [
+        "AVFoundation",
+        "CoreMedia",
+        "VideoToolbox",
+        "Accelerate",
+        "AudioToolbox",
+        "Foundation",
+        "GLKit",
+        "imageIO",
+        "IOKit",
+        "JavaScriptCore"
+      ],
+      "weak_frameworks": "CoreHaptics",
+      "preserve_paths": [
+        "**/*.bwp"
+      ]
+    },
+    {
+      "dependencies": {
+        "EffectSDK_iOS/Core": []
+      },
+      "name": "FullModel",
+      "resources": "libEffectSDK/Resources/EffectSDKResources.bundle",
+      "preserve_paths": [
+        "**/*.bwp"
+      ]
+    },
+    {
+      "dependencies": {
+        "EffectSDK_iOS/Core": []
+      },
+      "name": "PartModel",
+      "resources": "libEffectSDK/Resources/part/EffectSDKResources.bundle",
+      "preserve_paths": [
+        "**/*.bwp"
+      ]
+    },
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_OCInterface_*awesome_*.a"
+      },
+      "public_header_files": "libEffectSDK/ocInterface/ios/*.h",
+      "name": "OCInterface",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_OCInterface_*awesome_*.a"
+      },
+      "frameworks": [
+        "AVFoundation",
+        "CoreMedia",
+        "Foundation",
+        "GLKit",
+        "IOKit"
+      ],
+      "dependencies": {
+        "EffectSDK_iOS/Core": []
+      },
+      "source_files": "libEffectSDK/ocInterface/ios/*.{h,mm,m}",
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "$(inherited) BEF_FEATURE_CONFIG_GAME=1 "
+      }
+    }
+  ],
+  "prepare_command": "curl https://ios.bytedance.net/wlapi/tosDownload/iosbinary/platform/master/awesomecommand_xz.sh | bash ;",
+  "description": "framework_description",
+  "ios": {
+    "frameworks": [
+      "UIKit",
+      "Foundation",
+      "JavaScriptCore"
+    ]
+  },
+  "dependencies": {
+    "espresso": [
+      "~>3.0.1"
+    ],
+    "bytenn-ios": [
+      "~>3.4.81"
+    ],
+    "audiosdk": [
+      "~>14.30.2-common"
+    ],
+    "AGFX_pub": [
+      ">=14.5.0.2"
+    ],
+    "mobilecv2": [
+      "~>1.8.28"
+    ],
+    "gaia_lib_publish": [
+      ">=14.5.0.1-D"
+    ]
+  },
+  "authors": {
+    "zhouyi.ysj": "zhouyi.ysj@bytedance.com"
+  },
+  "source_code": {
+    "commit": "25c0cf31ba3030d617a0202a5bf82cdbe32d20ec",
+    "git": "git@code.byted.org:ies/EffectSDK_iOS.git"
+  },
+  "name": "EffectSDK_iOS",
+  "license": "MIT",
+  "build_file_count": 8,
+  "preserve_paths": [
+    "**/*.bwp"
+  ],
+  "summary": "framework_summary"
+}

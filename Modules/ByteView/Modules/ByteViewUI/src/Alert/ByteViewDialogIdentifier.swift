@@ -1,0 +1,167 @@
+//
+//  ByteViewDialogIdentifier.swift
+//  ByteViewUI
+//
+//  Created by fakegourmet on 2023/4/14.
+//
+
+import Foundation
+
+public enum ByteViewDialogIdentifier: String {
+    /// 没有麦克风权限
+    case microphone
+    /// 没有摄像头权限
+    case camera
+    /// 重新加入会议
+    case rejoinMeeting
+    /// 其他设备忙线时展示/断网重连
+    case exitCallByJoinMeeting
+    /// 会议登出账号
+    case exitMeetingByLogout
+    /// 版本升级
+    case updateApp
+    /// 啸叫提醒
+    case howling
+    /// 面试速记
+    case peopleMinutes
+    /// 指定共享文档共享人
+    case assignOtherToShare
+    /// 主持人请求打开麦克风
+    case hostRequestMicrophone
+    /// 主持人请求打开摄像头
+    case hostRequestCamera
+    /// 参会人请求录制
+    case requestRecord
+    /// 请求主持人录制的二次确认窗口
+    case conformRequestRecording
+    /// 请求主持人直播的二次确认窗口
+    case conformRequestLiving
+    /// 请求停止录制
+    case requestStopRecord
+    /// 开启录制前确认
+    case confirmBeforeRecord
+    /// 参会人请求转录
+    case requestTranscribe
+    /// 请求主持人转录的二次确认窗口
+    case conformRequestTranscribing
+    /// 请求停止转录
+    case requestStopTranscribe
+    /// 开启转录前确认
+    case confirmBeforeTranscribe
+    /// 请求开启直播
+    case requestLiving
+    /// 拒绝投票
+    case votingRefuse
+    /// 停止直播确认
+    case stopLive
+    /// 未定义类型/服务端错误下发类型
+    case netBusinessError
+    /// notice 下发类型
+    case forceJoin
+    /// 字幕允许使用会议音频
+    case recordMeetingAudio
+    /// 主持人请求开启直播
+    case requestLivingFromHost
+    /// 字幕口说语言不匹配
+    case spokenMismatching
+    /// 字幕口说语言不支持
+    case spokenNonsupport
+    /// 会议录制中提示
+    case recordingConfirm
+    /// 会议转录中提示
+    case transcribingConfirm
+    /// 开启字幕选择口说语言
+    case selectSubtitleSpokenLanguage
+    /// 全员静音
+    case muteMicrophoneForAll
+    /// 举手申请发言
+    case micHandsUp
+    /// 申请发言手放下
+    case micHandsDown
+    /// 举手申请开启摄像头
+    case cameraHandsUp
+    /// 取消申请开启摄像头
+    case cameraHandsDown
+    /// 直播认证提示
+    case liveCert
+    /// 文档权限
+    case permissionOfDocs
+    /// 会议等候室心跳超时结束
+    case quiteLobbyByHeartBeatStop
+    /// 添加联系人
+    case onewayContact
+    /// 传译开启确认
+    case interpreterConfirm
+    /// 确认提前结束倒计时
+    case preEndCountDown
+    /// 关闭倒计时
+    case closeCountDown
+    /// 讨论组请求帮助
+    case confirmBeforeAskHostForHelp
+    /// 讨论组重新加入确认
+    case confirmBeforeRejoinBreakoutRoom
+    /// 讨论组即将结束确认
+    case breakoutRoomWillEnd
+    /// 讨论组自动结束提示
+    case breakoutRoomAutoFinish
+    /// 讨论组收回主持人权限
+    case reclaimHostWhenBreakoutRoom
+    /// 共享人在MS中点非CCM链接，弹出外部打开的提示
+    case openLinkInMagicShareConfirm
+    /// 单人会中静音状态开启录制的提示
+    case recordUnmuteConfirm
+    /// 开启麦克风回声提示
+    case unmuteAlert
+    /// 企业电话
+    case enterpriseCall
+    /// 单人自动结束会议
+    case autoEnd
+    /// 语音识别
+    case voiceprint
+    /// 会中改名
+    case rename
+    /// 断开会议室链接
+    case disconnectRoom
+    /// CallMe 使用系统音频，将挂断电话提示
+    case callme
+    /// 安全事件触发，结束会议
+    case securityCompliance
+    /// 焦点视频
+    case focusVideo
+    /// 放下所有参会人举手
+    case downAllHands
+    /// 关闭录制发起弹窗
+    case closeRecordingReminder
+    /// Webinar 主持人请求观众设置为嘉宾
+    case webinarAttendeeBecomeParticipant
+    /// Webinar 主持人请求观众打开麦克风
+    case webinarAttendeeAskedUnmute
+    /// Webinar 主持人确认是否在彩排模式下结束会议
+    case webinarHostConfirmEndRehearsalMeeting
+    /// iPad 断开音频提示
+    case padNoAudio
+    /// 切换无音频模式
+    case switchAudioMode
+    /// 抢共享提示
+    case shareContentChange
+    /// 升级套餐提示
+    case upgradePlan
+    /// rooms一起离会提示
+    case bindScreenCastRoom
+    ///  妙记权限申请
+    case permissionOfMinutes
+    ///  本地投屏二次确认弹窗
+    case localShareDoubleCheck
+    /// 纪要页面点按钮快速发起共享
+    case notesQuickShare
+    /// 替代入会不支持弹窗
+    case replaceJoinUnsupported
+    /// 会议室音频入会时，带会议室一起离会
+    case leaveWithRoom
+    /// 主持人开启MyAI弹窗
+    case hostOpenMyAI
+    ///  参会人开启MyAI弹窗
+    case participantOpenMyAI
+    ///  主持人确认开启MyAI弹窗
+    case confirmOpenMyAI
+}

@@ -1,0 +1,104 @@
+module OwnerConfig
+  MARK_TODO: String
+  MARK_ADD_NEW: String
+
+  class PodsConfig
+    class Pod
+      attr_accessor team: String
+      attr_accessor owners: Array[String]
+      attr_accessor summary: String?
+      attr_accessor doc: String?
+
+      def to_h: -> Hash[String, untyped]
+
+      def owner_as_emails: -> Array[String]
+
+      def self.from_h: (Hash[String, untyped]) -> Pod
+    end
+
+    attr_accessor config_path: String?
+    attr_accessor team_options: Array[String]
+    attr_accessor pods: Hash[String, Pod]
+
+    def initialize: (String?, Hash[String, untyped]) -> void
+
+    def add_pod!: (name: String, owners: Array[String], ?summary: String?, ?doc: String?) -> void
+
+    def self.load_file: (String) -> PodsConfig
+  end
+
+  class ExtraConfig
+    class Rule
+      module MODE
+        CATALOG: String
+        POD: String
+        PATH: String
+        REGEX: String
+      end
+
+      attr_accessor mode: String
+      attr_accessor pod_name: String?
+      attr_accessor prefix: String?
+      attr_accessor rules: Array[Rule]?
+      attr_accessor pattern: String?
+      attr_accessor team: String?
+      attr_accessor owners: Array[String]?
+      attr_accessor required_approvals: Integer?
+
+      def initialize: (Hash[String, untyped]) -> void
+
+      def to_h: -> Hash[String, untyped]
+
+      def path_as_regex: -> String
+
+      def owner_as_emails: -> Array[String]?
+    end
+
+    attr_accessor rules: Array[Rule]
+
+    def initialize: (Hash[String, untyped]) -> void
+
+    def flattened_pattern_to_rule: -> Hash[String, Rule]
+
+    def self.load_file: (String) -> ExtraConfig
+  end
+
+  class Validator
+    def self.validate!: (Array[Pod::Specification], silent: bool, collect_error: Symbol) -> void
+
+    private
+
+    attr_accessor notice_messages: Array[String]?
+    attr_accessor warn_messages: Array[String]?
+    attr_accessor error_messages: Array[String]?
+
+    def self.validate_specs!: (Array[Pod::Specification]) -> void
+
+    def self.validate_pod_owner: -> void
+
+    def self.validate_extra_owner: -> void
+
+    def self.pods_config: -> PodsConfig
+
+    def self.custom_config: -> ExtraConfig
+
+    def self.validate_notice: (String) -> void
+
+    def self.validate_warning: (String) -> void
+
+    def self.validate_failed: (String) -> void
+
+    def self.show_validate_result: -> void
+  end
+
+  class Utils
+    def self.collect_error: (Exception, mode: Symbol) -> void
+
+    def self.send_error_to_bot: (Exception) -> void
+
+    def self.project_root: -> String
+
+    def self.pod_path_map: -> Hash[String, String]
+  end
+
+end

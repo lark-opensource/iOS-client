@@ -1,0 +1,1 @@
+../../../../CameraArch/Record/Constants/AWESwitchRecordModelDefine.h

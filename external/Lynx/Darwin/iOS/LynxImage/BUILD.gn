@@ -1,0 +1,54 @@
+# Copyright 2021 The Lynx Authors. All rights reserved.
+
+assert(is_ios)
+
+import("//Lynx/Lynx.gni")
+if (target_cpu == "arm" || target_cpu == "arm64") {
+  import("//build/config/arm.gni")
+}
+
+lynx_image_shared_sources = [
+  "//Darwin/iOS/Lynx/Public/LynxBlurImageProcessor.h",
+  "//Darwin/iOS/Lynx/Public/LynxFatImageProcessor.h",
+  "//Darwin/iOS/Lynx/Public/LynxImageBlurUtils.h",
+  "//Darwin/iOS/Lynx/Public/LynxImageLoader.h",
+  "//Darwin/iOS/Lynx/Public/LynxImageProcessor.h",
+  "//Darwin/iOS/Lynx/Public/LynxNinePatchImageProcessor.h",
+  "//Darwin/iOS/Lynx/Public/LynxSettingsManager.h",
+  "//Darwin/iOS/Lynx/Public/LynxTemplateRender.h",
+  "//Darwin/iOS/Lynx/Public/LynxUIFilterImage.h",
+  "//Darwin/iOS/Lynx/Public/LynxUIImage.h",
+  "//Darwin/iOS/Lynx/Public/LynxUIInlineImage.h",
+  "LynxBlurImageProcessor.m",
+  "LynxFatImageProcessor.m",
+  "LynxImageBlurUtils.m",
+  "LynxImageLoader.mm",
+  "LynxNinePatchImageProcessor.m",
+  "LynxUIFilterImage.m",
+  "LynxUIImage.mm",
+  "LynxUIInlineImage.m",
+]
+
+source_set("lynx_image") {
+  include_dirs = [
+    "//iOS/LynxImage",
+    "//Lynx",
+  ]
+
+  sources = lynx_image_shared_sources
+
+  public_configs = [
+    "//Darwin:darwin_include_config",
+    "//Darwin:darwin_flag_config",
+  ]
+}
+
+if (enable_gen_podspec) {
+  gen_subspec_file("lynx_image_podspec") {
+    module_name = "Lynx"
+    parent_path = "subspecs"
+    podspec_name = "Framework"
+    public_header_files = "Darwin/iOS/LynxImage/*.h"
+    sources = lynx_image_shared_sources
+  }
+}

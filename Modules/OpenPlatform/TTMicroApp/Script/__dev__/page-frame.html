@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+  <html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta id="viewport-meta" name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="webview.css?from=ttjssdk"/>
+    <script>
+      var __webviewId__;
+      var TMAConfig = {};
+      window.logger = console;
+      window.__JSSDK_VERSION__ = {
+    SDKVersion: '1.10.10',
+    SDKUpdateVersion: '1.10.10.0',
+    CommitHash: 'd52ebf66e897f54809372d2edaf6641701a28134'
+  };
+      window.addEventListener('DOMContentLoaded', function(event) {
+        if (typeof ttJSCore === 'object' && typeof ttJSCore.onDocumentReady === 'function') {
+          ttJSCore.onDocumentReady('page-frame.html');
+        } else {
+          webkit.messageHandlers.onDocumentReady.postMessage('page-frame.html');
+        }
+      });
+    </script>
+    </head>
+  <body>
+      <div></div>
+    <script defer src='vendors.js?from=ttjssdk'></script>
+<script defer src='webcomponents.js?from=ttjssdk'></script>
+<script defer src='common.js?from=ttjssdk'></script>
+<script defer src='polymer.js?from=ttjssdk'></script>
+<script defer src='biz.js?from=ttjssdk'></script>
+<script defer src='webview.js?from=ttjssdk'></script>
+  </body>
+  </html>
+  

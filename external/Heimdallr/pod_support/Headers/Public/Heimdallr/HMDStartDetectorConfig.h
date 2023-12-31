@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/HMDStart/Common/Public/HMDStartDetectorConfig.h

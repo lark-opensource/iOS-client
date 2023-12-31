@@ -1,0 +1,848 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 54;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1B3BAE4525FB53A600DB1534 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1B3BAE4325FB53A600DB1534 /* Main.storyboard */; };
+		1B3BAE4725FB53A700DB1534 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1B3BAE4625FB53A700DB1534 /* Assets.xcassets */; };
+		1B3BAE4A25FB53A700DB1534 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1B3BAE4825FB53A700DB1534 /* LaunchScreen.storyboard */; };
+		1B3BAE5525FB53A700DB1534 /* PassportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B3BAE5425FB53A700DB1534 /* PassportTests.swift */; };
+		1B3BAE6025FB53A700DB1534 /* PassportUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B3BAE5F25FB53A700DB1534 /* PassportUITests.swift */; };
+		1BE0119325FB5C2D006F20FF /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE0118E25FB5C2D006F20FF /* main.swift */; };
+		1BE02D1925FB5EB9006F20FF /* BootConfigs.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1BE02D1825FB5EB9006F20FF /* BootConfigs.plist */; };
+		2075A5542E40409E25372408 /* BaseAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11E4AE283A14FDE2CE1448D /* BaseAssembly.swift */; };
+		4EBC2D8052ED466E3C65D88C /* Pods_Passport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63123F2FBD3F923461EBD12A /* Pods_Passport.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1B3BAE5125FB53A700DB1534 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1B3BAE3225FB53A600DB1534 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1B3BAE3925FB53A600DB1534;
+			remoteInfo = Passport;
+		};
+		1B3BAE5C25FB53A700DB1534 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1B3BAE3225FB53A600DB1534 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1B3BAE3925FB53A600DB1534;
+			remoteInfo = Passport;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		1B3BAE3A25FB53A600DB1534 /* Passport.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Passport.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1B3BAE4425FB53A600DB1534 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		1B3BAE4625FB53A700DB1534 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		1B3BAE4925FB53A700DB1534 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		1B3BAE4B25FB53A700DB1534 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1B3BAE5025FB53A700DB1534 /* PassportTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PassportTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1B3BAE5425FB53A700DB1534 /* PassportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassportTests.swift; sourceTree = "<group>"; };
+		1B3BAE5625FB53A700DB1534 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1B3BAE5B25FB53A700DB1534 /* PassportUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PassportUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1B3BAE5F25FB53A700DB1534 /* PassportUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassportUITests.swift; sourceTree = "<group>"; };
+		1B3BAE6125FB53A700DB1534 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1B49AF9726203BA7006FA698 /* DemoAssembly.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DemoAssembly.swift; sourceTree = "<group>"; };
+		1B49AF9826203BA7006FA698 /* URLProviders.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = URLProviders.swift; sourceTree = "<group>"; };
+		1B49AF9C26203BA7006FA698 /* SetupDispatcherTask.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetupDispatcherTask.swift; sourceTree = "<group>"; };
+		1B49AF9D26203BA7006FA698 /* LarkMainAssemblyTask.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LarkMainAssemblyTask.swift; sourceTree = "<group>"; };
+		1B49AF9E26203BA7006FA698 /* SetupMainTabTask.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetupMainTabTask.swift; sourceTree = "<group>"; };
+		1B49AF9F26203BA7006FA698 /* BootManagerIntegration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BootManagerIntegration.swift; sourceTree = "<group>"; };
+		1B49AFA026203BA7006FA698 /* DemoUrlHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DemoUrlHandler.swift; sourceTree = "<group>"; };
+		1B49AFAD26203BBF006FA698 /* DebugViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DebugViewController.swift; sourceTree = "<group>"; };
+		1B7C18EF2625DAB6005319F7 /* SetupLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupLogger.swift; sourceTree = "<group>"; };
+		1B7C18F52625E151005319F7 /* WebHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebHandler.swift; sourceTree = "<group>"; };
+		1B7C19072625E71F005319F7 /* SecLinkService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SecLinkService.swift; sourceTree = "<group>"; };
+		1B7C190F2625E71F005319F7 /* OpenPlatformAPIHandlerImp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OpenPlatformAPIHandlerImp.swift; sourceTree = "<group>"; };
+		1B7C19112625E71F005319F7 /* UrlDetectServiceImpl.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UrlDetectServiceImpl.swift; sourceTree = "<group>"; };
+		1B7C19122625E71F005319F7 /* UrlDetectService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UrlDetectService.swift; sourceTree = "<group>"; };
+		1B7C19142625E71F005319F7 /* WebCacheDependencyImp.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebCacheDependencyImp.swift; sourceTree = "<group>"; };
+		1B7C3E722626C204005319F7 /* OfflineResourceDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OfflineResourceDelegate.swift; sourceTree = "<group>"; };
+		1B7C3E732626C204005319F7 /* OfflineResourceApplicationDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OfflineResourceApplicationDelegate.swift; sourceTree = "<group>"; };
+		1B7CF0B92625B14E005319F7 /* WebAssembly.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebAssembly.swift; sourceTree = "<group>"; };
+		1BC0DBA026329C14004A01A8 /* DepartmentTestListController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepartmentTestListController.swift; sourceTree = "<group>"; };
+		1BE0118425FB5C1A006F20FF /* AllVCDemoVC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AllVCDemoVC.swift; sourceTree = "<group>"; };
+		1BE0118D25FB5C2D006F20FF /* LoginService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginService.swift; sourceTree = "<group>"; };
+		1BE0118E25FB5C2D006F20FF /* main.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		1BE0118F25FB5C2D006F20FF /* MainViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
+		1BE02D1825FB5EB9006F20FF /* BootConfigs.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = BootConfigs.plist; sourceTree = "<group>"; };
+		30DC2BD0E0CA6508C0EB8CBE /* Pods-Passport.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Passport.debug.xcconfig"; path = "Target Support Files/Pods-Passport/Pods-Passport.debug.xcconfig"; sourceTree = "<group>"; };
+		63123F2FBD3F923461EBD12A /* Pods_Passport.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Passport.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		7377BC35D935FE99B769DDD3 /* Pods-Passport.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Passport.release.xcconfig"; path = "Target Support Files/Pods-Passport/Pods-Passport.release.xcconfig"; sourceTree = "<group>"; };
+		B11E4AE283A14FDE2CE1448D /* BaseAssembly.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BaseAssembly.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1B3BAE3725FB53A600DB1534 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4EBC2D8052ED466E3C65D88C /* Pods_Passport.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1B3BAE4D25FB53A700DB1534 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1B3BAE5825FB53A700DB1534 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1B3BAE3125FB53A600DB1534 = {
+			isa = PBXGroup;
+			children = (
+				1B3BAE3C25FB53A600DB1534 /* Passport */,
+				1B3BAE5325FB53A700DB1534 /* PassportTests */,
+				1B3BAE5E25FB53A700DB1534 /* PassportUITests */,
+				1B3BAE3B25FB53A600DB1534 /* Products */,
+				4CE3418B98ED1288C432CFE3 /* Pods */,
+				F5407856BF5C2339CBA659BC /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		1B3BAE3B25FB53A600DB1534 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1B3BAE3A25FB53A600DB1534 /* Passport.app */,
+				1B3BAE5025FB53A700DB1534 /* PassportTests.xctest */,
+				1B3BAE5B25FB53A700DB1534 /* PassportUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1B3BAE3C25FB53A600DB1534 /* Passport */ = {
+			isa = PBXGroup;
+			children = (
+				1B49B07D26203EE8006FA698 /* Support Files */,
+				1B49AFAC26203BBF006FA698 /* Debug */,
+				1B49AF9626203BA7006FA698 /* Assembly */,
+				1BE0118D25FB5C2D006F20FF /* LoginService.swift */,
+				1BE0118E25FB5C2D006F20FF /* main.swift */,
+				1BE0118F25FB5C2D006F20FF /* MainViewController.swift */,
+				1BE0118425FB5C1A006F20FF /* AllVCDemoVC.swift */,
+				1BC0DBA026329C14004A01A8 /* DepartmentTestListController.swift */,
+				B11E4AE283A14FDE2CE1448D /* BaseAssembly.swift */,
+			);
+			path = Passport;
+			sourceTree = "<group>";
+		};
+		1B3BAE5325FB53A700DB1534 /* PassportTests */ = {
+			isa = PBXGroup;
+			children = (
+				1B3BAE5425FB53A700DB1534 /* PassportTests.swift */,
+				1B3BAE5625FB53A700DB1534 /* Info.plist */,
+			);
+			path = PassportTests;
+			sourceTree = "<group>";
+		};
+		1B3BAE5E25FB53A700DB1534 /* PassportUITests */ = {
+			isa = PBXGroup;
+			children = (
+				1B3BAE5F25FB53A700DB1534 /* PassportUITests.swift */,
+				1B3BAE6125FB53A700DB1534 /* Info.plist */,
+			);
+			path = PassportUITests;
+			sourceTree = "<group>";
+		};
+		1B49AF9626203BA7006FA698 /* Assembly */ = {
+			isa = PBXGroup;
+			children = (
+				1B7C18F42625E12C005319F7 /* Web */,
+				1B49AF9726203BA7006FA698 /* DemoAssembly.swift */,
+				1B49AF9826203BA7006FA698 /* URLProviders.swift */,
+				1B49AF9A26203BA7006FA698 /* BootManager */,
+				1B49AFA026203BA7006FA698 /* DemoUrlHandler.swift */,
+				1B7C18EF2625DAB6005319F7 /* SetupLogger.swift */,
+			);
+			path = Assembly;
+			sourceTree = "<group>";
+		};
+		1B49AF9A26203BA7006FA698 /* BootManager */ = {
+			isa = PBXGroup;
+			children = (
+				1B49AF9B26203BA7006FA698 /* Tasks */,
+				1B49AF9F26203BA7006FA698 /* BootManagerIntegration.swift */,
+			);
+			path = BootManager;
+			sourceTree = "<group>";
+		};
+		1B49AF9B26203BA7006FA698 /* Tasks */ = {
+			isa = PBXGroup;
+			children = (
+				1B49AF9C26203BA7006FA698 /* SetupDispatcherTask.swift */,
+				1B49AF9D26203BA7006FA698 /* LarkMainAssemblyTask.swift */,
+				1B49AF9E26203BA7006FA698 /* SetupMainTabTask.swift */,
+			);
+			path = Tasks;
+			sourceTree = "<group>";
+		};
+		1B49AFAC26203BBF006FA698 /* Debug */ = {
+			isa = PBXGroup;
+			children = (
+				1B49AFAD26203BBF006FA698 /* DebugViewController.swift */,
+			);
+			path = Debug;
+			sourceTree = "<group>";
+		};
+		1B49B07D26203EE8006FA698 /* Support Files */ = {
+			isa = PBXGroup;
+			children = (
+				1B3BAE4625FB53A700DB1534 /* Assets.xcassets */,
+				1BE02D1825FB5EB9006F20FF /* BootConfigs.plist */,
+				1B3BAE4325FB53A600DB1534 /* Main.storyboard */,
+				1B3BAE4B25FB53A700DB1534 /* Info.plist */,
+				1B3BAE4825FB53A700DB1534 /* LaunchScreen.storyboard */,
+			);
+			path = "Support Files";
+			sourceTree = "<group>";
+		};
+		1B7C18F42625E12C005319F7 /* Web */ = {
+			isa = PBXGroup;
+			children = (
+				1BEEFBEE26295D3E007B48E4 /* Cache */,
+				1B7C190F2625E71F005319F7 /* OpenPlatformAPIHandlerImp.swift */,
+				1B7C19072625E71F005319F7 /* SecLinkService.swift */,
+				1B7C19122625E71F005319F7 /* UrlDetectService.swift */,
+				1B7C19112625E71F005319F7 /* UrlDetectServiceImpl.swift */,
+				1B7C18F52625E151005319F7 /* WebHandler.swift */,
+				1B7CF0B92625B14E005319F7 /* WebAssembly.swift */,
+			);
+			path = Web;
+			sourceTree = "<group>";
+		};
+		1BEEFBEE26295D3E007B48E4 /* Cache */ = {
+			isa = PBXGroup;
+			children = (
+				1B7C19142625E71F005319F7 /* WebCacheDependencyImp.swift */,
+				1B7C3E722626C204005319F7 /* OfflineResourceDelegate.swift */,
+				1B7C3E732626C204005319F7 /* OfflineResourceApplicationDelegate.swift */,
+			);
+			path = Cache;
+			sourceTree = "<group>";
+		};
+		4CE3418B98ED1288C432CFE3 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				30DC2BD0E0CA6508C0EB8CBE /* Pods-Passport.debug.xcconfig */,
+				7377BC35D935FE99B769DDD3 /* Pods-Passport.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		F5407856BF5C2339CBA659BC /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				63123F2FBD3F923461EBD12A /* Pods_Passport.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1B3BAE3925FB53A600DB1534 /* Passport */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1B3BAE6425FB53A700DB1534 /* Build configuration list for PBXNativeTarget "Passport" */;
+			buildPhases = (
+				BEE3DF526F1546D928736A32 /* [CP] Check Pods Manifest.lock */,
+				47C18C1E466F4A2A71742EA5 /* [CP-User] Hummer-before-hooks */,
+				1B3BAE3625FB53A600DB1534 /* Sources */,
+				1B3BAE3725FB53A600DB1534 /* Frameworks */,
+				1B3BAE3825FB53A600DB1534 /* Resources */,
+				63BCBA3499B8A9F8E5D94A0B /* [CP] Copy Pods Resources */,
+				1BEE60BE9A2E61DFD73FD450 /* [CP] Record Xcode SRCROOT */,
+				666CBAC155DC57E3F00C7C89 /* [CP-User] Hummer-after-hooks */,
+				59AF80DF1A8C9A0265C0283D /* [CP] Embed Pods Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Passport;
+			productName = Passport;
+			productReference = 1B3BAE3A25FB53A600DB1534 /* Passport.app */;
+			productType = "com.apple.product-type.application";
+		};
+		1B3BAE4F25FB53A700DB1534 /* PassportTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1B3BAE6725FB53A700DB1534 /* Build configuration list for PBXNativeTarget "PassportTests" */;
+			buildPhases = (
+				1B3BAE4C25FB53A700DB1534 /* Sources */,
+				1B3BAE4D25FB53A700DB1534 /* Frameworks */,
+				1B3BAE4E25FB53A700DB1534 /* Resources */,
+				3FDEF491FA78DF33B82C2103 /* [CP] Record Xcode SRCROOT */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1B3BAE5225FB53A700DB1534 /* PBXTargetDependency */,
+			);
+			name = PassportTests;
+			productName = PassportTests;
+			productReference = 1B3BAE5025FB53A700DB1534 /* PassportTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		1B3BAE5A25FB53A700DB1534 /* PassportUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1B3BAE6A25FB53A700DB1534 /* Build configuration list for PBXNativeTarget "PassportUITests" */;
+			buildPhases = (
+				1B3BAE5725FB53A700DB1534 /* Sources */,
+				1B3BAE5825FB53A700DB1534 /* Frameworks */,
+				1B3BAE5925FB53A700DB1534 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1B3BAE5D25FB53A700DB1534 /* PBXTargetDependency */,
+			);
+			name = PassportUITests;
+			productName = PassportUITests;
+			productReference = 1B3BAE5B25FB53A700DB1534 /* PassportUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1B3BAE3225FB53A600DB1534 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1240;
+				LastUpgradeCheck = 1240;
+				TargetAttributes = {
+					1B3BAE3925FB53A600DB1534 = {
+						CreatedOnToolsVersion = 12.4;
+					};
+					1B3BAE4F25FB53A700DB1534 = {
+						CreatedOnToolsVersion = 12.4;
+						TestTargetID = 1B3BAE3925FB53A600DB1534;
+					};
+					1B3BAE5A25FB53A700DB1534 = {
+						CreatedOnToolsVersion = 12.4;
+						TestTargetID = 1B3BAE3925FB53A600DB1534;
+					};
+				};
+			};
+			buildConfigurationList = 1B3BAE3525FB53A600DB1534 /* Build configuration list for PBXProject "Passport" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 1B3BAE3125FB53A600DB1534;
+			productRefGroup = 1B3BAE3B25FB53A600DB1534 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1B3BAE3925FB53A600DB1534 /* Passport */,
+				1B3BAE4F25FB53A700DB1534 /* PassportTests */,
+				1B3BAE5A25FB53A700DB1534 /* PassportUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1B3BAE3825FB53A600DB1534 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1BE02D1925FB5EB9006F20FF /* BootConfigs.plist in Resources */,
+				1B3BAE4A25FB53A700DB1534 /* LaunchScreen.storyboard in Resources */,
+				1B3BAE4725FB53A700DB1534 /* Assets.xcassets in Resources */,
+				1B3BAE4525FB53A600DB1534 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1B3BAE4E25FB53A700DB1534 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1B3BAE5925FB53A700DB1534 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		1BEE60BE9A2E61DFD73FD450 /* [CP] Record Xcode SRCROOT */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Record Xcode SRCROOT";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "echo \"$SRCROOT\" > ~/.last_xcode_root\n";
+			showEnvVarsInLog = 0;
+		};
+		3FDEF491FA78DF33B82C2103 /* [CP] Record Xcode SRCROOT */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Record Xcode SRCROOT";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "echo \"$SRCROOT\" > ~/.last_xcode_root\n";
+			showEnvVarsInLog = 0;
+		};
+		47C18C1E466F4A2A71742EA5 /* [CP-User] Hummer-before-hooks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "[CP-User] Hummer-before-hooks";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ -f \"${PODS_ROOT}/hummer_before_hooks.sh\" ];then\n  bash \"${PODS_ROOT}/hummer_before_hooks.sh\"\nfi\n";
+		};
+		59AF80DF1A8C9A0265C0283D /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Passport/Pods-Passport-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Passport/Pods-Passport-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Passport/Pods-Passport-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		63BCBA3499B8A9F8E5D94A0B /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Passport/Pods-Passport-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Passport/Pods-Passport-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Passport/Pods-Passport-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		666CBAC155DC57E3F00C7C89 /* [CP-User] Hummer-after-hooks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "[CP-User] Hummer-after-hooks";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ -f \"${PODS_ROOT}/hummer_after_hooks.sh\" ];then\n  bash \"${PODS_ROOT}/hummer_after_hooks.sh\"\nfi\n";
+		};
+		BEE3DF526F1546D928736A32 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Passport-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1B3BAE3625FB53A600DB1534 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1BE0119325FB5C2D006F20FF /* main.swift in Sources */,
+				2075A5542E40409E25372408 /* BaseAssembly.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1B3BAE4C25FB53A700DB1534 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1B3BAE5525FB53A700DB1534 /* PassportTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1B3BAE5725FB53A700DB1534 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1B3BAE6025FB53A700DB1534 /* PassportUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		1B3BAE5225FB53A700DB1534 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1B3BAE3925FB53A600DB1534 /* Passport */;
+			targetProxy = 1B3BAE5125FB53A700DB1534 /* PBXContainerItemProxy */;
+		};
+		1B3BAE5D25FB53A700DB1534 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1B3BAE3925FB53A600DB1534 /* Passport */;
+			targetProxy = 1B3BAE5C25FB53A700DB1534 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		1B3BAE4325FB53A600DB1534 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1B3BAE4425FB53A600DB1534 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		1B3BAE4825FB53A700DB1534 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1B3BAE4925FB53A700DB1534 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		1B3BAE6225FB53A700DB1534 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		1B3BAE6325FB53A700DB1534 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		1B3BAE6525FB53A700DB1534 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 30DC2BD0E0CA6508C0EB8CBE /* Pods-Passport.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = "Passport/Support Files/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.bytedance.lark.Passport;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		1B3BAE6625FB53A700DB1534 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7377BC35D935FE99B769DDD3 /* Pods-Passport.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = "Passport/Support Files/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.bytedance.lark.Passport;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		1B3BAE6825FB53A700DB1534 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = PassportTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.bytedance.lark.PassportTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Passport.app/Passport";
+			};
+			name = Debug;
+		};
+		1B3BAE6925FB53A700DB1534 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = PassportTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.bytedance.lark.PassportTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Passport.app/Passport";
+			};
+			name = Release;
+		};
+		1B3BAE6B25FB53A700DB1534 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = PassportUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.bytedance.lark.PassportUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Passport;
+			};
+			name = Debug;
+		};
+		1B3BAE6C25FB53A700DB1534 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = PassportUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.bytedance.lark.PassportUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Passport;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1B3BAE3525FB53A600DB1534 /* Build configuration list for PBXProject "Passport" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1B3BAE6225FB53A700DB1534 /* Debug */,
+				1B3BAE6325FB53A700DB1534 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1B3BAE6425FB53A700DB1534 /* Build configuration list for PBXNativeTarget "Passport" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1B3BAE6525FB53A700DB1534 /* Debug */,
+				1B3BAE6625FB53A700DB1534 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1B3BAE6725FB53A700DB1534 /* Build configuration list for PBXNativeTarget "PassportTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1B3BAE6825FB53A700DB1534 /* Debug */,
+				1B3BAE6925FB53A700DB1534 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1B3BAE6A25FB53A700DB1534 /* Build configuration list for PBXNativeTarget "PassportUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1B3BAE6B25FB53A700DB1534 /* Debug */,
+				1B3BAE6C25FB53A700DB1534 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 1B3BAE3225FB53A600DB1534 /* Project object */;
+}

@@ -1,0 +1,1 @@
+../../../../CreativeAlbumKit/Default/Core/ViewModel/CAKAlbumViewModel.h

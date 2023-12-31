@@ -1,0 +1,2577 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "IESGeckoKit_pod_hdrs",
+  srcs = [
+    ":IESGeckoKit_root_pod_hdrs",
+    ":Core_pod_hdrs",
+    ":Config_pod_hdrs",
+    ":Config_CN_pod_hdrs",
+    ":Config_OS_pod_hdrs",
+    ":Downloader_pod_hdrs",
+    ":ByteSync_pod_hdrs",
+    ":IESForestKit_pod_hdrs",
+    ":Example_pod_hdrs",
+    ":mPaaS_pod_hdrs",
+    ":mPaaS_Task_pod_hdrs",
+    ":mPaaS_China_pod_hdrs",
+    ":mPaaS_VA_pod_hdrs",
+    ":mPaaS_SG_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "IESGeckoKit_private_includes",
+  include = [
+    "external/IESGeckoKit/pod_support/Headers/Private/IESGeckoKit/"
+  ],
+  deps = [],
+  external_name = "IESGeckoKit"
+)
+gen_includes(
+  name = "IESGeckoKit_public_includes",
+  include = [
+    "external/IESGeckoKit/pod_support/Headers/Public/IESGeckoKit/"
+  ],
+  deps = [],
+  external_name = "IESGeckoKit"
+)
+filegroup(
+  name = "_IESGeckoKit_hdrs",
+  srcs = [
+    ":IESGeckoKit_root_hdrs",
+    ":Core_hdrs",
+    ":Config_hdrs",
+    ":Config_CN_hdrs",
+    ":Config_OS_hdrs",
+    ":Downloader_hdrs",
+    ":ByteSync_hdrs",
+    ":IESForestKit_hdrs",
+    ":Example_hdrs",
+    ":mPaaS_hdrs",
+    ":mPaaS_Task_hdrs",
+    ":mPaaS_China_hdrs",
+    ":mPaaS_VA_hdrs",
+    ":mPaaS_SG_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "IESGeckoKit_xcode_hmapsource",
+  hdrs = [
+    ":IESGeckoKit_root_hdrs",
+    ":Config_CN_hdrs",
+    ":Core_hdrs",
+    ":Downloader_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "IESGeckoKit_xcode_hmap",
+  dep = ":IESGeckoKit_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/IESGeckoKit/*-bitsky-generated.modulemap", "pod_support/Headers/Public/IESGeckoKit/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "IESGeckoKit_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "IESGeckoKit",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "IESGeckoKit_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":IESGeckoKit_xcode_hmap"
+  ],
+  external_name = "IESGeckoKit",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "IESGeckoKit_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "IESGeckoKit_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "IESGeckoKit_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "IESGeckoKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "IESGeckoKit_module_map",
+  module_map = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "IESGeckoKit_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "IESGeckoKit_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":IESGeckoKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":IESGeckoKit_private_includes",
+    ":IESGeckoKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":IESGeckoKit_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DGECKO_SPEC_VERSION=@\\\"3.3.3\\\"",
+    "-DIESGeckoKit_POD_VERSION=@\\\"9999_3.4.3-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "IESGeckoKit",
+  deps = [
+    ":IESGeckoKit_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "IESGeckoKit_lib",
+  deps = [
+    ":IESGeckoKit"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [
+    "IESGeckoKit/Core/AppLog/IESGurdAppLog.h",
+    "IESGeckoKit/Core/AppLog/IESGurdAppLogger.h",
+    "IESGeckoKit/Core/Apply/IESGurdApplyPackageManager.h",
+    "IESGeckoKit/Core/Apply/IESGurdUnzipPackageInfo.h",
+    "IESGeckoKit/Core/ByteSync/IESGurdByteSyncMessageManager.h",
+    "IESGeckoKit/Core/Category/NSData+IESGurdKit.h",
+    "IESGeckoKit/Core/Category/NSDictionary+IESGurdKit.h",
+    "IESGeckoKit/Core/Category/NSError+IESGurdKit.h",
+    "IESGeckoKit/Core/Category/UIApplication+IESGurdKit.h",
+    "IESGeckoKit/Core/Category/UIDevice+IESGeckoKit.h",
+    "IESGeckoKit/Core/Cleaner/IESGurdCacheCleaner.h",
+    "IESGeckoKit/Core/Cleaner/IESGurdCacheCleanerManager.h",
+    "IESGeckoKit/Core/Cleaner/IESGurdCacheConfiguration.h",
+    "IESGeckoKit/Core/Cleaner/IESGurdFIFOCacheCleaner.h",
+    "IESGeckoKit/Core/Cleaner/IESGurdLRUCacheCleaner.h",
+    "IESGeckoKit/Core/Cleaner/LinkedList/IESGurdLRUCacheLinkedList.h",
+    "IESGeckoKit/Core/Cleaner/LinkedList/IESGurdLRUCacheLinkedNode.h",
+    "IESGeckoKit/Core/ClearCache/IESGurdChannelBlocklistManager.h",
+    "IESGeckoKit/Core/ClearCache/IESGurdClearCacheManager+Remote.h",
+    "IESGeckoKit/Core/ClearCache/IESGurdClearCacheManager.h",
+    "IESGeckoKit/Core/ClearCache/IESGurdExpiredCacheManager.h",
+    "IESGeckoKit/Core/DelegateDispatcher/IESGurdDelegateDispatcher.h",
+    "IESGeckoKit/Core/DelegateDispatcher/IESGurdDelegateDispatcherManager.h",
+    "IESGeckoKit/Core/Download/IESGurdBaseDownloadOperation.h",
+    "IESGeckoKit/Core/Download/IESGurdDownloadFullPackageOperation.h",
+    "IESGeckoKit/Core/Download/IESGurdDownloadInfoModel.h",
+    "IESGeckoKit/Core/Download/IESGurdDownloadOperationsQueue.h",
+    "IESGeckoKit/Core/Download/IESGurdDownloadPackageInfo.h",
+    "IESGeckoKit/Core/Download/IESGurdDownloadPackageManager+Business.h",
+    "IESGeckoKit/Core/Download/IESGurdDownloadPackageManager.h",
+    "IESGeckoKit/Core/Download/IESGurdDownloadPatchPackageOperation.h",
+    "IESGeckoKit/Core/Download/IESGurdDownloadProgressManager.h",
+    "IESGeckoKit/Core/Download/IESGurdDownloadProgressObject+Private.h",
+    "IESGeckoKit/Core/Download/IESGurdDownloadProgressObject.h",
+    "IESGeckoKit/Core/Download/IESGurdDownloader.h",
+    "IESGeckoKit/Core/EventTrace/IESGurdEventTraceManager+Business.h",
+    "IESGeckoKit/Core/EventTrace/IESGurdEventTraceManager+Message.h",
+    "IESGeckoKit/Core/EventTrace/IESGurdEventTraceManager+Network.h",
+    "IESGeckoKit/Core/EventTrace/IESGurdEventTraceManager+Private.h",
+    "IESGeckoKit/Core/EventTrace/IESGurdEventTraceManager.h",
+    "IESGeckoKit/Core/FileManager/IESGurdActivePackageMeta.h",
+    "IESGeckoKit/Core/FileManager/IESGurdFileBusinessManager.h",
+    "IESGeckoKit/Core/FileManager/IESGurdFileMetaManager+Private.h",
+    "IESGeckoKit/Core/FileManager/IESGurdFileMetaManager.h",
+    "IESGeckoKit/Core/FileManager/IESGurdFilePaths.h",
+    "IESGeckoKit/Core/FileManager/IESGurdInactiveCacheMeta.h",
+    "IESGeckoKit/Core/FileManager/IESGurdMetadataProtocol.h",
+    "IESGeckoKit/Core/FileManager/IESGurdResourceMetadataCache.h",
+    "IESGeckoKit/Core/FileManager/IESGurdResourceMetadataStorage+Private.h",
+    "IESGeckoKit/Core/FileManager/IESGurdResourceMetadataStorage.h",
+    "IESGeckoKit/Core/IESGeckoCacheManager.h",
+    "IESGeckoKit/Core/IESGeckoDefines+Private.h",
+    "IESGeckoKit/Core/IESGeckoDefines.h",
+    "IESGeckoKit/Core/IESGeckoKit+Private.h",
+    "IESGeckoKit/Core/IESGeckoKit.h",
+    "IESGeckoKit/Core/IESGurdConfig.h",
+    "IESGeckoKit/Core/IESGurdKit+BackgroundDownload.h",
+    "IESGeckoKit/Core/IESGurdKit+ByteSync.h",
+    "IESGeckoKit/Core/IESGurdKit+DownloadProgress.h",
+    "IESGeckoKit/Core/IESGurdKit+Experiment.h",
+    "IESGeckoKit/Core/IESGurdKit+ExtraParams.h",
+    "IESGeckoKit/Core/IESGurdKit+RequestBlocklist.h",
+    "IESGeckoKit/Core/IESGurdKit+ResourceLoader.h",
+    "IESGeckoKit/Core/IESGurdPatch/IESGurdPatch.h",
+    "IESGeckoKit/Core/IESGurdProtocolDefines.h",
+    "IESGeckoKit/Core/IESGurdStatusCodes.h",
+    "IESGeckoKit/Core/InternalPackages/IESGurdFilePaths+InternalPackage.h",
+    "IESGeckoKit/Core/InternalPackages/IESGurdInternalPackageMetaInfo+Private.h",
+    "IESGeckoKit/Core/InternalPackages/IESGurdInternalPackageMetaInfo.h",
+    "IESGeckoKit/Core/InternalPackages/IESGurdInternalPackagesManager.h",
+    "IESGeckoKit/Core/InternalPackages/IESGurdKit+InternalPackages.h",
+    "IESGeckoKit/Core/InternalPackages/NSDictionary+IESGurdInternalPackage.h",
+    "IESGeckoKit/Core/Log/IESGurdLogProxy.h",
+    "IESGeckoKit/Core/Model/IESGurdFetchResourcesParams+Private.h",
+    "IESGeckoKit/Core/Model/IESGurdFetchResourcesParams.h",
+    "IESGeckoKit/Core/Model/IESGurdFetchResourcesResult.h",
+    "IESGeckoKit/Core/Model/IESGurdLoadResourcesParams.h",
+    "IESGeckoKit/Core/Model/IESGurdUpdateStatisticModel.h",
+    "IESGeckoKit/Core/Monitor/IESGurdMonitorManager.h",
+    "IESGeckoKit/Core/Network/Base/IESGeckoAPI.h",
+    "IESGeckoKit/Core/Network/Base/IESGeckoResourceManager.h",
+    "IESGeckoKit/Core/Network/Base/IESGurdPackagesExtraManager.h",
+    "IESGeckoKit/Core/Network/Base/IESGurdResourceManager+Business.h",
+    "IESGeckoKit/Core/Network/Base/IESGurdResourceManager+Settings.h",
+    "IESGeckoKit/Core/Network/Base/IESGurdResourceManager+Status.h",
+    "IESGeckoKit/Core/Network/Base/IESGurdSyncResourcesGroup.h",
+    "IESGeckoKit/Core/Network/CachePackages/IESGurdCachePackageModelsManager.h",
+    "IESGeckoKit/Core/Network/Lazy/IESGurdLazyResourcesInfo.h",
+    "IESGeckoKit/Core/Network/Lazy/IESGurdLazyResourcesManager.h",
+    "IESGeckoKit/Core/Network/Model/IESGeckoResourceModel+DownloadPriority.h",
+    "IESGeckoKit/Core/Network/Model/IESGeckoResourceModel.h",
+    "IESGeckoKit/Core/Network/Model/IESGurdConfigUniversalStrategies.h",
+    "IESGeckoKit/Core/Network/Model/IESGurdNetworkResponse+Private.h",
+    "IESGeckoKit/Core/Network/Model/IESGurdNetworkResponse.h",
+    "IESGeckoKit/Core/Network/Model/IESGurdPackageBaseRequest.h",
+    "IESGeckoKit/Core/Network/Model/IESGurdPackagesConfigResponse.h",
+    "IESGeckoKit/Core/Network/Model/IESGurdPackagesNormalRequest.h",
+    "IESGeckoKit/Core/Network/MultiAccessKey/IESGurdMultiAccessKeysRequest.h",
+    "IESGeckoKit/Core/Network/MultiAccessKey/IESGurdResourceManager+MultiAccessKey.h",
+    "IESGeckoKit/Core/Network/Polling/IESGurdPollingManager.h",
+    "IESGeckoKit/Core/Network/Polling/IESGurdPollingRequest.h",
+    "IESGeckoKit/Core/Network/Settings/IESGurdAutoRequest.h",
+    "IESGeckoKit/Core/Network/Settings/IESGurdAutoRequestManager.h",
+    "IESGeckoKit/Core/Network/Settings/IESGurdSettingsCacheManager.h",
+    "IESGeckoKit/Core/Network/Settings/IESGurdSettingsManager.h",
+    "IESGeckoKit/Core/Network/Settings/Model/IESGurdSettingsClearCacheConfig.h",
+    "IESGeckoKit/Core/Network/Settings/Model/IESGurdSettingsConfig.h",
+    "IESGeckoKit/Core/Network/Settings/Model/IESGurdSettingsRequest.h",
+    "IESGeckoKit/Core/Network/Settings/Model/IESGurdSettingsRequestMeta.h",
+    "IESGeckoKit/Core/Network/Settings/Model/IESGurdSettingsResourceBaseConfig.h",
+    "IESGeckoKit/Core/Network/Settings/Model/IESGurdSettingsResourceMeta.h",
+    "IESGeckoKit/Core/Network/Settings/Model/IESGurdSettingsResponse.h",
+    "IESGeckoKit/Core/Network/Settings/Model/IESGurdSettingsResponseExtra.h",
+    "IESGeckoKit/Core/Register/IESGurdRegisterManager.h",
+    "IESGeckoKit/Core/Register/IESGurdRegisterModel.h",
+    "IESGeckoKit/Core/ResourceMonitor/IESGurdChannelUsageMananger.h",
+    "IESGeckoKit/Core/ResourceMonitor/IESGurdDiskUsageManager.h",
+    "IESGeckoKit/Core/ResourceMonitor/IESGurdResourceInfoModel.h",
+    "IESGeckoKit/Core/Util/IESGeckoBSPatch.h",
+    "IESGeckoKit/Core/Util/IESGeckoFileMD5Hash.h",
+    "IESGeckoKit/Core/Util/IESGurdKitUtil.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/IESGeckoKit/IESGeckoAPI.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGeckoBSPatch.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGeckoCacheManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGeckoDefines+Private.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGeckoDefines.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGeckoFileMD5Hash.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGeckoKit+Private.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGeckoKit.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGeckoResourceManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGeckoResourceModel+DownloadPriority.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGeckoResourceModel.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdActivePackageMeta.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdAppLog.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdAppLogger.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdApplyPackageManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdAutoRequest.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdAutoRequestManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdBaseDownloadOperation.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdByteSyncMessageManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdCacheCleaner.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdCacheCleanerManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdCacheConfiguration.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdCachePackageModelsManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdChannelBlocklistManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdChannelUsageMananger.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdClearCacheManager+Remote.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdClearCacheManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdConfig.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdConfigUniversalStrategies.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdDelegateDispatcher.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdDelegateDispatcherManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdDiskUsageManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdDownloadFullPackageOperation.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdDownloadInfoModel.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdDownloadOperationsQueue.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdDownloadPackageInfo.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdDownloadPackageManager+Business.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdDownloadPackageManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdDownloadPatchPackageOperation.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdDownloadProgressManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdDownloadProgressObject+Private.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdDownloadProgressObject.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdDownloader.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdEventTraceManager+Business.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdEventTraceManager+Message.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdEventTraceManager+Network.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdEventTraceManager+Private.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdEventTraceManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdExpiredCacheManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdFIFOCacheCleaner.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdFetchResourcesParams+Private.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdFetchResourcesParams.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdFetchResourcesResult.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdFileBusinessManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdFileMetaManager+Private.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdFileMetaManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdFilePaths+InternalPackage.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdFilePaths.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdInactiveCacheMeta.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdInternalPackageMetaInfo+Private.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdInternalPackageMetaInfo.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdInternalPackagesManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdKit+BackgroundDownload.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdKit+ByteSync.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdKit+DownloadProgress.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdKit+Experiment.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdKit+ExtraParams.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdKit+InternalPackages.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdKit+RequestBlocklist.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdKit+ResourceLoader.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdKitUtil.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdLRUCacheCleaner.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdLRUCacheLinkedList.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdLRUCacheLinkedNode.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdLazyResourcesInfo.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdLazyResourcesManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdLoadResourcesParams.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdLogProxy.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdMetadataProtocol.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdMonitorManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdMultiAccessKeysRequest.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdNetworkResponse+Private.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdNetworkResponse.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdPackageBaseRequest.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdPackagesConfigResponse.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdPackagesExtraManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdPackagesNormalRequest.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdPatch.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdPollingManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdPollingRequest.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdProtocolDefines.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdRegisterManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdRegisterModel.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdResourceInfoModel.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdResourceManager+Business.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdResourceManager+MultiAccessKey.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdResourceManager+Settings.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdResourceManager+Status.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdResourceMetadataCache.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdResourceMetadataStorage+Private.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdResourceMetadataStorage.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdSettingsCacheManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdSettingsClearCacheConfig.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdSettingsConfig.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdSettingsManager.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdSettingsRequest.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdSettingsRequestMeta.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdSettingsResourceBaseConfig.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdSettingsResourceMeta.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdSettingsResponse.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdSettingsResponseExtra.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdStatusCodes.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdSyncResourcesGroup.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdUnzipPackageInfo.h",
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdUpdateStatisticModel.h",
+    "pod_support/Headers/Private/IESGeckoKit/NSData+IESGurdKit.h",
+    "pod_support/Headers/Private/IESGeckoKit/NSDictionary+IESGurdInternalPackage.h",
+    "pod_support/Headers/Private/IESGeckoKit/NSDictionary+IESGurdKit.h",
+    "pod_support/Headers/Private/IESGeckoKit/NSError+IESGurdKit.h",
+    "pod_support/Headers/Private/IESGeckoKit/UIApplication+IESGurdKit.h",
+    "pod_support/Headers/Private/IESGeckoKit/UIDevice+IESGeckoKit.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGeckoDefines.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGeckoResourceModel.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdByteSyncMessageManager.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdCacheConfiguration.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdConfig.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdDelegateDispatcher.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdDownloadInfoModel.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdDownloadPackageInfo.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdDownloadProgressObject.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdFetchResourcesParams.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdKit+BackgroundDownload.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdKit+DownloadProgress.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdKit+Experiment.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdKit+ExtraParams.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdKit+InternalPackages.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdKit+RequestBlocklist.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdKit+ResourceLoader.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdLazyResourcesInfo.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdLoadResourcesParams.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdLogProxy.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdMonitorManager.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdNetworkResponse.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdPackagesExtraManager.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdProtocolDefines.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdRegisterModel.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdSettingsClearCacheConfig.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdSettingsConfig.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdSettingsRequestMeta.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdSettingsResourceBaseConfig.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdSettingsResourceMeta.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdSettingsResponse.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdStatusCodes.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdUnzipPackageInfo.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_srcs",
+  srcs = [
+    "IESGeckoKit/Core/Network/Base/IESGeckoAPI.m",
+    "IESGeckoKit/Core/Util/IESGeckoBSPatch.m",
+    "IESGeckoKit/Core/IESGeckoCacheManager.m",
+    "IESGeckoKit/Core/Util/IESGeckoFileMD5Hash.m",
+    "IESGeckoKit/Core/IESGeckoKit.m",
+    "IESGeckoKit/Core/Network/Base/IESGeckoResourceManager.m",
+    "IESGeckoKit/Core/Network/Model/IESGeckoResourceModel+DownloadPriority.m",
+    "IESGeckoKit/Core/Network/Model/IESGeckoResourceModel.m",
+    "IESGeckoKit/Core/FileManager/IESGurdActivePackageMeta.m",
+    "IESGeckoKit/Core/AppLog/IESGurdAppLog.m",
+    "IESGeckoKit/Core/AppLog/IESGurdAppLogger.m",
+    "IESGeckoKit/Core/Apply/IESGurdApplyPackageManager+Delegate.m",
+    "IESGeckoKit/Core/Apply/IESGurdApplyPackageManager.m",
+    "IESGeckoKit/Core/Network/Settings/IESGurdAutoRequest.m",
+    "IESGeckoKit/Core/Network/Settings/IESGurdAutoRequestManager.m",
+    "IESGeckoKit/Core/Download/IESGurdBaseDownloadOperation.m",
+    "IESGeckoKit/Core/ByteSync/IESGurdByteSyncMessageManager.m",
+    "IESGeckoKit/Core/Cleaner/IESGurdCacheCleanerManager+Delegate.m",
+    "IESGeckoKit/Core/Cleaner/IESGurdCacheCleanerManager.m",
+    "IESGeckoKit/Core/Cleaner/IESGurdCacheConfiguration.m",
+    "IESGeckoKit/Core/Network/CachePackages/IESGurdCachePackageModelsManager.m",
+    "IESGeckoKit/Core/ClearCache/IESGurdChannelBlocklistManager.m",
+    "IESGeckoKit/Core/ResourceMonitor/IESGurdChannelUsageMananger.m",
+    "IESGeckoKit/Core/ClearCache/IESGurdClearCacheManager+Remote.m",
+    "IESGeckoKit/Core/ClearCache/IESGurdClearCacheManager.m",
+    "IESGeckoKit/Core/IESGurdConfig.m",
+    "IESGeckoKit/Core/Network/Model/IESGurdConfigUniversalStrategies.m",
+    "IESGeckoKit/Core/DelegateDispatcher/IESGurdDelegateDispatcher.m",
+    "IESGeckoKit/Core/DelegateDispatcher/IESGurdDelegateDispatcherManager.m",
+    "IESGeckoKit/Core/ResourceMonitor/IESGurdDiskUsageManager.m",
+    "IESGeckoKit/Core/Download/IESGurdDownloader.m",
+    "IESGeckoKit/Core/Download/IESGurdDownloadFullPackageOperation.m",
+    "IESGeckoKit/Core/Download/IESGurdDownloadInfoModel.m",
+    "IESGeckoKit/Core/Download/IESGurdDownloadOperationsQueue.m",
+    "IESGeckoKit/Core/Download/IESGurdDownloadPackageInfo.m",
+    "IESGeckoKit/Core/Download/IESGurdDownloadPackageManager+Business.m",
+    "IESGeckoKit/Core/Download/IESGurdDownloadPackageManager.m",
+    "IESGeckoKit/Core/Download/IESGurdDownloadPatchPackageOperation.m",
+    "IESGeckoKit/Core/Download/IESGurdDownloadProgressManager.m",
+    "IESGeckoKit/Core/Download/IESGurdDownloadProgressObject.m",
+    "IESGeckoKit/Core/EventTrace/IESGurdEventTraceManager+Business.m",
+    "IESGeckoKit/Core/EventTrace/IESGurdEventTraceManager+Message.m",
+    "IESGeckoKit/Core/EventTrace/IESGurdEventTraceManager+Network.m",
+    "IESGeckoKit/Core/EventTrace/IESGurdEventTraceManager.m",
+    "IESGeckoKit/Core/ClearCache/IESGurdExpiredCacheManager.m",
+    "IESGeckoKit/Core/Model/IESGurdFetchResourcesParams.m",
+    "IESGeckoKit/Core/Model/IESGurdFetchResourcesResult.m",
+    "IESGeckoKit/Core/Cleaner/IESGurdFIFOCacheCleaner.m",
+    "IESGeckoKit/Core/FileManager/IESGurdFileBusinessManager.m",
+    "IESGeckoKit/Core/FileManager/IESGurdFileMetaManager.m",
+    "IESGeckoKit/Core/InternalPackages/IESGurdFilePaths+InternalPackage.m",
+    "IESGeckoKit/Core/FileManager/IESGurdFilePaths.m",
+    "IESGeckoKit/Core/FileManager/IESGurdInactiveCacheMeta.m",
+    "IESGeckoKit/Core/InternalPackages/IESGurdInternalPackageMetaInfo.m",
+    "IESGeckoKit/Core/InternalPackages/IESGurdInternalPackagesManager.m",
+    "IESGeckoKit/Core/IESGurdKit+BackgroundDownload.m",
+    "IESGeckoKit/Core/IESGurdKit+ByteSync.m",
+    "IESGeckoKit/Core/IESGurdKit+DownloadProgress.m",
+    "IESGeckoKit/Core/IESGurdKit+Experiment.m",
+    "IESGeckoKit/Core/IESGurdKit+ExtraParams.m",
+    "IESGeckoKit/Core/InternalPackages/IESGurdKit+InternalPackages.m",
+    "IESGeckoKit/Core/IESGurdKit+RequestBlocklist.m",
+    "IESGeckoKit/Core/IESGurdKit+ResourceLoader.m",
+    "IESGeckoKit/Core/Util/IESGurdKitUtil.m",
+    "IESGeckoKit/Core/Network/Lazy/IESGurdLazyResourcesInfo.m",
+    "IESGeckoKit/Core/Network/Lazy/IESGurdLazyResourcesManager.m",
+    "IESGeckoKit/Core/Model/IESGurdLoadResourcesParams.m",
+    "IESGeckoKit/Core/Log/IESGurdLogProxy.m",
+    "IESGeckoKit/Core/Cleaner/IESGurdLRUCacheCleaner.m",
+    "IESGeckoKit/Core/Cleaner/LinkedList/IESGurdLRUCacheLinkedList.m",
+    "IESGeckoKit/Core/Cleaner/LinkedList/IESGurdLRUCacheLinkedNode.m",
+    "IESGeckoKit/Core/Monitor/IESGurdMonitorManager.m",
+    "IESGeckoKit/Core/Network/MultiAccessKey/IESGurdMultiAccessKeysRequest.m",
+    "IESGeckoKit/Core/Network/Model/IESGurdNetworkResponse.m",
+    "IESGeckoKit/Core/Network/Model/IESGurdPackageBaseRequest.m",
+    "IESGeckoKit/Core/Network/Model/IESGurdPackagesConfigResponse.m",
+    "IESGeckoKit/Core/Network/Base/IESGurdPackagesExtraManager.m",
+    "IESGeckoKit/Core/Network/Model/IESGurdPackagesNormalRequest.m",
+    "IESGeckoKit/Core/IESGurdPatch/IESGurdPatch.m",
+    "IESGeckoKit/Core/Network/Polling/IESGurdPollingManager.m",
+    "IESGeckoKit/Core/Network/Polling/IESGurdPollingRequest.m",
+    "IESGeckoKit/Core/Register/IESGurdRegisterManager.m",
+    "IESGeckoKit/Core/Register/IESGurdRegisterModel.m",
+    "IESGeckoKit/Core/ResourceMonitor/IESGurdResourceInfoModel.m",
+    "IESGeckoKit/Core/Network/Base/IESGurdResourceManager+Business.m",
+    "IESGeckoKit/Core/Network/MultiAccessKey/IESGurdResourceManager+MultiAccessKey.m",
+    "IESGeckoKit/Core/Network/Base/IESGurdResourceManager+Settings.m",
+    "IESGeckoKit/Core/Network/Base/IESGurdResourceManager+Status.m",
+    "IESGeckoKit/Core/FileManager/IESGurdResourceMetadataCache.m",
+    "IESGeckoKit/Core/FileManager/IESGurdResourceMetadataStorage.m",
+    "IESGeckoKit/Core/Network/Settings/IESGurdSettingsCacheManager.m",
+    "IESGeckoKit/Core/Network/Settings/Model/IESGurdSettingsClearCacheConfig.m",
+    "IESGeckoKit/Core/Network/Settings/Model/IESGurdSettingsConfig.m",
+    "IESGeckoKit/Core/Network/Settings/IESGurdSettingsManager.m",
+    "IESGeckoKit/Core/Network/Settings/Model/IESGurdSettingsRequest.m",
+    "IESGeckoKit/Core/Network/Settings/Model/IESGurdSettingsRequestMeta.m",
+    "IESGeckoKit/Core/Network/Settings/Model/IESGurdSettingsResourceBaseConfig.m",
+    "IESGeckoKit/Core/Network/Settings/Model/IESGurdSettingsResourceMeta.m",
+    "IESGeckoKit/Core/Network/Settings/Model/IESGurdSettingsResponse.m",
+    "IESGeckoKit/Core/Network/Settings/Model/IESGurdSettingsResponseExtra.m",
+    "IESGeckoKit/Core/Network/Base/IESGurdSyncResourcesGroup.m",
+    "IESGeckoKit/Core/Apply/IESGurdUnzipPackageInfo.m",
+    "IESGeckoKit/Core/Model/IESGurdUpdateStatisticModel.m",
+    "IESGeckoKit/Core/Category/NSData+IESGurdKit.m",
+    "IESGeckoKit/Core/InternalPackages/NSDictionary+IESGurdInternalPackage.m",
+    "IESGeckoKit/Core/Category/NSDictionary+IESGurdKit.m",
+    "IESGeckoKit/Core/Category/NSError+IESGurdKit.m",
+    "IESGeckoKit/Core/Category/UIApplication+IESGurdKit.m",
+    "IESGeckoKit/Core/Category/UIDevice+IESGeckoKit.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [
+    "Core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_dylibs = [
+    "bz2"
+  ],
+  deps = [
+    ":IESGeckoKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":IESGeckoKit_private_includes",
+    ":IESGeckoKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@Gaia//:Gaia_objc_interface",
+    "@Heimdallr//:TTMonitor_objc_interface",
+    "@IESGeckoEncrypt//:IESGeckoEncrypt_objc_interface",
+    "@IESMetadataStorage//:IESMetadataStorage_objc_interface",
+    "@SSZipArchive//:SSZipArchive_objc_interface",
+    "@ZstdDecompressKit//:ZstdDecompressKit_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    "@Gaia//:Gaia_swift_interface",
+    "@Heimdallr//:TTMonitor_swift_interface",
+    "@IESGeckoEncrypt//:IESGeckoEncrypt_swift_interface",
+    "@IESMetadataStorage//:IESMetadataStorage_swift_interface",
+    "@SSZipArchive//:SSZipArchive_swift_interface",
+    "@ZstdDecompressKit//:ZstdDecompressKit_swift_interface",
+    ":Core_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map",
+    "@Gaia//:Gaia_module_map",
+    "@Heimdallr//:TTMonitor_module_map",
+    "@IESGeckoEncrypt//:IESGeckoEncrypt_module_map",
+    "@IESMetadataStorage//:IESMetadataStorage_module_map",
+    "@SSZipArchive//:SSZipArchive_module_map",
+    "@ZstdDecompressKit//:ZstdDecompressKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DGECKO_SPEC_VERSION=@\\\"3.3.3\\\"",
+    "-DIESGeckoKit_POD_VERSION=@\\\"9999_3.4.3-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Config_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Config_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Config_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Config_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Config_module_map",
+  module_map = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_Config-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_Config-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Config_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Config_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":IESGeckoKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":IESGeckoKit_private_includes",
+    ":IESGeckoKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Config_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DGECKO_SPEC_VERSION=@\\\"3.3.3\\\"",
+    "-DIESGeckoKit_POD_VERSION=@\\\"9999_3.4.3-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Config",
+  deps = [
+    ":Config_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Config_lib",
+  deps = [
+    ":Config"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Config_CN_hdrs",
+  srcs = [
+    "IESGeckoKit/Config/CN/IESGurdConfig+Impl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Config_CN_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdConfig+Impl.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdConfig+Impl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Config_CN_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Config_CN_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Config_CN_module_map",
+  module_map = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_Config_CN-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_Config_CN-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Config_CN_srcs",
+  srcs = [
+    "IESGeckoKit/Config/CN/IESGurdConfig+Impl.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Config_CN_oc",
+  enable_modules = 1,
+  srcs = [
+    "Config_CN_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Config_CN_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":IESGeckoKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":IESGeckoKit_private_includes",
+    ":IESGeckoKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Config_CN_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DGECKO_SPEC_VERSION=@\\\"3.3.3\\\"",
+    "-DIESGeckoKit_POD_VERSION=@\\\"9999_3.4.3-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Config_CN",
+  deps = [
+    ":Config_CN_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Config_CN_lib",
+  deps = [
+    ":Config_CN"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Config_OS_hdrs",
+  srcs = [
+    "IESGeckoKit/Config/OS/IESGurdConfig+Impl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Config_OS_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Config_OS_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Config_OS_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Config_OS_module_map",
+  module_map = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_Config_OS-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_Config_OS-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Config_OS_srcs",
+  srcs = [
+    "IESGeckoKit/Config/OS/IESGurdConfig+Impl.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Config_OS_oc",
+  enable_modules = 1,
+  srcs = [
+    "Config_OS_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Config_OS_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":IESGeckoKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":IESGeckoKit_private_includes",
+    ":IESGeckoKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Config_OS_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DGECKO_SPEC_VERSION=@\\\"3.3.3\\\"",
+    "-DIESGeckoKit_POD_VERSION=@\\\"9999_3.4.3-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Config_OS",
+  deps = [
+    ":Config_OS_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Config_OS_lib",
+  deps = [
+    ":Config_OS"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Downloader_hdrs",
+  srcs = [
+    "IESGeckoKit/Downloader/IESGurdTTDownloader.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Downloader_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/IESGeckoKit/IESGurdTTDownloader.h",
+    "pod_support/Headers/Public/IESGeckoKit/IESGurdTTDownloader.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Downloader_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Downloader_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Downloader_module_map",
+  module_map = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_Downloader-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_Downloader-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Downloader_srcs",
+  srcs = [
+    "IESGeckoKit/Downloader/IESGurdTTDownloader.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Downloader_oc",
+  enable_modules = 1,
+  srcs = [
+    "Downloader_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Downloader_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":IESGeckoKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":IESGeckoKit_private_includes",
+    ":IESGeckoKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTNetworkDownloader//:TTNetworkDownloader_objc_interface",
+    "@TTNetworkDownloader//:TTNetworkDownloader_swift_interface",
+    ":Downloader_objc_interface",
+    "@TTNetworkDownloader//:TTNetworkDownloader_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DGECKO_SPEC_VERSION=@\\\"3.3.3\\\"",
+    "-DIESGeckoKit_POD_VERSION=@\\\"9999_3.4.3-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Downloader",
+  deps = [
+    ":Downloader_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Downloader_lib",
+  deps = [
+    ":Downloader"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ByteSync_hdrs",
+  srcs = [
+    "IESGeckoKit/ByteSync/IESGurdByteSyncMessageManager+Setup.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ByteSync_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ByteSync_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ByteSync_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ByteSync_module_map",
+  module_map = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_ByteSync-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_ByteSync-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ByteSync_srcs",
+  srcs = [
+    "IESGeckoKit/ByteSync/IESGurdByteSyncMessageManager+Setup.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ByteSync_oc",
+  enable_modules = 1,
+  srcs = [
+    "ByteSync_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "ByteSync_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":IESGeckoKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":IESGeckoKit_private_includes",
+    ":IESGeckoKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDUGSyncSDK//:Core_objc_interface",
+    "@BDUGSyncSDK//:Core_swift_interface",
+    ":ByteSync_objc_interface",
+    "@BDUGSyncSDK//:Core_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DGECKO_SPEC_VERSION=@\\\"3.3.3\\\"",
+    "-DIESGeckoKit_POD_VERSION=@\\\"9999_3.4.3-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ByteSync",
+  deps = [
+    ":ByteSync_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ByteSync_lib",
+  deps = [
+    ":ByteSync"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "IESForestKit_hdrs",
+  srcs = [
+    "IESGeckoKit/Forest/Cache/IESForestMemoryCache.h",
+    "IESGeckoKit/Forest/Cache/IESForestMemoryCacheManager.h",
+    "IESGeckoKit/Forest/Fetcher/IESForestBaseFetcher.h",
+    "IESGeckoKit/Forest/Fetcher/IESForestBuiltinFetcher.h",
+    "IESGeckoKit/Forest/Fetcher/IESForestCDNDownloaderFetcher.h",
+    "IESGeckoKit/Forest/Fetcher/IESForestCDNFetcher.h",
+    "IESGeckoKit/Forest/Fetcher/IESForestFetcherProtocol.h",
+    "IESGeckoKit/Forest/Fetcher/IESForestGeckoFetcher.h",
+    "IESGeckoKit/Forest/Fetcher/IESForestGeckoUtil.h",
+    "IESGeckoKit/Forest/Fetcher/IESForestMemoryFetcher.h",
+    "IESGeckoKit/Forest/IESForestConfig.h",
+    "IESGeckoKit/Forest/IESForestDefines.h",
+    "IESGeckoKit/Forest/IESForestError.h",
+    "IESGeckoKit/Forest/IESForestEventTrackData.h",
+    "IESGeckoKit/Forest/IESForestKit+private.h",
+    "IESGeckoKit/Forest/IESForestKit.h",
+    "IESGeckoKit/Forest/IESForestRequestOperation.h",
+    "IESGeckoKit/Forest/IESForestRequestOperationManager.h",
+    "IESGeckoKit/Forest/Preload/IESForestImagePreloader.h",
+    "IESGeckoKit/Forest/Preload/IESForestPreloadConfig.h",
+    "IESGeckoKit/Forest/Request/IESForestQueryParameters.h",
+    "IESGeckoKit/Forest/Request/IESForestRemoteParameters.h",
+    "IESGeckoKit/Forest/Request/IESForestRequest.h",
+    "IESGeckoKit/Forest/Request/IESForestRequestParameters.h",
+    "IESGeckoKit/Forest/Response/IESForestResponse.h",
+    "IESGeckoKit/Forest/Response/IESForestResponseProtocol.h",
+    "IESGeckoKit/Forest/Workflow/IESForestWorkflow.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "IESForestKit_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "IESForestKit_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "IESForestKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "IESForestKit_module_map",
+  module_map = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_IESForestKit-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_IESForestKit-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "IESForestKit_srcs",
+  srcs = [
+    "IESGeckoKit/Forest/Fetcher/IESForestBaseFetcher.m",
+    "IESGeckoKit/Forest/Fetcher/IESForestBuiltinFetcher.m",
+    "IESGeckoKit/Forest/Fetcher/IESForestCDNDownloaderFetcher.m",
+    "IESGeckoKit/Forest/Fetcher/IESForestCDNFetcher.m",
+    "IESGeckoKit/Forest/IESForestConfig.m",
+    "IESGeckoKit/Forest/IESForestError.m",
+    "IESGeckoKit/Forest/IESForestEventTrackData.m",
+    "IESGeckoKit/Forest/Fetcher/IESForestGeckoFetcher.m",
+    "IESGeckoKit/Forest/Fetcher/IESForestGeckoUtil.m",
+    "IESGeckoKit/Forest/Preload/IESForestImagePreloader.m",
+    "IESGeckoKit/Forest/IESForestKit.m",
+    "IESGeckoKit/Forest/Cache/IESForestMemoryCache.m",
+    "IESGeckoKit/Forest/Cache/IESForestMemoryCacheManager.m",
+    "IESGeckoKit/Forest/Fetcher/IESForestMemoryFetcher.m",
+    "IESGeckoKit/Forest/Preload/IESForestPreloadConfig.m",
+    "IESGeckoKit/Forest/Request/IESForestQueryParameters.m",
+    "IESGeckoKit/Forest/Request/IESForestRemoteParameters.m",
+    "IESGeckoKit/Forest/Request/IESForestRequest.m",
+    "IESGeckoKit/Forest/IESForestRequestOperation.m",
+    "IESGeckoKit/Forest/IESForestRequestOperationManager.m",
+    "IESGeckoKit/Forest/Request/IESForestRequestParameters.m",
+    "IESGeckoKit/Forest/Response/IESForestResponse.m",
+    "IESGeckoKit/Forest/Workflow/IESForestWorkflow.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "IESForestKit_oc",
+  enable_modules = 1,
+  srcs = [
+    "IESForestKit_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "IESForestKit_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/IESForestKit-prefix.pch",
+  deps = [
+    ":IESGeckoKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":IESGeckoKit_private_includes",
+    ":IESGeckoKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDWebImage//:BDWebImage_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@TTNetworkDownloader//:TTNetworkDownloader_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDWebImage//:BDWebImage_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    "@TTNetworkDownloader//:TTNetworkDownloader_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":IESForestKit_objc_interface",
+    "@BDWebImage//:BDWebImage_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map",
+    "@TTNetworkDownloader//:TTNetworkDownloader_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DGECKO_SPEC_VERSION=@\\\"3.3.3\\\"",
+    "-DIESGeckoKit_POD_VERSION=@\\\"9999_3.4.3-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "IESForestKit",
+  deps = [
+    ":IESForestKit_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "IESForestKit_lib",
+  deps = [
+    ":IESForestKit"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Example_hdrs",
+  srcs = [
+    "IESGeckoKit/Example/IESForestViewController.h",
+    "IESGeckoKit/Example/IESGeckoDemoViewController.h",
+    "IESGeckoKit/Example/IESGurdEventDelegateImpl.h",
+    "IESGeckoKit/Example/IESGurdPushViewController.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Example_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Example_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Example_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Example_module_map",
+  module_map = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_Example-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_Example-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Example_srcs",
+  srcs = [
+    "IESGeckoKit/Example/IESForestViewController.m",
+    "IESGeckoKit/Example/IESGeckoDemoViewController.m",
+    "IESGeckoKit/Example/IESGurdEventDelegateImpl.m",
+    "IESGeckoKit/Example/IESGurdPushViewController.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Example_oc",
+  enable_modules = 1,
+  srcs = [
+    "Example_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Example_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":IESGeckoKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":IESGeckoKit_private_includes",
+    ":IESGeckoKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Example_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DGECKO_SPEC_VERSION=@\\\"3.3.3\\\"",
+    "-DIESGeckoKit_POD_VERSION=@\\\"9999_3.4.3-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Example",
+  deps = [
+    ":Example_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Example_lib",
+  deps = [
+    ":Example"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_module_map",
+  module_map = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_mPaaS-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_mPaaS-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":IESGeckoKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":IESGeckoKit_private_includes",
+    ":IESGeckoKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":mPaaS_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DGECKO_SPEC_VERSION=@\\\"3.3.3\\\"",
+    "-DIESGeckoKit_POD_VERSION=@\\\"9999_3.4.3-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS",
+  deps = [
+    ":mPaaS_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_lib",
+  deps = [
+    ":mPaaS"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_Task_hdrs",
+  srcs = [
+    "IESGeckoKit/mPaaS/Task/IESGeckoKitStartUpTask.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_Task_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_Task_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_Task_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_Task_module_map",
+  module_map = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_mPaaS_Task-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_mPaaS_Task-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_Task_srcs",
+  srcs = [
+    "IESGeckoKit/mPaaS/Task/IESGeckoKitStartUpTask.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_Task_oc",
+  enable_modules = 1,
+  srcs = [
+    "mPaaS_Task_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_Task_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":IESGeckoKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":IESGeckoKit_private_includes",
+    ":IESGeckoKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDStartUp//:Base_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@BDStartUp//:Base_swift_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    ":mPaaS_Task_objc_interface",
+    "@BDStartUp//:Base_module_map",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DGECKO_SPEC_VERSION=@\\\"3.3.3\\\"",
+    "-DIESGeckoKit_POD_VERSION=@\\\"9999_3.4.3-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_Task",
+  deps = [
+    ":mPaaS_Task_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_Task_lib",
+  deps = [
+    ":mPaaS_Task"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_China_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_China_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_China_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_China_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_China_module_map",
+  module_map = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_mPaaS_China-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_mPaaS_China-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_China_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_China_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":IESGeckoKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":IESGeckoKit_private_includes",
+    ":IESGeckoKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":mPaaS_China_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DGECKO_SPEC_VERSION=@\\\"3.3.3\\\"",
+    "-DIESGeckoKit_POD_VERSION=@\\\"9999_3.4.3-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_China",
+  deps = [
+    ":mPaaS_China_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_China_lib",
+  deps = [
+    ":mPaaS_China"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_VA_hdrs",
+  srcs = [
+    "IESGeckoKit/mPaaS/VA/IESGeckoKitStartUpTask+VA.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_VA_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_VA_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_VA_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_VA_module_map",
+  module_map = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_mPaaS_VA-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_mPaaS_VA-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_VA_srcs",
+  srcs = [
+    "IESGeckoKit/mPaaS/VA/IESGeckoKitStartUpTask+VA.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_VA_oc",
+  enable_modules = 1,
+  srcs = [
+    "mPaaS_VA_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_VA_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":IESGeckoKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":IESGeckoKit_private_includes",
+    ":IESGeckoKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":mPaaS_VA_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DGECKO_SPEC_VERSION=@\\\"3.3.3\\\"",
+    "-DIESGeckoKit_POD_VERSION=@\\\"9999_3.4.3-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_VA",
+  deps = [
+    ":mPaaS_VA_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_VA_lib",
+  deps = [
+    ":mPaaS_VA"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_SG_hdrs",
+  srcs = [
+    "IESGeckoKit/mPaaS/SG/IESGeckoKitStartUpTask+SG.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_SG_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_SG_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_SG_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_SG_module_map",
+  module_map = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_mPaaS_SG-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/IESGeckoKit/IESGeckoKit_mPaaS_SG-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_SG_srcs",
+  srcs = [
+    "IESGeckoKit/mPaaS/SG/IESGeckoKitStartUpTask+SG.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_SG_oc",
+  enable_modules = 1,
+  srcs = [
+    "mPaaS_SG_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_SG_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":IESGeckoKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":IESGeckoKit_private_includes",
+    ":IESGeckoKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":mPaaS_SG_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DGECKO_SPEC_VERSION=@\\\"3.3.3\\\"",
+    "-DIESGeckoKit_POD_VERSION=@\\\"9999_3.4.3-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_SG",
+  deps = [
+    ":mPaaS_SG_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_SG_lib",
+  deps = [
+    ":mPaaS_SG"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_IESGeckoKit_module_map",
+  module_map = "@IESGeckoKit//:pod_support/Headers/Public/IESGeckoKit/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@IESGeckoKit//:pod_support/Headers/Public/IESGeckoKit/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_IESGeckoKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@IESGeckoKit//:Config_CN_objc_interface", "@IESGeckoKit//:Core_objc_interface", "@IESGeckoKit//:Downloader_objc_interface", "@IESGeckoKit//:IESGeckoKit_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_IESGeckoKit",
+  target_name = "Lark",
+  module_name = "IESGeckoKit",
+  hdrs = ["@IESGeckoKit//:Config_CN_pod_hdrs", "@IESGeckoKit//:Core_pod_hdrs", "@IESGeckoKit//:Downloader_pod_hdrs", "@IESGeckoKit//:IESGeckoKit_root_pod_hdrs"],
+  srcs = ["@IESGeckoKit//:Config_CN_srcs", "@IESGeckoKit//:Core_srcs", "@IESGeckoKit//:Downloader_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["BDTrackerProtocol", "Gaia", "Heimdallr", "IESGeckoEncrypt", "IESMetadataStorage", "SSZipArchive", "ZstdDecompressKit", "TTNetworkDownloader"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DGECKO_SPEC_VERSION=@\\\"3.3.3\\\"",
+    "-DIESGeckoKit_POD_VERSION=@\\\"9999_3.4.3-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "IESGeckoKit_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "IESGeckoKit_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = ["bz2"],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "IESGeckoKit_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "IESGeckoKit_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "IESGeckoKit_dynamic", False),
+  tags = getattr(defs_external_objc_library, "IESGeckoKit_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("IESGeckoKit", {}),
+  visibility = ["//visibility:public"],
+)

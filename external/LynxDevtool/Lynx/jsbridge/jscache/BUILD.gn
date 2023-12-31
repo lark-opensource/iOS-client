@@ -1,0 +1,49 @@
+# Copyright 2023 The Lynx Authors. All rights reserved.
+
+import("//Lynx/Lynx.gni")
+import("//testing/test.gni")
+
+if (is_android) {
+  import("//build/config/android/config.gni")
+}
+
+if (target_cpu == "arm" || target_cpu == "arm64") {
+  import("//build/config/arm.gni")
+}
+
+config("jscache_config") {
+  if (enable_unittests) {
+    defines = [ "QUICKJS_CACHE_UNITTEST" ]
+    include_dirs = [ "${root_gen_dir}/Lynx" ]
+  }
+}
+
+lynx_source_set("jscache") {
+  public_configs = [ ":jscache_config" ]
+
+  sources = [
+    "//Lynx/base/md5.cc",
+    "js_cache_manager.cc",
+    "js_cache_manager_facade.cc",
+    "meta_data.cc",
+    "v8_cache_manager.cc",
+  ]
+
+  deps = [ "//third_party/rapidjson" ]
+}
+
+unittest_set("jscache_unittests") {
+  public_configs = [ ":jscache_config" ]
+
+  include_dirs = [
+    "//Lynx",
+    "//Lynx/lepus/quickjs/include",
+  ]
+
+  sources = [
+    "js_cache_manager_facade_unittest.cc",
+    "meta_data_unittest.cc",
+  ]
+
+  deps = [ ":jscache" ]
+}

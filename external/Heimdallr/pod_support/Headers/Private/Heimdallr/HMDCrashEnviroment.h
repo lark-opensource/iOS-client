@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/CrashCapture/Common/Private/HMDCrashKit/Environment/HMDCrashEnviroment.h

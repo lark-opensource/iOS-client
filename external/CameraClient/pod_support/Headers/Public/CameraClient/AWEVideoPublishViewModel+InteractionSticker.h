@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/Record/Model/AWEVideoPublishViewModel+InteractionSticker.h

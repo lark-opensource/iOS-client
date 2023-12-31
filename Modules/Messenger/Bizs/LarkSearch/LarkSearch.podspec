@@ -1,0 +1,65 @@
+Pod::Spec.new do |s|
+  s.name          = 'LarkSearch'
+  s.version = '5.32.0.5477259'
+  s.author        = { 'Liu Wanlin' => 'liuwanlin@bytedance.com' }
+  s.license       = 'MIT'
+  s.homepage      = 'https://ee.byted.org/madeira/browse/ee/lark/ios-client/tree/master/LarkSearch'
+  s.summary       = '搜索'
+  s.source        = { :git => 'ssh://git.byted.org:29418/ee/lark/ios/LarkBusinessModule', :tag => s.version.to_s }
+  s.source_files  =  'src/**/*.swift'
+  s.resource_bundles = {
+    'LarkSearch' => ['resources/*'],
+    'LarkSearchAuto' => ['auto_resources/*']
+  }
+  s.platform      = :ios
+  s.ios.deployment_target = "11.0"
+  s.swift_version = "5.1"
+
+  s.dependency 'LarkCore'
+  s.dependency 'SnapKit'
+  s.dependency 'LarkFoundation'
+  s.dependency 'LarkUIKit'
+  s.dependency 'RxSwift'
+  s.dependency 'RxCocoa'
+  s.dependency 'RxDataSources'
+  s.dependency 'LarkModel'
+  s.dependency 'LarkFeatureGating'
+  s.dependency 'LarkContainer'
+  s.dependency 'EENavigator'
+  s.dependency 'LarkAppResources'
+  s.dependency 'JTAppleCalendar'
+  s.dependency 'LarkSearchFilter'
+  s.dependency 'LarkSearchCore'
+  s.dependency 'LarkAccountInterface'
+  s.dependency 'LarkSegmentedView'
+  s.dependency 'LarkAppConfig'
+  s.dependency 'LarkMessengerInterface'
+  s.dependency 'LarkAppLinkSDK'
+  s.dependency 'LarkFeatureSwitch'
+  s.dependency 'CryptoSwift'
+  s.dependency 'LarkKeyboardKit'
+  s.dependency 'LKMetric'
+  s.dependency 'SuiteAppConfig'
+  s.dependency 'LarkAvatar'
+  s.dependency 'LarkFocus'
+  s.dependency 'EETroubleKiller'
+  s.dependency 'LarkExtensions'
+  s.dependency 'LarkListItem'
+  s.dependency 'AppReciableSDK'
+  s.dependency 'LarkTraitCollection'
+  s.dependency 'LarkSceneManager'
+  s.dependency 'LarkOpenChat'
+  s.dependency 'UniverseDesignIcon'
+  s.dependency 'UniverseDesignEmpty'
+  s.dependency 'UniverseDesignButton'
+  s.dependency 'UniverseDesignInput'
+  s.dependency 'UniverseDesignTabs'
+  s.dependency 'LarkLocalizations'
+  s.dependency 'FigmaKit'
+  s.dependency 'LarkKASDKAssemble'
+  s.dependency 'LarkAssembler'
+  s.dependency 'LarkOpenFeed'
+  s.dependency 'Blockit'
+  s.dependency 'LarkBizTag'
+  s.dependency 'LarkDocsIcon'
+end

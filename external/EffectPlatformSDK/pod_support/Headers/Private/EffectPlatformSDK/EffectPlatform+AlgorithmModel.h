@@ -1,0 +1,1 @@
+../../../../EffectPlatformSDK/AlgorithmModel/EffectPlatform+AlgorithmModel.h

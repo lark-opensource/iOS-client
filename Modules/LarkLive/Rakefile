@@ -1,0 +1,411 @@
+# frozen_string_literal: true
+
+require 'yaml'
+
+build = ENV['build']
+
+ci  = 'ee.byted.org/ci/job/lark/job/ios/'
+job = 'verifier-for-messenger'
+
+task :default do
+  unless build
+    puts 'build not found. Please use rake build=[build number]'
+    exit
+  end
+  if File.exist?('personal-ci-auth')
+    output = "/tmp/#{job}-#{build}"
+    system("JENKINS_URL=https://`cat personal-ci-auth`@#{ci} nestor console #{job} #{build} > #{output}")
+    puts(output)
+  else
+    puts '未检测到配置，让我们先配置一下再使用吧。'
+    system('rake setupNestor')
+  end
+end
+
+task :setupNestor do
+  system('command -v nestor > /dev/null || npm install -g nestor')
+  username = `git config user.email|awk -F@ '{print $1}'`.strip
+  puts '接下来将打开Jenkins，请点击“添加新Token”来生成token，然后复制token内容，返回这里'
+  `read -p "按回车键继续..."`
+  `open https://ee.byted.org/ci/user/#{username}/configure`
+  `read -p "已复制token？按回车键继续..."`
+  `echo #{username}:\`pbpaste\` > personal-ci-auth`
+  puts `echo export JENKINS_URL=https://\`cat personal-ci-auth\`@#{job}`
+  `export JENKINS_URL=https://\`cat personal-ci-auth\`@#{job}`
+end
+
+# 将LarkMessenger的版本同步到ios-client。 前提是LarkMessenger和ios-client在同一级目录
+task :integrate do
+  f = File.open('Bizs/LarkMessenger/LarkMessenger.podspec')
+  current_messenger_version = f.read[/s\.version\s*=\s*['"]([^'"]+)['"]/, 1]
+  f.close
+
+  f = File.open('../ios-client/Podfile')
+  podfile = f.read
+  previous_messenger_version = podfile[/messenger_pod_version.+'(.+)'/, 1]
+  f.close
+
+  File.write('../ios-client/Podfile', podfile.sub!(previous_messenger_version, current_messenger_version))
+  puts "ios-client中Messenger Pod version 从 #{previous_messenger_version} 替换为 #{current_messenger_version}"
+end
+
+# 获取LarkMessenger的版本
+task :version do
+  file = File.open('Bizs/LarkMessenger/LarkMessenger.podspec', 'r')
+  data = file.read
+  v = data[/s\.version\s*=\s*['"]([^'"]+)['"]/, 1]
+  puts "LarkMessenger版本为: #{v}"
+  file.close
+end
+
+# 将所有LarkMessenger Pod升级到下一个patch版本
+# e.g. 3.18.0 => 3.18.1
+# e.g. 3.18.0-alpha.3 => 3.18.0
+task :patch do
+  max_major, max_minor, max_patch, max_alpha = find_podspec_version
+  max_patch += 1 if max_alpha == -1
+  new_version = "#{max_major}.#{max_minor}.#{max_patch}"
+  change_podspec_version(new_version)
+end
+
+# 将所有LarkMessenger Pod升级到一下个alpha version, 如果当前不是alpha版本，会把第二位版本号加一，再升级到alpha.0
+# e.g. 3.18.0 => 3.19.0-alpha.0
+# e.g. 3.19.0-alpha.0 => 3.19.0-alpha.1
+task :alpha do
+  max_major, max_minor, max_patch, max_alpha = find_podspec_version
+  max_minor += 1 if max_alpha == -1
+  max_alpha += 1
+  new_version = "#{max_major}.#{max_minor}.#{max_patch}-alpha.#{max_alpha}"
+  change_podspec_version(new_version)
+end
+
+# 替换所有LarkMessenger Pos版本
+# 调用方式为 rake change_version version=xxx.xx.x
+task :change_version do
+  version = ENV['version']
+  change_podspec_version(version)
+end
+
+def find_podspec_version
+  max_major = 0
+  max_minor = 0
+  max_patch = 0
+  max_alpha = -1
+
+  # @param path [String]
+  `git ls-files -z`.split("\0").each do |path|
+    next unless path.end_with? '.podspec'
+
+    podspec = File.open(path).read
+    version = podspec[/s\.version\s*=\s*['"]([^'"]+)['"]/, 1]
+
+    first_version = Integer(version[/(\d+)/, 1] || '0')
+    second_version = Integer(version[/\d+\.(\d+).+/, 1] || '0')
+    third_version = Integer(version[/\d+\.\d+\.(\d+).*/, 1] || '0')
+    alpha_versoin = Integer(version[/.*alpha.(\d+)/, 1] || '-1')
+
+    max_major = [max_major, first_version].max
+    max_minor = [max_minor, second_version].max
+    max_patch = [max_patch, third_version].max
+    max_alpha = [max_alpha, alpha_versoin].max
+  end
+  [max_major, max_minor, max_patch, max_alpha]
+end
+
+def change_podspec_version(new_version)
+  Dir.glob('./**/*.podspec').each do |path|
+    podspec = File.open(path).read
+    version = podspec[/s\.version\s*=\s*['"]([^'"]+)['"]/, 1]
+    File.write(path, podspec.sub!(version, new_version))
+  end
+  puts "Messenger Pod版本升级到: #{new_version}"
+  puts '如果有需要，请自助运行下面命令：'
+  puts "git add -u; git commit -m \"chore: 升级LarkMessenger版本到#{new_version}\""
+end
+
+task :publish do
+  value = `git fetch origin -p && git branch -r --contains HEAD | wc -l`
+  if Integer(value) > 0
+    system("bundle exec eesc module publish --skip-build --no-lint-project-git -n `fd -e podspec -x basename {} .podspec|grep -v 'BitsPodsPlaceholder'|paste -sd ',' -\`")
+  else
+    puts '请先将本地提交合并到远端，再发布版本。（如果已经合并，请运行git pull 或 git pull --rebase再发布）'
+  end
+end
+
+# 对比 messenger 与 lark podfile 依赖区别, 需要 Messenger 与 ios-client 在同一层级
+task :compare do
+  # 解析 podlock 文件
+  def parsePodfileLock(path)
+    podfileLock = YAML.load_file(path)
+
+    pods = {}
+
+    podfileLock['PODS'].each do |item|
+      if item.class == Hash
+        pod, version = parsePodAndVersion(item.keys[0])
+        pods[pod] = version
+      else
+        pod, version = parsePodAndVersion(item)
+        pods[pod] = version
+      end
+    end
+
+    return pods
+  end
+
+  # 解析 pod name 和 version
+  def parsePodAndVersion(message)
+    items = message.split(' ')
+    return items[0].split('/')[0], items[1]
+  end
+
+  module Color
+    Green = 1
+    Yellow = 2
+  end
+
+  # 添加输出颜色
+  def string(message, color)
+    if color == Color::Green
+      return "\033[32m#{message}\033[0m"
+    elsif color == Color::Yellow
+      return "\033[33m#{message}\033[0m"
+    end
+
+    return message
+  end
+
+  # 记录Pod状态
+  class PodStatus
+    attr_accessor :messenger, :lark
+    # @return [Gem::Version]
+    attr_accessor :messenger_version, :lark_version
+    attr_accessor :messenger_raw_version, :lark_raw_version
+
+    def initialize(messenger, lark)
+      @lark = lark
+      @messenger = messenger
+      @lark_raw_version = lark[VERSION_REGEX]
+      @messenger_raw_version = messenger[VERSION_REGEX]
+      @lark_version = Gem::Version.new(lark_raw_version)
+      @messenger_version = Gem::Version.new(messenger_raw_version)
+    end
+
+    VERSION_REGEX = /\d+[\w.-]*/.freeze
+
+    def messenger_higher?
+      messenger_version > lark_version
+    end
+
+    def lark_higher?
+      lark_version > messenger_version
+    end
+
+    def diff_string
+      @diff_string ||= "highest: #{lark_version >= messenger_version ? 'lark' : 'messenger'}\tlark: #{string(lark, Color::Green)}\tmessenger: #{string(messenger, Color::Green)}"
+    end
+  end
+
+  def sync_to_high_version(diff)
+    lark_podfile_path = '../iOS-client/Podfile'
+    pod_match_regex = /^(\s*pod\s+['"]([\w-]+)['"])\s*,\s*['"]([0-9.]+[\w+0-9.-]*)['"]/
+    File.open(lark_podfile_path, 'r+') do |f|
+      content = f.read.gsub(pod_match_regex) do |match|
+        status = diff[$2]
+        if status&.messenger_higher?
+          "#{$1}, '#{status.messenger_raw_version}'"
+        else
+          match
+        end
+      end
+      f.seek(0)
+      f.write(content)
+    end
+  end
+
+  def sync_to_high_version2(diff)
+    messenger_podfile_path = './Podfile'
+    pod_match_regex = /^(\s*pod\s+['"]([\w-]+)['"])\s*,\s*['"]([0-9.]+[\w+0-9.-]*)['"]/
+    File.open(messenger_podfile_path, 'r+') do |f|
+      content = f.read.gsub(pod_match_regex) do |match|
+        status = diff[$2]
+        if status&.lark_higher?
+          "#{$1}, '#{status.lark_raw_version}'"
+        else
+          match
+        end
+      end
+      f.seek(0)
+      f.write(content)
+    end
+  end
+
+  #### Logic Start
+  messengerPods = parsePodfileLock('./Podfile.lock')
+  larkPods = parsePodfileLock('../iOS-client/Podfile.lock')
+
+  onlyMessenger = {}
+  onlyLark = {}
+  diff = {}
+
+  messengerPods.each do |key, value|
+    larkPod = larkPods[key]
+    if larkPod.nil?
+      onlyMessenger[key] = value
+    elsif larkPod != value
+      diff[key] = PodStatus.new(value, larkPod)
+    end
+  end
+
+  larkPods.each do |key, value|
+    messengerPod = messengerPods[key]
+    onlyLark[key] = value if messengerPod.nil?
+  end
+
+  localPods = `fd -e podspec -x basename {} .podspec`.split("\n")
+
+  diff = diff.sort_by { |v| v[1].diff_string }.to_h
+  puts string('Diff Local Pods:', Color::Yellow)
+  diff.each do |key, value|
+    puts '%30s' % string(key, Color::Yellow) + ":\t" + value.diff_string if localPods.include?(key)
+  end
+
+  puts "\n" + string('Diff Pods:', Color::Yellow)
+  diff.each do |key, value|
+    puts '%30s' % string(key, Color::Yellow) + ":\t" + value.diff_string unless localPods.include?(key)
+  end
+  puts "\n" + string('Only In Messenger:', Color::Yellow)
+  onlyMessenger.each do |key, value|
+    puts  '%30s' % string(key, Color::Yellow) + ":\t" + string(value, Color::Green)
+  end
+  puts "\n" + string('Only In Lark:', Color::Yellow)
+  onlyLark.each do |key, value|
+    puts  '%30s' % string(key, Color::Yellow) + ":\t" + string(value, Color::Green)
+  end
+
+  print 'sync versions to client(Y/N or Q to finish)? '
+  # @type [String]
+  answer = STDIN.gets
+  if answer.downcase.start_with? 'y'
+    sync_to_high_version(diff)
+    puts 'only sync diff high version from messenger to lark. onlyMessenger pod should manual add to ios-client'
+    puts 'you should recheck the change right, and may run pod install'
+  elsif answer.downcase.start_with? 'q'
+    next;
+  end
+
+  print 'sync versions to messenger(Y/N or Q to finish)?'
+  # @type [String]
+  answer = STDIN.gets
+  if answer.downcase.start_with? 'y'
+    sync_to_high_version2(diff)
+    puts 'only sync diff high version from lark to messenger.'
+    puts 'you should recheck the change right, and may run pod install'
+  end
+end
+
+# release
+def read_current_version(info_plist_path)
+  return `/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' #{info_plist_path}`
+end
+
+def check_workspece_status
+  system '/usr/bin/git rev-parse --show-toplevel'
+  result = `/usr/bin/git status --untracked-files=no --porcelain`
+  return result.empty?
+end
+
+def messenger_new_version(new_version, plist_path)
+  new_version = "#{new_version}-message" if new_version.end_with?('-message') == false
+  system "agvtool new-marketing-version \"#{new_version}\""
+  system "/usr/bin/git commit -am \"chore: 升级LarkMessenger主App版本到 #{new_version}\""
+end
+
+# rake newversion version="4.5.0"
+task :newversion do
+  version_string = ENV['version']
+  messenger_new_version(version_string, File.expand_path(File.path('LarkMessengerDemo/Info.plist')))
+end
+
+# rake release
+# rake release newversion="4.5.0"
+task :release do
+  if check_workspece_status == false
+    puts '==> Failed: Git workspeace not clean!'
+    exit(0)
+  end
+
+  info_plist_path = File.expand_path(File.path('LarkMessengerDemo/Info.plist'))
+
+  current_version = read_current_version(info_plist_path)
+
+  # change podspec version
+  major = Integer(current_version[/(\d+)/, 1] || '0')
+  minor = Integer(current_version[/\d+\.(\d+).+/, 1] || '0')
+  patch = Integer(current_version[/\d+\.\d+\.(\d+).*/, 1] || '0')
+
+  relase_version = "#{major}.#{minor}"
+
+  system "/usr/bin/git checkout -b release/#{relase_version}"
+  change_podspec_version("#{relase_version}.0")
+  system "/usr/bin/git commit -am \"chore: 升级LarkMessenger版本到 #{relase_version}.0\""
+
+  system '/usr/bin/git checkout master'
+
+  new_version = "#{major}.#{minor + 1}.0-message"
+
+  newversion = ENV['newversion']
+  if newversion.nil? == false && newversion.empty? == false
+    major = Integer(newversion[/(\d+)/, 1] || '0')
+    minor = Integer(newversion[/\d+\.(\d+).+/, 1] || '0')
+    patch = Integer(newversion[/\d+\.\d+\.(\d+).*/, 1] || '0')
+
+    new_version = "#{major}.#{minor}.#{patch}"
+  end
+
+  messenger_new_version(new_version, info_plist_path)
+  system "/usr/bin/git checkout release/#{relase_version}"
+end
+
+# xcode 适配日志
+task :xcode do
+  message = <<-MESSAGE
+
+
+  2020年5月13
+  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  自2020年5月13日起，ios-client 的主分支已经支持使用Xcode11.4或以上版本编译，但是仍不建议升级；因为Release/3.24
+  及之前的版本仍需维护一段时间，或者你可以选在安装两个版本。
+  具体原因请参考：https://bytedance.feishu.cn/wiki/wikcnCNTP9VU7FWS7d77GjdgnSh
+  Xcode11.3.1 下载链接：https://developer.apple.com/download/more/
+
+  Since May 13, 2020, the master branch of ios-client has been able to compile using Xcode11.4 or higher,
+  but it is not recommended to upgrade as Release/3.24 and previous releases will still need to be maintained
+  for some time. Or you can choose to install both versions.
+  Reasons：https://bytedance.feishu.cn/wiki/wikcnCNTP9VU7FWS7d77GjdgnSh
+  Xcode11.3.1 download link：https://developer.apple.com/download/more/
+
+
+  2020年8月10
+  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  2020年8月10起，可以尝试开始使用最新的Xcode(11.6)开发项目，但是，为了保证稳定性，Jenkins仍默认使用 Xcode11.3.1。
+
+  Starting from August 10, 2020, you can try to start using the latest Xcode(11.6) development project,
+  but to ensure stability, Jenkins still use Xcode11.3.1 by default.
+
+
+  2020年10月15
+  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  自2020年10月16日（Lark-Version: 3.36.0-alpha）起，打包任务将切换为使用Xcode12(Swift5.3)构建。
+  Starting October 16, 2020 (Lark-Version: 3.36.0-alpha), the packaging task will switch to build with Xcode12(Swift5.3).
+
+  Xcode 适配记录
+
+  MESSAGE
+  puts "\033[36m #{message}\033[0m\n"
+end
+
+# 本地调试 release 绕开 module stability 导致Crash的脚本
+task :release_install do
+  sh './bin/release_install true'
+end

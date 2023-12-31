@@ -1,0 +1,1 @@
+../../../../AWELazyRegister/Classes/Core/AWELazyRegisterTransition.h

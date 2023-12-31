@@ -1,0 +1,11 @@
+debug_cocoapods do
+  pre_install "patch build settings", <<-'PRE_INSTALL'
+  installer.pod_targets.each do |pod_target|
+    if ["LKWindowManager"].include? pod_target.pod_name
+      attributes_hash = pod_target.root_spec.attributes_hash
+      pod_target_xcconfig = (attributes_hash['pod_target_xcconfig'] ||= {})
+      pod_target_xcconfig['SWIFT_INSTALL_OBJC_HEADER'] = 'NO'
+    end
+  end
+  PRE_INSTALL
+end

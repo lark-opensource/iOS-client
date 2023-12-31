@@ -1,0 +1,55 @@
+{
+  "name": "IESPrefetch",
+  "version": "1.1.11",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/ugc/IESPrefetch",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "Hao Wang": "wanghao.ios@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:ugc/IESPrefetch.git",
+    "commit": "ef44ea1acb29ea0572b965196e78d596eb7a92da"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "source_files": "IESPrefetch/Classes/**/*",
+  "public_header_files": "IESPrefetch/Classes/**/*.h",
+  "dependencies": {
+    "BDAlogProtocol": [],
+    "ByteDanceKit/Foundation": []
+  },
+  "testspecs": [
+    {
+      "name": "Tests",
+      "test_type": "unit",
+      "source_files": "IESPrefetch/Tests/*.{h,m}",
+      "resources": [
+        "IESPrefetch/Tests/*.json"
+      ],
+      "dependencies": {
+        "OCMock": [],
+        "Specta": [],
+        "Expecta": [],
+        "BDALog": []
+      }
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "4493",
+    "app_id": "9999"
+  },
+  "repoId": "4493",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "IESPrefetch_POD_VERSION=@\\\"9999_1.1.11\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "IESPrefetch_POD_VERSION=@\\\"9999_1.1.11\\\""
+  }
+}

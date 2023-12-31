@@ -1,0 +1,1 @@
+../../../../third_party/krypton/canvas/platform/ios/KryptonDefaultCamera.h

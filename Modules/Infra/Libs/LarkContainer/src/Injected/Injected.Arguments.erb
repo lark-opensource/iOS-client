@@ -1,0 +1,59 @@
+//
+//  Injected.swift
+//  LarkContainer
+//
+//  Created by SuPeng on 8/24/19.
+//
+
+//
+// NOTICE:
+//
+// Injected.Arguments.swift is generated from Container.Arguments.erb by ERB.
+// Do NOT modify Injected.Arguments.swift directly.
+// Instead, modify Injected.Arguments.erb and run `script/gencode` at the project root directory to generate the code.
+//
+
+import Swinject
+import Foundation
+% arg_count = 9
+
+// MARK: - Injected constructor with keyPath
+public extension Injected {
+% (1..arg_count).each do |i|
+%   arg_types = (1..i).map { |n| "Arg#{n}" }.join(", ")
+%   arg_param_def = i == 1 ? "argument: Arg1" : "arguments arg1: Arg1, " + (2..i).map{ |n| "_ arg#{n}: Arg#{n}" }.join(", ")
+%   arg_param_call = i == 1 ? "argument" : (1..i).map{ |n| "arg#{n}" }.join(", ")
+%   arg_param_name = i == 1 ? "argument" : "arguments"
+%   arg_param_type = i == 1 ? arg_types : "(" + arg_types + ")"
+%   arg_param_description = i == 1 ? "#{i} argument" : "list of #{i} arguments"
+
+  /// Retrieves the instance of type Value, <%= arg_param_description %> to the factory closure and registration name.
+  ///
+  /// - Parameters:
+  ///   - name:        The registration name.
+  ///   - <%= arg_param_name %>:   <%= arg_param_description.capitalize %> to pass to the factory closure.
+  ///
+  init<<%= arg_types %>>(
+     name: String? = nil,
+     <%= arg_param_def %>)
+  {
+     wrappedValue = Container.shared.resolve(Value.self, name: name, <%= arg_param_name%>: <%= arg_param_call%>)!
+  }
+
+  /// Retrieves the instance of type Value, <%= arg_param_description %> to the factory closure and registration name.
+  ///
+  /// - Parameters:
+  ///   - name:        The registration name.
+  ///   - keyPath:     The keyPath value of the instance of Root
+  ///   - <%= arg_param_name %>:   <%= arg_param_description.capitalize %> to pass to the factory closure.
+  ///
+  init<Root, <%= arg_types %>>(
+     name: String? = nil,
+     keyPath: Swift.KeyPath<Root, Value>,
+     <%= arg_param_def %>)
+  {
+     wrappedValue = Container.shared.resolve(Root.self, name: name, <%= arg_param_name%>: <%= arg_param_call%>)![keyPath: keyPath]
+  }
+% end
+
+}

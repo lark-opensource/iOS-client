@@ -1,0 +1,115 @@
+{
+  "name": "BDXLynxKit",
+  "version": "1.4.7-alpha.31.1.binary",
+  "summary": "A short description of BDXLynxKit.",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://code.byted.org/ugc/Bullet",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "fulei.bill": "fulei.bill@bytedance.com"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/aweme-rock/rock_binary/privatethird_binary_repo/BDXLynxKit/1.4.7-alpha.31.1.binary/1648210951/BDXLynxKit.tar.xz"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "default_subspecs": "LynxKit",
+  "preserve_paths": [
+    "rock_document/**/*.{h,m,mm,cpp,hpp,swift}",
+    "rock_document/rock-document-files.txt"
+  ],
+  "source_code": {
+    "git": "git@code.byted.org:ugc/Bullet.git",
+    "commit": "84f13e4c033e639be1ec04200eab42b35427f072"
+  },
+  "binary_type": "rock",
+  "package_env": {
+    "id": null,
+    "xcode": "Xcode 13.0\nBuild version 13A233\n"
+  },
+  "subspecs": [
+    {
+      "name": "LynxKit",
+      "dependencies": {
+        "BDALog": [
+
+        ],
+        "Lynx/BDLynxBridge": [
+
+        ],
+        "Lynx/Framework": [
+
+        ],
+        "BDXServiceCenter": [
+          ">= 1.4.1"
+        ],
+        "BDTrackerProtocol": [
+
+        ],
+        "BDWebImage": [
+
+        ],
+        "BDXBridgeKit": [
+
+        ],
+        "BDXResourceLoader": [
+
+        ],
+        "IESWebViewMonitor/Lynx": [
+
+        ],
+        "IESWebViewMonitor/SettingModel": [
+
+        ],
+        "IESWebViewMonitor/WKWebView": [
+
+        ],
+        "BDXBridgeKit/Containers/Lynx": [
+
+        ]
+      },
+      "source_files": "XService/BDXLynxKit/Classes/LynxKit/**/*.{h,m,mm,c}",
+      "prefix_header_file": "XService/BDXServiceCenter/Classes/PrefixHeader.pch",
+      "vendored_libraries": [
+        "XService/BDXLynxKit/Classes/LynxKit/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "XService/BDXLynxKit/Classes/LynxKit/**/*.o",
+          "libBDXLynxKit-5e9e417.a"
+        ]
+      }
+    },
+    {
+      "name": "Deprecated",
+      "dependencies": {
+        "BDXLynxKit/LynxKit": [
+
+        ],
+        "Lynx/Framework": [
+
+        ]
+      },
+      "source_files": "XService/BDXLynxKit/Classes/Deprecated/**/*.{h,m,mm,c}",
+      "vendored_libraries": [
+        "XService/BDXLynxKit/Classes/Deprecated/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "XService/BDXLynxKit/Classes/Deprecated/**/*.o",
+          "libBDXLynxKit-74a2502.a"
+        ]
+      }
+    }
+  ]
+}

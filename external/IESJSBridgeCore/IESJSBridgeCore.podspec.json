@@ -1,0 +1,67 @@
+{
+  "name": "IESJSBridgeCore",
+  "version": "2.1.0",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/iOS_Library/IESJSBridgeCore",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "li keliang": "likeliang@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:iOS_Library/IESJSBridgeCore.git",
+    "commit": "8427a94213d9b888b1766603048cea050dc91a81"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "default_subspecs": [
+    "Core",
+    "Extra",
+    "Rename"
+  ],
+  "dependencies": {
+    "BDWebCore": [],
+    "BDMonitorProtocol": [
+      ">= 1.1.1"
+    ],
+    "BDJSBridgeAuthManager/Core": [],
+    "BDAlogProtocol": [],
+    "ByteDanceKit": []
+  },
+  "subspecs": [
+    {
+      "name": "Core",
+      "source_files": "IESJSBridgeCore/Core/**/*.{h,m}"
+    },
+    {
+      "name": "Extra",
+      "dependencies": {
+        "IESJSBridgeCore/Core": []
+      },
+      "source_files": "IESJSBridgeCore/Extra/**/*.{h,m}"
+    },
+    {
+      "name": "Rename",
+      "dependencies": {
+        "IESJSBridgeCore/Core": []
+      },
+      "source_files": "IESJSBridgeCore/Rename/**/*.{h,m}"
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "6719",
+    "app_id": "9999"
+  },
+  "repoId": "6719",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "IESJSBridgeCore_POD_VERSION=@\\\"9999_2.1.0\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "IESJSBridgeCore_POD_VERSION=@\\\"9999_2.1.0\\\""
+  }
+}

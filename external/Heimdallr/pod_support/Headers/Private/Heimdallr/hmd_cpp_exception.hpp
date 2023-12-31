@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/CrashCapture/Common/Private/HMDCrashKit/Utils/hmd_cpp_exception.hpp

@@ -1,0 +1,1 @@
+../../../../Darwin/Common/Lynx/Public/Service/LynxServiceResourceResponseProtocol.h

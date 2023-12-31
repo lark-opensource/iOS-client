@@ -1,0 +1,33 @@
+# Copyright 2022 The vmsdk Authors. All rights reserved.
+
+config("task_runner_priv_config") {
+  visibility = [":*"]
+  include_dirs = ["." ]
+  cflags = [
+    "-Wno-sign-compare",
+    "-Wno-cast-qual",
+    "-Wno-unused-variable",
+  ]
+}
+
+config("task_runner_config") {
+  include_dirs = [ "." ]
+}
+
+source_set("task-runner") {
+  sources = [
+    "task_runner.cc",
+    "task_runner_manufacture.cc",
+  ]
+  public_configs = [ ":task_runner_config" ]
+  configs += [
+    ":task_runner_priv_config",
+  ]
+  public_deps = [
+    "//basic:basic"
+  ]
+  defines = [
+    "GNU_SUPPORT=1",
+    "RAPIDJSON_HAS_STDSTRING=1"
+  ]
+}

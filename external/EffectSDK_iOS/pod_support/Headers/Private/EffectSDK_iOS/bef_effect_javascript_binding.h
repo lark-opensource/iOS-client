@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_effect_javascript_binding.h

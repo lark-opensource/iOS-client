@@ -1,0 +1,1 @@
+../../../../third_party/krypton/jsbridge/bindings/canvas/napi_preload_plugin_callback.h

@@ -1,0 +1,1 @@
+../../../../CreativeKitSticker/Classes/StickerCopying/ACCStickerCopyingProtocol.h

@@ -1,0 +1,124 @@
+{
+  "default_subspecs": [
+    "Core",
+    "Interactive",
+    "Privacy"
+  ],
+  "platforms": {
+    "ios": "8.0"
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "TTAdSplashSDK_POD_VERSION=@\\\"9999_0.7.26.15-bugfix\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "TTAdSplashSDK_POD_VERSION=@\\\"9999_0.7.26.15-bugfix\\\""
+  },
+  "_bytebus_platform": {
+    "repo_id": "71",
+    "app_id": "9999"
+  },
+  "module_map": "TTAdSplashSDK/Classes/ModuleMap/TTAdSplashSDK.modulemap",
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/9999/TTAdSplashSDK/0.7.26.15-bugfix.1.binary/TTAdSplashSDK.framework.tar.xz"
+  },
+  "version": "0.7.26.15-bugfix.1.binary",
+  "homepage": "https://code.byted.org/TTIOS/TTAdSplashSDK",
+  "repoId": "71",
+  "subspecs": [
+    {
+      "public_header_files": "TTAdSplashSDK/Classes/**/*.h",
+      "private_header_files": "TTAdSplashSDK/Classes/util/private/*.h",
+      "name": "Core",
+      "resource_bundles": {
+        "splashResourceCore": [
+          "TTAdSplashSDK/Assets/splashResource/CoreImage.xcassets",
+          "TTAdSplashSDK/Assets/splashResource/ShakeMusic.mp3",
+          "TTAdSplashSDK/Assets/splashResource/anim_images/*.gif",
+          "TTAdSplashSDK/Assets/splashResource/*.webp"
+        ]
+      },
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Core_*awesome_*.a"
+      },
+      "dependencies": {
+        "BDWebImage": [],
+        "ByteDanceKit/Foundation": [],
+        "JSONModel": [],
+        "MMKV": [],
+        "libwebp": [],
+        "TTVideoEngine": [],
+        "TTReachability": [],
+        "boringssl": []
+      },
+      "source_files": "TTAdSplashSDK/Classes/**/**/*",
+      "exclude_files": [
+        "Classes/Exclude",
+        "TTAdSplashSDK/Classes/interactive/**/**/*",
+        "TTAdSplashSDK/Classes/Privacy/**/*"
+      ]
+    },
+    {
+      "resource_bundles": {
+        "splashResource": "TTAdSplashSDK/Assets/splashResource/Image.xcassets"
+      },
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Interactive_*awesome_*.a"
+      },
+      "name": "Interactive",
+      "source_files": "TTAdSplashSDK/Classes/interactive/**/**/*"
+    },
+    {
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "dependencies": {
+        "ByteDanceKit/Legacy": []
+      },
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Privacy_*awesome_*.a"
+      },
+      "name": "Privacy",
+      "source_files": "TTAdSplashSDK/Classes/Privacy/**/*"
+    }
+  ],
+  "prepare_command": "curl https://ios.bytedance.net/wlapi/tosDownload/iosbinary/platform/master/awesomecommand_xz.sh | bash ;",
+  "description": "framework_description",
+  "xcconfig": {
+    "HEADER_SEARCH_PATHS": [
+      "$(inherited)",
+      "\"${PODS_ROOT}/boringssl/include\""
+    ]
+  },
+  "ios": {
+    "frameworks": [
+      "UIKit",
+      "Foundation",
+      "JavaScriptCore"
+    ]
+  },
+  "authors": {
+    "": "sunhaiyuan@bytedance.com"
+  },
+  "source_code": {
+    "commit": "bd22e498e659116940a13faf77eea5f9f30d2c34",
+    "git": "git@code.byted.org:TTIOS/tt_splash_sdk.git"
+  },
+  "build_type": "system",
+  "name": "TTAdSplashSDK",
+  "license": {
+    "type": "MIT"
+  },
+  "build_file_count": 75,
+  "preserve_paths": [
+    "**/*.bwp"
+  ],
+  "summary": "framework_summary"
+}

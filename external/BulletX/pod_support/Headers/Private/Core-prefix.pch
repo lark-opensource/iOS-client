@@ -1,0 +1,45 @@
+#ifdef __OBJC__
+#import <UIKit/UIKit.h>
+#else
+#ifndef FOUNDATION_EXPORT
+#if defined(__cplusplus)
+#define FOUNDATION_EXPORT extern "C"
+#else
+#define FOUNDATION_EXPORT extern
+#endif
+#endif
+#endif
+
+
+//
+//  PrefixHeader.pch
+//  Pods
+//
+//  Created by duanefaith on 2019/10/11.
+//
+
+#ifndef PrefixHeader_pch
+#define PrefixHeader_pch
+
+// Include any system framework and library headers here that should be included in all compilation units.
+// You will also need to set the Prefix Header build setting of one or more of your targets to reference this file.
+
+#import <Foundation/Foundation.h>
+#if __has_include(<Mantle/EXTScope.h>)
+#import <Mantle/EXTScope.h>
+#endif
+
+#if __has_include(<Mantle/MTLEXTScope.h>)
+#import <Mantle/MTLEXTScope.h>
+#endif
+
+#endif /* PrefixHeader_pch */
+
+
+
+
+#if !DEBUG
+#   ifndef NSLog
+#       define NSLog(...)
+#   endif
+#endif

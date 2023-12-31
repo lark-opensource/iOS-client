@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_ae_video_canvas_api.h

@@ -1,0 +1,32 @@
+stages:
+  - check_slim
+  - send_lark_alert
+
+check_offline_resources_slim:
+  stage: check_slim
+  tags:
+    - Lark
+    - Shenzhen
+    - iOS
+  script:
+    - export current_eesz_is_slim_str=`cat Libs/SKResource/Resources/eesz-zip/current_revision | grep is_slim`
+    - "if [[ ${current_eesz_is_slim_str: -1} -ne 1 ]]; then exit 1; fi"
+  only:
+    refs:
+      # - merge_requests
+      - pushes
+      - /develop|^release\//
+    changes:
+      - Libs/SKResource/Resources/eesz-zip/current_revision
+      - Libs/SKResource/Resources/eesz-zip/eesz.zip
+
+
+alert_not_slim:
+  stage: send_lark_alert
+  tags:
+    - Lark
+    - Shenzhen
+    - iOS
+  script:
+    - python3 ./Scripts/alert_resource_not_slim_lark_notification.py
+  when: on_failure

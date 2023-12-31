@@ -1,0 +1,1 @@
+../../../../CameraClient/MVPComponents/Recorder/Sticker/Service/ACCRecordPropService.h

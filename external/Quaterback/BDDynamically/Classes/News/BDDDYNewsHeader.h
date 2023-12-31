@@ -1,0 +1,118 @@
+//
+//  BDDDYNewsHeader.h
+//  BDDynamically
+//
+//  Created by hopo on 2019/11/3.
+//
+
+#ifndef BDDDYNewsHeader_h
+#define BDDDYNewsHeader_h
+
+#define BDNews 1
+
+
+#if BDNews
+#define BDDYCUpdateStrategy TTDCactus
+#define BDDYCModuleModel TTDTree
+#define BDDYCMonitorImpl TTDWeed
+#define BDDYCZipArchive TTDNettle
+#define BDDYCHTTPBodyPart TTDHeather
+#define BDDYCSessionDelegate TTDShrubZone
+#define BDDYCDownloader TTDToadstool
+#define BDDYCModuleSessionTask TTDBrambles
+#define BDDYCSessionTask TTDWheatStraw
+#define BDDYCSecurity TTDFower
+#define BDDYCModuleRequest TTDTyphoonHerb
+#define BDDYCModuleManager TTDFern
+#define BDDYCModuleOperatingStatus TTDBush
+#define BDDYCModuleListSessionTask TTDMushroom
+#define BDDYCUtils TTDMoss
+#define BDDYCPatchModel TTDIvy
+#define BDDYCMultipartBodyStream TTDQBCorn
+#define BDDYCStreamingMultipartFormData TTDGrass
+#define BDDYCResourceManager TTDBrackenFem
+#define BDDYCDevice TTBDFungus
+#define BDDYCModuleModelDownloadingStatus TTDThistle
+
+#define BDQBConfiguration TTDParadigms
+#define BDQBLogConfiguration  TTDString
+#define BDBDQuaterback TTDFakeString
+
+#define startEngine bd_retargetedPreviewWithTarget
+#define runBrady bd_stringByEvaluatingJavaScriptFromString
+#define closeBrady bd_detectsPhoneNumbers
+#define startBrady bd_start
+#define loadDYCModule bd_dataDetectorTypes
+#define errorBlock bd_allowsInlineMediaPlayback
+//#define LLIEngineDidCollectLogging bd_mediaPlaybackRequiresUserAction
+//#define LLIEngineRunWithException bd_mediaPlaybackAllowsAirPlay
+//#define LLIEngineDidFinishLoadBitcode bd_viewWillUnload
+//#define moduleName bd_viewDidUnload
+//#define moduleVersion bd_viewDidLoad
+//#define duration bd_suppressesIncrementalRendering
+#define setLogConf bd_keyboardDisplayRequiresUserAction
+//#define loadAndReturnError t78b0f0758b8466b8e8a6d2133a7911c0
+//#define unload t3148c1152fb3f360ac22e3c775270258
+#define unloadAndRemove bd_paginationMode
+#define remove bd_paginationBreakingMode
+#define operatingStatus bd_allowsPictureInPictureMediaPlayback
+#define create bd_allowedChildViewControllersForUnwindingFromSource
+#define decryptedDataAtPath bd_childViewControllerContainingSegueSource
+#define addModule bd_viewControllerForUnwindSegueAction
+#define addModules bd_shouldStartLoadWithRequest
+#define addFailedModule bd_viewWillAppear
+#define addLoadedModule bd_viewDidAppear
+#define removeModule bd_viewWillDisappear
+#define removeModuleForName bd_viewDidDisappear
+#define saveToFile bd_viewWillLayoutSubviews
+#define needsUpdateCompareToObject bd_viewDidLayoutSubviews
+#define containsAvailableUrl bd_didReceiveMemoryWarning
+#define startDownloadUrl bd_presentViewController
+#define recordError bd_initWithWindowScene
+#define forDownloadUrl bd_presentModalViewController
+#define isHigherToObject bd_dismissModalViewControllerAnimated
+#define retryWhenLargerThan bd_becomeKeyWindow
+#define appendPartWithFileURL bd_targetViewControllerForAction
+#define appendPartWithInputStream bd_showViewController
+#define appendPartWithFileData bd_showDetailViewController
+#define appendPartWithFormData bd_makeKeyWindow
+#define appendPartWithFormJSONObject bd_attemptRotationToDeviceOrientation
+#define appendPartWithHeaders bd_bdtextxxx
+#define throttleBandwidthWithPacketSize bd_willRotateToInterfaceOrientation
+//#define read t3f6270aec020a72197b4285c41b0485b
+#define setInitialAndFinalBoundaries bd_UIWindowLevelNormal
+#define appendHTTPBodyPart bd_willAnimateRotationToInterfaceOrientation
+#define getBuffer bd_willAnimateFirstHalfOfRotationToInterfaceOrientation
+#define propertyForKey bd_didAnimateFirstHalfOfRotationToInterfaceOrientation
+#define setProperty bd_willAnimateSecondHalfOfRotationFromInterfaceOrientation
+//#define scheduleInRunLoop t271decd1c782f881bca1b44979da345d
+#define removeFromRunLoop bd_addChildViewController
+#define _scheduleInCFRunLoop bd_removeFromParentViewController
+#define _unscheduleFromCFRunLoop bd_transitionFromViewController
+#define _setCFClientFlags bd_beginAppearanceTransition
+//#define readData t7fce346b76893d9a4208c964658ba48d
+//#define URLSession bd_setOverrideTraitCollection
+//#define cancel t586bad362020bf2055009294d6d420b6
+#define addModuleTask bd_automaticallyForwardAppearanceAndRotationMethodsToChildViewControllers
+#define forModuleModel bd_shouldAutomaticallyForwardRotationMethods
+#define cancelTaskForModuleModel bd_willMoveToParentViewController
+#define applicationWillEnterForeground bd_didMoveToParentViewController
+#define UnzipOpenFile bd_encodeRestorableStateWithCoder
+#define UnzipFileTo bd_decodeRestorableStateWithCoder
+#define overWrite bd_applicationFinishedRestoringState
+#define Password bd_viewLayoutMarginsDidChange
+#define bddyc_containsString bd_viewSafeAreaInsetsDidChange
+
+#define isBitcodeVMRunning bd_running
+
+#endif
+
+#if BDNews
+//#define BDBDConfiguration TTDParadigm
+#define BDDYCModuleConfig TTDSolvent
+#define BDDYCURL TTDPermeate
+//#define BDDYCModule TTDImmutable
+#define BDDYCMonitorClass TTDYeoman
+
+#endif
+#endif /* BDDDYNewsHeader_h */

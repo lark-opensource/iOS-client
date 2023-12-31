@@ -1,0 +1,1 @@
+../../../../BDNetworkTag/Classes/BDNetworkTagManager.h

@@ -1,0 +1,1 @@
+../../../../BDModel/Classes/BDClassInfo.h

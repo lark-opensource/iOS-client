@@ -1,0 +1,1 @@
+../../../../ArtistOpenPlatformSDK/Classes/Effect/Internal/Manifest/ARTEffectCleaner.h

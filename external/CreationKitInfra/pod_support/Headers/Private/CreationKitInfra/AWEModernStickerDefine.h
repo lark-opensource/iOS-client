@@ -1,0 +1,1 @@
+../../../../MobileInfra/Define/AWEModernStickerDefine.h

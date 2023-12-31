@@ -1,0 +1,1 @@
+../../../../Recorder/BeautyPanelComponent/Service/ACCBeautyService.h

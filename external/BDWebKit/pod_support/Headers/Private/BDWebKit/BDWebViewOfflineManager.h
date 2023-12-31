@@ -1,0 +1,1 @@
+../../../../BDWebKit/Classes/Offline/BDWebViewOfflineManager.h

@@ -1,0 +1,1 @@
+../../../../IESVideoDetector/Classes/Models/IESAVAssetDefaultFormatter.h

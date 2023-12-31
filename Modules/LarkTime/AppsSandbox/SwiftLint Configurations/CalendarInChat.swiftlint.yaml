@@ -1,0 +1,58 @@
+included:
+  - src 
+excluded:
+  - app
+disabled_rules:
+  - vertical_parameter_alignment
+  - type_body_length
+  - file_length
+  - function_body_length
+  - type_name
+  - identifier_name
+  - object_literal
+  - private_over_fileprivate
+  - multiple_closures_with_trailing_closure
+opt_in_rules:
+  - explicit_init
+  - empty_count
+  - empty_string
+  - closure_spacing
+  - overridden_super_call
+  - redundant_nil_coalescing
+  - private_outlet
+  - nimble_operator
+  - attributes
+  - operator_usage_whitespace
+  - closure_end_indentation
+  - first_where
+  - object_literal
+  - number_separator
+  - prohibited_super_call
+  - fatal_error_message
+
+file_header:
+  required_pattern: |
+    \/\/
+    \/\/  .*?\.swift
+    \/\/  Lark((UI)?Tests)?
+    \/\/
+    \/\/  Created by .*? on \d+\/\d+\/\d+\.
+    \/\/  Copyright © \d{4}年 Bytedance\.Inc\. All rights reserved\.
+    \/\/
+line_length: 200
+force_cast: warning
+empty_string: error
+function_parameter_count: 9
+identifier_name:
+  min_length: 1
+  excluded:
+    - i
+type_name:
+  excluded:
+    - lk
+number_separator:
+  minimum_length: 5
+large_tuple: 3
+cyclomatic_complexity:
+  warning: 10
+  error: 20

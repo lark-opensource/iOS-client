@@ -1,0 +1,1 @@
+../../../../../../../../src/google/protobuf/util/internal/structured_objectwriter.h

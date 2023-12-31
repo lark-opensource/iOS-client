@@ -1,0 +1,407 @@
+{
+  "signature" : 2.4,
+  "version" : 2.4,
+  "strategy_set" : {
+    "guard" : {
+      "const_pool" : {
+
+      },
+      "policies" : {
+          "report_for_background": {
+            "cel": "(cold_launch_duration >= 10000) && (enter_background_duration >= 3600)",
+            "conf": {
+              "action": "report"
+            },
+            "title": "后台上报",
+            "type": 0
+          },
+          "report_for_background_audio_video": {
+            "cel": "(cold_launch_duration >= 10000) && (enter_background_duration >= 3600) && (is_in_meeting_or_chatting == false)",
+            "conf": {
+              "action": "report"
+            },
+            "title": "后台上报",
+            "type": 0
+          },
+          "report_for_cold_launch": {
+            "cel": "(has_shown_first_render == false) && (has_agreed_privacy == true) && (enter_background_duration == 0) && (cold_launch_duration <= 10000)",
+            "conf": {
+              "action": "report"
+            },
+            "title": "冷启动",
+            "type": 0
+          },
+          "report_for_privacy_alert": {
+            "cel": "(has_agreed_privacy == false)",
+            "conf": {
+              "action": "report"
+            },
+            "title": "隐私弹窗前上报",
+            "type": 0
+          },
+          "report_for_audio_and_video_pair": {
+                "cel": "(is_pair_not_close == true)",
+                "conf": {
+                    "action": "report"
+                },
+                "title": "音视频未配对上报"
+            }
+        },
+        "rule_exec_break": false,
+        "strategies": {
+          "BSSID": {
+            "rules": [
+              "report_for_privacy_alert",
+              "report_for_cold_launch"
+            ]
+          },
+          "album": {
+            "rules": [
+              "report_for_privacy_alert",
+              "report_for_background",
+              "report_for_cold_launch"
+            ]
+          },
+          "audio": {
+            "rules": [
+              "report_for_privacy_alert",
+              "report_for_cold_launch",
+              "report_for_audio_and_video_pair"
+            ]
+          },
+          "audio_strict": {
+            "rules": [
+              "report_for_background_audio_video"
+            ]
+          },
+          "calendar": {
+            "rules": [
+              "report_for_privacy_alert",
+              "report_for_background",
+              "report_for_cold_launch"
+            ]
+          },
+          "call_center": {
+            "rules": [
+              "report_for_privacy_alert",
+              "report_for_background",
+              "report_for_cold_launch"
+            ]
+          },
+          "clipboard": {
+            "rules": [
+              "report_for_privacy_alert",
+              "report_for_background",
+              "report_for_cold_launch"
+            ]
+          },
+          "contact": {
+            "rules": [
+              "report_for_privacy_alert",
+              "report_for_background",
+              "report_for_cold_launch"
+            ]
+          },
+          "face_id": {
+            "rules": [
+              "report_for_privacy_alert"
+            ]
+          },
+          "idfv": {
+            "rules": [
+              "report_for_privacy_alert",
+              "report_for_background"
+            ]
+          },
+          "ip": {
+            "rules": [
+              "report_for_privacy_alert"
+            ]
+          },
+          "location": {
+            "rules": [
+              "report_for_privacy_alert",
+              "report_for_background",
+              "report_for_cold_launch"
+            ]
+          },
+          "motion": {
+            "rules": [
+              "report_for_privacy_alert",
+              "report_for_cold_launch"
+            ]
+          },
+          "network": {
+            "rules": [
+              "report_for_privacy_alert"
+            ]
+          },
+          "push": {
+            "rules": [
+              "report_for_privacy_alert",
+              "report_for_background"
+            ]
+          },
+          "screen_record": {
+            "rules": [
+              "report_for_privacy_alert",
+              "report_for_background",
+              "report_for_cold_launch"
+            ]
+          },
+          "snap_shot": {
+            "rules": [
+              "report_for_privacy_alert"
+            ]
+          },
+          "video": {
+            "rules": [
+              "report_for_privacy_alert",
+              "report_for_cold_launch",
+              "report_for_audio_and_video_pair"
+            ]
+          },
+          "video_strict": {
+            "rules": [
+              "report_for_background_audio_video"
+            ]
+          }
+      },
+      "strategy_map" : {
+        "keys" : [
+          "api",
+          "data_types"
+        ],
+        "rules" : [
+            {
+              "cel": "(data_types isIntersect [\"push\"])",
+              "conf": {
+                "strategy": "push"
+              },
+              "title": "push",
+              "type": 1
+            },
+            {
+              "cel": "(data_types isIntersect [\"idfv\"])",
+              "conf": {
+                "strategy": "idfv"
+              },
+              "title": "idfv",
+              "type": 1
+            },
+            {
+              "cel": "(data_types isIntersect [\"audio\"])",
+              "conf": {
+                "strategy": "audio"
+              },
+              "title": "音视频-录音",
+              "type": 1
+            },
+            {
+              "cel": "(data_types isIntersect [\"audio\"]) && (api in [\"AudioOutputUnitStart\",\"AVAudioSession_requestRecordPermission\",\"AVCaptureDevice_requestAccessForMediaType_completionHandler_\",\"AudioQueueNewInput\",\"AudioQueueStart\"])",
+              "conf": {
+                "strategy": "audio_strict"
+              },
+              "title": "音视频-录音（严格）",
+              "type": 1
+            },
+            {
+              "cel": "(data_types isIntersect [\"video\"]) && (api in [\"AVCaptureSession_startRunning\",\"AVCaptureDevice_requestAccessForMediaType_completionHandler_\"])",
+              "conf": {
+                "strategy": "video_strict"
+              },
+              "title": "音视频-录像（严格）",
+              "type": 1
+            },
+            {
+              "cel": "(data_types isIntersect [\"video\"])",
+              "conf": {
+                "strategy": "video"
+              },
+              "title": "音视频-录像",
+              "type": 1
+            },
+            {
+              "cel": "(data_types isIntersect [\"album\"])",
+              "conf": {
+                "strategy": "album"
+              },
+              "title": "相册",
+              "type": 1
+            },
+            {
+              "cel": "(data_types isIntersect [\"screen_record\"])",
+              "conf": {
+                "strategy": "screen_record"
+              },
+              "title": "音视频-录屏",
+              "type": 1
+            },
+            {
+              "cel": "(data_types isIntersect [\"calendar\"])",
+              "conf": {
+                "strategy": "calendar"
+              },
+              "title": "日历",
+              "type": 1
+            },
+            {
+              "cel": "(data_types isIntersect [\"clipboard\"]) && (api out [\"UIPasteboard_items\"])",
+              "conf": {
+                "strategy": "clipboard"
+              },
+              "title": "剪切板",
+              "type": 1
+            },
+            {
+              "cel": "(data_types isIntersect [\"snapshot\"])",
+              "conf": {
+                "strategy": "snap_shot"
+              },
+              "title": "截屏",
+              "type": 1
+            },
+            {
+              "cel": "(data_types isIntersect [\"network\"])",
+              "conf": {
+                "strategy": "network"
+              },
+              "title": "Network",
+              "type": 1
+            },
+            {
+              "cel": "(data_types isIntersect [\"ip\"])",
+              "conf": {
+                "strategy": "ip"
+              },
+              "title": "IP",
+              "type": 1
+            },
+            {
+              "cel": "(data_types isIntersect [\"lock_id\"])",
+              "conf": {
+                "strategy": "face_id"
+              },
+              "title": "指纹识别",
+              "type": 1
+            },
+            {
+              "cel": "(data_types isIntersect [\"contact\"])",
+              "conf": {
+                "strategy": "contact"
+              },
+              "title": "通讯录",
+              "type": 1
+            },
+            {
+              "cel": "(data_types isIntersect [\"call_center\"])",
+              "conf": {
+                "strategy": "call_center"
+              },
+              "title": "电话",
+              "type": 1
+            },
+            {
+              "cel": "(data_types isIntersect [\"motion\"])",
+              "conf": {
+                "strategy": "motion"
+              },
+              "title": "传感器",
+              "type": 1
+            },
+            {
+              "cel": "(data_types isIntersect [\"location\"]) && (api out [\"CLLocationManager_stopUpdatingLocation\"])",
+              "conf": {
+                "strategy": "location"
+              },
+              "title": "位置信息",
+              "type": 1
+            },
+            {
+              "cel": "(data_types isIntersect [\"wifi\"])",
+              "conf": {
+                "strategy": "BSSID"
+              },
+              "title": "BSSID",
+              "type": 1
+            }
+        ]
+      },
+      "strategy_select_break" : false
+    },
+    "guard_fuse" : {
+      "policies": {
+        "disable_for_privacy_alert": {
+          "cel": "(has_agreed_privacy == false)",
+          "conf": {
+            "action": "fuse"
+          },
+          "title": "隐私弹窗前禁用",
+          "type": 0
+        },
+        "disable_for_background": {
+          "cel": "(enter_background_duration >= 1600)",
+          "conf": {
+            "action": "fuse"
+          },
+          "title": "后台禁用",
+          "type": 0
+        }
+      },
+      "rule_exec_break": false,
+      "strategies": {
+        "idfv": {
+          "rules": [
+            "disable_for_privacy_alert",
+            "disable_for_background"
+          ]
+        },
+        "clipboard": {
+          "rules": [
+            "disable_for_privacy_alert",
+            "disable_for_background"
+          ]
+        },
+        "wifi": {
+          "rules": [
+            "disable_for_privacy_alert",
+            "disable_for_background"
+          ]
+        }
+      },
+      "strategy_map": {
+        "keys": [
+          "api",
+          "data_types"
+        ],
+        "rules": [
+          {
+            "cel": "(data_types isIntersect [\"idfv\"])",
+            "conf": {
+              "strategy": "idfv"
+            },
+            "title": "idfv",
+            "type": 1
+          },
+          {
+            "cel": "(data_types isIntersect [\"clipboard\"])",
+            "conf": {
+              "strategy": "clipboard"
+            },
+            "title": "剪贴板",
+            "type": 1
+          },
+          {
+            "cel": "(data_types isIntersect [\"wifi\"])",
+            "conf": {
+              "strategy": "wifi"
+            },
+            "title": "wifi",
+            "type": 1
+          }
+        ]
+      },
+      "strategy_select_break" : false
+    }
+  }
+}

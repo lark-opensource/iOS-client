@@ -1,0 +1,1 @@
+../../../../CreativeAlbumKit/Default/AlbumArch/BaseService/CAKResourceUnion.h

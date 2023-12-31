@@ -1,0 +1,104 @@
+
+# coding: utf-8
+# @!domain [Pod::Podfile]
+# @!parse
+#  require 'cocoapods'
+
+
+`git config core.hooksPath hooks`
+
+# make ours main source first
+require_relative '../../../../../if_pod'
+require_relative '../../../../../bin/lib/lark-project/lib/lark/project/podfile_mixin'
+require_relative '../../../../../bin/lib/lark-project/lib/lark/project/podfile_unit_test_mixin'
+require_relative '../../../../../bin/lib/lark-project/lib/lark/project/assembly'
+require_relative '../../../../../bin/lib/lark-project/lib/lark/project/remote_cache'
+require_relative '../../../../../bin/lib/lark-project/lib/lark/project/lark_assert'
+
+
+lark_build_for_all_arch!
+
+lark_template_common_setup
+strict_lock_mode!
+
+try_to_enable_remote_cache(
+  :remote_cache_enable => false, #暂时关闭, 感兴趣同学可以打开
+  :remote_cache_configuration => "Debug", #可选值 Debug, Release
+  :remote_cache_platform => "iphonesimulator", #可选值 iphonesimulator(模拟器)，iphoneos(真机)
+  :repo => "git@code.byted.org:ee/spacekit-ios.git",
+  :primary_branch => "develop",
+  :final_target => "LarkDocsIconDemo",
+  :exclude_targets => ['LarkDocsIconDemo'],
+  :custom_fingerprint_envs => ["SWIFT_VERSION"],
+  :hummer_tags => {},
+  :scheme_tag => 'LarkInlineAI-test'
+)
+
+# TODO: test target build failed if use short link
+current_target_definition.set_use_short_link(:all, false)
+
+disable_swiftlint! if respond_to?(:disable_swiftlint!)
+
+lark_use_common_binary_config(strategy: :all) do
+  # 这里插入Name可以将某个库切成源码, 无需使用引号，一行一个或者使用空格做分割
+  %w[
+#  UniverseDesignInput
+  ].each { |v| source v }
+end
+
+aiModules = %w[
+  LarkDocsIcon
+]
+
+target 'LarkDocsIconDemo' do
+  # Comment the next line if you're not using Swift and don't want to use dynamic frameworks
+  lark_main_target_if_pods
+
+  pod 'LarkDocsIcon', :path => '../../LarkDocsIcon' , :testspecs => ['Tests']
+  pod 'LarkContainer'
+
+end
+
+# @param installer [Pod::Installer]
+pre_install do |installer|
+  lark_template_common_pre_install installer
+  lark_unit_test_common_pre_install installer
+end
+
+post_install do |installer|
+  lark_template_common_post_install installer
+  # 自动收集 Assembly，生成/更新 BaseAssembly.swift
+  Lark::Project::Assembly.rebuild(installer, use_v2: true)
+
+  # the post installer change won't mark cache invalid, and the results is not full(unless use clean install)
+  # but it can set config by configurations..
+  installer.target_installation_results.pod_target_installation_results.each do |name, result|
+    target = result.native_target
+    release_settings = target.build_settings('Release')
+    release_settings['SWIFT_OPTIMIZATION_LEVEL'] = '-Osize'
+    release_settings['GCC_OPTIMIZATION_LEVEL'] = 'z'
+
+    if ENV['DEBUG_FOR_WEB'] == 'true'
+      debug_settings = target.build_settings('Debug')
+      debug_settings['SWIFT_OPTIMIZATION_LEVEL'] = '-O'
+    end
+
+    if aiModules.include? result.target.name
+      target.build_configurations.each do |config|
+        if config.name == 'Beta'
+          config.build_settings['OTHER_SWIFT_FLAGS'] ||= '$(inherited) -DBETA'
+        end
+        if config.name == 'Debug'
+          config.build_settings['OTHER_SWIFT_FLAGS'] ||= '$(inherited) -Xfrontend -warn-long-function-bodies=500'
+        end
+      end
+    end
+  end
+end
+
+post_integrate do |installer|
+  lark_unit_test_common_post_integrate(installer, aiModules)
+end
+
+# Podfile结束eval前需要执行的一些代码，目前是引用if_pod的集成需要延后生效
+#flush_defer_actions!

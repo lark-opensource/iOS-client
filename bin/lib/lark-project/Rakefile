@@ -1,0 +1,112 @@
+# frozen_string_literal: true
+
+require 'bundler/gem_tasks'
+require 'rake'
+require 'fileutils'
+require_relative 'lib/lark/project/lockfile'
+require_relative 'lib/lark/demo/automatic/copy_resources'
+
+module Bundler
+  class GemHelper
+    protected
+
+    def rubygem_push(path)
+      gem_command = "gem inabox '#{path}'"
+      # gem_command += " --key #{gem_key}" if gem_key
+      gem_command += " --host #{allowed_push_host}" if allowed_push_host
+      raise "Your rubygems.org credentials aren't set." unless allowed_push_host
+
+      sh(gem_command)
+      Bundler.ui.confirm "Pushed #{name} #{version} to #{gem_push_host}"
+    end
+    def guard_clean
+      (clean? && committed?) || begin
+        SharedHelpers.chdir(base) do
+          Kernel.system(*%w[git status])
+        end
+        raise('There are files that need to be committed first.')
+      end
+    end
+
+    instance.instance_exec do
+      Rake::Task[:release].clear
+      desc 'build and release this gem'
+      task(release: [
+             'build', 'release:guard_clean',
+             # 'release:source_control_push',
+             'release:rubygem_push'
+           ])
+    end
+  end
+end
+
+deps = ENV['PUSH_FORCE'] == '1' ? [] : ['release:guard_clean']
+desc 'push to mirror repo. remote branch default to same as current'
+task(:push, [:branch] => deps) do |_t, args|
+  require 'git'
+  require 'colored2'
+  require 'fileutils'
+  g = Git.open(`git rev-parse --show-toplevel`.strip)
+  main_branch = g.current_branch
+  branch = args[:branch] || begin
+    main_branch.tap { |v| raise 'you not on any branch' if v.include? 'HEAD detached' }
+  end
+  mirror_path = '../.mirror-lark-project'
+
+  puts "will sync code to branch #{branch} of mirror repo `https://code.byted.org/lark/ios-lark-project-mirror.git`".yellow
+  # clone or enter mirror_path
+  if Dir.exist? mirror_path
+    mirror = Git.open(mirror_path)
+    mirror.fetch
+    mirror.checkout('develop', { f: true })
+  else
+    mirror = Git.clone('git@code.byted.org:lark/ios-lark-project-mirror.git', mirror_path)
+  end
+  # sync user info
+  ['user.name', 'user.email'].each do |config_key| # sync user info
+    v = g.config(config_key) and !v.empty? and mirror.config(config_key, v)
+  end
+  # switch to target branch, and force reset workspace
+  # target branch sha should use remote or derive from develop
+  mirror.lib.instance_exec { command('checkout', '-B', branch, '-f') }
+  # reset to remote branch if exist, else use develop sha
+  if mirror.is_remote_branch?(branch)
+    mirror.lib.instance_exec do
+      command('branch', '-u', "origin/#{branch}")
+      # NOTE: 可能是一个很老的没清理的分支，因此同步大量变更.. 但是多次push的增量是OK的
+      # 而且那种老分支更新情况比较少，先不用管
+      mirror.reset_hard('@{u}') # change sha to same as last push commit
+    end
+  end
+
+  # full sync local contents, delete removed files. exclude .git repo.
+  system(%(rsync -av --del --exclude=/.git ./ "#{mirror_path}/"))
+  ios_client_path = '../../..'
+  # copy strict.lock and if_pod.rb to mirror path
+  Lark::Project::Lockfile.copy_if_pod_and_lockfile(ios_client_path, mirror_path)
+  # copy resources for demo
+  Lark::Demo::Automatic.copy_resources(ios_client_dir: Pathname.new(ios_client_path),
+                                       lark_project_dir: Pathname.new(mirror_path))
+
+  # commit change if necessary, consider untracked too
+  mirror.add(
+    ['config', 'lib/lark/project/if_pod.rb', 'lib/lark/demo/automatic/resource',
+     'lib/lark/project/binary_expire.lock'], force: true
+  )
+  unless %x(cd "#{mirror_path}"; git status --porcelain).empty?
+    mirror.add(all: true)
+    msg = "sync code from ios-client/#{main_branch}(#{g.object('HEAD').sha})"
+    puts msg.yellow
+    mirror.commit(msg)
+  end
+  system(%(git push -u origin HEAD:"#{branch}"), chdir: mirror_path) or raise "push to #{branch} failed"
+  puts ['sync complete, newest is:'.yellow, branch.blue, mirror.object('HEAD').sha.cyan].join(' ')
+end
+
+begin
+  require 'rspec/core/rake_task'
+  RSpec::Core::RakeTask.new(:spec)
+  task default: :spec
+rescue LoadError
+  # optional
+end

@@ -1,0 +1,1 @@
+../../../../DouyinOpenPlatformSDK/Classes/Auth/DouyinOpenSDKAuth+Privates.h

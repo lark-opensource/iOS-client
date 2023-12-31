@@ -1,0 +1,1 @@
+../../../../DVETrackKit/Classes/Models/DVEVideoTransitionModel.h

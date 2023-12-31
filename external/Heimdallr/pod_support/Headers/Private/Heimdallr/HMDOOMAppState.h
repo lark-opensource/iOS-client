@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/HMDAppExitReasonDetector/Common/Private/HMDOOMAppState.h

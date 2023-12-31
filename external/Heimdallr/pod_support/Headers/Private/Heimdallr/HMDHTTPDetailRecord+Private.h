@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/HTTPRequestTracker/Common/Private/HMDHTTPDetailRecord+Private.h

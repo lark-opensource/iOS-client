@@ -1,0 +1,115 @@
+# Copyright 2022 The Lynx Authors. All rights reserved.
+import("//LynxDevtool/devtool.gni")
+
+assert(is_ios || is_mac)
+
+if (target_cpu == "arm" || target_cpu == "arm64") {
+  import("//build/config/arm.gni")
+}
+
+config("public_config") {
+  include_dirs = [
+    ".",
+    "Helper",
+    "Tracing",
+    "//Darwin/Common",
+  ]
+  cflags = []
+  if (is_ios) {
+    include_dirs += [
+      "//Darwin/iOS/Headers/Private",
+      "//Darwin/iOS/LynxDevtool",
+      "//Darwin/iOS/LynxDevtool/Helper",
+      "//Darwin/iOS/Lynx/Base",
+      "//Darwin/iOS/Lynx/Public/Base",
+    ]
+    cflags += [
+      "-include",
+      rebase_path("LynxDevtool-prefix-ios.pch", root_build_dir),
+    ]
+  }
+
+  if (is_mac) {
+    include_dirs += [
+      "//Darwin/macOS/Headers/Private",
+      "//Darwin/macOS/LynxDevtool",
+      "//Darwin/macOS/LynxDevtool/Helper",
+      "//Darwin/macOS/Lynx/Base",
+    ]
+    cflags += [
+      "-include",
+      rebase_path("LynxDevtool-prefix-osx.pch", root_build_dir),
+    ]
+  }
+}
+
+devtool_source_set("devtool") {
+  sources = [
+    "DevtoolRuntimeManagerDarwin.h",
+    "DevtoolRuntimeManagerDarwin.mm",
+    "Helper/LynxBaseDeviceInfo.h",
+    "Helper/LynxScreenCastHelper.h",
+    "Helper/LynxScreenCastHelper.mm",
+    "LynxDebugBridge.h",
+    "LynxDebugBridge.mm",
+    "LynxDevMenu.h",
+    "LynxDevMenu.mm",
+    "LynxDevtoolDownloader.h",
+    "LynxDevtoolDownloader.m",
+    "LynxDevtoolEnv.h",
+    "LynxDevtoolEnv.mm",
+    "LynxDevtoolFrameCapturer.h",
+    "LynxDevtoolFrameCapturer.mm",
+    "LynxDevtoolToast.h",
+    "LynxDevtoolToast.m",
+    "LynxInspectorOwner+Internal.h",
+    "Memory/LynxMemoryController.h",
+    "Memory/LynxMemoryController.mm",
+    "Module/LynxDevtoolSetModule.h",
+    "Module/LynxDevtoolSetModule.mm",
+    "Tracing/LynxFPSTrace.h",
+    "Tracing/LynxFPSTrace.mm",
+    "Tracing/LynxFrameTraceService.h",
+    "Tracing/LynxFrameTraceService.mm",
+    "Tracing/LynxFrameViewTrace.h",
+    "Tracing/LynxFrameViewTrace.mm",
+    "Tracing/LynxInstanceTrace.h",
+    "Tracing/LynxInstanceTrace.mm",
+  ]
+  public_configs = [
+    ":public_config",
+    "//Darwin:darwin_flag_config",
+  ]
+  if (is_ios) {
+    public_configs += [ "//third_party/ios_deps:ios_deps_public_config" ]
+  } else if (is_mac) {
+    public_configs += [ "//third_party/macos_deps:macos_deps_public_config" ]
+  }
+  cflags = [ "-Wno-deprecated-declarations" ]
+
+  deps = [ "//LynxDevtool:lynx_devtool_group" ]
+}
+
+devtool_source_set("redbox") {
+  include_dirs = [
+    ".",
+    "LogBox",
+    "RedBox",
+  ]
+
+  sources = [
+    "LogBox/LynxLogBoxHelper.h",
+    "LogBox/LynxLogBoxManager.h",
+    "LogBox/LynxLogBoxManager.m",
+    "LogBox/LynxLogBoxOwner.h",
+    "LogBox/LynxLogBoxOwner.mm",
+    "LogBox/LynxLogBoxProxy.h",
+    "LogBox/LynxLogBoxProxy.m",
+    "LogBox/LynxLogNotification.h",
+    "LogBox/LynxLogNotification.m",
+    "RedBox/LynxRedBox.h",
+    "RedBox/LynxRedBox.mm",
+  ]
+
+  public_configs = [ ":public_config" ]
+}

@@ -1,0 +1,64 @@
+{
+  "name": "ReactiveObjC",
+  "version": "3.1.0",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://reactivecocoa.io",
+  "screenshots": "https://reactivecocoa.io/img/logo.png",
+  "license": {
+    "type": "MIT"
+  },
+  "documentation_url": "https://github.com/ReactiveCocoa/ReactiveObjC/tree/master/Documentation#readme",
+  "authors": "ReactiveCocoa",
+  "social_media_url": "https://twitter.com/ReactiveCocoa",
+  "platforms": {
+    "ios": "8.0",
+    "osx": "10.9",
+    "watchos": "2.0",
+    "tvos": "9.0"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/8888/ReactiveObjC/source/3.1.0/ReactiveObjC_source.zip"
+  },
+  "source_files": [
+    "ReactiveObjC/*.{h,m,d}",
+    "ReactiveObjC/extobjc/*.{h,m}"
+  ],
+  "private_header_files": [
+    "**/*Private.h",
+    "**/*EXTRuntimeExtensions.h",
+    "**/RACEmpty*.h"
+  ],
+  "ios": {
+    "exclude_files": "ReactiveObjC/**/*{AppKit,NSControl,NSText,NSTable}*"
+  },
+  "osx": {
+    "exclude_files": "ReactiveObjC/**/*{UIActionSheet,UIAlertView,UIBarButtonItem,UIButton,UICollectionReusableView,UIControl,UIDatePicker,UIGestureRecognizer,UIImagePicker,UIRefreshControl,UISegmentedControl,UISlider,UIStepper,UISwitch,UITableViewCell,UITableViewHeaderFooterView,UIText,MK}*"
+  },
+  "tvos": {
+    "exclude_files": "ReactiveObjC/**/*{AppKit,NSControl,NSText,NSTable,UIActionSheet,UIAlertView,UIDatePicker,UIImagePicker,UIRefreshControl,UISlider,UIStepper,UISwitch,MK}*"
+  },
+  "watchos": {
+    "exclude_files": "ReactiveObjC/**/*{UIActionSheet,UIAlertView,UIBarButtonItem,UIButton,UICollectionReusableView,UIControl,UIDatePicker,UIGestureRecognizer,UIImagePicker,UIRefreshControl,UISegmentedControl,UISlider,UIStepper,UISwitch,UITableViewCell,UITableViewHeaderFooterView,UIText,MK,AppKit,NSControl,NSText,NSTable,NSURLConnection}*"
+  },
+  "requires_arc": true,
+  "frameworks": "Foundation",
+  "prepare_command": "find -E . -type f -not -name 'RAC*' -regex '.*(EXT.*|metamacros)\\.[hm]$' \\\n          -execdir mv '{}' RAC'{}' \\;\nfind . -regex '.*\\.[hm]' \\\n       -exec perl -pi \\\n                  -e 's@\"(?:(?!RAC)(EXT.*|metamacros))\\.h\"@\"RAC\\1.h\"@' '{}' \\;\nfind . -regex '.*\\.[hm]' \\\n       -exec perl -pi \\\n                  -e 's@<ReactiveObjC/(?:(?!RAC)(EXT.*))\\.h>@<ReactiveObjC/RAC\\1.h>@' '{}' \\;",
+  "_bytebus_platform": {
+    "repo_id": "165",
+    "app_id": "8888"
+  },
+  "repoId": "165",
+  "source_code": {
+    "git": "https://github.com/ReactiveCocoa/ReactiveObjC.git",
+    "tag": "3.1.0"
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "ReactiveObjC_POD_VERSION=@\\\"8888_3.1.0\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "ReactiveObjC_POD_VERSION=@\\\"8888_3.1.0\\\""
+  }
+}

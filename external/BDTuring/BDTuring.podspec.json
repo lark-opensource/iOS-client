@@ -1,0 +1,508 @@
+{
+  "name": "BDTuring",
+  "version": "2.2.9-alpha.1-larkbuildfix",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://toutiao.com",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "duanwenbin": "duanwenbin@bytedance.com"
+  },
+  "source": {
+    "http": "http://tosv.byted.org/obj/ee-infra-ios/spec/BDTuring_d93422e2a168dc40c8fccd4bbe1980db2cf826b2.tar.xz",
+    "sha256": "89e6dcee87e844f7145184cfe73fd4ccce305424e09b768df53c1e79c67765c3"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "requires_arc": true,
+  "static_framework": true,
+  "default_subspecs": [
+    "Utility",
+    "Network",
+    "Settings",
+    "JSBridge",
+    "Core",
+    "View",
+    "Localized",
+    "Host",
+    "TTNet",
+    "TTNetProcessor",
+    "TwiceVerify"
+  ],
+  "pod_target_xcconfig": {
+    "DEFINES_MODULE": "YES",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\""
+  },
+  "testspecs": [
+    {
+      "name": "Tests",
+      "test_type": "unit",
+      "source_files": "BDTuring/Tests/**/*.{h,m}",
+      "dependencies": {
+        "BDTuring/Host": [],
+        "BDTuring/Localized": [],
+        "OCMock": [
+          "~> 3.4.3"
+        ],
+        "XcodeCoverage": [
+          ">= 1.3.2"
+        ],
+        "Aspects": [
+          "~>1.4.1"
+        ]
+      }
+    }
+  ],
+  "subspecs": [
+    {
+      "name": "Utility",
+      "source_files": "BDTuring/Classes/Utility/**/*.{h,m,c}",
+      "frameworks": [
+        "Foundation",
+        "CoreFoundation",
+        "Security",
+        "UIKit",
+        "CoreGraphics"
+      ],
+      "libraries": [
+        "z",
+        "sqlite3"
+      ],
+      "dependencies": {
+        "BDTrackerProtocol": [
+          ">= 2.1.0"
+        ]
+      },
+      "public_header_files": "BDTuring/Classes/Utility/public/*.h"
+    },
+    {
+      "name": "Network",
+      "source_files": "BDTuring/Classes/Network/**/*.{h,m,c}",
+      "frameworks": [
+        "Foundation",
+        "CoreFoundation",
+        "SystemConfiguration",
+        "CoreTelephony"
+      ],
+      "dependencies": {
+        "BDTuring/Utility": [],
+        "BDDataDecorator/Data": [
+          ">= 2.0.1"
+        ]
+      },
+      "private_header_files": "BDTuring/Classes/Network/*.h"
+    },
+    {
+      "name": "Settings",
+      "source_files": "BDTuring/Classes/Settings/**/*.{h,m,c}",
+      "frameworks": "Foundation",
+      "dependencies": {
+        "BDTuring/Utility": [],
+        "BDTuring/Network": [],
+        "BDDataDecorator/AES": [
+          ">= 2.0.1"
+        ],
+        "Godzippa": [
+          ">= 1.0"
+        ]
+      },
+      "public_header_files": "BDTuring/Classes/Settings/**/BDTuringSettingsHelper.h"
+    },
+    {
+      "name": "JSBridge",
+      "source_files": "BDTuring/Classes/JSBridge/**/*.{h,m,c}",
+      "frameworks": [
+        "Foundation",
+        "UIKit",
+        "WebKit"
+      ],
+      "dependencies": {
+        "BDTuring/Utility": [],
+        "BDTuring/Network": []
+      },
+      "private_header_files": "BDTuring/Classes/JSBridge/**/*.h"
+    },
+    {
+      "name": "View",
+      "source_files": "BDTuring/Classes/View/**/*.{h,m,c}",
+      "frameworks": [
+        "Foundation",
+        "UIKit",
+        "WebKit"
+      ],
+      "dependencies": {
+        "BDTuring/Utility": [],
+        "BDTuring/JSBridge": []
+      },
+      "private_header_files": "BDTuring/Classes/View/**/*.h"
+    },
+    {
+      "name": "Core",
+      "source_files": "BDTuring/Classes/Core/**/*.{h,m,c}",
+      "frameworks": [
+        "Foundation",
+        "UIKit",
+        "WebKit",
+        "CoreFoundation",
+        "CoreGraphics"
+      ],
+      "libraries": "z",
+      "dependencies": {
+        "BDTuring/Utility": [],
+        "BDTuring/TTNet": [],
+        "BDTuring/Settings": [],
+        "BDTuring/JSBridge": [],
+        "BDTuring/View": []
+      },
+      "resource_bundles": {
+        "BDTuringResource": [
+          "BDTuring/Assets/*.png",
+          "BDTuring/Assets/UI.xcassets",
+          "BDTuring/Assets/UI.xcassets/*"
+        ]
+      },
+      "public_header_files": "BDTuring/Classes/Core/public/*.h"
+    },
+    {
+      "name": "Localized",
+      "subspecs": [
+        {
+          "name": "EN",
+          "resource_bundles": {
+            "BDTuringLocalized-en": [
+              "BDTuring/Assets/LocalizedString/en.lproj/**/**"
+            ]
+          }
+        },
+        {
+          "name": "ZH",
+          "resource_bundles": {
+            "BDTuringLocalized-zh": [
+              "BDTuring/Assets/LocalizedString/zh.lproj/**/**"
+            ]
+          }
+        },
+        {
+          "name": "ZH-Hant",
+          "resource_bundles": {
+            "BDTuringLocalized-zh-Hant": [
+              "BDTuring/Assets/LocalizedString/zh-Hant.lproj/**/**"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Host",
+      "dependencies": {
+        "BDTuring/Utility": [],
+        "BDTuring/Settings": []
+      },
+      "subspecs": [
+        {
+          "name": "CN",
+          "source_files": "BDTuring/Classes/Host/CN/*.{h,m,c}",
+          "private_header_files": "BDTuring/Classes/Host/CN/*.h"
+        },
+        {
+          "name": "IN",
+          "source_files": "BDTuring/Classes/Host/IN/*.{h,m,c}",
+          "private_header_files": "BDTuring/Classes/Host/IN/*.h"
+        },
+        {
+          "name": "SG",
+          "source_files": "BDTuring/Classes/Host/SG/*.{h,m,c}",
+          "private_header_files": "BDTuring/Classes/Host/SG/*.h"
+        },
+        {
+          "name": "VA",
+          "source_files": "BDTuring/Classes/Host/VA/*.{h,m,c}",
+          "private_header_files": "BDTuring/Classes/Host/VA/*.h"
+        },
+        {
+          "name": "Custom",
+          "source_files": "BDTuring/Classes/Host/Custom/*.{h,m,c}",
+          "private_header_files": "BDTuring/Classes/Host/Custom/*.h"
+        },
+        {
+          "name": "MT",
+          "source_files": "BDTuring/Classes/Host/MT/*.{h,m,c}",
+          "private_header_files": "BDTuring/Classes/Host/MT/*.h",
+          "dependencies": {
+            "BDTuring/Host/SG": [],
+            "BDTuring/Host/VA": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Identity",
+      "source_files": "BDTuring/Classes/Identity/**/*.{h,m,c}",
+      "public_header_files": "BDTuring/Classes/Identity/public/*.h",
+      "frameworks": [
+        "AVFoundation",
+        "CoreMedia",
+        "CoreMotion"
+      ],
+      "dependencies": {
+        "BDTuring/Utility": [],
+        "BDTuring/Settings": []
+      }
+    },
+    {
+      "name": "TwiceVerify",
+      "subspecs": [
+        {
+          "name": "Main",
+          "source_files": "BDTuring/Classes/TwiceVerify/Main/**/*.{h,m,c}",
+          "public_header_files": "BDTuring/Classes/TwiceVerify/Main/public/*.h",
+          "dependencies": {
+            "BDTuring/Core": [],
+            "BDTuring/Utility": [],
+            "BDTuring/Settings": [],
+            "BDTuring/Network": [],
+            "BDTuring/JSBridge": []
+          }
+        },
+        {
+          "name": "MessageUI",
+          "private_header_files": "BDTuring/Classes/TwiceVerify/MessageUI/**/*.h",
+          "source_files": "BDTuring/Classes/TwiceVerify/MessageUI/**/*.{h,m,c}",
+          "dependencies": {
+            "BDTuring/TwiceVerify/Main": []
+          },
+          "frameworks": "MessageUI"
+        }
+      ]
+    },
+    {
+      "name": "Components",
+      "subspecs": [
+        {
+          "name": "NetworkTag",
+          "source_files": "BDTuring/Classes/Components/NetworkTag/**/*.{h,m,c}",
+          "private_header_files": "BDTuring/Classes/Components/NetworkTag/*.h",
+          "dependencies": {
+            "BDTuring/TTNet": [],
+            "BDNetworkTag": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "AccountSeal",
+      "source_files": "BDTuring/Classes/AccountSeal/**/*.{h,m,c}",
+      "frameworks": [
+        "Foundation",
+        "UIKit"
+      ],
+      "dependencies": {
+        "BDTuring/Core": [],
+        "BDTuring/View": [],
+        "BDTuring/JSBridge": [],
+        "BDTuring/Utility": [],
+        "BDTuring/Settings": [],
+        "BDTuring/Network": [],
+        "BDTuring/Identity": []
+      },
+      "public_header_files": "BDTuring/Classes/AccountSeal/public/*.h"
+    },
+    {
+      "name": "AutoVerify",
+      "source_files": "BDTuring/Classes/AutoVerify/**/*.{h,m,c}",
+      "dependencies": {
+        "BDTuring/Core": [],
+        "BDTuring/View": [],
+        "BDTuring/JSBridge": [],
+        "BDTuring/Utility": [],
+        "BDTuring/Settings": [],
+        "BDTuring/Network": []
+      },
+      "public_header_files": "BDTuring/Classes/AutoVerify/public/**/*.h"
+    },
+    {
+      "name": "SMSCode",
+      "source_files": "BDTuring/SMSCode/**/*.{h,m,c}",
+      "dependencies": {
+        "BDTuring/Core": []
+      },
+      "public_header_files": "BDTuring/SMSCode/Public/*.h"
+    },
+    {
+      "name": "TTNet",
+      "source_files": "BDTuring/Classes/TTNet/**/*.{h,m,c}",
+      "dependencies": {
+        "BDTuring/Network": [],
+        "TTNetworkManager": [
+          ">= 2.0"
+        ],
+        "BDAlogProtocol": [
+          ">= 1.1.0"
+        ],
+        "TTReachability": []
+      },
+      "private_header_files": "BDTuring/Classes/TTNet/**/*.h"
+    },
+    {
+      "name": "TTNetProcessor",
+      "source_files": "BDTuring/TTNetProcessor/**/*.{h,m,c,mm}",
+      "public_header_files": "BDTuring/TTNetProcessor/Public/*.h",
+      "dependencies": {
+        "BDTuring/TTNet": [],
+        "TTNetworkManager": [
+          ">= 2.0"
+        ],
+        "BDAlogProtocol": [
+          ">= 1.1.0"
+        ],
+        "BDAssert": [
+          ">= 2.0"
+        ]
+      }
+    },
+    {
+      "name": "mPaaS",
+      "subspecs": [
+        {
+          "name": "Task",
+          "frameworks": "Foundation",
+          "dependencies": {
+            "BDTuring/Core": [],
+            "BDTuring/TTNet": [],
+            "BDStartUp/Base": [
+              ">= 1.0.0"
+            ],
+            "BDGaiaExtension": [
+              ">= 1.0"
+            ],
+            "BDTrackerProtocol": [
+              ">= 2.5.0"
+            ],
+            "BDUGContainer": [
+              ">= 1.1.2"
+            ],
+            "BDUGAccountSDKInterface": [
+              ">= 1.0"
+            ],
+            "BDUGTuringInterface": [
+              ">= 2.4.0"
+            ]
+          },
+          "source_files": "BDTuring/mPaaS/Task/**/*.{h,m,c}",
+          "public_header_files": "BDTuring/mPaaS/Task/**/*.h"
+        },
+        {
+          "name": "InHouse",
+          "dependencies": {
+            "BDTuring/mPaaS/Task": [],
+            "BDStartUp/Debug": [],
+            "BDTuring/Host/Custom": []
+          },
+          "source_files": "BDTuring/mPaaS/InHouse/**/*.{h,m,c}",
+          "private_header_files": "BDTuring/mPaaS/InHouse/**/*.h",
+          "resource_bundles": {
+            "BDTuringInHouseResource": [
+              "BDTuring/mPaaS/InHouse/Assets/*.json"
+            ]
+          }
+        },
+        {
+          "name": "AutoVerifyInHouse",
+          "dependencies": {
+            "BDTuring/mPaaS/Task": [],
+            "BDStartUp/Debug": [],
+            "BDTuring/Host/Custom": []
+          },
+          "source_files": "BDTuring/mPaas/AutoVerifyInHouse/**/*.{h,m,c}",
+          "private_header_files": "BDTuring/mPaaS/AutoVerifyInHouse/**/*.h"
+        },
+        {
+          "name": "h5bridgeInHouse",
+          "dependencies": {
+            "BDTuring/mPaaS/Task": [],
+            "BDStartUp/Debug": [],
+            "BDTuring/Host/Custom": [],
+            "BDTuring/TwiceVerify": [],
+            "BDTuring/SMSCode": [],
+            "TTBridgeUnify/UnifiedWebView": [
+              ">= 3.0.0"
+            ],
+            "TTBridgeUnify/TTBridge": [
+              ">= 3.0.0"
+            ],
+            "TTBridgeUnify/WebView": [],
+            "TTBridgeUnify/TTBridgeAuthManager/Core": [],
+            "TTAccountSDK/Account": [
+              ">= 5.12.0"
+            ],
+            "Lynx/BDLynxBridge": [
+              ">= 1.4.23"
+            ],
+            "Lynx/BDLynx/Core": [
+              ">= 1.4.23"
+            ],
+            "Lynx/BDConfig/CN": [
+              ">= 1.4.23"
+            ]
+          },
+          "source_files": "BDTuring/mPaas/h5bridgeInHouse/**/*.{h,m,c}",
+          "private_header_files": "BDTuring/mPaaS/h5bridgeInHouse/**/*.h"
+        },
+        {
+          "name": "China",
+          "dependencies": {
+            "BDTuring/mPaaS/Task": [],
+            "BDTuring/Localized": [],
+            "BDTuring/Host/CN": []
+          }
+        },
+        {
+          "name": "I18N",
+          "dependencies": {
+            "BDTuring/mPaaS/Task": [],
+            "BDTuring/Localized/EN": [],
+            "BDTuring/Localized/ZH-Hant": [],
+            "BDTuring/Host/SG": [],
+            "BDTuring/Host/VA": []
+          }
+        },
+        {
+          "name": "SealInHouse",
+          "dependencies": {
+            "BDTuring/AccountSeal": [],
+            "BDTuring/mPaaS/InHouse": [],
+            "BDStartUp/Debug": []
+          },
+          "source_files": "BDTuring/mPaaS/SealInHouse/**/*.{h,m,c}",
+          "private_header_files": "BDTuring/mPaaS/SealInHouse/**/*.h"
+        },
+        {
+          "name": "IdentityInHouse",
+          "dependencies": {
+            "BDTuring/mPaaS/InHouse": [],
+            "BDTuring/Identity": [],
+            "BDStartUp/Debug": [],
+            "byted_cert/jsbridge": [
+              ">= 4.0.0"
+            ]
+          },
+          "source_files": "BDTuring/mPaaS/IdentityInHouse/**/*.{h,m,c}",
+          "private_header_files": "BDTuring/mPaaS/IdentityInHouse/**/*.h"
+        }
+      ]
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "3295",
+    "app_id": "9999"
+  },
+  "repoId": "3295",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\""
+  }
+}

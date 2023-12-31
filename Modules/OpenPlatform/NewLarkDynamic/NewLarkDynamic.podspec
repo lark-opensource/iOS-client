@@ -1,0 +1,69 @@
+# frozen_string_literal: true
+
+#
+# Be sure to run `pod lib lint NewLarkDynamic.podspec' to ensure this is a
+# valid spec before submitting.
+#
+# Any lines starting with a # are optional, but their use is encouraged
+# To learn more about a Podspec see http://guides.cocoapods.org/syntax/podspec.html
+# To learn more about EEScaffold see http://eescaffold.web.bytedance.net
+# To learn more about podspec.patch see http://eescaffold.web.bytedance.net/docs/en/podspec/patch
+
+Pod::Spec.new do |s|
+  # 修改此文件前请先浏览 *Podspec规范* https://bytedance.feishu.cn/space/doc/doccnZwORNUpwphkrhiTgv#
+  s.name             = 'NewLarkDynamic'
+  s.version = '5.31.0.5456309'
+  s.summary          = 'Lark动态化'
+  s.description      = 'Lark动态化卡片消息相关'
+  s.homepage         = 'https://ee.byted.org/madeira/browse/ee/lark/ios-client/tree/master/LarkMessageCore'
+
+  # 界面相关的Pod必填。设置为展示该界面功能的图片地址
+  # s.screenshots     = "www.example.com/screenshots_1", "www.example.com/screenshots_2"
+
+  # 责任人，必填。必要时要及时更新该信息
+  s.authors = {
+    "name": 'qihongye@bytedance.com'
+  }
+
+  s.ios.deployment_target = '11.0'
+  s.swift_version = '5.1'
+
+  # s.public_header_files = 'Pod/Classes/**/*.h'
+  s.source_files = 'src/**/*.{swift}'
+  s.resource_bundles = {
+      'NewLarkDynamic' => ['resources/*.lproj/*', 'resources/*'],
+      'NewLarkDynamicAuto' => ['auto_resources/*.lproj/*', 'auto_resources/*', 'R/**/*']
+  }
+
+
+  # 以下2个字段不要修改。EEScaffold会自动修改source字段为生成的zip包地址。
+  s.license          = 'MIT'
+  s.source           = { git: 'generated_by_eesc.zip', tag: s.version.to_s }
+
+  # s.frameworks = 'UIKit', 'MapKit'
+
+  # s.dependency 'AFNetworking', '~> 2.3'
+  s.dependency 'EEFlexiable'
+  s.dependency 'AsyncComponent'
+  s.dependency 'LarkModel'
+  s.dependency 'LarkAlertController'
+  s.dependency 'LarkDatePickerView'
+  s.dependency 'LarkEmotion'
+  s.dependency 'LarkFeatureGating'
+  s.dependency 'LarkZoomable'
+  s.dependency 'ByteWebImage'
+  s.dependency 'ECOInfra'
+  s.dependency 'ECOProbe'
+  s.dependency 'UniverseDesignCardHeader'
+
+  attributes_hash = s.instance_variable_get('@attributes_hash')
+  # setup custom bot 参考教程：https://docs.bytedance.net/doc/fuHCWYbPdHZTGODh1DbiIa#jjJE6r
+  # 使用版本机器人，请关闭注释，然后填写你的bot的token到下面
+  # attributes_hash['lark_group'] = {
+  #  "bot": "TOKEN"
+  # }
+  attributes_hash['extra'] = {
+    # 设置为该Pod所在的Repo的Git地址
+    "git_url": 'Required.'
+  }
+end

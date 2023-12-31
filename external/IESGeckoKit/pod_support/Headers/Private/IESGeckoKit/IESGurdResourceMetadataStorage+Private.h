@@ -1,0 +1,1 @@
+../../../../IESGeckoKit/Core/FileManager/IESGurdResourceMetadataStorage+Private.h

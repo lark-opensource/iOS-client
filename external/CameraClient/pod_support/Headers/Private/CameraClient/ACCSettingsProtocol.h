@@ -1,0 +1,1 @@
+../../../../CameraClient/MobileInfra/Service/Infra/ACCSettingsProtocol.h

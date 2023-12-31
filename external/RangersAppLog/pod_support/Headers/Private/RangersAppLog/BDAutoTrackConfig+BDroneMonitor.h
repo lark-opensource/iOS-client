@@ -1,0 +1,1 @@
+../../../../BDAutoTracker/Classes/Core/Core/Header/BDAutoTrackConfig+BDroneMonitor.h

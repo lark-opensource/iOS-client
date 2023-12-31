@@ -1,0 +1,43 @@
+{
+    "effect": {
+        "coexistScene": {
+            "allowList": ["*"]
+        },
+        "Link": [
+            {
+                "exclusiveScene": [
+                    {
+                      "sceneKey": "FaceBeauty/Sharpen",
+                      "tagName": ["epm_live/frag/sharpen"],
+                      "priority": 1000
+                    },
+                    {
+                        "sceneKey": "FaceBeauty/Smooth",
+                        "tagName": ["epm_live/frag/blurAlpha"],
+                        "composerKey":["Smooth_ALL"],
+                        "priority": 1000
+                    }
+                ],
+                "defaultEnable": true,
+                "path": "GeneralEffect/",
+                "type": "GeneralEffect",
+                "zorder": 1000,
+                "extra": {
+                    "composer_param":[
+                        {
+                            "name": "Smooth(fixed Sharpen = 0.7)",
+                            "key": "Smooth_ALL",
+                            "default_value": 0,
+                            "allow_negative": false
+                        }
+                    ]
+                }
+            }
+        ],
+        "requirement": {
+            "faceDetect": false
+        }
+    },
+    "name": "3.5.1MAC8BD94466-95FB-4FAD-9A2A-F3EF7B4F6732_ios",
+    "version": "4.0.0"
+}

@@ -1,0 +1,1 @@
+../../../../../../../libEffectSDK/inc/Bach/Algorithm/Foot/BachFootBuffer.h

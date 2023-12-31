@@ -1,0 +1,77 @@
+@startuml chat
+
+class MessageCellFactory {
+}
+
+class CommonContext {
+    let resolver: Resolver
+    let pageAPI: PageAPI
+}
+
+class CommonTable {
+    func loadMoreOld
+    func loadMoreNew
+    func headInsertCells
+    func appendCells
+    func refreshCells
+}
+
+class ChatNavibar {
+}
+
+class MessageCellConfig {
+    +collapsed: Bool
+    +isSelectedMode: Bool
+    +showReadStatus: Bool
+}
+
+class ChatMessageViewModel {
+}
+
+class ChatController {
+}
+
+MessageDatasource *-- MessageCellFactory
+MessageCellFactory *-- CommonContext
+ChatMessageViewModel *-- MessageDatasource
+ChatController *-- ChatMessageViewModel
+ChatController *-- CommonTable
+ChatController *-- ChatNavibar
+MessageDatasource *-- MessageCellConfig
+
+
+class MergeForwardViewModel {
+}
+
+class MergeForwardController {
+}
+
+MergeForwardViewModel *-- MessageDatasource
+MergeForwardController *-- MergeForwardViewModel
+
+class MessagePickerController {
+}
+
+MessagePickerController --|> ChatController
+
+class MessageDetailViewModel {
+}
+
+class MessageDetailController {
+}
+
+class MessageDetailCellFactory {
+}
+
+MessageDetailController *-- MessageDetailViewModel
+MessageDetailViewModel *-- MessageDetailCellFactory
+MessageDetailController *-- CommonTable
+
+class MessageDatasource {
+    func reset(messages)
+    func update(messages)
+    func handle(message)
+    func headInsert(messages)
+    func tailAppend(messages)
+}
+@enduml

@@ -1,0 +1,1 @@
+../../../../CameraClientModel/ACCCrossPlatformStickerType.h

@@ -1,0 +1,4413 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "BDXBridgeKit_pod_hdrs",
+  srcs = [
+    ":BDXBridgeKit_root_pod_hdrs",
+    ":Core_pod_hdrs",
+    ":Containers_pod_hdrs",
+    ":Containers_Web_pod_hdrs",
+    ":Containers_Lynx_pod_hdrs",
+    ":Containers_RN_pod_hdrs",
+    ":Engines_pod_hdrs",
+    ":Engines_TTBridgeUnifyAdapter_pod_hdrs",
+    ":Engines_TTBridgeUnifyAdapter_CoreEngine_pod_hdrs",
+    ":Engines_TTBridgeUnifyAdapter_WebEngine_pod_hdrs",
+    ":Engines_TTBridgeUnifyAdapter_LynxEngine_pod_hdrs",
+    ":Engines_TTBridgeUnifyAdapter_RNEngine_pod_hdrs",
+    ":Methods_pod_hdrs",
+    ":Methods_Framework_pod_hdrs",
+    ":Methods_Event_pod_hdrs",
+    ":Methods_System_pod_hdrs",
+    ":Methods_System_SystemBase_pod_hdrs",
+    ":Methods_System_SystemSecure_pod_hdrs",
+    ":Methods_Calendar_pod_hdrs",
+    ":Methods_Network_pod_hdrs",
+    ":Methods_Storage_pod_hdrs",
+    ":Methods_Account_pod_hdrs",
+    ":Methods_Log_pod_hdrs",
+    ":Methods_Info_pod_hdrs",
+    ":Methods_Media_pod_hdrs",
+    ":Methods_Route_pod_hdrs",
+    ":Methods_UI_pod_hdrs",
+    ":Methods_Open_pod_hdrs",
+    ":Methods_Development_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "BDXBridgeKit_private_includes",
+  include = [
+    "external/BDXBridgeKit/pod_support/Headers/Private/BDXBridgeKit/"
+  ],
+  deps = [],
+  external_name = "BDXBridgeKit"
+)
+gen_includes(
+  name = "BDXBridgeKit_public_includes",
+  include = [
+    "external/BDXBridgeKit/pod_support/Headers/Public/BDXBridgeKit/"
+  ],
+  deps = [],
+  external_name = "BDXBridgeKit"
+)
+filegroup(
+  name = "_BDXBridgeKit_hdrs",
+  srcs = [
+    ":BDXBridgeKit_root_hdrs",
+    ":Core_hdrs",
+    ":Containers_hdrs",
+    ":Containers_Web_hdrs",
+    ":Containers_Lynx_hdrs",
+    ":Containers_RN_hdrs",
+    ":Engines_hdrs",
+    ":Engines_TTBridgeUnifyAdapter_hdrs",
+    ":Engines_TTBridgeUnifyAdapter_CoreEngine_hdrs",
+    ":Engines_TTBridgeUnifyAdapter_WebEngine_hdrs",
+    ":Engines_TTBridgeUnifyAdapter_LynxEngine_hdrs",
+    ":Engines_TTBridgeUnifyAdapter_RNEngine_hdrs",
+    ":Methods_hdrs",
+    ":Methods_Framework_hdrs",
+    ":Methods_Event_hdrs",
+    ":Methods_System_hdrs",
+    ":Methods_System_SystemBase_hdrs",
+    ":Methods_System_SystemSecure_hdrs",
+    ":Methods_Calendar_hdrs",
+    ":Methods_Network_hdrs",
+    ":Methods_Storage_hdrs",
+    ":Methods_Account_hdrs",
+    ":Methods_Log_hdrs",
+    ":Methods_Info_hdrs",
+    ":Methods_Media_hdrs",
+    ":Methods_Route_hdrs",
+    ":Methods_UI_hdrs",
+    ":Methods_Open_hdrs",
+    ":Methods_Development_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "BDXBridgeKit_xcode_hmapsource",
+  hdrs = [
+    ":BDXBridgeKit_root_hdrs",
+    ":Containers_Lynx_hdrs",
+    ":Containers_Web_hdrs",
+    ":Core_hdrs",
+    ":Engines_TTBridgeUnifyAdapter_CoreEngine_hdrs",
+    ":Engines_TTBridgeUnifyAdapter_LynxEngine_hdrs",
+    ":Engines_TTBridgeUnifyAdapter_WebEngine_hdrs",
+    ":Methods_Event_hdrs",
+    ":Methods_Info_hdrs",
+    ":Methods_Log_hdrs",
+    ":Methods_Media_hdrs",
+    ":Methods_Network_hdrs",
+    ":Methods_Route_hdrs",
+    ":Methods_Storage_hdrs",
+    ":Methods_UI_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "BDXBridgeKit_xcode_hmap",
+  dep = ":BDXBridgeKit_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/BDXBridgeKit/*-bitsky-generated.modulemap", "pod_support/Headers/Public/BDXBridgeKit/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "BDXBridgeKit_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "BDXBridgeKit",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "BDXBridgeKit_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":BDXBridgeKit_xcode_hmap"
+  ],
+  external_name = "BDXBridgeKit",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDXBridgeKit_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDXBridgeKit_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDXBridgeKit_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDXBridgeKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "BDXBridgeKit_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDXBridgeKit_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "BDXBridgeKit_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":BDXBridgeKit_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDXBridgeKit",
+  deps = [
+    ":BDXBridgeKit_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "BDXBridgeKit_lib",
+  deps = [
+    ":BDXBridgeKit"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [
+    "BDXBridgeKit/Classes/Core/Additions/NSData+BDXBridgeAdditions.h",
+    "BDXBridgeKit/Classes/Core/Additions/NSString+BDXBridgeAdditions.h",
+    "BDXBridgeKit/Classes/Core/BDXBridge+Internal.h",
+    "BDXBridgeKit/Classes/Core/BDXBridge.h",
+    "BDXBridgeKit/Classes/Core/BDXBridgeContainerPool.h",
+    "BDXBridgeKit/Classes/Core/BDXBridgeContainerProtocol.h",
+    "BDXBridgeKit/Classes/Core/BDXBridgeContext.h",
+    "BDXBridgeKit/Classes/Core/BDXBridgeCustomValueTransformer.h",
+    "BDXBridgeKit/Classes/Core/BDXBridgeDefinitions.h",
+    "BDXBridgeKit/Classes/Core/BDXBridgeEngineProtocol.h",
+    "BDXBridgeKit/Classes/Core/BDXBridgeEvent+Internal.h",
+    "BDXBridgeKit/Classes/Core/BDXBridgeEvent.h",
+    "BDXBridgeKit/Classes/Core/BDXBridgeInvocationGuarder.h",
+    "BDXBridgeKit/Classes/Core/BDXBridgeKit.h",
+    "BDXBridgeKit/Classes/Core/BDXBridgeMacros.h",
+    "BDXBridgeKit/Classes/Core/BDXBridgeMethod.h",
+    "BDXBridgeKit/Classes/Core/BDXBridgeModel.h",
+    "BDXBridgeKit/Classes/Core/BDXBridgeResponder.h",
+    "BDXBridgeKit/Classes/Core/BDXBridgeServiceDefinitions.h",
+    "BDXBridgeKit/Classes/Core/BDXBridgeServiceManager.h",
+    "BDXBridgeKit/Classes/Core/BDXBridgeStatus.h",
+    "BDXBridgeKit/Classes/Core/Event/BDXBridgeEventCenter.h",
+    "BDXBridgeKit/Classes/Core/Event/BDXBridgeEventSubscriber+Internal.h",
+    "BDXBridgeKit/Classes/Core/Event/BDXBridgeEventSubscriber.h",
+    "BDXBridgeKit/Classes/Core/NSObject+BDXBridgeContainer.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridge+Internal.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridge.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeContainerPool.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeContainerProtocol.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeContext.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeCustomValueTransformer.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeDefinitions.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeEngineProtocol.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeEvent+Internal.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeEvent.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeEventCenter.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeEventSubscriber+Internal.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeEventSubscriber.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeInvocationGuarder.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeKit.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeMacros.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeMethod.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeModel.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeResponder.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeServiceDefinitions.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeServiceManager.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeStatus.h",
+    "pod_support/Headers/Private/BDXBridgeKit/NSData+BDXBridgeAdditions.h",
+    "pod_support/Headers/Private/BDXBridgeKit/NSObject+BDXBridgeContainer.h",
+    "pod_support/Headers/Private/BDXBridgeKit/NSString+BDXBridgeAdditions.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridge.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeContainerPool.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeContainerProtocol.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeContext.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeCustomValueTransformer.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeDefinitions.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeEngineProtocol.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeEvent.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeEventCenter.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeEventSubscriber+Internal.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeEventSubscriber.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeInvocationGuarder.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeMacros.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeModel.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeResponder.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeServiceDefinitions.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeServiceManager.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeStatus.h",
+    "pod_support/Headers/Public/BDXBridgeKit/NSData+BDXBridgeAdditions.h",
+    "pod_support/Headers/Public/BDXBridgeKit/NSObject+BDXBridgeContainer.h",
+    "pod_support/Headers/Public/BDXBridgeKit/NSString+BDXBridgeAdditions.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_srcs",
+  srcs = [
+    "BDXBridgeKit/Classes/Core/BDXBridge.m",
+    "BDXBridgeKit/Classes/Core/BDXBridgeContainerPool.m",
+    "BDXBridgeKit/Classes/Core/BDXBridgeContext.m",
+    "BDXBridgeKit/Classes/Core/BDXBridgeCustomValueTransformer.m",
+    "BDXBridgeKit/Classes/Core/BDXBridgeDefinitions.m",
+    "BDXBridgeKit/Classes/Core/BDXBridgeEvent+Internal.m",
+    "BDXBridgeKit/Classes/Core/BDXBridgeEvent.m",
+    "BDXBridgeKit/Classes/Core/Event/BDXBridgeEventCenter.m",
+    "BDXBridgeKit/Classes/Core/Event/BDXBridgeEventSubscriber.m",
+    "BDXBridgeKit/Classes/Core/BDXBridgeInvocationGuarder.m",
+    "BDXBridgeKit/Classes/Core/BDXBridgeMethod.m",
+    "BDXBridgeKit/Classes/Core/BDXBridgeModel.m",
+    "BDXBridgeKit/Classes/Core/BDXBridgeResponder.m",
+    "BDXBridgeKit/Classes/Core/BDXBridgeServiceDefinitions.m",
+    "BDXBridgeKit/Classes/Core/BDXBridgeServiceManager.m",
+    "BDXBridgeKit/Classes/Core/BDXBridgeStatus.m",
+    "BDXBridgeKit/Classes/Core/Additions/NSData+BDXBridgeAdditions.m",
+    "BDXBridgeKit/Classes/Core/NSObject+BDXBridgeContainer.m",
+    "BDXBridgeKit/Classes/Core/Additions/NSString+BDXBridgeAdditions.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [
+    "Core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDAssert//:BDAssert_objc_interface",
+    "@BDXServiceCenter//:BDXServiceCenter_objc_interface",
+    "@ByteDanceKit//:Foundation_objc_interface",
+    "@ByteDanceKit//:UIKit_objc_interface",
+    "@Mantle//:Mantle_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDAssert//:BDAssert_swift_interface",
+    "@BDXServiceCenter//:BDXServiceCenter_swift_interface",
+    "@ByteDanceKit//:Foundation_swift_interface",
+    "@ByteDanceKit//:UIKit_swift_interface",
+    "@Mantle//:Mantle_swift_interface",
+    ":Core_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDAssert//:BDAssert_module_map",
+    "@BDXServiceCenter//:BDXServiceCenter_module_map",
+    "@ByteDanceKit//:Foundation_module_map",
+    "@ByteDanceKit//:UIKit_module_map",
+    "@Mantle//:Mantle_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Containers_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Containers_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Containers_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Containers_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Containers_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Containers-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Containers-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Containers_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Containers_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Containers_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Containers",
+  deps = [
+    ":Containers_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Containers_lib",
+  deps = [
+    ":Containers"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Containers_Web_hdrs",
+  srcs = [
+    "BDXBridgeKit/Classes/Containers/Web/WKWebView+BDXBridgeContainer.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Containers_Web_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDXBridgeKit/WKWebView+BDXBridgeContainer.h",
+    "pod_support/Headers/Public/BDXBridgeKit/WKWebView+BDXBridgeContainer.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Containers_Web_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Containers_Web_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Containers_Web_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Containers_Web-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Containers_Web-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Containers_Web_srcs",
+  srcs = [
+    "BDXBridgeKit/Classes/Containers/Web/WKWebView+BDXBridgeContainer.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Containers_Web_oc",
+  enable_modules = 1,
+  srcs = [
+    "Containers_Web_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Containers_Web_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Containers_Web_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Containers_Web",
+  deps = [
+    ":Containers_Web_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Containers_Web_lib",
+  deps = [
+    ":Containers_Web"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Containers_Lynx_hdrs",
+  srcs = [
+    "BDXBridgeKit/Classes/Containers/Lynx/LynxView+BDXBridgeContainer.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Containers_Lynx_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDXBridgeKit/LynxView+BDXBridgeContainer.h",
+    "pod_support/Headers/Public/BDXBridgeKit/LynxView+BDXBridgeContainer.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Containers_Lynx_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Containers_Lynx_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Containers_Lynx_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Containers_Lynx-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Containers_Lynx-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Containers_Lynx_srcs",
+  srcs = [
+    "BDXBridgeKit/Classes/Containers/Lynx/LynxView+BDXBridgeContainer.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Containers_Lynx_oc",
+  enable_modules = 1,
+  srcs = [
+    "Containers_Lynx_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Containers_Lynx_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Lynx//:Framework_objc_interface",
+    "@Lynx//:Framework_swift_interface",
+    ":Containers_Lynx_objc_interface",
+    "@Lynx//:Framework_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Containers_Lynx",
+  deps = [
+    ":Containers_Lynx_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Containers_Lynx_lib",
+  deps = [
+    ":Containers_Lynx"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Containers_RN_hdrs",
+  srcs = [
+    "BDXBridgeKit/Classes/Containers/RN/RCTRootView+BDXBridgeContainer.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Containers_RN_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Containers_RN_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Containers_RN_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Containers_RN_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Containers_RN-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Containers_RN-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Containers_RN_srcs",
+  srcs = [
+    "BDXBridgeKit/Classes/Containers/RN/RCTRootView+BDXBridgeContainer.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Containers_RN_oc",
+  enable_modules = 1,
+  srcs = [
+    "Containers_RN_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Containers_RN_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@React//:React_objc_interface",
+    "@React//:React_swift_interface",
+    ":Containers_RN_objc_interface",
+    "@React//:React_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Containers_RN",
+  deps = [
+    ":Containers_RN_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Containers_RN_lib",
+  deps = [
+    ":Containers_RN"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Engines_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Engines_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Engines_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Engines_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Engines_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Engines-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Engines-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Engines_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Engines_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Engines_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Engines",
+  deps = [
+    ":Engines_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Engines_lib",
+  deps = [
+    ":Engines"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Engines_TTBridgeUnifyAdapter_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Engines_TTBridgeUnifyAdapter_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Engines_TTBridgeUnifyAdapter_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Engines_TTBridgeUnifyAdapter_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Engines_TTBridgeUnifyAdapter_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Engines_TTBridgeUnifyAdapter-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Engines_TTBridgeUnifyAdapter-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Engines_TTBridgeUnifyAdapter_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Engines_TTBridgeUnifyAdapter_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Engines_TTBridgeUnifyAdapter_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Engines_TTBridgeUnifyAdapter",
+  deps = [
+    ":Engines_TTBridgeUnifyAdapter_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Engines_TTBridgeUnifyAdapter_lib",
+  deps = [
+    ":Engines_TTBridgeUnifyAdapter"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Engines_TTBridgeUnifyAdapter_CoreEngine_hdrs",
+  srcs = [
+    "BDXBridgeKit/Classes/Engines/TTBridgeUnifyAdapter/BDXBridgeEngineAdapter_TTBridgeUnify.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Engines_TTBridgeUnifyAdapter_CoreEngine_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeEngineAdapter_TTBridgeUnify.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeEngineAdapter_TTBridgeUnify.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Engines_TTBridgeUnifyAdapter_CoreEngine_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Engines_TTBridgeUnifyAdapter_CoreEngine_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Engines_TTBridgeUnifyAdapter_CoreEngine_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Engines_TTBridgeUnifyAdapter_CoreEngine-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Engines_TTBridgeUnifyAdapter_CoreEngine-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Engines_TTBridgeUnifyAdapter_CoreEngine_srcs",
+  srcs = [
+    "BDXBridgeKit/Classes/Engines/TTBridgeUnifyAdapter/BDXBridgeEngineAdapter_TTBridgeUnify.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Engines_TTBridgeUnifyAdapter_CoreEngine_oc",
+  enable_modules = 1,
+  srcs = [
+    "Engines_TTBridgeUnifyAdapter_CoreEngine_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Engines_TTBridgeUnifyAdapter_CoreEngine_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTBridgeUnify//:TTBridge_objc_interface",
+    "@TTBridgeUnify//:TTBridge_swift_interface",
+    ":Engines_TTBridgeUnifyAdapter_CoreEngine_objc_interface",
+    "@TTBridgeUnify//:TTBridge_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Engines_TTBridgeUnifyAdapter_CoreEngine",
+  deps = [
+    ":Engines_TTBridgeUnifyAdapter_CoreEngine_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Engines_TTBridgeUnifyAdapter_CoreEngine_lib",
+  deps = [
+    ":Engines_TTBridgeUnifyAdapter_CoreEngine"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Engines_TTBridgeUnifyAdapter_WebEngine_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Engines_TTBridgeUnifyAdapter_WebEngine_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Engines_TTBridgeUnifyAdapter_WebEngine_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Engines_TTBridgeUnifyAdapter_WebEngine_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Engines_TTBridgeUnifyAdapter_WebEngine_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Engines_TTBridgeUnifyAdapter_WebEngine-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Engines_TTBridgeUnifyAdapter_WebEngine-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Engines_TTBridgeUnifyAdapter_WebEngine_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Engines_TTBridgeUnifyAdapter_WebEngine_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTBridgeUnify//:UnifiedWebView_objc_interface",
+    "@TTBridgeUnify//:UnifiedWebView_swift_interface",
+    ":Engines_TTBridgeUnifyAdapter_WebEngine_objc_interface",
+    "@TTBridgeUnify//:UnifiedWebView_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Engines_TTBridgeUnifyAdapter_WebEngine",
+  deps = [
+    ":Engines_TTBridgeUnifyAdapter_WebEngine_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Engines_TTBridgeUnifyAdapter_WebEngine_lib",
+  deps = [
+    ":Engines_TTBridgeUnifyAdapter_WebEngine"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Engines_TTBridgeUnifyAdapter_LynxEngine_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Engines_TTBridgeUnifyAdapter_LynxEngine_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Engines_TTBridgeUnifyAdapter_LynxEngine_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Engines_TTBridgeUnifyAdapter_LynxEngine_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Engines_TTBridgeUnifyAdapter_LynxEngine_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Engines_TTBridgeUnifyAdapter_LynxEngine-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Engines_TTBridgeUnifyAdapter_LynxEngine-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Engines_TTBridgeUnifyAdapter_LynxEngine_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Engines_TTBridgeUnifyAdapter_LynxEngine_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTBridgeUnify//:Lynx_objc_interface",
+    "@TTBridgeUnify//:Lynx_swift_interface",
+    ":Engines_TTBridgeUnifyAdapter_LynxEngine_objc_interface",
+    "@TTBridgeUnify//:Lynx_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Engines_TTBridgeUnifyAdapter_LynxEngine",
+  deps = [
+    ":Engines_TTBridgeUnifyAdapter_LynxEngine_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Engines_TTBridgeUnifyAdapter_LynxEngine_lib",
+  deps = [
+    ":Engines_TTBridgeUnifyAdapter_LynxEngine"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Engines_TTBridgeUnifyAdapter_RNEngine_hdrs",
+  srcs = [
+    "BDXBridgeKit/Classes/Engines/TTBridgeUnifyAdapter/RN/BDXRNBridgeEngine.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Engines_TTBridgeUnifyAdapter_RNEngine_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Engines_TTBridgeUnifyAdapter_RNEngine_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Engines_TTBridgeUnifyAdapter_RNEngine_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Engines_TTBridgeUnifyAdapter_RNEngine_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Engines_TTBridgeUnifyAdapter_RNEngine-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Engines_TTBridgeUnifyAdapter_RNEngine-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Engines_TTBridgeUnifyAdapter_RNEngine_srcs",
+  srcs = [
+    "BDXBridgeKit/Classes/Engines/TTBridgeUnifyAdapter/RN/BDXRNBridgeEngine.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Engines_TTBridgeUnifyAdapter_RNEngine_oc",
+  enable_modules = 1,
+  srcs = [
+    "Engines_TTBridgeUnifyAdapter_RNEngine_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Engines_TTBridgeUnifyAdapter_RNEngine_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTBridgeUnify//:React_objc_interface",
+    "@TTBridgeUnify//:React_swift_interface",
+    ":Engines_TTBridgeUnifyAdapter_RNEngine_objc_interface",
+    "@TTBridgeUnify//:React_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Engines_TTBridgeUnifyAdapter_RNEngine",
+  deps = [
+    ":Engines_TTBridgeUnifyAdapter_RNEngine_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Engines_TTBridgeUnifyAdapter_RNEngine_lib",
+  deps = [
+    ":Engines_TTBridgeUnifyAdapter_RNEngine"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Methods_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Methods_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Methods_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods",
+  deps = [
+    ":Methods_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Methods_lib",
+  deps = [
+    ":Methods"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Framework_hdrs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Framework/BDXBridgeCanIUseMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Framework/BDXBridgeCanIUseMethod.h",
+    "BDXBridgeKit/Classes/Methods/Framework/BDXBridgeGetContainerIDMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Framework/BDXBridgeGetContainerIDMethod.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Framework_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Framework_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Framework_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Methods_Framework_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Framework-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Framework-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Framework_srcs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Framework/BDXBridgeCanIUseMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Framework/BDXBridgeCanIUseMethod.m",
+    "BDXBridgeKit/Classes/Methods/Framework/BDXBridgeGetContainerIDMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Framework/BDXBridgeGetContainerIDMethod.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Framework_oc",
+  enable_modules = 1,
+  srcs = [
+    "Methods_Framework_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Methods_Framework_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Methods_Framework_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Framework",
+  deps = [
+    ":Methods_Framework_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Methods_Framework_lib",
+  deps = [
+    ":Methods_Framework"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Event_hdrs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Event/BDXBridgePublishEventMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Event/BDXBridgePublishEventMethod.h",
+    "BDXBridgeKit/Classes/Methods/Event/BDXBridgeSubscribeEventMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Event/BDXBridgeSubscribeEventMethod.h",
+    "BDXBridgeKit/Classes/Methods/Event/BDXBridgeUnsubscribeEventMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Event/BDXBridgeUnsubscribeEventMethod.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Event_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgePublishEventMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgePublishEventMethod.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeSubscribeEventMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeSubscribeEventMethod.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeUnsubscribeEventMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeUnsubscribeEventMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgePublishEventMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgePublishEventMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeSubscribeEventMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeSubscribeEventMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeUnsubscribeEventMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeUnsubscribeEventMethod.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Event_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Event_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Methods_Event_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Event-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Event-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Event_srcs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Event/BDXBridgePublishEventMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Event/BDXBridgePublishEventMethod.m",
+    "BDXBridgeKit/Classes/Methods/Event/BDXBridgeSubscribeEventMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Event/BDXBridgeSubscribeEventMethod.m",
+    "BDXBridgeKit/Classes/Methods/Event/BDXBridgeUnsubscribeEventMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Event/BDXBridgeUnsubscribeEventMethod.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Event_oc",
+  enable_modules = 1,
+  srcs = [
+    "Methods_Event_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Methods_Event_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Methods_Event_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Event",
+  deps = [
+    ":Methods_Event_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Methods_Event_lib",
+  deps = [
+    ":Methods_Event"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_System_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_System_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_System_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_System_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Methods_System_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_System-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_System-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_System_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Methods_System_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "MessageUI"
+  ],
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Methods_System_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_System",
+  deps = [
+    ":Methods_System_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Methods_System_lib",
+  deps = [
+    ":Methods_System"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_System_SystemBase_hdrs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/System/BDXBridgeCheckPermissionMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/System/BDXBridgeCheckPermissionMethod.h",
+    "BDXBridgeKit/Classes/Methods/System/BDXBridgeGetCaptureScreenStatusMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/System/BDXBridgeGetCaptureScreenStatusMethod.h",
+    "BDXBridgeKit/Classes/Methods/System/BDXBridgeMakePhoneCallMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/System/BDXBridgeMakePhoneCallMethod.h",
+    "BDXBridgeKit/Classes/Methods/System/BDXBridgeSendSMSMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/System/BDXBridgeSendSMSMethod.h",
+    "BDXBridgeKit/Classes/Methods/System/BDXBridgeVibrateMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/System/BDXBridgeVibrateMethod.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_System_SystemBase_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_System_SystemBase_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_System_SystemBase_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Methods_System_SystemBase_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_System_SystemBase-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_System_SystemBase-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_System_SystemBase_srcs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/System/BDXBridgeCheckPermissionMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/System/BDXBridgeCheckPermissionMethod.m",
+    "BDXBridgeKit/Classes/Methods/System/BDXBridgeGetCaptureScreenStatusMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/System/BDXBridgeGetCaptureScreenStatusMethod.m",
+    "BDXBridgeKit/Classes/Methods/System/BDXBridgeMakePhoneCallMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/System/BDXBridgeMakePhoneCallMethod.m",
+    "BDXBridgeKit/Classes/Methods/System/BDXBridgeSendSMSMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/System/BDXBridgeSendSMSMethod.m",
+    "BDXBridgeKit/Classes/Methods/System/BDXBridgeVibrateMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/System/BDXBridgeVibrateMethod.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_System_SystemBase_oc",
+  enable_modules = 1,
+  srcs = [
+    "Methods_System_SystemBase_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Methods_System_SystemBase_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "MessageUI"
+  ],
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Methods_System_SystemBase_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_System_SystemBase",
+  deps = [
+    ":Methods_System_SystemBase_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Methods_System_SystemBase_lib",
+  deps = [
+    ":Methods_System_SystemBase"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_System_SystemSecure_hdrs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/System/Secure/BDXBridgeCalendarManager+BDXBridgeSecure.h",
+    "BDXBridgeKit/Classes/Methods/System/Secure/BDXBridgeGetCalendarEventMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/System/Secure/BDXBridgeGetCalendarEventMethod.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_System_SystemSecure_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_System_SystemSecure_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_System_SystemSecure_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Methods_System_SystemSecure_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_System_SystemSecure-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_System_SystemSecure-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_System_SystemSecure_srcs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/System/Secure/BDXBridgeCalendarManager+BDXBridgeSecure.m",
+    "BDXBridgeKit/Classes/Methods/System/Secure/BDXBridgeGetCalendarEventMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/System/Secure/BDXBridgeGetCalendarEventMethod.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_System_SystemSecure_oc",
+  enable_modules = 1,
+  srcs = [
+    "Methods_System_SystemSecure_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Methods_System_SystemSecure_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "MessageUI"
+  ],
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Methods_System_SystemSecure_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_System_SystemSecure",
+  deps = [
+    ":Methods_System_SystemSecure_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Methods_System_SystemSecure_lib",
+  deps = [
+    ":Methods_System_SystemSecure"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Calendar_hdrs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Calendar/BDXBridgeCalendarManager.h",
+    "BDXBridgeKit/Classes/Methods/Calendar/BDXBridgeCreateCalendarEventMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Calendar/BDXBridgeCreateCalendarEventMethod.h",
+    "BDXBridgeKit/Classes/Methods/Calendar/BDXBridgeDeleteCalendarEventMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Calendar/BDXBridgeDeleteCalendarEventMethod.h",
+    "BDXBridgeKit/Classes/Methods/Calendar/BDXBridgeReadCalendarEventMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Calendar/BDXBridgeReadCalendarEventMethod.h",
+    "BDXBridgeKit/Classes/Methods/Calendar/BDXBridgeRemoveCalendarEventMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Calendar/BDXBridgeRemoveCalendarEventMethod.h",
+    "BDXBridgeKit/Classes/Methods/Calendar/BDXBridgeSetCalendarEventMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Calendar/BDXBridgeSetCalendarEventMethod.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Calendar_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Calendar_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Calendar_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Methods_Calendar_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Calendar-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Calendar-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Calendar_srcs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Calendar/BDXBridgeCalendarManager.m",
+    "BDXBridgeKit/Classes/Methods/Calendar/BDXBridgeCreateCalendarEventMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Calendar/BDXBridgeCreateCalendarEventMethod.m",
+    "BDXBridgeKit/Classes/Methods/Calendar/BDXBridgeDeleteCalendarEventMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Calendar/BDXBridgeDeleteCalendarEventMethod.m",
+    "BDXBridgeKit/Classes/Methods/Calendar/BDXBridgeReadCalendarEventMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Calendar/BDXBridgeReadCalendarEventMethod.m",
+    "BDXBridgeKit/Classes/Methods/Calendar/BDXBridgeRemoveCalendarEventMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Calendar/BDXBridgeRemoveCalendarEventMethod.m",
+    "BDXBridgeKit/Classes/Methods/Calendar/BDXBridgeSetCalendarEventMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Calendar/BDXBridgeSetCalendarEventMethod.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Calendar_oc",
+  enable_modules = 1,
+  srcs = [
+    "Methods_Calendar_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Methods_Calendar_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "EventKit"
+  ],
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Methods_Calendar_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Calendar",
+  deps = [
+    ":Methods_Calendar_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Methods_Calendar_lib",
+  deps = [
+    ":Methods_Calendar"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Network_hdrs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Network/BDXBridgeGetAPIParamsMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Network/BDXBridgeGetAPIParamsMethod.h",
+    "BDXBridgeKit/Classes/Methods/Network/BDXBridgeRequestMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Network/BDXBridgeRequestMethod.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Network_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeGetAPIParamsMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeGetAPIParamsMethod.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeRequestMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeRequestMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeGetAPIParamsMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeGetAPIParamsMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeRequestMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeRequestMethod.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Network_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Network_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Methods_Network_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Network-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Network-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Network_srcs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Network/BDXBridgeGetAPIParamsMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Network/BDXBridgeGetAPIParamsMethod.m",
+    "BDXBridgeKit/Classes/Methods/Network/BDXBridgeRequestMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Network/BDXBridgeRequestMethod.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Network_oc",
+  enable_modules = 1,
+  srcs = [
+    "Methods_Network_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Methods_Network_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@TTReachability//:TTReachability_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    "@TTReachability//:TTReachability_swift_interface",
+    ":Methods_Network_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_module_map",
+    "@TTReachability//:TTReachability_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Network",
+  deps = [
+    ":Methods_Network_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Methods_Network_lib",
+  deps = [
+    ":Methods_Network"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Storage_hdrs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Storage/BDXBridgeGetStorageInfoMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Storage/BDXBridgeGetStorageInfoMethod.h",
+    "BDXBridgeKit/Classes/Methods/Storage/BDXBridgeGetStorageItemMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Storage/BDXBridgeGetStorageItemMethod.h",
+    "BDXBridgeKit/Classes/Methods/Storage/BDXBridgeRemoveStorageItemMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Storage/BDXBridgeRemoveStorageItemMethod.h",
+    "BDXBridgeKit/Classes/Methods/Storage/BDXBridgeSetStorageItemMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Storage/BDXBridgeSetStorageItemMethod.h",
+    "BDXBridgeKit/Classes/Methods/Storage/BDXBridgeStorageManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Storage_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeGetStorageInfoMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeGetStorageInfoMethod.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeGetStorageItemMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeGetStorageItemMethod.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeRemoveStorageItemMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeRemoveStorageItemMethod.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeSetStorageItemMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeSetStorageItemMethod.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeStorageManager.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeGetStorageInfoMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeGetStorageInfoMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeGetStorageItemMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeGetStorageItemMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeRemoveStorageItemMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeRemoveStorageItemMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeSetStorageItemMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeSetStorageItemMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeStorageManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Storage_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Storage_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Methods_Storage_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Storage-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Storage-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Storage_srcs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Storage/BDXBridgeGetStorageInfoMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Storage/BDXBridgeGetStorageInfoMethod.m",
+    "BDXBridgeKit/Classes/Methods/Storage/BDXBridgeGetStorageItemMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Storage/BDXBridgeGetStorageItemMethod.m",
+    "BDXBridgeKit/Classes/Methods/Storage/BDXBridgeRemoveStorageItemMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Storage/BDXBridgeRemoveStorageItemMethod.m",
+    "BDXBridgeKit/Classes/Methods/Storage/BDXBridgeSetStorageItemMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Storage/BDXBridgeSetStorageItemMethod.m",
+    "BDXBridgeKit/Classes/Methods/Storage/BDXBridgeStorageManager.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Storage_oc",
+  enable_modules = 1,
+  srcs = [
+    "Methods_Storage_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Methods_Storage_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Methods_Storage_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Storage",
+  deps = [
+    ":Methods_Storage_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Methods_Storage_lib",
+  deps = [
+    ":Methods_Storage"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Account_hdrs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Account/BDXBridgeGetUserInfoMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Account/BDXBridgeGetUserInfoMethod.h",
+    "BDXBridgeKit/Classes/Methods/Account/BDXBridgeLoginMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Account/BDXBridgeLoginMethod.h",
+    "BDXBridgeKit/Classes/Methods/Account/BDXBridgeLogoutMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Account/BDXBridgeLogoutMethod.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Account_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Account_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Account_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Methods_Account_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Account-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Account-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Account_srcs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Account/BDXBridgeGetUserInfoMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Account/BDXBridgeGetUserInfoMethod.m",
+    "BDXBridgeKit/Classes/Methods/Account/BDXBridgeLoginMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Account/BDXBridgeLoginMethod.m",
+    "BDXBridgeKit/Classes/Methods/Account/BDXBridgeLogoutMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Account/BDXBridgeLogoutMethod.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Account_oc",
+  enable_modules = 1,
+  srcs = [
+    "Methods_Account_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Methods_Account_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Methods_Account_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Account",
+  deps = [
+    ":Methods_Account_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Methods_Account_lib",
+  deps = [
+    ":Methods_Account"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Log_hdrs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Log/BDXBridgeReportADLogMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Log/BDXBridgeReportADLogMethod.h",
+    "BDXBridgeKit/Classes/Methods/Log/BDXBridgeReportALogMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Log/BDXBridgeReportALogMethod.h",
+    "BDXBridgeKit/Classes/Methods/Log/BDXBridgeReportAppLogMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Log/BDXBridgeReportAppLogMethod.h",
+    "BDXBridgeKit/Classes/Methods/Log/BDXBridgeReportMonitorLogMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Log/BDXBridgeReportMonitorLogMethod.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Log_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeReportADLogMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeReportADLogMethod.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeReportALogMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeReportALogMethod.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeReportAppLogMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeReportAppLogMethod.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeReportMonitorLogMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeReportMonitorLogMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeReportADLogMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeReportADLogMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeReportALogMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeReportALogMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeReportAppLogMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeReportAppLogMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeReportMonitorLogMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeReportMonitorLogMethod.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Log_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Log_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Methods_Log_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Log-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Log-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Log_srcs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Log/BDXBridgeReportADLogMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Log/BDXBridgeReportADLogMethod.m",
+    "BDXBridgeKit/Classes/Methods/Log/BDXBridgeReportALogMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Log/BDXBridgeReportALogMethod.m",
+    "BDXBridgeKit/Classes/Methods/Log/BDXBridgeReportAppLogMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Log/BDXBridgeReportAppLogMethod.m",
+    "BDXBridgeKit/Classes/Methods/Log/BDXBridgeReportMonitorLogMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Log/BDXBridgeReportMonitorLogMethod.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Log_oc",
+  enable_modules = 1,
+  srcs = [
+    "Methods_Log_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Methods_Log_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Methods_Log_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Log",
+  deps = [
+    ":Methods_Log_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Methods_Log_lib",
+  deps = [
+    ":Methods_Log"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Info_hdrs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Info/BDXBridgeGetAppInfoMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Info/BDXBridgeGetAppInfoMethod.h",
+    "BDXBridgeKit/Classes/Methods/Info/BDXBridgeGetSettingsMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Info/BDXBridgeGetSettingsMethod.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Info_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeGetAppInfoMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeGetAppInfoMethod.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeGetSettingsMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeGetSettingsMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeGetAppInfoMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeGetAppInfoMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeGetSettingsMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeGetSettingsMethod.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Info_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Info_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Methods_Info_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Info-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Info-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Info_srcs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Info/BDXBridgeGetAppInfoMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Info/BDXBridgeGetAppInfoMethod.m",
+    "BDXBridgeKit/Classes/Methods/Info/BDXBridgeGetSettingsMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Info/BDXBridgeGetSettingsMethod.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Info_oc",
+  enable_modules = 1,
+  srcs = [
+    "Methods_Info_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Methods_Info_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@TTReachability//:TTReachability_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    "@TTReachability//:TTReachability_swift_interface",
+    ":Methods_Info_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map",
+    "@TTReachability//:TTReachability_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Info",
+  deps = [
+    ":Methods_Info_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Methods_Info_lib",
+  deps = [
+    ":Methods_Info"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Media_hdrs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Media/BDXBridgeChooseMediaMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Media/BDXBridgeChooseMediaMethod.h",
+    "BDXBridgeKit/Classes/Methods/Media/BDXBridgeDefaultMediaPicker.h",
+    "BDXBridgeKit/Classes/Methods/Media/BDXBridgeDownloadFileMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Media/BDXBridgeDownloadFileMethod.h",
+    "BDXBridgeKit/Classes/Methods/Media/BDXBridgeUploadImageMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Media/BDXBridgeUploadImageMethod.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Media_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeChooseMediaMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeChooseMediaMethod.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeDefaultMediaPicker.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeDownloadFileMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeDownloadFileMethod.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeUploadImageMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeUploadImageMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeChooseMediaMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeChooseMediaMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeDefaultMediaPicker.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeDownloadFileMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeDownloadFileMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeUploadImageMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeUploadImageMethod.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Media_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Media_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Methods_Media_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Media-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Media-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Media_srcs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Media/BDXBridgeChooseMediaMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Media/BDXBridgeChooseMediaMethod.m",
+    "BDXBridgeKit/Classes/Methods/Media/BDXBridgeDefaultMediaPicker.m",
+    "BDXBridgeKit/Classes/Methods/Media/BDXBridgeDownloadFileMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Media/BDXBridgeDownloadFileMethod.m",
+    "BDXBridgeKit/Classes/Methods/Media/BDXBridgeUploadImageMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Media/BDXBridgeUploadImageMethod.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Media_oc",
+  enable_modules = 1,
+  srcs = [
+    "Methods_Media_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Methods_Media_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@TTReachability//:TTReachability_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    "@TTReachability//:TTReachability_swift_interface",
+    ":Methods_Media_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_module_map",
+    "@TTReachability//:TTReachability_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Media",
+  deps = [
+    ":Methods_Media_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Methods_Media_lib",
+  deps = [
+    ":Methods_Media"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Route_hdrs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Route/BDXBridgeCloseMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Route/BDXBridgeCloseMethod.h",
+    "BDXBridgeKit/Classes/Methods/Route/BDXBridgeOpenMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Route/BDXBridgeOpenMethod.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Route_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeCloseMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeCloseMethod.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeOpenMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeOpenMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeCloseMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeCloseMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeOpenMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeOpenMethod.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Route_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Route_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Methods_Route_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Route-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Route-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Route_srcs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Route/BDXBridgeCloseMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Route/BDXBridgeCloseMethod.m",
+    "BDXBridgeKit/Classes/Methods/Route/BDXBridgeOpenMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Route/BDXBridgeOpenMethod.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Route_oc",
+  enable_modules = 1,
+  srcs = [
+    "Methods_Route_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Methods_Route_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Methods_Route_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Route",
+  deps = [
+    ":Methods_Route_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Methods_Route_lib",
+  deps = [
+    ":Methods_Route"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_UI_hdrs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeConfigureStatusBarMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeConfigureStatusBarMethod.h",
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeHideLoadingMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeHideLoadingMethod.h",
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeShowActionSheetMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeShowActionSheetMethod.h",
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeShowLoadingMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeShowLoadingMethod.h",
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeShowModalMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeShowModalMethod.h",
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeShowToastMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeShowToastMethod.h",
+    "BDXBridgeKit/Classes/Methods/UI/UIViewController+BDXBridgeStatusBar.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_UI_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeConfigureStatusBarMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeConfigureStatusBarMethod.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeHideLoadingMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeHideLoadingMethod.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeShowActionSheetMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeShowActionSheetMethod.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeShowLoadingMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeShowLoadingMethod.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeShowModalMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeShowModalMethod.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeShowToastMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Private/BDXBridgeKit/BDXBridgeShowToastMethod.h",
+    "pod_support/Headers/Private/BDXBridgeKit/UIViewController+BDXBridgeStatusBar.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeConfigureStatusBarMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeConfigureStatusBarMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeHideLoadingMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeHideLoadingMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeShowActionSheetMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeShowActionSheetMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeShowLoadingMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeShowLoadingMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeShowModalMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeShowModalMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeShowToastMethod+BDXBridgeIMP.h",
+    "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeShowToastMethod.h",
+    "pod_support/Headers/Public/BDXBridgeKit/UIViewController+BDXBridgeStatusBar.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_UI_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_UI_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Methods_UI_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_UI-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_UI-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_UI_srcs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeConfigureStatusBarMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeConfigureStatusBarMethod.m",
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeHideLoadingMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeHideLoadingMethod.m",
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeShowActionSheetMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeShowActionSheetMethod.m",
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeShowLoadingMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeShowLoadingMethod.m",
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeShowModalMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeShowModalMethod.m",
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeShowToastMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/UI/BDXBridgeShowToastMethod.m",
+    "BDXBridgeKit/Classes/Methods/UI/UIViewController+BDXBridgeStatusBar.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_UI_oc",
+  enable_modules = 1,
+  srcs = [
+    "Methods_UI_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Methods_UI_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Methods_UI_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_UI",
+  deps = [
+    ":Methods_UI_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Methods_UI_lib",
+  deps = [
+    ":Methods_UI"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Open_hdrs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Open/BDXBridgeScanCodeMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Open/BDXBridgeScanCodeMethod.h",
+    "BDXBridgeKit/Classes/Methods/Open/BDXBridgeShareMethod.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Open_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Open_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Open_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Methods_Open_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Open-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Open-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Open_srcs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Open/BDXBridgeScanCodeMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Open/BDXBridgeScanCodeMethod.m",
+    "BDXBridgeKit/Classes/Methods/Open/BDXBridgeShareMethod.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Open_oc",
+  enable_modules = 1,
+  srcs = [
+    "Methods_Open_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Methods_Open_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Methods_Open_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Open",
+  deps = [
+    ":Methods_Open_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Methods_Open_lib",
+  deps = [
+    ":Methods_Open"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Development_hdrs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Development/BDXBridgeGetDebugInfoMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Development/BDXBridgeGetDebugInfoMethod.h",
+    "BDXBridgeKit/Classes/Methods/Development/BDXBridgeGetMethodListMethod+BDXBridgeIMP.h",
+    "BDXBridgeKit/Classes/Methods/Development/BDXBridgeGetMethodListMethod.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Development_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Development_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Development_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Methods_Development_module_map",
+  module_map = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Development-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXBridgeKit/BDXBridgeKit_Methods_Development-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Methods_Development_srcs",
+  srcs = [
+    "BDXBridgeKit/Classes/Methods/Development/BDXBridgeGetDebugInfoMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Development/BDXBridgeGetDebugInfoMethod.m",
+    "BDXBridgeKit/Classes/Methods/Development/BDXBridgeGetMethodListMethod+BDXBridgeIMP.m",
+    "BDXBridgeKit/Classes/Methods/Development/BDXBridgeGetMethodListMethod.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Methods_Development_oc",
+  enable_modules = 1,
+  srcs = [
+    "Methods_Development_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Methods_Development_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXBridgeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXBridgeKit_private_includes",
+    ":BDXBridgeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Methods_Development_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Methods_Development",
+  deps = [
+    ":Methods_Development_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Methods_Development_lib",
+  deps = [
+    ":Methods_Development"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_BDXBridgeKit_module_map",
+  module_map = "@BDXBridgeKit//:pod_support/Headers/Public/BDXBridgeKit/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@BDXBridgeKit//:pod_support/Headers/Public/BDXBridgeKit/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_BDXBridgeKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@BDXBridgeKit//:BDXBridgeKit_objc_interface", "@BDXBridgeKit//:Containers_Lynx_objc_interface", "@BDXBridgeKit//:Containers_Web_objc_interface", "@BDXBridgeKit//:Core_objc_interface", "@BDXBridgeKit//:Engines_TTBridgeUnifyAdapter_CoreEngine_objc_interface", "@BDXBridgeKit//:Engines_TTBridgeUnifyAdapter_LynxEngine_objc_interface", "@BDXBridgeKit//:Engines_TTBridgeUnifyAdapter_WebEngine_objc_interface", "@BDXBridgeKit//:Methods_Event_objc_interface", "@BDXBridgeKit//:Methods_Info_objc_interface", "@BDXBridgeKit//:Methods_Log_objc_interface", "@BDXBridgeKit//:Methods_Media_objc_interface", "@BDXBridgeKit//:Methods_Network_objc_interface", "@BDXBridgeKit//:Methods_Route_objc_interface", "@BDXBridgeKit//:Methods_Storage_objc_interface", "@BDXBridgeKit//:Methods_UI_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_BDXBridgeKit",
+  target_name = "Lark",
+  module_name = "BDXBridgeKit",
+  hdrs = ["@BDXBridgeKit//:BDXBridgeKit_root_pod_hdrs", "@BDXBridgeKit//:Containers_Lynx_pod_hdrs", "@BDXBridgeKit//:Containers_Web_pod_hdrs", "@BDXBridgeKit//:Core_pod_hdrs", "@BDXBridgeKit//:Engines_TTBridgeUnifyAdapter_CoreEngine_pod_hdrs", "@BDXBridgeKit//:Engines_TTBridgeUnifyAdapter_LynxEngine_pod_hdrs", "@BDXBridgeKit//:Engines_TTBridgeUnifyAdapter_WebEngine_pod_hdrs", "@BDXBridgeKit//:Methods_Event_pod_hdrs", "@BDXBridgeKit//:Methods_Info_pod_hdrs", "@BDXBridgeKit//:Methods_Log_pod_hdrs", "@BDXBridgeKit//:Methods_Media_pod_hdrs", "@BDXBridgeKit//:Methods_Network_pod_hdrs", "@BDXBridgeKit//:Methods_Route_pod_hdrs", "@BDXBridgeKit//:Methods_Storage_pod_hdrs", "@BDXBridgeKit//:Methods_UI_pod_hdrs"],
+  srcs = ["@BDXBridgeKit//:Containers_Lynx_srcs", "@BDXBridgeKit//:Containers_Web_srcs", "@BDXBridgeKit//:Core_srcs", "@BDXBridgeKit//:Engines_TTBridgeUnifyAdapter_CoreEngine_srcs", "@BDXBridgeKit//:Methods_Event_srcs", "@BDXBridgeKit//:Methods_Info_srcs", "@BDXBridgeKit//:Methods_Log_srcs", "@BDXBridgeKit//:Methods_Media_srcs", "@BDXBridgeKit//:Methods_Network_srcs", "@BDXBridgeKit//:Methods_Route_srcs", "@BDXBridgeKit//:Methods_Storage_srcs", "@BDXBridgeKit//:Methods_UI_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["Lynx", "BDAlogProtocol", "BDAssert", "BDXServiceCenter", "ByteDanceKit", "Mantle", "TTBridgeUnify", "BDTrackerProtocol", "TTReachability", "TTNetworkManager"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "BDXBridgeKit_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "BDXBridgeKit_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "BDXBridgeKit_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "BDXBridgeKit_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "BDXBridgeKit_dynamic", False),
+  tags = getattr(defs_external_objc_library, "BDXBridgeKit_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("BDXBridgeKit", {}),
+  visibility = ["//visibility:public"],
+)

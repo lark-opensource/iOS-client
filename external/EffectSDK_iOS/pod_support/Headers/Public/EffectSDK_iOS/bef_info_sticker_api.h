@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_info_sticker_api.h

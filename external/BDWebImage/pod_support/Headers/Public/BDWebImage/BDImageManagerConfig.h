@@ -1,0 +1,1 @@
+../../../../BDWebImage/Classes/BDBase/Config/Public/BDImageManagerConfig.h

@@ -1,0 +1,1 @@
+../../../../BDTicketGuard/Classes/Inner/Private/BDTGDanceKit+AdapterInner.h

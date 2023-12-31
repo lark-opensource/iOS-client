@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayComponent/Base/Service/Plugins/CJPayFaceRecogPlugin.h

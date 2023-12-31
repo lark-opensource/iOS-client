@@ -1,0 +1,1 @@
+../../../../CreativeKitSticker/Classes/StickerContainer/CKSStickerGestureProviderProtocol.h

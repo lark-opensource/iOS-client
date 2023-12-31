@@ -1,0 +1,44 @@
+{
+  "name": "yaml-cpp",
+  "version": "0.6.2.4",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://github.com/jbeder/yaml-cpp",
+  "license": "MIT",
+  "authors": {
+    "tangshi": "tangshi.tyson@bytedance.com"
+  },
+  "platforms": {
+    "ios": "7.0",
+    "osx": "10.9"
+  },
+  "libraries": "c++",
+  "source": {
+    "git": "git@code.byted.org:ies/yaml-cpp.git",
+    "commit": "32b414794c0e"
+  },
+  "source_files": [
+    "include/**/*.h",
+    "src/**/*.{h,cpp}"
+  ],
+  "exclude_files": [
+    "include/yaml-cpp/contrib/**/*.h",
+    "src/contrib/**/*.{h,cpp}"
+  ],
+  "header_mappings_dir": "include",
+  "public_header_files": "include/**/*.h",
+  "pod_target_xcconfig": {
+    "HEADER_SEARCH_PATHS": "$(PODS_TARGET_SRCROOT)/include",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "yaml_cpp_POD_VERSION=@\\\"9999_0.6.2.4\\\""
+  },
+  "_bytebus_platform": {
+    "repo_id": "1845",
+    "app_id": "9999"
+  },
+  "repoId": "1845",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "yaml_cpp_POD_VERSION=@\\\"9999_0.6.2.4\\\""
+  }
+}

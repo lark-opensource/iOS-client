@@ -1,0 +1,2825 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "TTKitchen_pod_hdrs",
+  srcs = [
+    ":TTKitchen_root_pod_hdrs",
+    ":Core_pod_hdrs",
+    ":Browser_pod_hdrs",
+    ":SettingsSyncer_pod_hdrs",
+    ":PersistentConnection_pod_hdrs",
+    ":SettingsRetriever_pod_hdrs",
+    ":JSONModel_pod_hdrs",
+    ":Swift_pod_hdrs",
+    ":mPaaS_pod_hdrs",
+    ":mPaaS_Task_pod_hdrs",
+    ":mPaaS_CN_pod_hdrs",
+    ":mPaaS_SG_pod_hdrs",
+    ":mPaaS_VA_pod_hdrs",
+    ":mPaaS_InHouse_pod_hdrs",
+    ":KeyReporter_pod_hdrs",
+    ":MMKV_pod_hdrs",
+    ":YYCache_pod_hdrs",
+    ":Migrator_pod_hdrs",
+    ":Debug_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "TTKitchen_private_includes",
+  include = [
+    "external/TTKitchen/pod_support/Headers/Private/TTKitchen/"
+  ],
+  deps = [],
+  external_name = "TTKitchen"
+)
+gen_includes(
+  name = "TTKitchen_public_includes",
+  include = [
+    "external/TTKitchen/pod_support/Headers/Public/TTKitchen/"
+  ],
+  deps = [],
+  external_name = "TTKitchen"
+)
+filegroup(
+  name = "_TTKitchen_hdrs",
+  srcs = [
+    ":TTKitchen_root_hdrs",
+    ":Core_hdrs",
+    ":Browser_hdrs",
+    ":SettingsSyncer_hdrs",
+    ":PersistentConnection_hdrs",
+    ":SettingsRetriever_hdrs",
+    ":JSONModel_hdrs",
+    ":Swift_hdrs",
+    ":mPaaS_hdrs",
+    ":mPaaS_Task_hdrs",
+    ":mPaaS_CN_hdrs",
+    ":mPaaS_SG_hdrs",
+    ":mPaaS_VA_hdrs",
+    ":mPaaS_InHouse_hdrs",
+    ":KeyReporter_hdrs",
+    ":MMKV_hdrs",
+    ":YYCache_hdrs",
+    ":Migrator_hdrs",
+    ":Debug_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "TTKitchen_xcode_hmapsource",
+  hdrs = [
+    ":TTKitchen_root_hdrs",
+    ":Core_hdrs",
+    ":MMKV_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "TTKitchen_xcode_hmap",
+  dep = ":TTKitchen_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/TTKitchen/*-bitsky-generated.modulemap", "pod_support/Headers/Public/TTKitchen/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "TTKitchen_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "TTKitchen",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "TTKitchen_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":TTKitchen_xcode_hmap"
+  ],
+  external_name = "TTKitchen",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTKitchen_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTKitchen_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTKitchen_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTKitchen_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TTKitchen_module_map",
+  module_map = "pod_support/Headers/Public/TTKitchen/TTKitchen-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTKitchen/TTKitchen-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTKitchen_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "TTKitchen_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTKitchen_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTKitchen_private_includes",
+    ":TTKitchen_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":TTKitchen_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTKitchen_POD_VERSION=@\\\"9999_4.3.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTKitchen",
+  deps = [
+    ":TTKitchen_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TTKitchen_lib",
+  deps = [
+    ":TTKitchen"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [
+    "Core/Classes/Private/TTKitchenInternal.h",
+    "Core/Classes/Private/TTKitchenKVCollection.h",
+    "Core/Classes/Private/TTKitchenLogManager.h",
+    "Core/Classes/Public/TTKitchen.h",
+    "Core/Classes/Public/TTKitchenManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTKitchen/TTKitchen.h",
+    "pod_support/Headers/Private/TTKitchen/TTKitchenInternal.h",
+    "pod_support/Headers/Private/TTKitchen/TTKitchenKVCollection.h",
+    "pod_support/Headers/Private/TTKitchen/TTKitchenLogManager.h",
+    "pod_support/Headers/Private/TTKitchen/TTKitchenManager.h",
+    "pod_support/Headers/Public/TTKitchen/TTKitchen.h",
+    "pod_support/Headers/Public/TTKitchen/TTKitchenManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/TTKitchen/TTKitchen_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTKitchen/TTKitchen_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_srcs",
+  srcs = [
+    "Core/Classes/Private/TTKitchenInternal.m",
+    "Core/Classes/Private/TTKitchenKVCollection.m",
+    "Core/Classes/Private/TTKitchenLogManager.m",
+    "Core/Classes/Public/TTKitchenManager.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [
+    "Core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTKitchen_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTKitchen_private_includes",
+    ":TTKitchen_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAssert//:BDAssert_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@Gaia//:Gaia_objc_interface",
+    "@BDAssert//:BDAssert_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    "@Gaia//:Gaia_swift_interface",
+    ":Core_objc_interface",
+    "@BDAssert//:BDAssert_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map",
+    "@Gaia//:Gaia_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTKitchen_POD_VERSION=@\\\"9999_4.3.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Browser_hdrs",
+  srcs = [
+    "Browser/Classes/Private/TTKitchenAddition.h",
+    "Browser/Classes/Private/TTKitchenEditorViewController.h",
+    "Browser/Classes/Public/TTKitchenBrowserViewController.h",
+    "Browser/Classes/Public/TTKitchenSearchHistoryView.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Browser_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Browser_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Browser_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Browser_module_map",
+  module_map = "pod_support/Headers/Public/TTKitchen/TTKitchen_Browser-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTKitchen/TTKitchen_Browser-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Browser_srcs",
+  srcs = [
+    "Browser/Classes/Private/TTKitchenAddition.m",
+    "Browser/Classes/Public/TTKitchenBrowserViewController.m",
+    "Browser/Classes/Private/TTKitchenEditorViewController.m",
+    "Browser/Classes/Public/TTKitchenSearchHistoryView.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Browser_oc",
+  enable_modules = 1,
+  srcs = [
+    "Browser_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Browser_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTKitchen_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTKitchen_private_includes",
+    ":TTKitchen_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@MMKV//:MMKV_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@MMKV//:MMKV_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":Browser_objc_interface",
+    "@MMKV//:MMKV_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTKitchen_POD_VERSION=@\\\"9999_4.3.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Browser",
+  deps = [
+    ":Browser_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Browser_lib",
+  deps = [
+    ":Browser"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SettingsSyncer_hdrs",
+  srcs = [
+    "SettingsSyncer/Classes/Private/TTKitchenSyncer+SessionDiff.h",
+    "SettingsSyncer/Classes/Private/TTKitchenSyncerInternal.h",
+    "SettingsSyncer/Classes/Public/TTKitchenSyncer.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SettingsSyncer_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SettingsSyncer_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SettingsSyncer_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "SettingsSyncer_module_map",
+  module_map = "pod_support/Headers/Public/TTKitchen/TTKitchen_SettingsSyncer-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTKitchen/TTKitchen_SettingsSyncer-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SettingsSyncer_srcs",
+  srcs = [
+    "SettingsSyncer/Classes/Private/TTKitchenSyncer+SessionDiff.m",
+    "SettingsSyncer/Classes/Public/TTKitchenSyncer.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SettingsSyncer_oc",
+  enable_modules = 1,
+  srcs = [
+    "SettingsSyncer_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "SettingsSyncer_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTKitchen_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTKitchen_private_includes",
+    ":TTKitchen_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDMonitorProtocol//:BDMonitorProtocol_objc_interface",
+    "@ByteDanceKit//:UIKit_objc_interface",
+    "@Heimdallr//:DeviceInfo_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDMonitorProtocol//:BDMonitorProtocol_swift_interface",
+    "@ByteDanceKit//:UIKit_swift_interface",
+    "@Heimdallr//:DeviceInfo_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":SettingsSyncer_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDMonitorProtocol//:BDMonitorProtocol_module_map",
+    "@ByteDanceKit//:UIKit_module_map",
+    "@Heimdallr//:DeviceInfo_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTKitchen_POD_VERSION=@\\\"9999_4.3.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SettingsSyncer",
+  deps = [
+    ":SettingsSyncer_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "SettingsSyncer_lib",
+  deps = [
+    ":SettingsSyncer"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "PersistentConnection_hdrs",
+  srcs = [
+    "PersistentConnection/TTKitchenSyncer+PersistentConnection.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "PersistentConnection_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "PersistentConnection_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "PersistentConnection_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "PersistentConnection_module_map",
+  module_map = "pod_support/Headers/Public/TTKitchen/TTKitchen_PersistentConnection-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTKitchen/TTKitchen_PersistentConnection-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "PersistentConnection_srcs",
+  srcs = [
+    "PersistentConnection/TTKitchenSyncer+PersistentConnection.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "PersistentConnection_oc",
+  enable_modules = 1,
+  srcs = [
+    "PersistentConnection_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "PersistentConnection_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTKitchen_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTKitchen_private_includes",
+    ":TTKitchen_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDMonitorProtocol//:BDMonitorProtocol_objc_interface",
+    "@BDMonitorProtocol//:BDMonitorProtocol_swift_interface",
+    ":PersistentConnection_objc_interface",
+    "@BDMonitorProtocol//:BDMonitorProtocol_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTKitchen_POD_VERSION=@\\\"9999_4.3.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "PersistentConnection",
+  deps = [
+    ":PersistentConnection_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "PersistentConnection_lib",
+  deps = [
+    ":PersistentConnection"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SettingsRetriever_hdrs",
+  srcs = [
+    "SettingsRetriever/Classes/TTKitchenManager+SettingsRetriever.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SettingsRetriever_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SettingsRetriever_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SettingsRetriever_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "SettingsRetriever_module_map",
+  module_map = "pod_support/Headers/Public/TTKitchen/TTKitchen_SettingsRetriever-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTKitchen/TTKitchen_SettingsRetriever-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SettingsRetriever_srcs",
+  srcs = [
+    "SettingsRetriever/Classes/TTKitchenManager+SettingsRetriever.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SettingsRetriever_oc",
+  enable_modules = 1,
+  srcs = [
+    "SettingsRetriever_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "SettingsRetriever_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTKitchen_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTKitchen_private_includes",
+    ":TTKitchen_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@AWECloudCommand//:AWECloudCommand_objc_interface",
+    "@AWECloudCommand//:AWECloudCommand_swift_interface",
+    ":SettingsRetriever_objc_interface",
+    "@AWECloudCommand//:AWECloudCommand_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTKitchen_POD_VERSION=@\\\"9999_4.3.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SettingsRetriever",
+  deps = [
+    ":SettingsRetriever_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "SettingsRetriever_lib",
+  deps = [
+    ":SettingsRetriever"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "JSONModel_hdrs",
+  srcs = [
+    "JSONModel/Classes/TTKitchenJSONModelizer.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "JSONModel_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "JSONModel_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "JSONModel_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "JSONModel_module_map",
+  module_map = "pod_support/Headers/Public/TTKitchen/TTKitchen_JSONModel-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTKitchen/TTKitchen_JSONModel-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "JSONModel_srcs",
+  srcs = [
+    "JSONModel/Classes/TTKitchenJSONModelizer.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "JSONModel_oc",
+  enable_modules = 1,
+  srcs = [
+    "JSONModel_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "JSONModel_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTKitchen_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTKitchen_private_includes",
+    ":TTKitchen_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@JSONModel//:JSONModel_objc_interface",
+    "@JSONModel//:JSONModel_swift_interface",
+    ":JSONModel_objc_interface",
+    "@JSONModel//:JSONModel_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTKitchen_POD_VERSION=@\\\"9999_4.3.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "JSONModel",
+  deps = [
+    ":JSONModel_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "JSONModel_lib",
+  deps = [
+    ":JSONModel"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Swift_hdrs",
+  srcs = [
+    "Swift/Classes/TTKitchenManager+Swift.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Swift_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Swift_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Swift_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Swift_module_map",
+  module_map = "pod_support/Headers/Public/TTKitchen/TTKitchen_Swift-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTKitchen/TTKitchen_Swift-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Swift_srcs",
+  srcs = [
+    "Swift/Classes/TTKitchenManager+Swift.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Swift_oc",
+  enable_modules = 1,
+  srcs = [
+    "Swift_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Swift_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTKitchen_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTKitchen_private_includes",
+    ":TTKitchen_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":Swift_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTKitchen_POD_VERSION=@\\\"9999_4.3.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Swift",
+  deps = [
+    ":Swift_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Swift_lib",
+  deps = [
+    ":Swift"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_module_map",
+  module_map = "pod_support/Headers/Public/TTKitchen/TTKitchen_mPaaS-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTKitchen/TTKitchen_mPaaS-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTKitchen_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTKitchen_private_includes",
+    ":TTKitchen_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":mPaaS_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTKitchen_POD_VERSION=@\\\"9999_4.3.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS",
+  deps = [
+    ":mPaaS_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_lib",
+  deps = [
+    ":mPaaS"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_Task_hdrs",
+  srcs = [
+    "mPaaS/Task/TTKitchenStartUpTask.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_Task_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_Task_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_Task_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_Task_module_map",
+  module_map = "pod_support/Headers/Public/TTKitchen/TTKitchen_mPaaS_Task-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTKitchen/TTKitchen_mPaaS_Task-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_Task_srcs",
+  srcs = [
+    "mPaaS/Task/TTKitchenStartUpTask.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_Task_oc",
+  enable_modules = 1,
+  srcs = [
+    "mPaaS_Task_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_Task_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":TTKitchen_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTKitchen_private_includes",
+    ":TTKitchen_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDGaiaExtension//:BDGaiaExtension_objc_interface",
+    "@BDStartUp//:Base_objc_interface",
+    "@BDUGSettingsInterface//:BDUGSettingsInterface_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDGaiaExtension//:BDGaiaExtension_swift_interface",
+    "@BDStartUp//:Base_swift_interface",
+    "@BDUGSettingsInterface//:BDUGSettingsInterface_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":mPaaS_Task_objc_interface",
+    "@BDGaiaExtension//:BDGaiaExtension_module_map",
+    "@BDStartUp//:Base_module_map",
+    "@BDUGSettingsInterface//:BDUGSettingsInterface_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTKitchen_POD_VERSION=@\\\"9999_4.3.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_Task",
+  deps = [
+    ":mPaaS_Task_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_Task_lib",
+  deps = [
+    ":mPaaS_Task"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_CN_hdrs",
+  srcs = [
+    "mPaaS/China/TTKitchenConfigCN.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_CN_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_CN_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_CN_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_CN_module_map",
+  module_map = "pod_support/Headers/Public/TTKitchen/TTKitchen_mPaaS_CN-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTKitchen/TTKitchen_mPaaS_CN-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_CN_srcs",
+  srcs = [
+    "mPaaS/China/TTKitchenConfigCN.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_CN_oc",
+  enable_modules = 1,
+  srcs = [
+    "mPaaS_CN_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_CN_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":TTKitchen_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTKitchen_private_includes",
+    ":TTKitchen_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":mPaaS_CN_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTKitchen_POD_VERSION=@\\\"9999_4.3.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_CN",
+  deps = [
+    ":mPaaS_CN_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_CN_lib",
+  deps = [
+    ":mPaaS_CN"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_SG_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_SG_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_SG_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_SG_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_SG_module_map",
+  module_map = "pod_support/Headers/Public/TTKitchen/TTKitchen_mPaaS_SG-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTKitchen/TTKitchen_mPaaS_SG-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_SG_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_SG_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":TTKitchen_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTKitchen_private_includes",
+    ":TTKitchen_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":mPaaS_SG_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTKitchen_POD_VERSION=@\\\"9999_4.3.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_SG",
+  deps = [
+    ":mPaaS_SG_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_SG_lib",
+  deps = [
+    ":mPaaS_SG"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_VA_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_VA_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_VA_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_VA_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_VA_module_map",
+  module_map = "pod_support/Headers/Public/TTKitchen/TTKitchen_mPaaS_VA-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTKitchen/TTKitchen_mPaaS_VA-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_VA_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_VA_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":TTKitchen_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTKitchen_private_includes",
+    ":TTKitchen_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":mPaaS_VA_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTKitchen_POD_VERSION=@\\\"9999_4.3.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_VA",
+  deps = [
+    ":mPaaS_VA_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_VA_lib",
+  deps = [
+    ":mPaaS_VA"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_InHouse_hdrs",
+  srcs = [
+    "mPaaS/InHouse/BDDebugFeedTTKitchen.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_InHouse_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_InHouse_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_InHouse_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_InHouse_module_map",
+  module_map = "pod_support/Headers/Public/TTKitchen/TTKitchen_mPaaS_InHouse-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTKitchen/TTKitchen_mPaaS_InHouse-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_InHouse_srcs",
+  srcs = [
+    "mPaaS/InHouse/BDDebugFeedTTKitchen.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_InHouse_oc",
+  enable_modules = 1,
+  srcs = [
+    "mPaaS_InHouse_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_InHouse_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":TTKitchen_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTKitchen_private_includes",
+    ":TTKitchen_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDStartUp//:Debug_objc_interface",
+    "@BDStartUp//:Debug_swift_interface",
+    ":mPaaS_InHouse_objc_interface",
+    "@BDStartUp//:Debug_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTKitchen_POD_VERSION=@\\\"9999_4.3.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_InHouse",
+  deps = [
+    ":mPaaS_InHouse_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_InHouse_lib",
+  deps = [
+    ":mPaaS_InHouse"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "KeyReporter_hdrs",
+  srcs = [
+    "KeyReporter/TTKitchenKeyReporter.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "KeyReporter_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "KeyReporter_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "KeyReporter_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "KeyReporter_module_map",
+  module_map = "pod_support/Headers/Public/TTKitchen/TTKitchen_KeyReporter-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTKitchen/TTKitchen_KeyReporter-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "KeyReporter_srcs",
+  srcs = [
+    "KeyReporter/TTKitchenKeyReporter.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "KeyReporter_oc",
+  enable_modules = 1,
+  srcs = [
+    "KeyReporter_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "KeyReporter_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTKitchen_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTKitchen_private_includes",
+    ":TTKitchen_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Heimdallr//:UserException_objc_interface",
+    "@Heimdallr//:UserException_swift_interface",
+    ":KeyReporter_objc_interface",
+    "@Heimdallr//:UserException_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTKitchen_POD_VERSION=@\\\"9999_4.3.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "KeyReporter",
+  deps = [
+    ":KeyReporter_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "KeyReporter_lib",
+  deps = [
+    ":KeyReporter"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "MMKV_hdrs",
+  srcs = [
+    "MMKV/TTKitchenMMKVDiskCache.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "MMKV_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTKitchen/TTKitchenMMKVDiskCache.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "MMKV_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "MMKV_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "MMKV_module_map",
+  module_map = "pod_support/Headers/Public/TTKitchen/TTKitchen_MMKV-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTKitchen/TTKitchen_MMKV-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "MMKV_srcs",
+  srcs = [
+    "MMKV/TTKitchenMMKVDiskCache.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "MMKV_oc",
+  enable_modules = 1,
+  srcs = [
+    "MMKV_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "MMKV_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTKitchen_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTKitchen_private_includes",
+    ":TTKitchen_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@MMKV//:MMKV_objc_interface",
+    "@MMKV//:MMKV_swift_interface",
+    ":MMKV_objc_interface",
+    "@MMKV//:MMKV_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTKitchen_POD_VERSION=@\\\"9999_4.3.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "MMKV",
+  deps = [
+    ":MMKV_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "MMKV_lib",
+  deps = [
+    ":MMKV"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "YYCache_hdrs",
+  srcs = [
+    "YYCache/TTKitchenYYCacheDiskCache.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "YYCache_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "YYCache_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "YYCache_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "YYCache_module_map",
+  module_map = "pod_support/Headers/Public/TTKitchen/TTKitchen_YYCache-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTKitchen/TTKitchen_YYCache-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "YYCache_srcs",
+  srcs = [
+    "YYCache/TTKitchenYYCacheDiskCache.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "YYCache_oc",
+  enable_modules = 1,
+  srcs = [
+    "YYCache_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "YYCache_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTKitchen_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTKitchen_private_includes",
+    ":TTKitchen_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@YYCache//:YYCache_objc_interface",
+    "@YYCache//:YYCache_swift_interface",
+    ":YYCache_objc_interface",
+    "@YYCache//:YYCache_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTKitchen_POD_VERSION=@\\\"9999_4.3.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "YYCache",
+  deps = [
+    ":YYCache_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "YYCache_lib",
+  deps = [
+    ":YYCache"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Migrator_hdrs",
+  srcs = [
+    "Migrator/TTKitchenCacheMigrator.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Migrator_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Migrator_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Migrator_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Migrator_module_map",
+  module_map = "pod_support/Headers/Public/TTKitchen/TTKitchen_Migrator-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTKitchen/TTKitchen_Migrator-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Migrator_srcs",
+  srcs = [
+    "Migrator/TTKitchenCacheMigrator.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Migrator_oc",
+  enable_modules = 1,
+  srcs = [
+    "Migrator_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Migrator_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTKitchen_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTKitchen_private_includes",
+    ":TTKitchen_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDMonitorProtocol//:BDMonitorProtocol_objc_interface",
+    "@BDMonitorProtocol//:BDMonitorProtocol_swift_interface",
+    ":Migrator_objc_interface",
+    "@BDMonitorProtocol//:BDMonitorProtocol_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTKitchen_POD_VERSION=@\\\"9999_4.3.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Migrator",
+  deps = [
+    ":Migrator_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Migrator_lib",
+  deps = [
+    ":Migrator"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Debug_hdrs",
+  srcs = [
+    "Debug/TTKitchenDebugRowPlugin.h",
+    "Debug/TTKitchenDebugViewController.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Debug_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Debug_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Debug_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Debug_module_map",
+  module_map = "pod_support/Headers/Public/TTKitchen/TTKitchen_Debug-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTKitchen/TTKitchen_Debug-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Debug_srcs",
+  srcs = [
+    "Debug/TTKitchenDebugRowPlugin.m",
+    "Debug/TTKitchenDebugViewController.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Debug_oc",
+  enable_modules = 1,
+  srcs = [
+    "Debug_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Debug_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTKitchen_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTKitchen_private_includes",
+    ":TTKitchen_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Heimdallr//:DeviceInfo_objc_interface",
+    "@TTDebugCore//:TTDebugCore_objc_interface",
+    "@Heimdallr//:DeviceInfo_swift_interface",
+    "@TTDebugCore//:TTDebugCore_swift_interface",
+    ":Debug_objc_interface",
+    "@Heimdallr//:DeviceInfo_module_map",
+    "@TTDebugCore//:TTDebugCore_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTKitchen_POD_VERSION=@\\\"9999_4.3.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Debug",
+  deps = [
+    ":Debug_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Debug_lib",
+  deps = [
+    ":Debug"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_TTKitchen_module_map",
+  module_map = "@TTKitchen//:pod_support/Headers/Public/TTKitchen/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@TTKitchen//:pod_support/Headers/Public/TTKitchen/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_TTKitchen_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@TTKitchen//:Core_objc_interface", "@TTKitchen//:MMKV_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_TTKitchen",
+  target_name = "Lark",
+  module_name = "TTKitchen",
+  hdrs = ["@TTKitchen//:Core_pod_hdrs", "@TTKitchen//:MMKV_pod_hdrs"],
+  srcs = ["@TTKitchen//:Core_srcs", "@TTKitchen//:MMKV_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["BDAssert", "ByteDanceKit", "Gaia", "MMKV"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTKitchen_POD_VERSION=@\\\"9999_4.3.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "TTKitchen_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "TTKitchen_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "TTKitchen_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "TTKitchen_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "TTKitchen_dynamic", False),
+  tags = getattr(defs_external_objc_library, "TTKitchen_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("TTKitchen", {}),
+  visibility = ["//visibility:public"],
+)

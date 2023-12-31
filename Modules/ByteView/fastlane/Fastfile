@@ -1,0 +1,467 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+__root='../../..'
+require_relative "#{__root}/fastlane/remove_unused_pb_common"
+
+default_platform(:ios)
+
+BYTEVIEW_PATH='./Modules/ByteView'
+EXAMPLE_PATH='./Example'
+
+import("./build_lark/Fastfile")
+
+platform :ios do
+
+  desc "Execute Cocoapods"
+  lane :execute_cocoapods do
+    if ENV["BYTEVIEW_BINARY"]
+      puts("use binary")
+    else
+      puts("use source")
+    end
+    begin
+      cocoapods( podfile: EXAMPLE_PATH)
+    rescue
+      puts "Execute Pod Repo Update!"
+      sh("pod repo update")
+      cocoapods( podfile: EXAMPLE_PATH)
+    end
+  end
+
+  desc "Use Pod Lib Lint to check the pod spec"
+  lane :lint do
+    # add actions here: https://docs.fastlane.tools/actions
+    pod_lib_lint(use_bundle_exec: true,
+		sources: ["git@code.byted.org:ee/pods_specs.git", 
+			  "ssh://git.byted.org:29418/ee/lark/ios/LarkSpecRepo",
+			  "https://github.com/CocoaPods/Specs.git"],
+		allow_warnings: true,
+      use_libraries: true,
+            private: true,
+          fail_fast: true)
+  end
+
+  desc "Scan and lint the swift source code"
+  lane :unittest do
+    execute_cocoapods
+    ENV["XCPRETTY_JSON_FILE_OUTPUT"]="./reports/xcodebuild.json"
+    scan(workspace: "Example/ByteView.xcworkspace", scheme: "ByteView-Example", formatter:'xcpretty-json-formatter' ,code_coverage: true, derived_data_path: "./DerivedData", output_directory: "./reports")
+    # slather
+  end
+
+  desc "check a merge reqeust"
+  lane :check do
+    # danger(
+    #   danger_id: "MR",
+    #   dangerfile: "fastlane/MRCheckDanger",
+    #   fail_on_errors: true,
+    #   base: ENV["CODE_BASE"],
+    #   head: ENV["CODE_HEAD"],
+    #   verbose: true
+    # )
+    # if !ENV["SKIP_SONAR"]
+    #   swiftlint(
+    #     output_file: "./reports/swiftlint.json",
+    #     config_file: ".swiftlint.yml",
+    #     reporter: "json",
+    #     ignore_exit_status: true
+    #   )
+    #   sonar(
+    #     sonar_url: "http://10.225.126.86:9000"
+    #   )
+    #   sleep(10)
+    #   get_sonar_issue(
+    #     sonar_url: "http://10.225.126.86:9000",
+    #     project_name: "ee_sh_IOS_ByteView",
+    #     assignee: ENV["ASSIGNEE"]
+    #   )
+    # end
+    smoke_test
+    # danger(
+    #     danger_id: "post",
+    #     dangerfile: "fastlane/PostCheckDanger",
+    #     fail_on_errors: true,
+    #     base: ENV["CODE_BASE"],
+    #     head: ENV["CODE_HEAD"],
+    #     verbose: true
+    #   )
+  end
+
+  desc "open a merge request"
+  lane :mrcheck do
+    gitlab_create_merge_request()
+  end
+
+  desc "generate release notes"
+  lane :generate do
+    generate_release_note(
+      post: true
+    )
+  end
+
+  desc "Deploy the pod by EEScaffold"
+  lane :deploy do |options|
+    ensure_git_status_clean
+    commit = last_git_commit
+    short_hash = commit[:abbreviated_commit_hash] # short sha of commit
+    version = version_bump_podspec(path: "Modules/ByteView/ByteView.podspec")
+    erb(template: "Modules/ByteView/template/env.erb", 
+        destination: "Modules/ByteView/src/Core/ByteViewEnvironment.swift",
+        placeholders: { 
+          :version => version,
+          :short_hash => short_hash
+        })
+    count = 1
+    begin
+        sh("bundle exec EEScaffold module publish --name=ByteView --no-lint_project_git --skip-build")
+    rescue
+        if count<=3
+            count = count+1
+            retry  
+        end
+        byteview_publish_bot(is_succeed: false)
+        return
+    end
+    byteview_publish_bot(is_succeed: true)
+  end
+  
+  desc "rebase"
+  lane :rebase do
+    sh("./Rebase.sh")
+  end
+
+  desc "send review status"
+  lane :postReviewStatus do
+    puts ENV["MERGE_REQUEST_ID"]
+    fastlane_require 'uri'
+    fastlane_require 'json'
+    fastlane_require 'net/https'
+    uri = URI(ENV["REVIEW_URL"]+"?mergeRequestId="+ENV["MERGE_REQUEST_ID"]+"&projectId="+ENV["CI_PROJECT_ID"])
+    puts uri
+    retryCount=1
+    begin
+        http = Net::HTTP.new(uri.host,uri.port)
+        http.use_ssl = true 
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE 
+        res = http.get(uri)
+        arr = JSON.parse res.body
+        puts arr
+        if arr["error"].nil?
+            puts "正常"
+        else
+            puts "出现问题"
+            raise "error" 
+        end
+    rescue
+        if retryCount<=3
+            retryCount = retryCount+1
+            retry  
+        end
+    end
+  end
+
+  desc "get review status"
+  lane :getReviewStatus do
+    puts ENV["MERGE_REQUEST_ID"]
+    require 'excon'
+    url = ENV["REVIEW_URL"]+ "?mergeRequestId="+ENV["MERGE_REQUEST_ID"]+"&projectId="+ENV["CI_PROJECT_ID"] + "&action=getReviewStatus"
+    puts url
+    while true do
+      connection = Excon.new(url)
+      response = connection.request(
+        method: "get",
+        debug_request: true,
+        debug_response: true
+      )
+      body = JSON.parse(response.body)
+      puts body
+      status = body["status"]
+      if status == "running"
+        puts "review is running"
+        sleep(10)
+      elsif status == "success"
+        break
+      elsif status == "failed" || status == "canceled"
+        puts "\033[31m"+ "review is runnng on: " + body["review_url"] + "\033[0m\n"
+        raise "review failed"
+      else
+        puts "review has not be runned"
+        break
+      end
+    end
+  end
+  
+  desc "merge"
+  lane :merge do
+    puts ENV["MERGE_REQUEST_ID"]
+    fastlane_require 'uri'
+    fastlane_require 'json'
+    fastlane_require 'net/https'
+    uri = URI(ENV["REBASE_URL"]+"?mergeRequestId="+ENV["MERGE_REQUEST_ID"]+"&projectId="+ENV["CI_PROJECT_ID"]+"&action=rebase")
+    count=1
+    begin
+        http = Net::HTTP.new(uri.host,uri.port)
+        http.use_ssl = true 
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE 
+        res = http.get(uri)
+        arr = JSON.parse res.body
+        puts arr
+    rescue
+        if count<=3
+            count = count+1
+            retry  
+        end
+    end
+  end
+ 
+
+  desc "execute sonar scanner"
+  lane :execute_sonar do
+    sh("rm -rf ../DerivedData/Logs/Test/*.xcresult")
+    execute_cocoapods
+    scan(
+      workspace: "Example/ByteView.xcworkspace",
+      scheme: "ByteView-Example",
+      code_coverage: true,
+      derived_data_path: "./DerivedData",
+      clean: true
+    )
+    sh("xcparse codecov `find ../DerivedData/Logs/Test -name '*.xcresult' -mmin -30` ../DerivedData/Logs/Test/")
+    formatScript = "./Script/xccov-to-sonarqube-generic.sh"
+    sh("cd .. && mkdir -p reports && bash #{formatScript} ./DerivedData/Logs/Test/*.xccovarchive/ > ./reports/sonarqube-generic-coverage.xml")
+    swiftlint(
+      output_file: "./reports/swiftlint.json",
+      config_file: ".swiftlint.yml",
+      reporter: "json",
+      ignore_exit_status: true
+    )
+    sonar(
+      sonar_url: "http://10.225.126.86:9000"
+    )
+  end
+  
+  lane :send_sonar_info do
+    sonar_info(
+      sonar_url: "http://10.225.126.86:9000",
+      bot_url: "https://open.feishu.cn/open-apis/bot/hook/07bbd622193b447490caf3345f7401e7",
+      project_name: "ee_sh_IOS_ByteView"
+    )
+  end 
+
+  desc "upload dsym zip to slardar"
+  def upload_symbols_to_slardar()
+    puts "begin upload dsym to slardar"
+
+    appID = 1161
+    slardar_url = "http://symbolicate.byted.org/slardar_ios_upload"
+    dsym_path = "#{Actions.lane_context[SharedValues::DSYM_OUTPUT_PATH]}"
+
+    sh "curl #{slardar_url} -F \"file=@#{dsym_path}\"  -F \"aid=#{appID}\" \"Content-Type: multipart/form-data\" -w %{http_code} -v"
+  end
+
+  desc "upload ipa to tos"
+  def upload_ipa_to_tos()
+    puts "begin upload ipa to tos"
+
+    job_id = ENV['CI_JOB_ID']
+    ipa_path = "#{Actions.lane_context[SharedValues::IPA_OUTPUT_PATH]}"
+
+    begin
+      sh "toscli put -name lark_#{job_id}.ipa #{ipa_path}"
+    rescue
+      puts "upload ipa to tos failed."
+    end
+  end
+
+  lane :package_clone_lark do |options|
+    branch = options[:branch]
+    ret = git_clone(git: "ssh://yangyao.wildyao@git.byted.org:29418/ee/lark/ios-client", branch: "#{branch}")
+  end
+
+  lane :send_bot_notify do |options|
+    lark_package_bot(
+      open_id: ENV['OPEN_ID'],
+      open_chat_id: ENV['OPEN_CHAT_ID'],
+      open_message_id: ENV['OPEN_MESSAGE_ID'],
+      job_id: ENV['CI_JOB_ID'],
+      fail_fetch_message: ENV['LARK_PACKAGE_FAIL_FETCH_MESSAGE'],
+      fail_pull_message: ENV['LARK_PACKAGE_FAIL_PULL_MESSAGE'],
+      fail_pod_message: ENV['LARK_PACKAGE_FAIL_POD_MESSAGE'],
+      fail_build_message: ENV['LARK_PACKAGE_FAIL_BUILD_MESSAGE'],
+      code: options[:code],
+      error: options[:error],
+      is_succeed: options[:is_succeed],
+      url: options[:url]
+    )
+  end
+
+  lane :package_build_lark do |options|
+    params = {
+      :lark_path => options[:project_path],
+      :lark_config_name => options[:lark_config_name],
+      :output_directory => options[:output_directory] || Pathname(".").join("building_ipa_output").to_path,
+      :export_method => "enterprise",
+      :build_number => ci_build_number
+    }
+
+    build_lark(params)
+
+    changelog_from_git_commits
+    begin
+      generate_release_note(
+        post: false
+      )
+    rescue
+      puts "generate_release_note failed, but continue."
+    end
+
+    rutland(
+      ipa: "#{Actions.lane_context[SharedValues::IPA_OUTPUT_PATH]}",
+      whats_new: "#{Actions.lane_context[SharedValues::RELEASE_NOTES]}"
+    )
+    
+    if ENV["USE_BOT"] == "true"
+      send_bot_notify(is_succeed: true, url: ENV["LARK_PACKAGE_ASSISTANT_NOTIFY_URL"])
+    else
+      send_bot_notify(is_succeed: true, url: ENV["LARK_PACKAGE_NOTIFY_BOT_URL"])
+    end
+
+    # 比较耗时，放到最后上传
+    begin
+      upload_symbols_to_slardar()
+    rescue
+      puts "upload_symbols failed, but continue."
+    end
+    
+    upload_ipa_to_tos()
+  end
+
+  lane :NeoBeta do
+    ee_build_enterprise_ipa(
+	build_number: ci_build_number, 
+	projectPath:"Product/Neo", 
+	schemes:['Neo'], 
+	main_scheme:'Neo'
+	)
+    rutland
+    lark_bot(
+      url: "https://open.feishu.cn/open-apis/bot/hook/8c50c5da1a61469a8748e5f4352e46fe",
+      project: "Neo",
+      api_token: ENV["GITLAB_PRIVATE_TOKEN"],
+      project_id: ENV["CI_PROJECT_ID"],
+      api_url: 'https://code.byted.org/api/v4',
+      ref_name: ENV["CI_COMMIT_REF_NAME"]
+    )
+
+  end
+
+ lane :ee_build_enterprise_ipa do |options|
+    build_number = options.delete(:build_number)
+    output = options.delete(:output_directory) || Pathname('./building_ipa_output').to_path
+    iCloudContainerEnvironment = options.delete(:iCloudContainerEnvironment) || 'Production'
+
+    path = options.delete(:projectPath)
+    schemes = options.delete(:schemes)
+    main_scheme = options.delete(:main_scheme )
+    xcodeproj = "#{path}/#{main_scheme}.xcodeproj"
+    schemes.each do |scheme|
+      increment_build_number_in_plist(
+	xcodeproj: xcodeproj,
+        scheme: scheme,
+        build_number: build_number
+      )
+    end
+
+    version = get_version_number_from_plist(
+		    xcodeproj: xcodeproj,
+		    scheme: main_scheme
+		    )
+    build = get_build_number_from_plist(
+		    xcodeproj: xcodeproj,
+		    scheme: main_scheme
+		    )
+    options = {
+        workspace: "#{path}/#{main_scheme}.xcworkspace",
+        scheme: main_scheme,
+        clean: true,
+        silent: true,
+        suppress_xcode_output: true,
+        configuration: "Release",
+        output_directory: output,
+        output_name: "#{main_scheme}_#{version}_#{build}",
+        export_method: "enterprise",
+        export_options: {
+          iCloudContainerEnvironment: iCloudContainerEnvironment
+        }
+    }.merge!(options)
+    gym(options)
+
+  end
+
+  lane :smoke_test do
+      execute_cocoapods
+      sh <<~'SHELL'
+        cd ..
+        xcodebuild -workspace Example/ByteView.xcworkspace -scheme ByteView-Example -configuration Debug -sdk iphonesimulator \
+        -derivedDataPath ./DerivedData \
+        | XCPRETTY_JSON_FILE_OUTPUT="./reports/xcodebuild.json" xcpretty -f `xcpretty-json-formatter` \
+        && exit ${PIPESTATUS[0]}
+      SHELL
+  end
+
+  lane :build_verify do |options|
+    options[:iCloud_container_environment] = "Development"
+
+    puts options
+
+    begin
+      sh <<~SHELL
+        cd ../Example
+        SYMROOT="$(PWD)/../Build"
+        LOG_DIR="${GYM_BUILDLOG_PATH:-Logs}"
+        LOG_PATH="$LOG_DIR"/xcodebuild.log
+
+        echo "xcodebuild log output to $LOG_PATH"
+        mkdir -p "$LOG_DIR"
+
+        "$DEVELOPER_DIR/usr/bin/"xcodebuild \
+          -workspace ByteView.xcworkspace \
+          -scheme ByteView-Example \
+          -configuration Debug \
+          -sdk iphonesimulator \
+          -derivedDataPath "$DERIVED_DATA_PATH" \
+          -resultBundlePath "$RESULT_DATA_PATH" \
+          SYMROOT="$SYMROOT" \
+          clean build \
+          ODE_SIGNING_REQUIRED="NO" \
+          VALID_ARCHS="x86_64" \
+        | tee "$LOG_PATH" \
+        | xcpretty && exit ${PIPESTATUS[0]}
+      SHELL
+    end
+  end
+
+  lane :revert_remove_unused_pb do |options|
+    _revert_remove_unused_pb(options)
+  end
+
+  lane :remove_unused_pb do |options|
+    # 删除无用pb message（文档：https://bytedance.feishu.cn/wiki/wikcnSevDX5Izu7OSlfmAmVxrle）
+    options['REMOVE_PB_PROEJCT_DIR'] = __root
+    options['CUSTOM_PROJECT_PODS'] = "../Example/Pods"
+    _remove_unused_pb(options)
+  end
+end

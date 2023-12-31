@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayAbility/MyBankCard/Net/CJPayQueryUserBankCardRequest.h

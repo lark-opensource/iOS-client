@@ -1,0 +1,65 @@
+# Uncomment the next line to define a global platform for your project
+
+base = "../../../../bin/lib/lark-project/lib"
+require "../../../../if_pod"
+require "#{base}/lark/project/podfile_mixin"
+require "#{base}/lark/project/assembly"
+
+lark_template_common_setup(hummer_tags: {})
+
+`eesc_dir=$(git rev-parse --show-toplevel)/Modules/Infra/.eescaffold; ([[ -e $eesc_dir ]] && rm -rf $eesc_dir)`
+
+strict_lock_mode!
+
+# 使git hook生效
+`git config core.hooksPath hooks`
+
+disable_swiftlint! if respond_to?(:disable_swiftlint!)
+
+# 不进行 dependency 检查
+ENV['CHECK_ARCH_DEPS'] = 'false'
+
+# @param strategy:
+#   :all 开启全部二进制
+#   :pb 只有PB开启二进制
+#   other 手动开启二进制
+# 你也可以在本地创建 Podfile.patch（请勿提交该文件！） 以固定配置某些库为源码或者二进制
+# 修改后记得重新pod install
+lark_use_common_binary_config(strategy: :all) do
+  # 这里插入Name可以将某个库切成源码, 无需使用引号、逗号，一行一个或者使用空格做分割
+  %W[
+  ].each { |v| source v }
+end
+
+target 'LarkUIKitDemo' do
+  # Comment the next line if you're not using Swift and don't want to use dynamic frameworks
+
+  lark_main_target_if_pods
+
+  pod 'LarkUIKit', :path => './'
+  lark_pod_heimdallr
+end
+
+pre_install do |installer|
+  # modify build_settings in pre_install, so cache check will be valid
+  lark_template_common_pre_install installer
+
+  # additional xcconfigs
+  installer.pod_targets.each do |pod_target|
+    attributes_hash = pod_target.root_spec.attributes_hash
+    pod_target_xcconfig = (attributes_hash['pod_target_xcconfig'] ||= {})
+
+    pod_target_xcconfig['SWIFT_VERSION'] = '5.5'
+    pod_target_xcconfig['SUPPORTS_MACCATALYST'] = 'NO'
+
+    pod_target_xcconfig['OTHER_SWIFT_FLAGS'] ||= ''
+    pod_target_xcconfig['OTHER_SWIFT_FLAGS'] += ' -D IN_DEMO_PROJECT'
+  end
+end
+
+post_install do |installer|
+  lark_template_common_post_install installer
+end
+
+# Podfile结束eval前需要执行的一些代码，目前是引用if_pod的集成需要延后生效
+flush_defer_actions!

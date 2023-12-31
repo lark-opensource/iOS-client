@@ -1,0 +1,1 @@
+../../../../TTAdSplashSDK/Classes/view/BDASplashView+SwipeUp.h

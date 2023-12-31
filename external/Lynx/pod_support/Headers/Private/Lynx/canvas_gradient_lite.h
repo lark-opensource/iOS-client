@@ -1,0 +1,1 @@
+../../../../third_party/krypton/canvas/2d/lite/canvas_gradient_lite.h

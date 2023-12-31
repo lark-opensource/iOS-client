@@ -1,0 +1,114 @@
+@startuml account
+
+interface LauncherDelegate {
+    +var name: String
+    --
+    +afterLoadAccount(_ context: LauncherContext, error: Error?)
+    +beforeLogin(_ context: LauncherContext)
+    +afterLoginSucceded(_ context: LauncherContext) -> Observable<Void>
+    +afterAccountLoaded(_ context: LauncherContext)
+    +afterLaunchHome(_ context: LauncherContext)
+    +afterLogout(_ context: LauncherContext)
+    +beforeSwitchAccout()
+    +afterSwitchAccout(error: Error?) -> Observable<Void>
+}
+
+class Launcher {
+    -window: UIWindow?
+    -delegates: [DelegateRegistery]
+    -backgroundTasks: [Task]
+    -stateProducers: [State: StateProducer]
+    --
+    +relogin(forceLogout: Bool, clearData: Bool, onError: (String) -> Void)
+    +processLaunch(with context: Context, isRelogin: Bool)
+    +switchTo(userID: String)
+    +register(provider: LauncherDelegatesProvider)
+}
+
+class AccountManager {
+    -account: Account?
+    -accountsVariable: BehaviorRelay<[Account]>
+    --
+    +setAccount(_ account: Account, isLightlyActive: Bool) throws -> SetAccountResult
+    +switchTo(userID: String) -> Observable<Account>
+    +logout()
+}
+
+class AccountStorage {
+    -deviceInfo: DeviceInfo
+    --
+    +mergeAccount(_ account: Account) -> Account
+    +update(account: Account)
+    +clearAccount()
+}
+
+class LoginWrapper {
+    +clearSharedData()
+    +clear()
+    +fastLogin() -> Observable<Account>
+    +login(_ window: UIWindow?) -> Observable<Account>
+    +switchToAccount(_ account: Account)
+    +logout(token: String?) -> Observable<Void>
+}
+
+class LarkRustClient {
+    +{static} stagingFeatureID: String
+    +{static} idcFlowControlValue: String
+    --
+    +reset(with userId: String, accessToken: String, isLightlyActive: Bool) throws -> Bool
+    +logout()
+    +fetchDeviceId() -> Observable<DeviceInfo>
+    ..
+    -setDeviceInfo(_ deviceInfo: DeviceInfo)
+    -setStagingFeatureID()
+    -setIdcFlowControlValue()
+    -setAccessToken(userId: String, accessToken: String, isLightlyActive: Bool) throws -> Bool
+    -setClientNetworkType(networkType: SetClientStatusRequest.NetType? = nil)
+    ..
+    -observeNetwork()
+    -observeAppLifeCycle()
+    -noticeAppLifeCycle(event: NoticeClientEventRequest.Event)
+}
+
+class NotificationService {
+    +registerRemoteNotification()
+    +registerDeviceToken(_ deviceToken: Data, deviceId: String, installId: String)
+}
+
+Launcher "1" --* "1" AccountManager : contains
+Launcher "1" --* "1" LoginWrapper : contains
+Launcher "1" --* "n" LauncherDelegate : contains
+
+LoginWrapper "1" --* "1" LarkRustClient : contains
+
+AccountManager "1" --* "1" AccountStorage : contains
+AccountManager "1" --* "1" LarkRustClient : contains
+
+LarkRustClient "1" --* "1" NotificationService : uses
+LarkRustClient "1" --* "1" AccountStorage : contains
+
+@enduml
+
+@startuml automan
+[*] --> loadAccount: launch/logout
+[*] --> acountLoaded: switch account
+loadAccount -> acountLoaded : success
+loadAccount -> login : failed
+
+login --> login : failed
+
+login --> acountLoaded
+
+acountLoaded --> launchHome
+acountLoaded --> signPolicies
+
+signPolicies --> launchHome : agree
+
+launchHome --> [*]
+
+loadAccount: load account from EElogin, merge with local account
+login: process login using EELogin
+acountLoaded: account loaded, check aggrement
+signPolicies: sign policies
+launchHome: show tabbar
+@enduml

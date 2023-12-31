@@ -1,0 +1,64 @@
+# Copyright 2023 The Lynx Authors. All rights reserved.
+
+import("//Lynx/Lynx.gni")
+import("//testing/test.gni")
+
+if (is_android) {
+  import("//build/config/android/config.gni")
+}
+
+if (target_cpu == "arm" || target_cpu == "arm64") {
+  import("//build/config/arm.gni")
+}
+
+jsi_sources = [
+  "instrumentation.h",
+  "jsi-inl.h",
+  "jsi.cc",
+  "jsi.h",
+  "jslib.h",
+  "lynx_resource_setting.cc",
+  "lynx_resource_setting.h",
+]
+
+lynx_source_set("jsi") {
+  public_configs = [ "//Lynx:config" ]
+
+  sources = jsi_sources
+}
+
+unittest_set("jsi_unittests") {
+  sources = [ "jsi_unittest.cc" ]
+
+  include_dirs = [
+    "//Lynx",
+    "//Lynx/lepus/quickjs/include",
+    "//Lynx/lepus/quickjs/source",
+  ]
+
+  configs = [ "//Lynx/lepus/quickjs:quickjs_config" ]
+
+  if (is_mac) {
+    public_configs = [ "//Darwin:darwin_flag_config" ]
+  }
+
+  deps = [
+    ":jsi",
+    "//Lynx/base",
+    "//Lynx/jsbridge/quickjs:quickjs",
+    "//Lynx/lepus/quickjs:quickjs",
+    "//Lynx/lepus/quickjs:quickjs_libc",
+  ]
+}
+
+if (enable_gen_podspec) {
+  gen_subspec_file("jsbridge_podspec") {
+    exclude_files = "Lynx/jsbridge/jsi/*_unittest.*"
+    deps_frameworks = [ "JavaScriptCore" ]
+    module_name = "Lynx"
+    parent_path = "JSRuntime"
+    podspec_name = "JSI"
+    private_header_files = "Lynx/jsbridge/jsi/*.h"
+    sources = jsi_sources
+  }
+}

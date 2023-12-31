@@ -1,0 +1,36 @@
+//
+//  Alias.swift
+//  UGRCoreIntegration
+//
+//  Created by shizhengyu on 2021/3/3.
+//
+
+import Foundation
+import RustPB
+
+typealias GetUGSDKSettingsRequest = Ugreach_V1_GetUGSDKSettingsRequest
+typealias GetUGSDKSettingsResponse = Ugreach_V1_GetUGSDKSettingsResponse
+typealias GetUGScenarioRequest = Ugreach_V1_GetUGScenarioRequest
+typealias GetUGScenarioResponse = Ugreach_V1_GetUGScenarioResponse
+typealias PushUGScenarioInfo = Ugreach_V1_PushUGScenarioInfo
+typealias UploadUGEventRequest = Ugreach_V1_UploadUGEventRequest
+typealias ScenarioContext = Ugreach_V1_ScenarioContext
+typealias RuleExpression = Ugreach_V1_RuleExpression
+typealias LocalRule = Ugreach_V1_LocalRule
+typealias ReachPointRelation = Ugreach_V1_ReachPointRelation
+typealias ReachPointConfig = Ugreach_V1_ReachPointConfig
+typealias ReachPointMaterial = Ugreach_V1_ReachPointMaterial
+typealias ReachPointEntity = Ugreach_V1_ReachPointEntity
+typealias ReachPointCache = Ugreach_V1_ReachPointCache
+typealias ScenarioContextCache = Ugreach_V1_ScenarioContextCache
+typealias GetUGLocalRuleRequest = Ugreach_V1_GetUGLocalRuleRequest
+typealias GetUGLocalRuleResponse = Ugreach_V1_GetUGLocalRuleResponse
+typealias GetUGScenarioCacheRequest = Ugreach_V1_GetUGScenarioCacheRequest
+typealias GetUGScenarioCacheResponse = Ugreach_V1_GetUGScenarioCacheResponse
+typealias GetUGValueByKeyRequest = Ugreach_V1_GetUGValueByKeyRequest
+typealias GetUGValueByKeyResponse = Ugreach_V1_GetUGValueByKeyResponse
+typealias UGWrapValue = Ugreach_V1_UGValue
+typealias UGValue = Ugreach_V1_UGValue.OneOf_Value
+typealias UpdateUGValueByKeyRequest = Ugreach_V1_UpdateUGValueByKeyRequest
+typealias DeleteUGValueByKeyRequest = Ugreach_V1_DeleteUGValueByKeyRequest
+typealias DeleteUGReachPointCacheRequest = Ugreach_V1_DeleteUGReachPointCacheRequest

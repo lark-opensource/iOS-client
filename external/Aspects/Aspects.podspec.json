@@ -1,0 +1,36 @@
+{
+    "name": "Aspects",
+    "version": "1.4.1.1-binary",
+    "summary": "framework_summary",
+    "homepage": "https://github.com/steipete/Aspects",
+    "license":
+    {
+        "type": "MIT",
+        "file": "LICENSE"
+    },
+    "authors":
+    {
+        "Peter Steinberger": "steipete@gmail.com"
+    },
+    "platforms":
+    {
+        "ios": "6.0"
+    },
+    "source_files": "Aspects.{h,m}",
+    "requires_arc": true,
+    "social_media_url": "https://twitter.com/steipete",
+    "description": "framework_description",
+    "source":
+    {
+        "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/8888/Aspects/1.4.1.1-binary/Aspects.framework.zip"
+    },
+    "prepare_command": "curl https://code.byted.org/wusizhen.arch/script/raw/master/awesomecommand.sh | bash",
+    "ios":
+    {
+        "vendored_libraries": "ios/*.a"
+    },
+    "user_target_xcconfig":
+    {
+        "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES"
+    }
+}

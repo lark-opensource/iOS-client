@@ -1,0 +1,1 @@
+../../../../XService/BDXServiceCenter/Classes/Base/BDXSchemaParam.h

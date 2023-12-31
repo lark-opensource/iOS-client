@@ -1,0 +1,122 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+require('yaml')
+
+default_platform(:ios)
+
+platform :ios do
+  lane :build_verify do |options|
+    # 执行 SwiftLint 并记录结果
+    has_lint = run_swift_lint()
+    puts "Run swiftlint with result #{has_lint}"
+
+
+    merge_policy = lambda do |key, o, n|
+      if o.is_a? Hash and n.is_a? Hash
+        o.merge!(n, &merge_policy)
+      elsif Fastlane::Actions::XcodebuildAction::ARGS_MAP.include? key and n == 'false'
+        nil # remove action
+      else
+        n
+      end
+    end
+
+    if ENV["GYM_BUILDLOG_PATH"].nil? or ENV["GYM_BUILDLOG_PATH"].empty?
+      LOG_DIR="#{ENV['TARGETCODEPATH']}/Logs" # 默认的收集的LOG路径
+    else
+      LOG_DIR=ENV['GYM_BUILDLOG_PATH']
+    end
+
+    options = {
+      workspace: 'SCDemo.xcworkspace',
+      scheme: 'SCDemo',
+      configuration: 'Debug',
+      clean: true,
+      build: true,
+      raw_buildlog: false, # show output from script like swiftlint
+      destination: 'generic/platform=iOS Simulator',
+      buildlog_path: LOG_DIR,
+      build_settings: {
+        'CODE_SIGNING_REQUIRED' => 'NO',
+        'VALID_ARCHS' => 'x86_64'
+      },
+      derivedDataPath: ENV['DERIVED_DATA_PATH'],
+      result_bundle_path: ENV['RESULT_DATA_PATH']
+    }.merge!(options, &merge_policy)
+    xcodebuild options
+
+  end
+
+
+   # swift lint
+   def get_lint_file_paths()
+    # find all changed files
+    change_file_list = `git diff --name-only --diff-filter=ACMRTX HEAD~1..HEAD`.split("\n")
+
+    # get included config
+    included = YAML.load(File.open("../.swiftlint.yml"))["included"].map { |path| path.to_s }
+
+    # filter all swift file
+    lint_file_list = change_file_list.find_all { |name|
+      name.end_with?(".swift") && (included.any? { |e| name.start_with?(e) })
+    }
+
+    return [lint_file_list, change_file_list, included]
+  end
+
+  def get_swift_lint_executable_path()
+    fastlane_path = File::dirname(File.expand_path(__FILE__))
+    # Pods 下的 SwiftLint 文件路径
+    executable_path = File.join(File::dirname(fastlane_path), "Pods/SwiftLint/swiftlint")
+
+    # 有则说明命中了缓存，直接返回
+    if File::exist?(executable_path)
+      return executable_path
+    else
+      return nil
+    end
+  end
+
+  # 执行 swift lint
+  def run_swift_lint()
+    lint_file_list, change_file_list, included = get_lint_file_paths()
+    puts "lint files:\n#{lint_file_list.join("\n")}\n\nchange files:\n#{change_file_list.join("\n")}\n\nincluded:\n#{included.join("\n")}"
+
+    # swiftlint 的执行路径在 Example，需要转换到根目录
+    lint_swift_file = lint_file_list.map { |path| "./#{path}" }
+
+    executable_path = get_swift_lint_executable_path().to_s
+
+    puts "executable_path: #{executable_path}"
+    puts "lint_swift_file: #{lint_swift_file}"
+
+    if File::exist?(executable_path) && lint_swift_file.length > 0
+      swiftlint(
+        config_file: "./.swiftlint.yml",
+        strict: true,
+        files: lint_swift_file,
+        executable: executable_path
+      )
+    else
+      puts "Skip swiftlint"
+      return false
+    end
+
+    true
+  end
+
+end
+

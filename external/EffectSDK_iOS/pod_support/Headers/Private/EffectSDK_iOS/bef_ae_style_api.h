@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_ae_style_api.h

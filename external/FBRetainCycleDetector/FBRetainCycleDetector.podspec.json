@@ -1,0 +1,117 @@
+{
+  "_bytebus_platform": {
+    "app_id": "13",
+    "is_swift": "1",
+    "repo_id": "2192"
+  },
+  "authors": {
+    "Grzegorz Pstrucha": "gricha@fb.com"
+  },
+  "description": "framework_description",
+  "frameworks": [
+    "Foundation",
+    "CoreGraphics",
+    "UIKit"
+  ],
+  "homepage": "https://github.com/facebook/FBRetainCycleDetector",
+  "libraries": "c++",
+  "license": "BSD",
+  "name": "FBRetainCycleDetector",
+  "platforms": {
+    "ios": "7.0"
+  },
+  "pod_target_xcconfig": {
+    "BUILD_LIBRARY_FOR_DISTRIBUTION": "YES",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "FBRetainCycleDetector_POD_VERSION=@\\\"13_0.2.0-alpha.30-swift\\\""
+  },
+  "public_header_files": [
+    "FBRetainCycleDetector/Detector/FBRetainCycleDetector.h",
+    "FBRetainCycleDetector/Associations/FBAssociationManager.h",
+    "FBRetainCycleDetector/Graph/FBObjectiveCBlock.h",
+    "FBRetainCycleDetector/Graph/FBObjectiveCGraphElement.h",
+    "FBRetainCycleDetector/Graph/Specialization/FBObjectiveCNSCFTimer.h",
+    "FBRetainCycleDetector/Graph/FBObjectiveCObject.h",
+    "FBRetainCycleDetector/Graph/FBObjectGraphConfiguration.h",
+    "FBRetainCycleDetector/Filtering/FBStandardGraphEdgeFilters.h",
+    "FBRetainCycleDetector/Layout/Blocks/FBBlockStrongLayout.h",
+    "FBRetainCycleDetector/FBRetainCycleUtils.h",
+    "FBRetainCycleDetector/Detector/FBNodeEnumerator.h",
+    "FBRetainCycleDetector/Graph/swift/FBGetSwiftAllRetainedObjectsHelper.h",
+    "FBRetainCycleDetector/Layout/Blocks/FBBlockInterface.h",
+    "FBRetainCycleDetector/Graph/swift/FBSwiftGraphElement.h",
+    "FBRetainCycleDetector/FBRetainCycleAlogDelegate.h"
+  ],
+  "repoId": "2192",
+  "requires_arc": [
+    "FBRetainCycleDetector/Associations/Internal/FBAssociationManager+Internal.h",
+    "FBRetainCycleDetector/Filtering/FBStandardGraphEdgeFilters.mm",
+    "FBRetainCycleDetector/Filtering/FBStandardGraphEdgeFilters.h",
+    "FBRetainCycleDetector/FBRetainCycleAlogDelegate.m",
+    "FBRetainCycleDetector/Layout/Blocks/Block_private.h",
+    "FBRetainCycleDetector/Layout/Blocks/FBBlockInterface.h",
+    "FBRetainCycleDetector/Layout/Classes/Parser/Type.h",
+    "FBRetainCycleDetector/Layout/Classes/Parser/Struct.mm",
+    "FBRetainCycleDetector/Layout/Classes/Parser/FBStructEncodingParser.h",
+    "FBRetainCycleDetector/Layout/Classes/Parser/Struct.h",
+    "FBRetainCycleDetector/Layout/Classes/Parser/FBStructEncodingParser.mm",
+    "FBRetainCycleDetector/Layout/Classes/Parser/BaseType.h",
+    "FBRetainCycleDetector/Layout/Classes/FBClassStrongLayout.mm",
+    "FBRetainCycleDetector/Layout/Classes/FBClassStrongLayout.h",
+    "FBRetainCycleDetector/Layout/Classes/Reference/FBObjectInStructReference.m",
+    "FBRetainCycleDetector/Layout/Classes/Reference/FBIvarReference.h",
+    "FBRetainCycleDetector/Layout/Classes/Reference/FBObjectInStructReference.h",
+    "FBRetainCycleDetector/Layout/Classes/Reference/FBObjectReference.h",
+    "FBRetainCycleDetector/Layout/Classes/Reference/FBIvarReference.m",
+    "FBRetainCycleDetector/Layout/Swift/Metadata.swift",
+    "FBRetainCycleDetector/Layout/Swift/TargetSingletonMetadataInitialization.swift",
+    "FBRetainCycleDetector/Layout/Swift/FlagSet.swift",
+    "FBRetainCycleDetector/Layout/Swift/StructMetadata.swift",
+    "FBRetainCycleDetector/Layout/Swift/ClassMetadata.swift",
+    "FBRetainCycleDetector/Layout/Swift/TargetTypeGenericContextDescriptorHeader.swift",
+    "FBRetainCycleDetector/Layout/Swift/TargetClassDescriptor_Extension.swift",
+    "FBRetainCycleDetector/Layout/Swift/TargetClassDescriptor.swift",
+    "FBRetainCycleDetector/Layout/Swift/TargetGenericRequirementDescriptor.swift",
+    "FBRetainCycleDetector/Layout/Swift/SimpleTrailingGenericContextObjects.swift",
+    "FBRetainCycleDetector/Layout/Swift/TargetVTableDescriptorHeader.swift",
+    "FBRetainCycleDetector/Graph/FBObjectiveCBlock.h",
+    "FBRetainCycleDetector/Graph/Specialization/FBObjectiveCNSCFTimer.h",
+    "FBRetainCycleDetector/Graph/Specialization/FBObjectiveCNSCFTimer.mm",
+    "FBRetainCycleDetector/Graph/FBObjectGraphConfiguration.h",
+    "FBRetainCycleDetector/Graph/FBObjectiveCObject.h",
+    "FBRetainCycleDetector/Graph/FBObjectiveCGraphElement.mm",
+    "FBRetainCycleDetector/Graph/Internal/FBObjectiveCGraphElement+Internal.h",
+    "FBRetainCycleDetector/Graph/FBObjectGraphConfiguration.m",
+    "FBRetainCycleDetector/Graph/FBObjectiveCBlock.m",
+    "FBRetainCycleDetector/Graph/swift/FBGetSwiftAllRetainedObjectsHelper.h",
+    "FBRetainCycleDetector/Graph/swift/FBSwiftGraphElement.m",
+    "FBRetainCycleDetector/Graph/swift/FBGetSwiftAllRetainedObjects.swift",
+    "FBRetainCycleDetector/Graph/swift/FBGetSwiftAllRetainedObjectsHelper.m",
+    "FBRetainCycleDetector/Graph/swift/FBSwiftGraphElement.h",
+    "FBRetainCycleDetector/Graph/FBObjectiveCObject.m",
+    "FBRetainCycleDetector/Graph/FBObjectiveCGraphElement.h",
+    "FBRetainCycleDetector/FBRetainCycleUtils.h",
+    "FBRetainCycleDetector/Detector/FBRetainCycleDetector.h",
+    "FBRetainCycleDetector/Detector/FBNodeEnumerator.mm",
+    "FBRetainCycleDetector/Detector/FBNodeEnumerator.h",
+    "FBRetainCycleDetector/Detector/FBRetainCycleDetector.mm",
+    "FBRetainCycleDetector/Detector/FBRetainCycleDetector+Internal.h",
+    "FBRetainCycleDetector/FBRetainCycleAlogDelegate.h",
+    "FBRetainCycleDetector/FBRetainCycleUtils.m",
+    "fishhook/**/*.{c,h}"
+  ],
+  "source": {
+    "commit": "1b4ae854b632ece7c42bef8bdbc636c062665198",
+    "git": "git@code.byted.org:TTIOS/FBRetainCycleDetector.git"
+  },
+  "source_files": [
+    "FBRetainCycleDetector",
+    "{FBRetainCycleDetector,fishhook}/**/*.{h,m,mm,c,swift}"
+  ],
+  "summary": "framework_summary",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "FBRetainCycleDetector_POD_VERSION=@\\\"13_0.2.0-alpha.30-swift\\\""
+  },
+  "version": "0.2.0-alpha.30-swift"
+}

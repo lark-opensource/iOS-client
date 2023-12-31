@@ -1,0 +1,24 @@
+# Copyright 2022 The Lynx Authors. All rights reserved.
+import("//LynxDevtool/devtool.gni")
+
+devtool_source_set("element") {
+  sources = [
+    "//Lynx/css/css_decoder.cc",
+    "//Lynx/css/css_decoder.h",
+    "element_helper.cc",
+    "element_helper.h",
+    "element_inspector.cc",
+    "element_inspector.h",
+    "helper_util.cc",
+    "helper_util.h",
+    "inspector_css_helper.cc",
+    "inspector_css_helper.h",
+  ]
+  if (is_android) {
+    # liblynx.so does not export symbols in following two files
+    sources += [
+      "//Lynx/css/css_color.cc",
+      "//Lynx/css/css_color.h",
+    ]
+  }
+}

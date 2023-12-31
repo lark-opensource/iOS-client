@@ -1,0 +1,1 @@
+../../../../TSPrivacyKit/Classes/Pipelines/Motion/UIDevice/TSPKMotionOfUIDevicePipeline.h

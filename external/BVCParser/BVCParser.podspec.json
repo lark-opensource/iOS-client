@@ -1,0 +1,38 @@
+{
+  "authors": {
+    "baishuai": "baishuai@bytedance.com"
+  },
+  "default_subspecs": "Core",
+  "dependencies": {
+    "TTFFmpeg": []
+  },
+  "description": "ByteVC1 and ByteVC1 ffmpeg codec parser.",
+  "homepage": "https://code.byted.org/ttmp/bvcparser",
+  "name": "BVCParser",
+  "platforms": {
+    "ios": "9.0"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/custombinary/2020092912/BVCParser/0.7.0/BVCParser.zip"
+  },
+  "source_code": {
+    "commit": "7a793f2",
+    "git": "git@code.byted.org:ttmp/bvcparser.git"
+  },
+  "static_framework": true,
+  "subspecs": [
+    {
+      "name": "Core",
+      "vendored_libraries": "lib/*.{a}"
+    },
+    {
+      "name": "Header",
+      "source_files": "include/**/*.h",
+      "xcconfig": {
+        "HEADER_SEARCH_PATHS": "$(inherited) \"${PODS_ROOT}/BVCParser/include/\""
+      }
+    }
+  ],
+  "summary": "ByteVC1 and ByteVC1 ffmpeg codec parser",
+  "version": "0.7.0"
+}

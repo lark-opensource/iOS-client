@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayAbility/PayManage/BankCardCenter/Bridge/CJPayBridgePlugin_subscribeEvent.h

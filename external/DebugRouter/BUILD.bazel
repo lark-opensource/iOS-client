@@ -1,0 +1,1083 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "DebugRouter_pod_hdrs",
+  srcs = [
+    ":DebugRouter_root_pod_hdrs",
+    ":Framework_pod_hdrs",
+    ":Native_pod_hdrs",
+    ":ThirdParty_pod_hdrs",
+    ":ThirdParty_jsoncpp_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "DebugRouter_private_includes",
+  include = [
+    "external/DebugRouter/pod_support/Headers/Private/DebugRouter/"
+  ],
+  deps = [],
+  external_name = "DebugRouter"
+)
+gen_includes(
+  name = "DebugRouter_public_includes",
+  include = [
+    "external/DebugRouter/pod_support/Headers/Public/DebugRouter/"
+  ],
+  deps = [],
+  external_name = "DebugRouter"
+)
+filegroup(
+  name = "_DebugRouter_hdrs",
+  srcs = [
+    ":DebugRouter_root_hdrs",
+    ":Framework_hdrs",
+    ":Native_hdrs",
+    ":ThirdParty_hdrs",
+    ":ThirdParty_jsoncpp_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "DebugRouter_xcode_hmapsource",
+  hdrs = [
+    ":DebugRouter_root_hdrs",
+    ":Framework_hdrs",
+    ":Native_hdrs",
+    ":ThirdParty_hdrs",
+    ":ThirdParty_jsoncpp_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "DebugRouter_xcode_hmap",
+  dep = ":DebugRouter_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/DebugRouter/*-bitsky-generated.modulemap", "pod_support/Headers/Public/DebugRouter/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "DebugRouter_custom_includes",
+  include = [
+    "external/Protobuf/objectivec",
+    "external/DebugRouter/iOS/DebugRouter/DebugRouter/Classes",
+    "external/DebugRouter/Native",
+    "external/DebugRouter/ThirdParty/jsoncpp/include",
+    "external/DebugRouter/Native/"
+  ],
+  include_files = [],
+  external_name = "DebugRouter",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "DebugRouter_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":DebugRouter_xcode_hmap"
+  ],
+  external_name = "DebugRouter",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DebugRouter_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DebugRouter_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DebugRouter_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DebugRouter_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "DebugRouter_module_map",
+  module_map = "pod_support/Headers/Public/DebugRouter/DebugRouter-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DebugRouter/DebugRouter-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DebugRouter_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "DebugRouter_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":DebugRouter_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DebugRouter_private_includes",
+    ":DebugRouter_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":DebugRouter_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DDebugRouter_POD_VERSION=@\\\"9999_2.1.5\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DebugRouter",
+  deps = [
+    ":DebugRouter_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "DebugRouter_lib",
+  deps = [
+    ":DebugRouter"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Framework_hdrs",
+  srcs = [
+    "iOS/DebugRouter/DebugRouter/Classes/DebugRouter.h",
+    "iOS/DebugRouter/DebugRouter/Classes/DebugRouterEventSender.h",
+    "iOS/DebugRouter/DebugRouter/Classes/DebugRouterGlobalHandler.h",
+    "iOS/DebugRouter/DebugRouter/Classes/DebugRouterLog.h",
+    "iOS/DebugRouter/DebugRouter/Classes/DebugRouterMessageHandleResult.h",
+    "iOS/DebugRouter/DebugRouter/Classes/DebugRouterMessageHandler.h",
+    "iOS/DebugRouter/DebugRouter/Classes/DebugRouterSlot.h",
+    "iOS/DebugRouter/DebugRouter/Classes/DebugRouterUtil.h",
+    "iOS/DebugRouter/DebugRouter/Classes/DebugRouterVersion.h",
+    "iOS/DebugRouter/DebugRouter/Classes/MessageTransceiver.h",
+    "iOS/DebugRouter/DebugRouter/Classes/net/WebSocketClient.h",
+    "iOS/DebugRouter/DebugRouter/Classes/peertalk/PeertalkChannel.h",
+    "iOS/DebugRouter/DebugRouter/Classes/peertalk/PeertalkClient.h",
+    "iOS/DebugRouter/DebugRouter/Classes/peertalk/PeertalkCore.h",
+    "iOS/DebugRouter/DebugRouter/Classes/peertalk/PeertalkDefines.h",
+    "iOS/DebugRouter/DebugRouter/Classes/peertalk/PeertalkPrivate.h",
+    "iOS/DebugRouter/DebugRouter/Classes/peertalk/PeertalkProtocol.h",
+    "iOS/DebugRouter/DebugRouter/Classes/peertalk/PeertalkUSBHub.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Framework_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/DebugRouter/DebugRouter.h",
+    "pod_support/Headers/Private/DebugRouter/DebugRouterEventSender.h",
+    "pod_support/Headers/Private/DebugRouter/DebugRouterGlobalHandler.h",
+    "pod_support/Headers/Private/DebugRouter/DebugRouterLog.h",
+    "pod_support/Headers/Private/DebugRouter/DebugRouterMessageHandleResult.h",
+    "pod_support/Headers/Private/DebugRouter/DebugRouterMessageHandler.h",
+    "pod_support/Headers/Private/DebugRouter/DebugRouterSlot.h",
+    "pod_support/Headers/Private/DebugRouter/DebugRouterUtil.h",
+    "pod_support/Headers/Private/DebugRouter/DebugRouterVersion.h",
+    "pod_support/Headers/Private/DebugRouter/MessageTransceiver.h",
+    "pod_support/Headers/Private/DebugRouter/PeertalkChannel.h",
+    "pod_support/Headers/Private/DebugRouter/PeertalkClient.h",
+    "pod_support/Headers/Private/DebugRouter/PeertalkCore.h",
+    "pod_support/Headers/Private/DebugRouter/PeertalkDefines.h",
+    "pod_support/Headers/Private/DebugRouter/PeertalkPrivate.h",
+    "pod_support/Headers/Private/DebugRouter/PeertalkProtocol.h",
+    "pod_support/Headers/Private/DebugRouter/PeertalkUSBHub.h",
+    "pod_support/Headers/Private/DebugRouter/WebSocketClient.h",
+    "pod_support/Headers/Public/DebugRouter/DebugRouter.h",
+    "pod_support/Headers/Public/DebugRouter/DebugRouterEventSender.h",
+    "pod_support/Headers/Public/DebugRouter/DebugRouterGlobalHandler.h",
+    "pod_support/Headers/Public/DebugRouter/DebugRouterLog.h",
+    "pod_support/Headers/Public/DebugRouter/DebugRouterMessageHandleResult.h",
+    "pod_support/Headers/Public/DebugRouter/DebugRouterMessageHandler.h",
+    "pod_support/Headers/Public/DebugRouter/DebugRouterSlot.h",
+    "pod_support/Headers/Public/DebugRouter/DebugRouterUtil.h",
+    "pod_support/Headers/Public/DebugRouter/DebugRouterVersion.h",
+    "pod_support/Headers/Public/DebugRouter/MessageTransceiver.h",
+    "pod_support/Headers/Public/DebugRouter/PeertalkChannel.h",
+    "pod_support/Headers/Public/DebugRouter/PeertalkClient.h",
+    "pod_support/Headers/Public/DebugRouter/PeertalkCore.h",
+    "pod_support/Headers/Public/DebugRouter/PeertalkDefines.h",
+    "pod_support/Headers/Public/DebugRouter/PeertalkPrivate.h",
+    "pod_support/Headers/Public/DebugRouter/PeertalkProtocol.h",
+    "pod_support/Headers/Public/DebugRouter/PeertalkUSBHub.h",
+    "pod_support/Headers/Public/DebugRouter/WebSocketClient.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Framework_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Framework_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Framework_module_map",
+  module_map = "pod_support/Headers/Public/DebugRouter/DebugRouter_Framework-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DebugRouter/DebugRouter_Framework-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Framework_srcs",
+  srcs = [
+    "iOS/DebugRouter/DebugRouter/Classes/DebugRouter.mm",
+    "iOS/DebugRouter/DebugRouter/Classes/DebugRouterEventSender.mm",
+    "iOS/DebugRouter/DebugRouter/Classes/DebugRouterLog.mm",
+    "iOS/DebugRouter/DebugRouter/Classes/DebugRouterMessageHandleResult.m",
+    "iOS/DebugRouter/DebugRouter/Classes/DebugRouterSlot.mm",
+    "iOS/DebugRouter/DebugRouter/Classes/DebugRouterUtil.m",
+    "iOS/DebugRouter/DebugRouter/Classes/DebugRouterVersion.m",
+    "iOS/DebugRouter/DebugRouter/Classes/MessageTransceiver.mm",
+    "iOS/DebugRouter/DebugRouter/Classes/peertalk/PeertalkChannel.m",
+    "iOS/DebugRouter/DebugRouter/Classes/peertalk/PeertalkClient.m",
+    "iOS/DebugRouter/DebugRouter/Classes/peertalk/PeertalkProtocol.m",
+    "iOS/DebugRouter/DebugRouter/Classes/peertalk/PeertalkUSBHub.m",
+    "iOS/DebugRouter/DebugRouter/Classes/net/iOS/WebSocketClient.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Framework_oc",
+  enable_modules = 1,
+  srcs = [
+    "Framework_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Framework_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":DebugRouter_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DebugRouter_private_includes",
+    ":DebugRouter_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@SocketRocket//:SocketRocket_objc_interface",
+    "@SocketRocket//:SocketRocket_swift_interface",
+    ":Framework_objc_interface",
+    "@SocketRocket//:SocketRocket_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DDebugRouter_POD_VERSION=@\\\"9999_2.1.5\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Framework",
+  deps = [
+    ":Framework_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Framework_lib",
+  deps = [
+    ":Framework"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Native_hdrs",
+  srcs = [
+    "Native/log/logging.h",
+    "Native/processor/message_assembler.h",
+    "Native/processor/message_handler.h",
+    "Native/processor/processor.h",
+    "Native/processor/state_listener.h",
+    "Native/protocol/events.h",
+    "Native/protocol/md5.h",
+    "Native/protocol/protocol.h",
+    "Native/protocol/protocol_message.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Native_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/DebugRouter/log/logging.h",
+    "pod_support/Headers/Private/DebugRouter/processor/message_assembler.h",
+    "pod_support/Headers/Private/DebugRouter/processor/message_handler.h",
+    "pod_support/Headers/Private/DebugRouter/processor/processor.h",
+    "pod_support/Headers/Private/DebugRouter/processor/state_listener.h",
+    "pod_support/Headers/Private/DebugRouter/protocol/events.h",
+    "pod_support/Headers/Private/DebugRouter/protocol/md5.h",
+    "pod_support/Headers/Private/DebugRouter/protocol/protocol.h",
+    "pod_support/Headers/Private/DebugRouter/protocol/protocol_message.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Native_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Native_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Native_module_map",
+  module_map = "pod_support/Headers/Public/DebugRouter/DebugRouter_Native-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DebugRouter/DebugRouter_Native-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Native_srcs",
+  srcs = [
+    "Native/log/logging.cc",
+    "Native/protocol/md5.cc",
+    "Native/processor/message_assembler.cc",
+    "Native/processor/processor.cc",
+    "Native/protocol/protocol.cc",
+    "Native/protocol/protocol_message.cc"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Native_oc",
+  enable_modules = 1,
+  srcs = [
+    "Native_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Native_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":DebugRouter_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DebugRouter_private_includes",
+    ":DebugRouter_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Native_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DDebugRouter_POD_VERSION=@\\\"9999_2.1.5\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Native",
+  deps = [
+    ":Native_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Native_lib",
+  deps = [
+    ":Native"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ThirdParty_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ThirdParty_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ThirdParty_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ThirdParty_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ThirdParty_module_map",
+  module_map = "pod_support/Headers/Public/DebugRouter/DebugRouter_ThirdParty-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DebugRouter/DebugRouter_ThirdParty-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ThirdParty_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "ThirdParty_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":DebugRouter_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DebugRouter_private_includes",
+    ":DebugRouter_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":ThirdParty_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DDebugRouter_POD_VERSION=@\\\"9999_2.1.5\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ThirdParty",
+  deps = [
+    ":ThirdParty_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ThirdParty_lib",
+  deps = [
+    ":ThirdParty"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ThirdParty_jsoncpp_hdrs",
+  srcs = [
+    "ThirdParty/jsoncpp/include/json/allocator.h",
+    "ThirdParty/jsoncpp/include/json/assertions.h",
+    "ThirdParty/jsoncpp/include/json/autolink.h",
+    "ThirdParty/jsoncpp/include/json/config.h",
+    "ThirdParty/jsoncpp/include/json/features.h",
+    "ThirdParty/jsoncpp/include/json/forwards.h",
+    "ThirdParty/jsoncpp/include/json/json.h",
+    "ThirdParty/jsoncpp/include/json/reader.h",
+    "ThirdParty/jsoncpp/include/json/value.h",
+    "ThirdParty/jsoncpp/include/json/version.h",
+    "ThirdParty/jsoncpp/include/json/writer.h",
+    "ThirdParty/jsoncpp/src/lib_json/json_tool.h",
+    "ThirdParty/jsoncpp/src/lib_json/json_valueiterator.inl"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ThirdParty_jsoncpp_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/DebugRouter/jsoncpp/include/json/allocator.h",
+    "pod_support/Headers/Private/DebugRouter/jsoncpp/include/json/assertions.h",
+    "pod_support/Headers/Private/DebugRouter/jsoncpp/include/json/autolink.h",
+    "pod_support/Headers/Private/DebugRouter/jsoncpp/include/json/config.h",
+    "pod_support/Headers/Private/DebugRouter/jsoncpp/include/json/features.h",
+    "pod_support/Headers/Private/DebugRouter/jsoncpp/include/json/forwards.h",
+    "pod_support/Headers/Private/DebugRouter/jsoncpp/include/json/json.h",
+    "pod_support/Headers/Private/DebugRouter/jsoncpp/include/json/reader.h",
+    "pod_support/Headers/Private/DebugRouter/jsoncpp/include/json/value.h",
+    "pod_support/Headers/Private/DebugRouter/jsoncpp/include/json/version.h",
+    "pod_support/Headers/Private/DebugRouter/jsoncpp/include/json/writer.h",
+    "pod_support/Headers/Private/DebugRouter/jsoncpp/src/lib_json/json_tool.h",
+    "pod_support/Headers/Private/DebugRouter/jsoncpp/src/lib_json/json_valueiterator.inl"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ThirdParty_jsoncpp_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ThirdParty_jsoncpp_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ThirdParty_jsoncpp_module_map",
+  module_map = "pod_support/Headers/Public/DebugRouter/DebugRouter_ThirdParty_jsoncpp-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DebugRouter/DebugRouter_ThirdParty_jsoncpp-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ThirdParty_jsoncpp_srcs",
+  srcs = [
+    "ThirdParty/jsoncpp/src/lib_json/json_reader.cpp",
+    "ThirdParty/jsoncpp/src/lib_json/json_value.cpp",
+    "ThirdParty/jsoncpp/src/lib_json/json_writer.cpp"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ThirdParty_jsoncpp_oc",
+  enable_modules = 1,
+  srcs = [
+    "ThirdParty_jsoncpp_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "ThirdParty_jsoncpp_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":DebugRouter_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DebugRouter_private_includes",
+    ":DebugRouter_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":ThirdParty_jsoncpp_objc_interface"
+  ],
+  per_label_options = [
+    ".*ThirdParty/jsoncpp/src/lib_json/json_reader.cpp@-Wno-documentation,-Wno-deprecated",
+    ".*ThirdParty/jsoncpp/src/lib_json/json_value.cpp@-Wno-documentation,-Wno-deprecated",
+    ".*ThirdParty/jsoncpp/src/lib_json/json_writer.cpp@-Wno-documentation,-Wno-deprecated"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DDebugRouter_POD_VERSION=@\\\"9999_2.1.5\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ThirdParty_jsoncpp",
+  deps = [
+    ":ThirdParty_jsoncpp_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ThirdParty_jsoncpp_lib",
+  deps = [
+    ":ThirdParty_jsoncpp"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_DebugRouter_module_map",
+  module_map = "@DebugRouter//:pod_support/Headers/Public/DebugRouter/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@DebugRouter//:pod_support/Headers/Public/DebugRouter/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_DebugRouter_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@DebugRouter//:DebugRouter_objc_interface", "@DebugRouter//:Framework_objc_interface", "@DebugRouter//:Native_objc_interface", "@DebugRouter//:ThirdParty_objc_interface", "@DebugRouter//:ThirdParty_jsoncpp_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_DebugRouter",
+  target_name = "Lark",
+  module_name = "DebugRouter",
+  hdrs = ["@DebugRouter//:DebugRouter_root_pod_hdrs", "@DebugRouter//:Framework_pod_hdrs", "@DebugRouter//:Native_pod_hdrs", "@DebugRouter//:ThirdParty_pod_hdrs", "@DebugRouter//:ThirdParty_jsoncpp_pod_hdrs"],
+  srcs = ["@DebugRouter//:Framework_srcs", "@DebugRouter//:Native_srcs", "@DebugRouter//:ThirdParty_jsoncpp_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["SocketRocket"],
+  per_label_options = [".*ThirdParty/jsoncpp/src/lib_json/json_reader.cpp@-Wno-documentation,-Wno-deprecated",
+    ".*ThirdParty/jsoncpp/src/lib_json/json_value.cpp@-Wno-documentation,-Wno-deprecated",
+    ".*ThirdParty/jsoncpp/src/lib_json/json_writer.cpp@-Wno-documentation,-Wno-deprecated"],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DDebugRouter_POD_VERSION=@\\\"9999_2.1.5\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "DebugRouter_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "DebugRouter_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = ["stdc++"],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "DebugRouter_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "DebugRouter_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "DebugRouter_dynamic", False),
+  tags = getattr(defs_external_objc_library, "DebugRouter_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  header_mappings = {
+    "*": "*",
+    "Native/log/logging.h": "log/logging.h",
+    "Native/processor/message_assembler.h": "processor/message_assembler.h",
+    "Native/processor/message_handler.h": "processor/message_handler.h",
+    "Native/processor/processor.h": "processor/processor.h",
+    "Native/processor/state_listener.h": "processor/state_listener.h",
+    "Native/protocol/events.h": "protocol/events.h",
+    "Native/protocol/md5.h": "protocol/md5.h",
+    "Native/protocol/protocol.h": "protocol/protocol.h",
+    "Native/protocol/protocol_message.h": "protocol/protocol_message.h",
+    "ThirdParty/jsoncpp/include/json/allocator.h": "jsoncpp/include/json/allocator.h",
+    "ThirdParty/jsoncpp/include/json/assertions.h": "jsoncpp/include/json/assertions.h",
+    "ThirdParty/jsoncpp/include/json/autolink.h": "jsoncpp/include/json/autolink.h",
+    "ThirdParty/jsoncpp/include/json/config.h": "jsoncpp/include/json/config.h",
+    "ThirdParty/jsoncpp/include/json/features.h": "jsoncpp/include/json/features.h",
+    "ThirdParty/jsoncpp/include/json/forwards.h": "jsoncpp/include/json/forwards.h",
+    "ThirdParty/jsoncpp/include/json/json.h": "jsoncpp/include/json/json.h",
+    "ThirdParty/jsoncpp/include/json/reader.h": "jsoncpp/include/json/reader.h",
+    "ThirdParty/jsoncpp/include/json/value.h": "jsoncpp/include/json/value.h",
+    "ThirdParty/jsoncpp/include/json/version.h": "jsoncpp/include/json/version.h",
+    "ThirdParty/jsoncpp/include/json/writer.h": "jsoncpp/include/json/writer.h",
+    "ThirdParty/jsoncpp/src/lib_json/json_tool.h": "jsoncpp/src/lib_json/json_tool.h",
+    "ThirdParty/jsoncpp/src/lib_json/json_valueiterator.inl": "jsoncpp/src/lib_json/json_valueiterator.inl",
+  },
+  xcconfig_by_build_setting = defs_xcconfigs.get("DebugRouter", {}),
+  visibility = ["//visibility:public"],
+)

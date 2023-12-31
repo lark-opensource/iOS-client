@@ -1,0 +1,972 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "BDPreloadSDK_pod_hdrs",
+  srcs = [
+    ":BDPreloadSDK_root_pod_hdrs",
+    ":Core_pod_hdrs",
+    ":WebView_pod_hdrs",
+    ":Image_pod_hdrs",
+    ":TTNet_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "BDPreloadSDK_private_includes",
+  include = [
+    "external/BDPreloadSDK/pod_support/Headers/Private/BDPreloadSDK/"
+  ],
+  deps = [],
+  external_name = "BDPreloadSDK"
+)
+gen_includes(
+  name = "BDPreloadSDK_public_includes",
+  include = [
+    "external/BDPreloadSDK/pod_support/Headers/Public/BDPreloadSDK/"
+  ],
+  deps = [],
+  external_name = "BDPreloadSDK"
+)
+filegroup(
+  name = "_BDPreloadSDK_hdrs",
+  srcs = [
+    ":BDPreloadSDK_root_hdrs",
+    ":Core_hdrs",
+    ":WebView_hdrs",
+    ":Image_hdrs",
+    ":TTNet_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "BDPreloadSDK_xcode_hmapsource",
+  hdrs = [
+    ":BDPreloadSDK_root_hdrs",
+    ":Core_hdrs",
+    ":WebView_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "BDPreloadSDK_xcode_hmap",
+  dep = ":BDPreloadSDK_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/BDPreloadSDK/*-bitsky-generated.modulemap", "pod_support/Headers/Public/BDPreloadSDK/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "BDPreloadSDK_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "BDPreloadSDK",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "BDPreloadSDK_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":BDPreloadSDK_xcode_hmap"
+  ],
+  external_name = "BDPreloadSDK",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDPreloadSDK_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDPreloadSDK_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDPreloadSDK_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDPreloadSDK_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "BDPreloadSDK_module_map",
+  module_map = "pod_support/Headers/Public/BDPreloadSDK/BDPreloadSDK-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDPreloadSDK/BDPreloadSDK-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDPreloadSDK_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "BDPreloadSDK_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDPreloadSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDPreloadSDK_private_includes",
+    ":BDPreloadSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":BDPreloadSDK_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDPreloadSDK_POD_VERSION=@\\\"9999_0.4.10\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDPreloadSDK",
+  deps = [
+    ":BDPreloadSDK_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "BDPreloadSDK_lib",
+  deps = [
+    ":BDPreloadSDK"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [
+    "BDPreloadSDK/Classes/Core/BDPreloadConfig.h",
+    "BDPreloadSDK/Classes/Core/BDPreloadDebugView.h",
+    "BDPreloadSDK/Classes/Core/BDPreloadManager.h",
+    "BDPreloadSDK/Classes/Core/BDPreloadMonitor.h",
+    "BDPreloadSDK/Classes/Core/BDPreloadUtil.h",
+    "BDPreloadSDK/Classes/Core/NSOperation+BDPreloadTask.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDPreloadSDK/BDPreloadConfig.h",
+    "pod_support/Headers/Private/BDPreloadSDK/BDPreloadDebugView.h",
+    "pod_support/Headers/Private/BDPreloadSDK/BDPreloadManager.h",
+    "pod_support/Headers/Private/BDPreloadSDK/BDPreloadMonitor.h",
+    "pod_support/Headers/Private/BDPreloadSDK/BDPreloadUtil.h",
+    "pod_support/Headers/Private/BDPreloadSDK/NSOperation+BDPreloadTask.h",
+    "pod_support/Headers/Public/BDPreloadSDK/BDPreloadConfig.h",
+    "pod_support/Headers/Public/BDPreloadSDK/BDPreloadDebugView.h",
+    "pod_support/Headers/Public/BDPreloadSDK/BDPreloadManager.h",
+    "pod_support/Headers/Public/BDPreloadSDK/BDPreloadMonitor.h",
+    "pod_support/Headers/Public/BDPreloadSDK/BDPreloadUtil.h",
+    "pod_support/Headers/Public/BDPreloadSDK/NSOperation+BDPreloadTask.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/BDPreloadSDK/BDPreloadSDK_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDPreloadSDK/BDPreloadSDK_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_srcs",
+  srcs = [
+    "BDPreloadSDK/Classes/Core/BDPreloadConfig.m",
+    "BDPreloadSDK/Classes/Core/BDPreloadDebugView.m",
+    "BDPreloadSDK/Classes/Core/BDPreloadManager.m",
+    "BDPreloadSDK/Classes/Core/BDPreloadMonitor.m",
+    "BDPreloadSDK/Classes/Core/BDPreloadUtil.m",
+    "BDPreloadSDK/Classes/Core/NSOperation+BDPreloadTask.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [
+    "Core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit"
+  ],
+  deps = [
+    ":BDPreloadSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDPreloadSDK_private_includes",
+    ":BDPreloadSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@TTReachability//:TTReachability_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    "@TTReachability//:TTReachability_swift_interface",
+    ":Core_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map",
+    "@TTReachability//:TTReachability_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDPreloadSDK_POD_VERSION=@\\\"9999_0.4.10\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "WebView_hdrs",
+  srcs = [
+    "BDPreloadSDK/Classes/WebView/BDPreloadCachedResponse.h",
+    "BDPreloadSDK/Classes/WebView/BDWebViewPreloadManager.h",
+    "BDPreloadSDK/Classes/WebView/BDWebViewPreloadTask.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "WebView_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDPreloadSDK/BDPreloadCachedResponse.h",
+    "pod_support/Headers/Private/BDPreloadSDK/BDWebViewPreloadManager.h",
+    "pod_support/Headers/Private/BDPreloadSDK/BDWebViewPreloadTask.h",
+    "pod_support/Headers/Public/BDPreloadSDK/BDPreloadCachedResponse.h",
+    "pod_support/Headers/Public/BDPreloadSDK/BDWebViewPreloadManager.h",
+    "pod_support/Headers/Public/BDPreloadSDK/BDWebViewPreloadTask.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "WebView_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "WebView_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "WebView_module_map",
+  module_map = "pod_support/Headers/Public/BDPreloadSDK/BDPreloadSDK_WebView-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDPreloadSDK/BDPreloadSDK_WebView-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "WebView_srcs",
+  srcs = [
+    "BDPreloadSDK/Classes/WebView/BDPreloadCachedResponse.m",
+    "BDPreloadSDK/Classes/WebView/BDWebViewPreloadManager.m",
+    "BDPreloadSDK/Classes/WebView/BDWebViewPreloadTask.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "WebView_oc",
+  enable_modules = 1,
+  srcs = [
+    "WebView_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "WebView_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDPreloadSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDPreloadSDK_private_includes",
+    ":BDPreloadSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@YYCache//:YYCache_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    "@YYCache//:YYCache_swift_interface",
+    ":WebView_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_module_map",
+    "@YYCache//:YYCache_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDPreloadSDK_POD_VERSION=@\\\"9999_0.4.10\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "WebView",
+  deps = [
+    ":WebView_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "WebView_lib",
+  deps = [
+    ":WebView"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Image_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Image_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Image_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Image_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Image_module_map",
+  module_map = "pod_support/Headers/Public/BDPreloadSDK/BDPreloadSDK_Image-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDPreloadSDK/BDPreloadSDK_Image-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Image_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Image_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDPreloadSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDPreloadSDK_private_includes",
+    ":BDPreloadSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Image_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDPreloadSDK_POD_VERSION=@\\\"9999_0.4.10\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Image",
+  deps = [
+    ":Image_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Image_lib",
+  deps = [
+    ":Image"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTNet_hdrs",
+  srcs = [
+    "BDPreloadSDK/Classes/TTNet/BDTTNetPreloadManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTNet_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTNet_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTNet_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TTNet_module_map",
+  module_map = "pod_support/Headers/Public/BDPreloadSDK/BDPreloadSDK_TTNet-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDPreloadSDK/BDPreloadSDK_TTNet-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTNet_srcs",
+  srcs = [
+    "BDPreloadSDK/Classes/TTNet/BDTTNetPreloadManager.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTNet_oc",
+  enable_modules = 1,
+  srcs = [
+    "TTNet_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "TTNet_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDPreloadSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDPreloadSDK_private_includes",
+    ":BDPreloadSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":TTNet_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDPreloadSDK_POD_VERSION=@\\\"9999_0.4.10\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTNet",
+  deps = [
+    ":TTNet_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TTNet_lib",
+  deps = [
+    ":TTNet"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_BDPreloadSDK_module_map",
+  module_map = "@BDPreloadSDK//:pod_support/Headers/Public/BDPreloadSDK/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@BDPreloadSDK//:pod_support/Headers/Public/BDPreloadSDK/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_BDPreloadSDK_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@BDPreloadSDK//:Core_objc_interface", "@BDPreloadSDK//:WebView_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_BDPreloadSDK",
+  target_name = "Lark",
+  module_name = "BDPreloadSDK",
+  hdrs = ["@BDPreloadSDK//:Core_pod_hdrs", "@BDPreloadSDK//:WebView_pod_hdrs"],
+  srcs = ["@BDPreloadSDK//:Core_srcs", "@BDPreloadSDK//:WebView_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["BDAlogProtocol", "BDTrackerProtocol", "ByteDanceKit", "TTReachability", "TTNetworkManager", "YYCache"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDPreloadSDK_POD_VERSION=@\\\"9999_0.4.10\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "BDPreloadSDK_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "BDPreloadSDK_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["Foundation", "UIKit"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "BDPreloadSDK_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "BDPreloadSDK_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "BDPreloadSDK_dynamic", False),
+  tags = getattr(defs_external_objc_library, "BDPreloadSDK_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("BDPreloadSDK", {}),
+  visibility = ["//visibility:public"],
+)

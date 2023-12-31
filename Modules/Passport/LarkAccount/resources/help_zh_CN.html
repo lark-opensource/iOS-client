@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+    <meta name="description" content="未能连接到互联网">
+    <title>未能连接到互联网</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: "PingFang SC", "Microsoft YaHei", "微软雅黑", "Tahoma", sans-serif;
+            background-color: #fff;
+        }
+        p, ul, ol {
+            font-size: 14px;
+            line-height: 22px;
+            word-break: break-word;
+        }
+        a {
+            text-decoration: none;
+        }
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 60px 30px;
+            box-sizing: content-box;
+        }
+        @media screen and (max-width: 750px) {
+            .container {
+                padding: 10px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+<main class="container">
+    <h1>未能连接到互联网</h1>
+    <p>如当前网络不可用，可尝试以下方法：</p>
+    <h3 class="template">1. 如果你使用的是iOS 10或以上操作系统，且iPhone未允许“飞书”使用无线局域网与蜂窝移动网络</h3>
+    <p class="template">请前往iPhone的<strong>设置</strong> - <strong>蜂窝移动网络</strong> - <strong>使用无线局域网与蜂窝移动的应用</strong>，并允许“飞书”使用数据。
+    </p>
+    <p class="template">如果你在“<strong>使用无线局域网与蜂窝移动的应用</strong>”下未找到“飞书”，请尝试开关其他应用的使用权限，再找到”飞书“并允许使用数据。
+    </p>
+    <h3>2. 如果你的iPhone未启用无线局域网或蜂窝移动网络</h3>
+    <p>
+        如需要连接到互联网，可以参考以下方法:
+    </p>
+    <p>
+        在iPhone中，前往<strong>设置</strong> - <strong>无线局域网</strong>，然后选择一个可用的Wi-Fi热点接入， 或在iPhone中，前往<strong>设置</strong> - <strong>蜂窝移动网络</strong>，并启用“蜂窝移动数据”。
+    </p>
+    <h3>3. 如果你已接入Wi-Fi网络</h3>
+    <p>
+        请检查你所连接的Wi-Fi热点是否已接入互联网，或该热点是否允许你的iPhone访问互联网。
+    </p>
+    <script>
+        function getQueryVariable(variable) {
+            var query = window.location.search.substring(1);
+            var vars = query.split("&");
+            for (var i=0;i<vars.length;i++) {
+                var pair = vars[i].split("=");
+                if(pair[0] === variable){return decodeURIComponent(pair[1]);}
+            }
+            return "";
+        }
+        var es = document.getElementsByClassName("template");
+        var appName = getQueryVariable("app_name");
+        if (appName.length > 0) {
+            for (var i = 0; i < es.length; i++) {
+                var e = es[i];
+                e.innerHTML = e.innerHTML.replace(/飞书/g, appName);
+            }
+        }
+    </script>
+</main>
+</body></html>

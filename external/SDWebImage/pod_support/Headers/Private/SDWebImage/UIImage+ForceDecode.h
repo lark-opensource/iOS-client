@@ -1,0 +1,1 @@
+../../../../SDWebImage/Core/UIImage+ForceDecode.h

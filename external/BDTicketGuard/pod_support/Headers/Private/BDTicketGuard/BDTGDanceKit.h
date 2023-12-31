@@ -1,0 +1,1 @@
+../../../../BDTicketGuard/Classes/Core/Private/BDTGDanceKit.h

@@ -1,0 +1,25 @@
+# Copyright 2022 The Lynx Authors. All rights reserved.
+
+import("//testing/test.gni")
+
+unittest_set("pow10_testset") {
+ testonly = true
+ public_configs = [
+  "//Lynx:config"
+ ]
+ sources = [
+  "pow10.cc",
+ ]
+ public_deps = [
+  "//third_party/rapidjson"
+ ]
+}
+
+unit_test("pow10_unittest") {
+ testonly = true
+ sources = []
+ deps = [
+  ":pow10_testset",
+  "//Lynx/tasm/react:dom"
+ ]
+}

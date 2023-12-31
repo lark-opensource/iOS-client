@@ -1,0 +1,99 @@
+{
+  "name": "CreationKitInfra",
+  "version": "19.9.6-alpha.0-lark.1.binary",
+  "summary": "base",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://code.byted.org/ugc/CreativeKit",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "hehai": "hehai.howie@bytedance.com"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/aweme-rock/rock_binary/privatethird_binary_repo/CreationKitInfra/19.9.6-alpha.0-lark.1.binary/1665556375/CreationKitInfra.tar.xz"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "default_subspecs": "MobileInfra",
+  "preserve_paths": [
+    "rock_document/**/*.{h,m,mm,cpp,hpp,swift}",
+    "rock_document/rock-document-files.txt"
+  ],
+  "source_code": {
+    "git": "git@code.byted.org:ugc/CreativeKit.git",
+    "commit": "7f3c15b85abb2cd77c60265f57df11059798ebeb"
+  },
+  "binary_type": "rock",
+  "package_env": {
+    "id": null,
+    "xcode": "Xcode 13.0\nBuild version 13A233\n"
+  },
+  "subspecs": [
+    {
+      "name": "MobileInfra",
+      "source_files": [
+        "MobileInfra/**/*.{h,m,mm,c}",
+        "rock_dummy/rock_dummy_a311ed3.m"
+      ],
+      "frameworks": [
+        "Foundation",
+        "AVFoundation",
+        "CoreText",
+        "CoreGraphics",
+        "UIKit",
+        "MapKit"
+      ],
+      "dependencies": {
+        "CreativeKit/MobileInfra": [
+
+        ],
+        "CreativeKit/CameraArch": [
+
+        ],
+        "AWELazyRegister": [
+
+        ],
+        "EffectPlatformSDK/ModelDistribute": [
+
+        ],
+        "KVOController": [
+
+        ],
+        "Mantle": [
+
+        ],
+        "Masonry": [
+
+        ],
+        "MJRefresh": [
+
+        ],
+        "ReactiveObjC": [
+
+        ]
+      },
+      "vendored_libraries": [
+        "MobileInfra/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "MobileInfra/**/*.o",
+          "libCreationKitInfra-a311ed3.a"
+        ]
+      }
+    },
+    {
+      "name": "Debug",
+      "source_files": "MobileInfra/Debug/**/*.{h,m,mm,c}",
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "$(inherited) ACC_DEBUG_MODE=1"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+../../../../../../../libEffectSDK/inc/Bach/Algorithm/Avatar3D/BachAvatar3DBuffer.h

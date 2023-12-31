@@ -1,0 +1,9 @@
+source "https://rubygems.byted.org"
+
+gem 'xcode-install'
+
+cocoapods_version = '1.8.4'
+gem 'cocoapods', cocoapods_version # 保证Bundle执行的和本地Podfile兼容
+# 隔离cocoapod缓存环境. cocoapod发现版本不一样会清缓存，这样多个版本混用时会互相清楚，造成并发问题。
+ENV['CP_CACHE_DIR'] = File.join(Dir.home, "Library/Caches/CocoaPods", cocoapods_version)
+

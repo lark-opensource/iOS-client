@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/CrashCapture/Common/Public/Detect/HMDCrashDetect.h

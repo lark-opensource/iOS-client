@@ -1,0 +1,89 @@
+{
+  "_bytebus_platform": {
+    "app_id": "13",
+    "repo_id": "7322"
+  },
+  "authors": {
+    "renpengcheng": "renpengcheng@bytedance.com"
+  },
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/TTIOS/MLeaksFinder",
+  "license": {
+    "type": "MIT"
+  },
+  "name": "TTMLeaksFinder",
+  "platforms": {
+    "ios": "8.0"
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "TTMLeaksFinder_POD_VERSION=@\\\"13_2.1.9-alpha.10-swift\\\""
+  },
+  "public_header_files": [
+    "MLeaksFinder/Classes/Core/TTMLeaksFinder.h",
+    "MLeaksFinder/Classes/Core/TTMLeaksConfig.h"
+  ],
+  "repoId": "7322",
+  "source": {
+    "commit": "e548e6f4524ff3b0356a3969a1ae4489fa723aa4",
+    "git": "git@code.byted.org:TTIOS/TTMLeaksFinder.git"
+  },
+  "subspecs": [
+    {
+      "dependencies": {
+        "BDAlogProtocol": [],
+        "ByteDanceKit": [],
+        "Heimdallr/Core": [
+          "\u003e= 0.7.22"
+        ],
+        "Heimdallr/TTMonitor": [
+          "\u003e= 0.7.22"
+        ],
+        "Heimdallr/UserException": [
+          "\u003e= 0.7.22"
+        ],
+        "TTMLeaksFinder/Core": []
+      },
+      "name": "LeaksTracker",
+      "source_files": "MLeaksFinder/Classes/LeaksTracker/**/*",
+      "xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "$(inherited) MLeaksTracker=1"
+      }
+    },
+    {
+      "dependencies": {
+        "FBRetainCycleDetector": [
+          "0.2.0-alpha.30-swift"
+        ],
+        "TTNetworkManager": []
+      },
+      "name": "Core",
+      "public_header_files": [
+        "MLeaksFinder/Classes/Core/TTMLeaksFinder.h",
+        "MLeaksFinder/Classes/Core/TTMLeaksConfig.h",
+        "MLeaksFinder/Classes/Core/Context/TTMLLeakCycle.h"
+      ],
+      "source_files": "MLeaksFinder/Classes/Core/**/*",
+      "xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "$(inherited) MLeaksFinder=1"
+      }
+    },
+    {
+      "dependencies": {
+        "TTMLeaksFinder/Core": []
+      },
+      "name": "UseCount",
+      "public_header_files": "MLeaksFinder/Classes/Core/NSObject+TTUseCount.h",
+      "source_files": "MLeaksFinder/Classes/UseCount/**/*",
+      "xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "$(inherited) MLeaksMonitor=1"
+      }
+    }
+  ],
+  "summary": "framework_summary",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "TTMLeaksFinder_POD_VERSION=@\\\"13_2.1.9-alpha.10-swift\\\""
+  },
+  "version": "2.1.9-alpha.10-swift"
+}

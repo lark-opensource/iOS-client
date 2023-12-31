@@ -1,0 +1,3159 @@
+load('@build_bazel_rules_apple//apple:resources.bzl', 'apple_resource_bundle', 'gen_bundle_plist')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "DouyinOpenPlatformSDK_pod_hdrs",
+  srcs = [
+    ":DouyinOpenPlatformSDK_root_pod_hdrs",
+    ":Core_pod_hdrs",
+    ":Auth_pod_hdrs",
+    ":Share_pod_hdrs",
+    ":EnableModule_pod_hdrs",
+    ":PhoneAuth_pod_hdrs",
+    ":JSB_pod_hdrs",
+    ":JSB_BDXBridgeKit_pod_hdrs",
+    ":JSB_BDXBridgeKit_JAuth_pod_hdrs",
+    ":Ticket_pod_hdrs",
+    ":Ticket_Interface_pod_hdrs",
+    ":Ticket_Impl_pod_hdrs",
+    ":Follow_pod_hdrs",
+    ":Profile_pod_hdrs",
+    ":Profile_Base_pod_hdrs",
+    ":Profile_General_pod_hdrs",
+    ":Profile_MLBB_pod_hdrs",
+    ":ByteGuard_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "DouyinOpenPlatformSDK_private_includes",
+  include = [
+    "external/DouyinOpenPlatformSDK/pod_support/Headers/Private/DouyinOpenPlatformSDK/"
+  ],
+  deps = [],
+  external_name = "DouyinOpenPlatformSDK"
+)
+gen_includes(
+  name = "DouyinOpenPlatformSDK_public_includes",
+  include = [
+    "external/DouyinOpenPlatformSDK/pod_support/Headers/Public/DouyinOpenPlatformSDK/"
+  ],
+  deps = [],
+  external_name = "DouyinOpenPlatformSDK"
+)
+filegroup(
+  name = "_DouyinOpenPlatformSDK_hdrs",
+  srcs = [
+    ":DouyinOpenPlatformSDK_root_hdrs",
+    ":Core_hdrs",
+    ":Auth_hdrs",
+    ":Share_hdrs",
+    ":EnableModule_hdrs",
+    ":PhoneAuth_hdrs",
+    ":JSB_hdrs",
+    ":JSB_BDXBridgeKit_hdrs",
+    ":JSB_BDXBridgeKit_JAuth_hdrs",
+    ":Ticket_hdrs",
+    ":Ticket_Interface_hdrs",
+    ":Ticket_Impl_hdrs",
+    ":Follow_hdrs",
+    ":Profile_hdrs",
+    ":Profile_Base_hdrs",
+    ":Profile_General_hdrs",
+    ":Profile_MLBB_hdrs",
+    ":ByteGuard_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "DouyinOpenPlatformSDK_xcode_hmapsource",
+  hdrs = [
+    ":DouyinOpenPlatformSDK_root_hdrs",
+    ":Auth_hdrs",
+    ":Core_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "DouyinOpenPlatformSDK_xcode_hmap",
+  dep = ":DouyinOpenPlatformSDK_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/DouyinOpenPlatformSDK/*-bitsky-generated.modulemap", "pod_support/Headers/Public/DouyinOpenPlatformSDK/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "DouyinOpenPlatformSDK_Core_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libDouyinOpenPlatformSDK_Core_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_bundle_plist(
+  name = "GEN_DYOpenAuth_Plist",
+  bundle_name = "DYOpenAuth",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "5.13.0",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "DouyinOpenPlatformSDK_Auth_DYOpenAuth",
+  bundle_name = "DYOpenAuth",
+  infoplists = [
+    ":GEN_DYOpenAuth_Plist"
+  ],
+  resources = [
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00044.imageset/Loading__00044@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00045.imageset/Loading__00045@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00033.imageset/Loading__00033@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00032.imageset/Loading__00032@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00007.imageset/Loading__00007@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00006.imageset/Loading__00006@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00039.imageset/Loading__00039@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00038.imageset/Loading__00038@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00053.imageset/Loading__00053@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00052.imageset/Loading__00052@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00024.imageset/Loading__00024@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00025.imageset/Loading__00025@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00059.imageset/Loading__00059@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00058.imageset/Loading__00058@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00010.imageset/Loading__00010@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00011.imageset/Loading__00011@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00054.imageset/Loading__00054@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00055.imageset/Loading__00055@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00023.imageset/Loading__00023@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00022.imageset/Loading__00022@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00017.imageset/Loading__00017@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00016.imageset/Loading__00016@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00029.imageset/Loading__00029@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00028.imageset/Loading__00028@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00043.imageset/Loading__00043@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00042.imageset/Loading__00042@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00034.imageset/Loading__00034@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00035.imageset/Loading__00035@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00000.imageset/Loading__00000@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00001.imageset/Loading__00001@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00049.imageset/Loading__00049@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00048.imageset/Loading__00048@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00013.imageset/Loading__00013@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00012.imageset/Loading__00012@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00019.imageset/Loading__00019@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00018.imageset/Loading__00018@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00050.imageset/Loading__00050@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00051.imageset/Loading__00051@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00027.imageset/Loading__00027@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00026.imageset/Loading__00026@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00004.imageset/Loading__00004@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00005.imageset/Loading__00005@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00047.imageset/Loading__00047@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00046.imageset/Loading__00046@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00030.imageset/Loading__00030@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00031.imageset/Loading__00031@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00003.imageset/Loading__00003@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00002.imageset/Loading__00002@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00040.imageset/Loading__00040@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00041.imageset/Loading__00041@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00009.imageset/Loading__00009@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00008.imageset/Loading__00008@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00037.imageset/Loading__00037@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00036.imageset/Loading__00036@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00014.imageset/Loading__00014@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00015.imageset/Loading__00015@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00057.imageset/Loading__00057@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00056.imageset/Loading__00056@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00020.imageset/Loading__00020@2x.png",
+    "DouyinOpenPlatformSDK/Resources/Auth/Loading/Loading__00021.imageset/Loading__00021@2x.png"
+  ],
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "DouyinOpenPlatformSDK_Auth_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libDouyinOpenPlatformSDK_Auth_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "DouyinOpenPlatformSDK_Share_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libDouyinOpenPlatformSDK_Share_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_bundle_plist(
+  name = "GEN_DYOpenPhone_Plist",
+  bundle_name = "DYOpenPhone",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "5.13.0",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "DouyinOpenPlatformSDK_PhoneAuth_DYOpenPhone",
+  bundle_name = "DYOpenPhone",
+  infoplists = [
+    ":GEN_DYOpenPhone_Plist"
+  ],
+  resources = [
+    "DouyinOpenPlatformSDK/Resources/PhoneAuth/Unselected@3x.png",
+    "DouyinOpenPlatformSDK/Resources/PhoneAuth/Selected@3x.png",
+    "DouyinOpenPlatformSDK/Resources/PhoneAuth/Unselectable@3x.png",
+    "DouyinOpenPlatformSDK/Resources/PhoneAuth/Back@3x.png",
+    "DouyinOpenPlatformSDK/Resources/PhoneAuth/Lock.png",
+    "DouyinOpenPlatformSDK/Resources/PhoneAuth/DoubleArrow@3x.png",
+    "DouyinOpenPlatformSDK/Resources/PhoneAuth/dyopen_tick@2x.png",
+    "DouyinOpenPlatformSDK/Resources/PhoneAuth/loading_circle@2x.png",
+    "DouyinOpenPlatformSDK/Resources/PhoneAuth/DouyinOpenSDKAuth.storyboard",
+    "DouyinOpenPlatformSDK/Resources/PhoneAuth/douyin_protect_icon@2x.png",
+    "DouyinOpenPlatformSDK/Resources/PhoneAuth/close_circle@2x.png",
+    "DouyinOpenPlatformSDK/Resources/PhoneAuth/textfiled_close_btn@2x.png",
+    "DouyinOpenPlatformSDK/Resources/PhoneAuth/DYIconDark@3x.png"
+  ],
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "DouyinOpenPlatformSDK_PhoneAuth_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libDouyinOpenPlatformSDK_PhoneAuth_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "DouyinOpenPlatformSDK_JSB_BDXBridgeKit_JAuth_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libDouyinOpenPlatformSDK_JAuth_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "DouyinOpenPlatformSDK_Ticket_Impl_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libDouyinOpenPlatformSDK_Impl_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_bundle_plist(
+  name = "GEN_DYOpenFollow_Plist",
+  bundle_name = "DYOpenFollow",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "5.13.0",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "DouyinOpenPlatformSDK_Follow_DYOpenFollow",
+  bundle_name = "DYOpenFollow",
+  infoplists = [
+    ":GEN_DYOpenFollow_Plist"
+  ],
+  resources = [
+    "DouyinOpenPlatformSDK/Resources/Follow/WindowClose@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Follow/Tick@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Follow/Plus@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Follow/Arrow@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Follow/DYIcon@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Follow/BannerClose@3x.png"
+  ],
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "DouyinOpenPlatformSDK_Follow_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libDouyinOpenPlatformSDK_Follow_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "DouyinOpenPlatformSDK_Profile_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libDouyinOpenPlatformSDK__Profile_General_awesome_ios.a",
+        "ios-arch-iphone/libDouyinOpenPlatformSDK__Profile_Base_awesome_ios.a",
+        "ios-arch-iphone/libDouyinOpenPlatformSDK__Profile_MLBB_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "DouyinOpenPlatformSDK_Profile_Base_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libDouyinOpenPlatformSDK__Profile_Base_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_bundle_plist(
+  name = "GEN_DYOpenProfileGeneral_Plist",
+  bundle_name = "DYOpenProfileGeneral",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "5.13.0",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "DouyinOpenPlatformSDK_Profile_General_DYOpenProfileGeneral",
+  bundle_name = "DYOpenProfileGeneral",
+  infoplists = [
+    ":GEN_DYOpenProfileGeneral_Plist"
+  ],
+  resources = [
+    "DouyinOpenPlatformSDK/Resources/Profile/GeneralProfile/HeaderOverlay@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/GeneralProfile/Comment@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/GeneralProfile/BackArrow@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/GeneralProfile/spinningCircle@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/GeneralProfile/DarkClose@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/GeneralProfile/Male@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/GeneralProfile/Plus@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/GeneralProfile/Secret@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/GeneralProfile/question@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/GeneralProfile/DYIcon@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/GeneralProfile/Female@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/GeneralProfile/Share@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/GeneralProfile/background.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/GeneralProfile/TranslucentHeart@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/GeneralProfile/redTick.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/GeneralProfile/Avatar@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/GeneralProfile/Dots@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/GeneralProfile/Heart@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/GeneralProfile/greyDot.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/GeneralProfile/NoContent@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/GeneralProfile/GeneralProfile.storyboard"
+  ],
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "DouyinOpenPlatformSDK_Profile_General_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libDouyinOpenPlatformSDK__Profile_General_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_bundle_plist(
+  name = "GEN_DYOpenProfileMLBB_Plist",
+  bundle_name = "DYOpenProfileMLBB",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "5.13.0",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "DouyinOpenPlatformSDK_Profile_MLBB_DYOpenProfileMLBB",
+  bundle_name = "DYOpenProfileMLBB",
+  infoplists = [
+    ":GEN_DYOpenProfileMLBB_Plist"
+  ],
+  resources = [
+    "DouyinOpenPlatformSDK/Resources/Profile/MLBBProfile/play@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/MLBBProfile/MiniPlay_FullScreenButton@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/MLBBProfile/pause@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/MLBBProfile/MiniPlayButton@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/MLBBProfile/arrow.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/MLBBProfile/previous@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/MLBBProfile/miniPlay_playButton@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/MLBBProfile/replay@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/MLBBProfile/progressBarThumb@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/MLBBProfile/MLBBProfile.storyboard",
+    "DouyinOpenPlatformSDK/Resources/Profile/MLBBProfile/MiniPlay_CloseButton@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/MLBBProfile/Close@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/MLBBProfile/stop@3x.png",
+    "DouyinOpenPlatformSDK/Resources/Profile/MLBBProfile/next@3x.png"
+  ],
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "DouyinOpenPlatformSDK_Profile_MLBB_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libDouyinOpenPlatformSDK__Profile_MLBB_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "DouyinOpenPlatformSDK_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "DouyinOpenPlatformSDK",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "DouyinOpenPlatformSDK_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":DouyinOpenPlatformSDK_xcode_hmap"
+  ],
+  external_name = "DouyinOpenPlatformSDK",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DouyinOpenPlatformSDK_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DouyinOpenPlatformSDK_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DouyinOpenPlatformSDK_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DouyinOpenPlatformSDK_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "DouyinOpenPlatformSDK_module_map",
+  module_map = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DouyinOpenPlatformSDK_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "DouyinOpenPlatformSDK_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":DouyinOpenPlatformSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DouyinOpenPlatformSDK_private_includes",
+    ":DouyinOpenPlatformSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":DouyinOpenPlatformSDK_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "",
+    "-DDouyinOpenPlatformSDK_POD_VERSION=@\\\"9999_5.13.0.3-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DouyinOpenPlatformSDK",
+  deps = [
+    ":DouyinOpenPlatformSDK_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "DouyinOpenPlatformSDK_lib",
+  deps = [
+    ":DouyinOpenPlatformSDK"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [
+    "DouyinOpenPlatformSDK/Classes/Core/Bridge/DYOpenAppDelegateInternalBridge.h",
+    "DouyinOpenPlatformSDK/Classes/Core/Bridge/DYOpenSettingsInternalBridge.h",
+    "DouyinOpenPlatformSDK/Classes/Core/Bridge/DYOpenTrackerInternalBridge.h",
+    "DouyinOpenPlatformSDK/Classes/Core/DouyinOpenPlatformLogger.h",
+    "DouyinOpenPlatformSDK/Classes/Core/DouyinOpenSDKApplicationDelegate+Privates.h",
+    "DouyinOpenPlatformSDK/Classes/Core/DouyinOpenSDKObjects+Privates.h",
+    "DouyinOpenPlatformSDK/Classes/Core/DouyinOpenSDKServiceCenter.h",
+    "DouyinOpenPlatformSDK/Classes/Core/DouyinOpenSDKURLServiceProtocol.h",
+    "DouyinOpenPlatformSDK/Classes/Core/DouyinOpenSDKUtils.h",
+    "DouyinOpenPlatformSDK/Classes/Core/Extension/NSString+DYOpen.h",
+    "DouyinOpenPlatformSDK/Classes/Core/Network/DYOpenNetworkService.h",
+    "DouyinOpenPlatformSDK/Classes/Core/Public/DouyinOpenSDKApplicationDelegate.h",
+    "DouyinOpenPlatformSDK/Classes/Core/Public/DouyinOpenSDKConstants.h",
+    "DouyinOpenPlatformSDK/Classes/Core/Public/DouyinOpenSDKErrorCode.h",
+    "DouyinOpenPlatformSDK/Classes/Core/Public/DouyinOpenSDKObjects.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/ABTest/DYOpenABTestManager.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/Extension/NSTimer+DYOpen.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/Extension/UIAlertController+DYOpen.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/Extension/UIView+DYOpen.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/Extension/UIViewController+DYOpen.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/Extension/UIWindow+DYOpen.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/Loading/DYOpenUILoading.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/Loading/DYOpenUILoadingView.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/Loading/DYOpenUILoadingViewProtocol.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/Network/DYOpenNetworkService+Internal.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/Public/DYOpenInternalConstants.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/Public/DYOpenNetworkManager.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/Public/NSBundle+DYOpen.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/Public/UIImage+DYOpen.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/Security/DYOpenDecrypt.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/Setting/DYOpenSettingsManager.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/Storage/DYOpenKVInterface.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/Storage/DYOpenStorage.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/Storage/DYOpenStorageDefine+FMDB.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/Storage/DYOpenStorageDefine.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/UI/DYOpenBasePopupView.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/UI/DYOpenHalfScreenBaseViewController.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/UI/DYOpenToast.h",
+    "DouyinOpenPlatformSDK/Classes/Core/__Internal/UI/DYOpenUIFactory.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DYOpenABTestManager.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DYOpenAppDelegateInternalBridge.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DYOpenBasePopupView.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DYOpenDecrypt.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DYOpenHalfScreenBaseViewController.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DYOpenInternalConstants.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DYOpenKVInterface.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DYOpenNetworkManager.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DYOpenNetworkService+Internal.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DYOpenNetworkService.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DYOpenSettingsInternalBridge.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DYOpenSettingsManager.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DYOpenStorage.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DYOpenStorageDefine+FMDB.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DYOpenStorageDefine.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DYOpenToast.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DYOpenTrackerInternalBridge.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DYOpenUIFactory.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DYOpenUILoading.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DYOpenUILoadingView.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DYOpenUILoadingViewProtocol.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DouyinOpenPlatformLogger.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DouyinOpenSDKApplicationDelegate+Privates.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DouyinOpenSDKApplicationDelegate.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DouyinOpenSDKConstants.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DouyinOpenSDKErrorCode.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DouyinOpenSDKObjects+Privates.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DouyinOpenSDKObjects.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DouyinOpenSDKServiceCenter.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DouyinOpenSDKURLServiceProtocol.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DouyinOpenSDKUtils.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/NSBundle+DYOpen.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/NSString+DYOpen.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/NSTimer+DYOpen.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/UIAlertController+DYOpen.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/UIImage+DYOpen.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/UIView+DYOpen.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/UIViewController+DYOpen.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/UIWindow+DYOpen.h",
+    "pod_support/Headers/Public/DouyinOpenPlatformSDK/DYOpenAppDelegateInternalBridge.h",
+    "pod_support/Headers/Public/DouyinOpenPlatformSDK/DYOpenInternalConstants.h",
+    "pod_support/Headers/Public/DouyinOpenPlatformSDK/DYOpenNetworkManager.h",
+    "pod_support/Headers/Public/DouyinOpenPlatformSDK/DYOpenSettingsInternalBridge.h",
+    "pod_support/Headers/Public/DouyinOpenPlatformSDK/DYOpenTrackerInternalBridge.h",
+    "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenSDKApplicationDelegate.h",
+    "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenSDKConstants.h",
+    "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenSDKErrorCode.h",
+    "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenSDKObjects.h",
+    "pod_support/Headers/Public/DouyinOpenPlatformSDK/NSBundle+DYOpen.h",
+    "pod_support/Headers/Public/DouyinOpenPlatformSDK/UIImage+DYOpen.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "CoreGraphics",
+    "Security",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":DouyinOpenPlatformSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DouyinOpenPlatformSDK_private_includes",
+    ":DouyinOpenPlatformSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDTicketGuard//:BDTicketGuard_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@ByteDanceKit//:Foundation_objc_interface",
+    "@ByteDanceKit//:UIKit_objc_interface",
+    "@FMDB//:FMDB_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDTicketGuard//:BDTicketGuard_swift_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    "@ByteDanceKit//:Foundation_swift_interface",
+    "@ByteDanceKit//:UIKit_swift_interface",
+    "@FMDB//:FMDB_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":DouyinOpenPlatformSDK_Core_VendoredLibraries",
+    ":Core_objc_interface",
+    "@BDTicketGuard//:BDTicketGuard_module_map",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map",
+    "@ByteDanceKit//:Foundation_module_map",
+    "@ByteDanceKit//:UIKit_module_map",
+    "@FMDB//:FMDB_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "",
+    "-DDouyinOpenPlatformSDK_POD_VERSION=@\\\"9999_5.13.0.3-bugfix\\\"",
+    "-DBDT_OP_INTERNAL=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Auth_hdrs",
+  srcs = [
+    "DouyinOpenPlatformSDK/Classes/Auth/Bridge/DYOpenSDKServiceCenterAuthInternalBridge.h",
+    "DouyinOpenPlatformSDK/Classes/Auth/DouyinOpenSDKAuth+Privates.h",
+    "DouyinOpenPlatformSDK/Classes/Auth/DouyinOpenSDKAuthService.h",
+    "DouyinOpenPlatformSDK/Classes/Auth/DouyinOpenSDKServiceCenter+Auth.h",
+    "DouyinOpenPlatformSDK/Classes/Auth/DouyinOpenSDKWebAuthViewController.h",
+    "DouyinOpenPlatformSDK/Classes/Auth/Inner/DouyinOpenSDKAuth+Inner.h",
+    "DouyinOpenPlatformSDK/Classes/Auth/Inner/DouyinOpenSDKAuthLicenseAgreement.h",
+    "DouyinOpenPlatformSDK/Classes/Auth/Public/DouyinOpenSDKAuth.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Auth_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DYOpenSDKServiceCenterAuthInternalBridge.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DouyinOpenSDKAuth+Inner.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DouyinOpenSDKAuth+Privates.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DouyinOpenSDKAuth.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DouyinOpenSDKAuthLicenseAgreement.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DouyinOpenSDKAuthService.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DouyinOpenSDKServiceCenter+Auth.h",
+    "pod_support/Headers/Private/DouyinOpenPlatformSDK/DouyinOpenSDKWebAuthViewController.h",
+    "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenSDKAuth+Inner.h",
+    "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenSDKAuth.h",
+    "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenSDKAuthLicenseAgreement.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Auth_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Auth_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Auth_module_map",
+  module_map = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_Auth-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_Auth-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Auth_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Auth_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "WebKit",
+    "SafariServices",
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":DouyinOpenPlatformSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DouyinOpenPlatformSDK_private_includes",
+    ":DouyinOpenPlatformSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Masonry//:Masonry_objc_interface",
+    "@TTTAttributedLabel//:TTTAttributedLabel_objc_interface",
+    "@Masonry//:Masonry_swift_interface",
+    "@TTTAttributedLabel//:TTTAttributedLabel_swift_interface",
+    ":DouyinOpenPlatformSDK_Auth_VendoredLibraries",
+    ":Auth_objc_interface",
+    "@Masonry//:Masonry_module_map",
+    "@TTTAttributedLabel//:TTTAttributedLabel_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "",
+    "-DDouyinOpenPlatformSDK_POD_VERSION=@\\\"9999_5.13.0.3-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":DouyinOpenPlatformSDK_Auth_DYOpenAuth"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Auth",
+  deps = [
+    ":Auth_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Auth_lib",
+  deps = [
+    ":Auth"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Share_hdrs",
+  srcs = [
+    "DouyinOpenPlatformSDK/Classes/Share/DouyinOpenSDKRSA.h",
+    "DouyinOpenPlatformSDK/Classes/Share/DouyinOpenSDKServiceCenter+Share.h",
+    "DouyinOpenPlatformSDK/Classes/Share/DouyinOpenSDKShare+Privates.h",
+    "DouyinOpenPlatformSDK/Classes/Share/DouyinOpenSDKShareService.h",
+    "DouyinOpenPlatformSDK/Classes/Share/Public/DouyinOpenSDKShare.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Share_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Share_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Share_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Share_module_map",
+  module_map = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_Share-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_Share-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Share_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Share_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Photos",
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":DouyinOpenPlatformSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DouyinOpenPlatformSDK_private_includes",
+    ":DouyinOpenPlatformSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":DouyinOpenPlatformSDK_Share_VendoredLibraries",
+    ":Share_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "",
+    "-DDouyinOpenPlatformSDK_POD_VERSION=@\\\"9999_5.13.0.3-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Share",
+  deps = [
+    ":Share_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Share_lib",
+  deps = [
+    ":Share"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EnableModule_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EnableModule_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EnableModule_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EnableModule_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "EnableModule_module_map",
+  module_map = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_EnableModule-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_EnableModule-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EnableModule_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "EnableModule_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":DouyinOpenPlatformSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DouyinOpenPlatformSDK_private_includes",
+    ":DouyinOpenPlatformSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":EnableModule_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "",
+    "-DDouyinOpenPlatformSDK_POD_VERSION=@\\\"9999_5.13.0.3-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EnableModule",
+  deps = [
+    ":EnableModule_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "EnableModule_lib",
+  deps = [
+    ":EnableModule"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "PhoneAuth_hdrs",
+  srcs = [
+    "DouyinOpenPlatformSDK/Classes/PhoneAuth/DYOpenAgreementDialog.h",
+    "DouyinOpenPlatformSDK/Classes/PhoneAuth/DouyinOpenConfirmViewController.h",
+    "DouyinOpenPlatformSDK/Classes/PhoneAuth/DouyinOpenSDKPhoneAuthManager.h",
+    "DouyinOpenPlatformSDK/Classes/PhoneAuth/DouyinOpenSDKPhoneAuthTableViewCell.h",
+    "DouyinOpenPlatformSDK/Classes/PhoneAuth/DouyinOpenSDKPhoneAuthTrackManager.h",
+    "DouyinOpenPlatformSDK/Classes/PhoneAuth/DouyinOpenSDKPhoneAuthViewController.h",
+    "DouyinOpenPlatformSDK/Classes/PhoneAuth/Network/DYOpenNetworkManager+PhoneAuth.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "PhoneAuth_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "PhoneAuth_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "PhoneAuth_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "PhoneAuth_module_map",
+  module_map = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_PhoneAuth-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_PhoneAuth-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "PhoneAuth_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "PhoneAuth_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":DouyinOpenPlatformSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DouyinOpenPlatformSDK_private_includes",
+    ":DouyinOpenPlatformSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":DouyinOpenPlatformSDK_PhoneAuth_VendoredLibraries",
+    ":PhoneAuth_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "",
+    "-DDouyinOpenPlatformSDK_POD_VERSION=@\\\"9999_5.13.0.3-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":DouyinOpenPlatformSDK_PhoneAuth_DYOpenPhone"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "PhoneAuth",
+  deps = [
+    ":PhoneAuth_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "PhoneAuth_lib",
+  deps = [
+    ":PhoneAuth"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "JSB_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "JSB_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "JSB_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "JSB_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "JSB_module_map",
+  module_map = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_JSB-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_JSB-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "JSB_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "JSB_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":DouyinOpenPlatformSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DouyinOpenPlatformSDK_private_includes",
+    ":DouyinOpenPlatformSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":JSB_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "",
+    "-DDouyinOpenPlatformSDK_POD_VERSION=@\\\"9999_5.13.0.3-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "JSB",
+  deps = [
+    ":JSB_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "JSB_lib",
+  deps = [
+    ":JSB"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "JSB_BDXBridgeKit_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "JSB_BDXBridgeKit_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "JSB_BDXBridgeKit_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "JSB_BDXBridgeKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "JSB_BDXBridgeKit_module_map",
+  module_map = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_JSB_BDXBridgeKit-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_JSB_BDXBridgeKit-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "JSB_BDXBridgeKit_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "JSB_BDXBridgeKit_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":DouyinOpenPlatformSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DouyinOpenPlatformSDK_private_includes",
+    ":DouyinOpenPlatformSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDXBridgeKit//:Core_objc_interface",
+    "@BDXBridgeKit//:Core_swift_interface",
+    ":JSB_BDXBridgeKit_objc_interface",
+    "@BDXBridgeKit//:Core_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "",
+    "-DDouyinOpenPlatformSDK_POD_VERSION=@\\\"9999_5.13.0.3-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "JSB_BDXBridgeKit",
+  deps = [
+    ":JSB_BDXBridgeKit_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "JSB_BDXBridgeKit_lib",
+  deps = [
+    ":JSB_BDXBridgeKit"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "JSB_BDXBridgeKit_JAuth_hdrs",
+  srcs = [
+    "DouyinOpenPlatformSDK/Classes/JSB/BDXBridge/Auth/DYOpenXBridgeDyopenAuthMethod+BDXBridgeIMP/DYOpenXBridgeDyopenAuthMethod.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "JSB_BDXBridgeKit_JAuth_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "JSB_BDXBridgeKit_JAuth_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "JSB_BDXBridgeKit_JAuth_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "JSB_BDXBridgeKit_JAuth_module_map",
+  module_map = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_JSB_BDXBridgeKit_JAuth-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_JSB_BDXBridgeKit_JAuth-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "JSB_BDXBridgeKit_JAuth_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "JSB_BDXBridgeKit_JAuth_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":DouyinOpenPlatformSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DouyinOpenPlatformSDK_private_includes",
+    ":DouyinOpenPlatformSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDXBridgeKit//:Core_objc_interface",
+    "@BDXBridgeKit//:Core_swift_interface",
+    ":DouyinOpenPlatformSDK_JSB_BDXBridgeKit_JAuth_VendoredLibraries",
+    ":JSB_BDXBridgeKit_JAuth_objc_interface",
+    "@BDXBridgeKit//:Core_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "",
+    "-DDouyinOpenPlatformSDK_POD_VERSION=@\\\"9999_5.13.0.3-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "JSB_BDXBridgeKit_JAuth",
+  deps = [
+    ":JSB_BDXBridgeKit_JAuth_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "JSB_BDXBridgeKit_JAuth_lib",
+  deps = [
+    ":JSB_BDXBridgeKit_JAuth"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Ticket_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Ticket_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Ticket_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Ticket_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Ticket_module_map",
+  module_map = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_Ticket-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_Ticket-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Ticket_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Ticket_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":DouyinOpenPlatformSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DouyinOpenPlatformSDK_private_includes",
+    ":DouyinOpenPlatformSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Ticket_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "",
+    "-DDouyinOpenPlatformSDK_POD_VERSION=@\\\"9999_5.13.0.3-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Ticket",
+  deps = [
+    ":Ticket_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Ticket_lib",
+  deps = [
+    ":Ticket"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Ticket_Interface_hdrs",
+  srcs = [
+    "DouyinOpenPlatformSDK/Classes/Ticket/Interface/DYOpenTicketService.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Ticket_Interface_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Ticket_Interface_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Ticket_Interface_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Ticket_Interface_module_map",
+  module_map = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_Ticket_Interface-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_Ticket_Interface-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Ticket_Interface_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Ticket_Interface_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":DouyinOpenPlatformSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DouyinOpenPlatformSDK_private_includes",
+    ":DouyinOpenPlatformSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Ticket_Interface_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "",
+    "-DDouyinOpenPlatformSDK_POD_VERSION=@\\\"9999_5.13.0.3-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Ticket_Interface",
+  deps = [
+    ":Ticket_Interface_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Ticket_Interface_lib",
+  deps = [
+    ":Ticket_Interface"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Ticket_Impl_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Ticket_Impl_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Ticket_Impl_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Ticket_Impl_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Ticket_Impl_module_map",
+  module_map = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_Ticket_Impl-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_Ticket_Impl-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Ticket_Impl_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Ticket_Impl_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":DouyinOpenPlatformSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DouyinOpenPlatformSDK_private_includes",
+    ":DouyinOpenPlatformSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDTicketGuard//:Core_objc_interface",
+    "@BDTicketGuard//:Inner_objc_interface",
+    "@BDTicketGuard//:Core_swift_interface",
+    "@BDTicketGuard//:Inner_swift_interface",
+    ":DouyinOpenPlatformSDK_Ticket_Impl_VendoredLibraries",
+    ":Ticket_Impl_objc_interface",
+    "@BDTicketGuard//:Core_module_map",
+    "@BDTicketGuard//:Inner_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "",
+    "-DDouyinOpenPlatformSDK_POD_VERSION=@\\\"9999_5.13.0.3-bugfix\\\"",
+    "-DBDT_OP_CLIENT_TICKET_IMPL=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Ticket_Impl",
+  deps = [
+    ":Ticket_Impl_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Ticket_Impl_lib",
+  deps = [
+    ":Ticket_Impl"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Follow_hdrs",
+  srcs = [
+    "DouyinOpenPlatformSDK/Classes/Follow/DYOpenFollowNetworkManager.h",
+    "DouyinOpenPlatformSDK/Classes/Follow/DYOpenFollowView.h",
+    "DouyinOpenPlatformSDK/Classes/Follow/Public/DYOpenFollow.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Follow_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Follow_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Follow_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Follow_module_map",
+  module_map = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_Follow-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_Follow-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Follow_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Follow_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":DouyinOpenPlatformSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DouyinOpenPlatformSDK_private_includes",
+    ":DouyinOpenPlatformSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDWebImage//:BDWebImage_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDWebImage//:BDWebImage_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":DouyinOpenPlatformSDK_Follow_VendoredLibraries",
+    ":Follow_objc_interface",
+    "@BDWebImage//:BDWebImage_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "",
+    "-DDouyinOpenPlatformSDK_POD_VERSION=@\\\"9999_5.13.0.3-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":DouyinOpenPlatformSDK_Follow_DYOpenFollow"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Follow",
+  deps = [
+    ":Follow_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Follow_lib",
+  deps = [
+    ":Follow"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Profile_hdrs",
+  srcs = [
+    "DouyinOpenPlatformSDK/Classes/Profile/Base/DYOpenProfileNetworkManager.h",
+    "DouyinOpenPlatformSDK/Classes/Profile/Base/Public/DouyinOpenSDKProfile.h",
+    "DouyinOpenPlatformSDK/Classes/Profile/Base/Public/DouyinOpenSDKProfileContext.h",
+    "DouyinOpenPlatformSDK/Classes/Profile/Base/Public/DouyinOpenSDKProfileModel.h",
+    "DouyinOpenPlatformSDK/Classes/Profile/Base/Public/DouyinOpenSDKProfileVideoModel.h",
+    "DouyinOpenPlatformSDK/Classes/Profile/General/DYOpenAlertViewController.h",
+    "DouyinOpenPlatformSDK/Classes/Profile/General/DouyinOpenSDKProfileVideoViewController.h",
+    "DouyinOpenPlatformSDK/Classes/Profile/General/DouyinOpenSDKProfileViewController.h",
+    "DouyinOpenPlatformSDK/Classes/Profile/General/Public/DouyinOpenSDKGeneralProfile.h",
+    "DouyinOpenPlatformSDK/Classes/Profile/MLBB/DouyinOpenSDKGameProfileVideoViewController.h",
+    "DouyinOpenPlatformSDK/Classes/Profile/MLBB/MiniVideoWindowPlay/DouyinOpenSDKMiniPlayBaseController.h",
+    "DouyinOpenPlatformSDK/Classes/Profile/MLBB/MiniVideoWindowPlay/DouyinOpenSDKMiniPlayWindow.h",
+    "DouyinOpenPlatformSDK/Classes/Profile/MLBB/Public/DouyinOpenSDKMLBBProfile.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Profile_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Profile_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Profile_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Profile_module_map",
+  module_map = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_Profile-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_Profile-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Profile_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Profile_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "AVKit",
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":DouyinOpenPlatformSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DouyinOpenPlatformSDK_private_includes",
+    ":DouyinOpenPlatformSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Masonry//:Masonry_objc_interface",
+    "@Masonry//:Masonry_swift_interface",
+    ":DouyinOpenPlatformSDK_Profile_VendoredLibraries",
+    ":Profile_objc_interface",
+    "@Masonry//:Masonry_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "",
+    "-DDouyinOpenPlatformSDK_POD_VERSION=@\\\"9999_5.13.0.3-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Profile",
+  deps = [
+    ":Profile_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Profile_lib",
+  deps = [
+    ":Profile"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Profile_Base_hdrs",
+  srcs = [
+    "DouyinOpenPlatformSDK/Classes/Profile/Base/DYOpenProfileNetworkManager.h",
+    "DouyinOpenPlatformSDK/Classes/Profile/Base/Public/DouyinOpenSDKProfile.h",
+    "DouyinOpenPlatformSDK/Classes/Profile/Base/Public/DouyinOpenSDKProfileContext.h",
+    "DouyinOpenPlatformSDK/Classes/Profile/Base/Public/DouyinOpenSDKProfileModel.h",
+    "DouyinOpenPlatformSDK/Classes/Profile/Base/Public/DouyinOpenSDKProfileVideoModel.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Profile_Base_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Profile_Base_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Profile_Base_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Profile_Base_module_map",
+  module_map = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_Profile_Base-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_Profile_Base-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Profile_Base_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Profile_Base_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "AVKit",
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":DouyinOpenPlatformSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DouyinOpenPlatformSDK_private_includes",
+    ":DouyinOpenPlatformSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Masonry//:Masonry_objc_interface",
+    "@Masonry//:Masonry_swift_interface",
+    ":DouyinOpenPlatformSDK_Profile_Base_VendoredLibraries",
+    ":Profile_Base_objc_interface",
+    "@Masonry//:Masonry_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "",
+    "-DDouyinOpenPlatformSDK_POD_VERSION=@\\\"9999_5.13.0.3-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Profile_Base",
+  deps = [
+    ":Profile_Base_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Profile_Base_lib",
+  deps = [
+    ":Profile_Base"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Profile_General_hdrs",
+  srcs = [
+    "DouyinOpenPlatformSDK/Classes/Profile/General/DYOpenAlertViewController.h",
+    "DouyinOpenPlatformSDK/Classes/Profile/General/DouyinOpenSDKProfileVideoViewController.h",
+    "DouyinOpenPlatformSDK/Classes/Profile/General/DouyinOpenSDKProfileViewController.h",
+    "DouyinOpenPlatformSDK/Classes/Profile/General/Public/DouyinOpenSDKGeneralProfile.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Profile_General_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Profile_General_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Profile_General_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Profile_General_module_map",
+  module_map = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_Profile_General-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_Profile_General-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Profile_General_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Profile_General_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "AVKit",
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":DouyinOpenPlatformSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DouyinOpenPlatformSDK_private_includes",
+    ":DouyinOpenPlatformSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Masonry//:Masonry_objc_interface",
+    "@Masonry//:Masonry_swift_interface",
+    ":DouyinOpenPlatformSDK_Profile_General_VendoredLibraries",
+    ":Profile_General_objc_interface",
+    "@Masonry//:Masonry_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "",
+    "-DDouyinOpenPlatformSDK_POD_VERSION=@\\\"9999_5.13.0.3-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":DouyinOpenPlatformSDK_Profile_General_DYOpenProfileGeneral"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Profile_General",
+  deps = [
+    ":Profile_General_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Profile_General_lib",
+  deps = [
+    ":Profile_General"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Profile_MLBB_hdrs",
+  srcs = [
+    "DouyinOpenPlatformSDK/Classes/Profile/MLBB/DouyinOpenSDKGameProfileVideoViewController.h",
+    "DouyinOpenPlatformSDK/Classes/Profile/MLBB/MiniVideoWindowPlay/DouyinOpenSDKMiniPlayBaseController.h",
+    "DouyinOpenPlatformSDK/Classes/Profile/MLBB/MiniVideoWindowPlay/DouyinOpenSDKMiniPlayWindow.h",
+    "DouyinOpenPlatformSDK/Classes/Profile/MLBB/Public/DouyinOpenSDKMLBBProfile.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Profile_MLBB_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Profile_MLBB_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Profile_MLBB_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Profile_MLBB_module_map",
+  module_map = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_Profile_MLBB-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_Profile_MLBB-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Profile_MLBB_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Profile_MLBB_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "AVKit",
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":DouyinOpenPlatformSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DouyinOpenPlatformSDK_private_includes",
+    ":DouyinOpenPlatformSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Masonry//:Masonry_objc_interface",
+    "@Masonry//:Masonry_swift_interface",
+    ":DouyinOpenPlatformSDK_Profile_MLBB_VendoredLibraries",
+    ":Profile_MLBB_objc_interface",
+    "@Masonry//:Masonry_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "",
+    "-DDouyinOpenPlatformSDK_POD_VERSION=@\\\"9999_5.13.0.3-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":DouyinOpenPlatformSDK_Profile_MLBB_DYOpenProfileMLBB"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Profile_MLBB",
+  deps = [
+    ":Profile_MLBB_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Profile_MLBB_lib",
+  deps = [
+    ":Profile_MLBB"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ByteGuard_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ByteGuard_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ByteGuard_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ByteGuard_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ByteGuard_module_map",
+  module_map = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_ByteGuard-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DouyinOpenPlatformSDK/DouyinOpenPlatformSDK_ByteGuard-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ByteGuard_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "ByteGuard_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":DouyinOpenPlatformSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DouyinOpenPlatformSDK_private_includes",
+    ":DouyinOpenPlatformSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":ByteGuard_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "",
+    "-DDouyinOpenPlatformSDK_POD_VERSION=@\\\"9999_5.13.0.3-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ByteGuard",
+  deps = [
+    ":ByteGuard_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ByteGuard_lib",
+  deps = [
+    ":ByteGuard"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_DouyinOpenPlatformSDK_module_map",
+  module_map = "@DouyinOpenPlatformSDK//:pod_support/Headers/Public/DouyinOpenPlatformSDK/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@DouyinOpenPlatformSDK//:pod_support/Headers/Public/DouyinOpenPlatformSDK/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_DouyinOpenPlatformSDK_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@DouyinOpenPlatformSDK//:Auth_objc_interface", "@DouyinOpenPlatformSDK//:Core_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_DouyinOpenPlatformSDK",
+  target_name = "Lark",
+  module_name = "DouyinOpenPlatformSDK",
+  hdrs = ["@DouyinOpenPlatformSDK//:Auth_pod_hdrs", "@DouyinOpenPlatformSDK//:Core_pod_hdrs"],
+  srcs = [],
+  non_arc_srcs = [],
+  deps = ["@DouyinOpenPlatformSDK//:DouyinOpenPlatformSDK_Auth_VendoredLibraries", "@DouyinOpenPlatformSDK//:DouyinOpenPlatformSDK_Core_VendoredLibraries"],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DDouyinOpenPlatformSDK_POD_VERSION=@\\\"9999_5.13.0.3-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-DBDT_OP_INTERNAL=1",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "DouyinOpenPlatformSDK_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "DouyinOpenPlatformSDK_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["WebKit", "SafariServices", "UIKit", "Foundation", "JavaScriptCore", "CoreGraphics", "Security"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = ["@DouyinOpenPlatformSDK//:DouyinOpenPlatformSDK_Auth_DYOpenAuth"],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "DouyinOpenPlatformSDK_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "DouyinOpenPlatformSDK_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "DouyinOpenPlatformSDK_dynamic", False),
+  tags = getattr(defs_external_objc_library, "DouyinOpenPlatformSDK_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("DouyinOpenPlatformSDK", {}),
+  visibility = ["//visibility:public"],
+)

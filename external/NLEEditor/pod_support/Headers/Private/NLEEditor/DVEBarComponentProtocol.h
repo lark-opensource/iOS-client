@@ -1,0 +1,1 @@
+../../../../NLEEditor/Classes/EditorArch/Model/Bar/DVEBarComponentProtocol.h

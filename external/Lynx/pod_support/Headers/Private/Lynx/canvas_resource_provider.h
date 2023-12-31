@@ -1,0 +1,1 @@
+../../../../third_party/krypton/canvas/canvas_resource_provider.h

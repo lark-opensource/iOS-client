@@ -1,0 +1,74 @@
+{
+    "osx": {
+        "frameworks": [
+            "AVFoundation", 
+            "IOKit", 
+            "Cocoa", 
+            "CoreMedia", 
+            "OpenGL", 
+            "Foundation", 
+            "CoreVideo", 
+            "CoreImage", 
+            "AppKit", 
+            "Quartz"
+        ]
+    }, 
+    "description": "AGFX provides rendering and heteorgeneous computing capabilities.\nAGFX_src commit: 92fa3c30a", 
+    "license": "IES_SH", 
+    "platforms": {
+        "osx": "10.12", 
+        "ios": "8.0"
+    }, 
+    "requires_arc": false, 
+    "ios": {
+        "frameworks": [
+            "AVFoundation", 
+            "CoreMedia", 
+            "Accelerate", 
+            "Foundation", 
+            "GLKit"
+        ]
+    }, 
+    "summary": "Amazing Graphics", 
+    "libraries": [
+        "c++", 
+        "z"
+    ], 
+    "source": {
+        "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/custombinary/5/AGFX_pub/14.5.0.2/AGFX_pub.framework.tar.xz"
+    }, 
+    "version": "14.5.0.2.1-binary", 
+    "dependencies": {
+        "gaia_lib_publish/gaia": [], 
+        "gaia_lib_publish/Thread": [], 
+        "gaia_lib_publish/Math": []
+    }, 
+    "authors": {
+        "benny": "benny.liu@bytedance.com"
+    }, 
+    "header_mappings_dir": "inc", 
+    "homepage": "https://code.byted.org/ies/AGFX_publish", 
+    "subspecs": [
+        {
+            "public_header_files": "inc/Runtime/RenderLib/**/*.h**", 
+            "vendored_libraries": "lib/iOS/Release/libAGFX.a", 
+            "ios": {
+                "xcconfig": {
+                    "LIBRARY_SEARCH_PATHS": "\"$(PODS_ROOT)/\"", 
+                    "HEADER_SEARCH_PATHS": "\"${PODS_ROOT}/Headers/Public/AGFX_pub\" "
+                }
+            }, 
+            "name": "RenderLib", 
+            "source_files": "inc/Runtime/RenderLib/**/*.h**"
+        }, 
+        {
+            "public_header_files": "inc/AGFXLib/**/*.h**", 
+            "dependencies": {
+                "AGFX_pub/RenderLib": []
+            }, 
+            "name": "AGFXLib", 
+            "source_files": "inc/AGFXLib/**/*.h**"
+        }
+    ], 
+    "name": "AGFX_pub"
+}

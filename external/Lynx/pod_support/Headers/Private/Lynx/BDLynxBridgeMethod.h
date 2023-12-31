@@ -1,0 +1,1 @@
+../../../../Darwin/Common/BDLynxBridge/BDLynxBridge/Classes/BDLynxBridgeMethod.h

@@ -1,0 +1,75 @@
+{
+  "name": "BDPreloadSDK",
+  "version": "0.4.10",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/iOS_Library/BDPreloadSDK",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "caiweilong": "caiweilong@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:iOS_Library/BDPreloadSDK.git",
+    "commit": "6c6f9b7697a26de75af7bab3ae70e7541cc2fd68"
+  },
+  "requires_arc": true,
+  "platforms": {
+    "ios": "8.0"
+  },
+  "default_subspecs": "Core",
+  "subspecs": [
+    {
+      "name": "Core",
+      "source_files": "BDPreloadSDK/Classes/Core/**/*.{h,m,mm}",
+      "frameworks": [
+        "Foundation",
+        "UIKit"
+      ],
+      "dependencies": {
+        "BDAlogProtocol": [],
+        "BDTrackerProtocol": [],
+        "TTReachability": [],
+        "ByteDanceKit": []
+      }
+    },
+    {
+      "name": "WebView",
+      "source_files": "BDPreloadSDK/Classes/WebView/**/*.{h,m,mm}",
+      "dependencies": {
+        "BDPreloadSDK/Core": [],
+        "TTNetworkManager": [],
+        "YYCache": []
+      }
+    },
+    {
+      "name": "Image",
+      "source_files": "BDPreloadSDK/Classes/Image/**/*.{h,m,mm}",
+      "dependencies": {
+        "BDPreloadSDK/Core": []
+      }
+    },
+    {
+      "name": "TTNet",
+      "source_files": "BDPreloadSDK/Classes/TTNet/**/*.{h,m,mm}",
+      "dependencies": {
+        "BDPreloadSDK/Core": [],
+        "TTNetworkManager": []
+      }
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "2970",
+    "app_id": "9999"
+  },
+  "repoId": "2970",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDPreloadSDK_POD_VERSION=@\\\"9999_0.4.10\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDPreloadSDK_POD_VERSION=@\\\"9999_0.4.10\\\""
+  }
+}

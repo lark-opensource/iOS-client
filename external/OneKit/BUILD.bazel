@@ -1,0 +1,2795 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "OneKit_pod_hdrs",
+  srcs = [
+    ":OneKit_root_pod_hdrs",
+    ":BaseKit_pod_hdrs",
+    ":Defaults_pod_hdrs",
+    ":Reachability_pod_hdrs",
+    ":Service_pod_hdrs",
+    ":Database_pod_hdrs",
+    ":BDMantle_pod_hdrs",
+    ":StartUp_pod_hdrs",
+    ":IDFA_pod_hdrs",
+    ":MARS_pod_hdrs",
+    ":MARS_Auth_pod_hdrs",
+    ":ByteDanceKit_pod_hdrs",
+    ":ByteDanceKit_Foundation_pod_hdrs",
+    ":ByteDanceKit_UIKit_pod_hdrs",
+    ":Screenshot_pod_hdrs",
+    ":boringssl_pod_hdrs",
+    ":Tests_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "OneKit_private_includes",
+  include = [
+    "external/OneKit/pod_support/Headers/Private/OneKit/"
+  ],
+  deps = [],
+  external_name = "OneKit"
+)
+gen_includes(
+  name = "OneKit_public_includes",
+  include = [
+    "external/OneKit/pod_support/Headers/Public/OneKit/"
+  ],
+  deps = [],
+  external_name = "OneKit"
+)
+filegroup(
+  name = "_OneKit_hdrs",
+  srcs = [
+    ":OneKit_root_hdrs",
+    ":BaseKit_hdrs",
+    ":Defaults_hdrs",
+    ":Reachability_hdrs",
+    ":Service_hdrs",
+    ":Database_hdrs",
+    ":BDMantle_hdrs",
+    ":StartUp_hdrs",
+    ":IDFA_hdrs",
+    ":MARS_hdrs",
+    ":MARS_Auth_hdrs",
+    ":ByteDanceKit_hdrs",
+    ":ByteDanceKit_Foundation_hdrs",
+    ":ByteDanceKit_UIKit_hdrs",
+    ":Screenshot_hdrs",
+    ":boringssl_hdrs",
+    ":Tests_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "OneKit_xcode_hmapsource",
+  hdrs = [
+    ":OneKit_root_hdrs",
+    ":BaseKit_hdrs",
+    ":Reachability_hdrs",
+    ":Service_hdrs",
+    ":StartUp_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "OneKit_xcode_hmap",
+  dep = ":OneKit_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/OneKit/*-bitsky-generated.modulemap", "pod_support/Headers/Public/OneKit/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "OneKit_BaseKit_VendoredLibraries",
+  archives = [
+    "OneKit/BaseKit/Decorator/Vendor/libEncryptor.a"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "OneKit_boringssl_VendoredLibraries",
+  archives = [
+    "OneKit/boringssl/libboringssl_asm.a",
+    "OneKit/boringssl/libboringssl.a",
+    "OneKit/boringssl/libcrcrypto.a"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "OneKit_custom_includes",
+  include = [
+    "external/Protobuf/objectivec",
+    "external/OneKit/boringssl/include"
+  ],
+  include_files = [],
+  external_name = "OneKit",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "OneKit_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":OneKit_xcode_hmap"
+  ],
+  external_name = "OneKit",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "OneKit_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "OneKit_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "OneKit_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "OneKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "OneKit_module_map",
+  module_map = "pod_support/Headers/Public/OneKit/OneKit-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/OneKit/OneKit-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "OneKit_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "OneKit_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":OneKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":OneKit_private_includes",
+    ":OneKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":OneKit_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOneKit_POD_VERSION=@\\\"9999_1.1.30\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "OneKit",
+  deps = [
+    ":OneKit_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "OneKit_lib",
+  deps = [
+    ":OneKit"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BaseKit_hdrs",
+  srcs = [
+    "OneKit/BaseKit/Decorator/NSData+OKDecorator.h",
+    "OneKit/BaseKit/Decorator/NSData+OKSecurity.h",
+    "OneKit/BaseKit/Decorator/NSString+OKSecurity.h",
+    "OneKit/BaseKit/Decorator/Vendor/app_log_private.h",
+    "OneKit/BaseKit/Foundation/NSArray+OK.h",
+    "OneKit/BaseKit/Foundation/NSData+OK.h",
+    "OneKit/BaseKit/Foundation/NSDictionary+OK.h",
+    "OneKit/BaseKit/Foundation/NSFileManager+OK.h",
+    "OneKit/BaseKit/Foundation/NSHashTable+OK.h",
+    "OneKit/BaseKit/Foundation/NSMapTable+OK.h",
+    "OneKit/BaseKit/Foundation/NSMutableArray+OK.h",
+    "OneKit/BaseKit/Foundation/NSMutableDictionary+OK.h",
+    "OneKit/BaseKit/Foundation/NSNumber+OK.h",
+    "OneKit/BaseKit/Foundation/NSObject+OK.h",
+    "OneKit/BaseKit/Foundation/NSSet+OK.h",
+    "OneKit/BaseKit/Foundation/NSString+OK.h",
+    "OneKit/BaseKit/Foundation/OKDevice.h",
+    "OneKit/BaseKit/Foundation/OKMacros.h",
+    "OneKit/BaseKit/Foundation/OKSandbox.h",
+    "OneKit/BaseKit/Foundation/OKTimer.h",
+    "OneKit/BaseKit/Foundation/OKUtility.h",
+    "OneKit/BaseKit/Foundation/OKWeakProxy.h",
+    "OneKit/BaseKit/GZip/NSData+OKGZIP.h",
+    "OneKit/BaseKit/Keychain/OKKeychain.h",
+    "OneKit/BaseKit/Section/OKSectionData.h",
+    "OneKit/BaseKit/Section/OKSectionFunction.h",
+    "OneKit/BaseKit/UIKit/OKResponder.h",
+    "OneKit/BaseKit/UIKit/UIApplication+OKAdditions.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BaseKit_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/OneKit/NSArray+OK.h",
+    "pod_support/Headers/Private/OneKit/NSData+OK.h",
+    "pod_support/Headers/Private/OneKit/NSData+OKDecorator.h",
+    "pod_support/Headers/Private/OneKit/NSData+OKGZIP.h",
+    "pod_support/Headers/Private/OneKit/NSData+OKSecurity.h",
+    "pod_support/Headers/Private/OneKit/NSDictionary+OK.h",
+    "pod_support/Headers/Private/OneKit/NSFileManager+OK.h",
+    "pod_support/Headers/Private/OneKit/NSHashTable+OK.h",
+    "pod_support/Headers/Private/OneKit/NSMapTable+OK.h",
+    "pod_support/Headers/Private/OneKit/NSMutableArray+OK.h",
+    "pod_support/Headers/Private/OneKit/NSMutableDictionary+OK.h",
+    "pod_support/Headers/Private/OneKit/NSNumber+OK.h",
+    "pod_support/Headers/Private/OneKit/NSObject+OK.h",
+    "pod_support/Headers/Private/OneKit/NSSet+OK.h",
+    "pod_support/Headers/Private/OneKit/NSString+OK.h",
+    "pod_support/Headers/Private/OneKit/NSString+OKSecurity.h",
+    "pod_support/Headers/Private/OneKit/OKDevice.h",
+    "pod_support/Headers/Private/OneKit/OKKeychain.h",
+    "pod_support/Headers/Private/OneKit/OKMacros.h",
+    "pod_support/Headers/Private/OneKit/OKResponder.h",
+    "pod_support/Headers/Private/OneKit/OKSandbox.h",
+    "pod_support/Headers/Private/OneKit/OKSectionData.h",
+    "pod_support/Headers/Private/OneKit/OKSectionFunction.h",
+    "pod_support/Headers/Private/OneKit/OKTimer.h",
+    "pod_support/Headers/Private/OneKit/OKUtility.h",
+    "pod_support/Headers/Private/OneKit/OKWeakProxy.h",
+    "pod_support/Headers/Private/OneKit/UIApplication+OKAdditions.h",
+    "pod_support/Headers/Private/OneKit/app_log_private.h",
+    "pod_support/Headers/Public/OneKit/NSArray+OK.h",
+    "pod_support/Headers/Public/OneKit/NSData+OK.h",
+    "pod_support/Headers/Public/OneKit/NSData+OKDecorator.h",
+    "pod_support/Headers/Public/OneKit/NSData+OKGZIP.h",
+    "pod_support/Headers/Public/OneKit/NSData+OKSecurity.h",
+    "pod_support/Headers/Public/OneKit/NSDictionary+OK.h",
+    "pod_support/Headers/Public/OneKit/NSFileManager+OK.h",
+    "pod_support/Headers/Public/OneKit/NSHashTable+OK.h",
+    "pod_support/Headers/Public/OneKit/NSMapTable+OK.h",
+    "pod_support/Headers/Public/OneKit/NSMutableArray+OK.h",
+    "pod_support/Headers/Public/OneKit/NSMutableDictionary+OK.h",
+    "pod_support/Headers/Public/OneKit/NSNumber+OK.h",
+    "pod_support/Headers/Public/OneKit/NSObject+OK.h",
+    "pod_support/Headers/Public/OneKit/NSSet+OK.h",
+    "pod_support/Headers/Public/OneKit/NSString+OK.h",
+    "pod_support/Headers/Public/OneKit/NSString+OKSecurity.h",
+    "pod_support/Headers/Public/OneKit/OKDevice.h",
+    "pod_support/Headers/Public/OneKit/OKKeychain.h",
+    "pod_support/Headers/Public/OneKit/OKMacros.h",
+    "pod_support/Headers/Public/OneKit/OKResponder.h",
+    "pod_support/Headers/Public/OneKit/OKSandbox.h",
+    "pod_support/Headers/Public/OneKit/OKSectionData.h",
+    "pod_support/Headers/Public/OneKit/OKSectionFunction.h",
+    "pod_support/Headers/Public/OneKit/OKTimer.h",
+    "pod_support/Headers/Public/OneKit/OKUtility.h",
+    "pod_support/Headers/Public/OneKit/OKWeakProxy.h",
+    "pod_support/Headers/Public/OneKit/UIApplication+OKAdditions.h",
+    "pod_support/Headers/Public/OneKit/app_log_private.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BaseKit_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BaseKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "BaseKit_module_map",
+  module_map = "pod_support/Headers/Public/OneKit/OneKit_BaseKit-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/OneKit/OneKit_BaseKit-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BaseKit_srcs",
+  srcs = [
+    "OneKit/BaseKit/BaseKit.m",
+    "OneKit/BaseKit/Foundation/NSArray+OK.m",
+    "OneKit/BaseKit/Foundation/NSData+OK.m",
+    "OneKit/BaseKit/Decorator/NSData+OKDecorator.m",
+    "OneKit/BaseKit/GZip/NSData+OKGZIP.m",
+    "OneKit/BaseKit/Decorator/NSData+OKSecurity.m",
+    "OneKit/BaseKit/Foundation/NSDictionary+OK.m",
+    "OneKit/BaseKit/Foundation/NSFileManager+OK.m",
+    "OneKit/BaseKit/Foundation/NSHashTable+OK.m",
+    "OneKit/BaseKit/Foundation/NSMapTable+OK.m",
+    "OneKit/BaseKit/Foundation/NSMutableArray+OK.m",
+    "OneKit/BaseKit/Foundation/NSMutableDictionary+OK.m",
+    "OneKit/BaseKit/Foundation/NSNumber+OK.m",
+    "OneKit/BaseKit/Foundation/NSObject+OK.m",
+    "OneKit/BaseKit/Foundation/NSSet+OK.m",
+    "OneKit/BaseKit/Foundation/NSString+OK.m",
+    "OneKit/BaseKit/Decorator/NSString+OKSecurity.m",
+    "OneKit/BaseKit/Foundation/OKDevice.m",
+    "OneKit/BaseKit/Keychain/OKKeychain.m",
+    "OneKit/BaseKit/UIKit/OKResponder.m",
+    "OneKit/BaseKit/Foundation/OKSandbox.m",
+    "OneKit/BaseKit/Section/OKSectionData.m",
+    "OneKit/BaseKit/Section/OKSectionFunction.m",
+    "OneKit/BaseKit/Foundation/OKTimer.m",
+    "OneKit/BaseKit/Foundation/OKUtility.m",
+    "OneKit/BaseKit/Foundation/OKWeakProxy.m",
+    "OneKit/BaseKit/UIKit/UIApplication+OKAdditions.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BaseKit_oc",
+  enable_modules = 1,
+  srcs = [
+    "BaseKit_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "BaseKit_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":OneKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":OneKit_private_includes",
+    ":OneKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":OneKit_BaseKit_VendoredLibraries",
+    ":BaseKit_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOneKit_POD_VERSION=@\\\"9999_1.1.30\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BaseKit",
+  deps = [
+    ":BaseKit_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "BaseKit_lib",
+  deps = [
+    ":BaseKit"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Defaults_hdrs",
+  srcs = [
+    "OneKit/Defaults/OKDefaults.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Defaults_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Defaults_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Defaults_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Defaults_module_map",
+  module_map = "pod_support/Headers/Public/OneKit/OneKit_Defaults-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/OneKit/OneKit_Defaults-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Defaults_srcs",
+  srcs = [
+    "OneKit/Defaults/OKDefaults.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Defaults_oc",
+  enable_modules = 1,
+  srcs = [
+    "Defaults_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Defaults_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":OneKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":OneKit_private_includes",
+    ":OneKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Defaults_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOneKit_POD_VERSION=@\\\"9999_1.1.30\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Defaults",
+  deps = [
+    ":Defaults_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Defaults_lib",
+  deps = [
+    ":Defaults"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Reachability_hdrs",
+  srcs = [
+    "OneKit/Reachability/OKCellular.h",
+    "OneKit/Reachability/OKConnection.h",
+    "OneKit/Reachability/OKReachability+Authorization.h",
+    "OneKit/Reachability/OKReachability+Cellular.h",
+    "OneKit/Reachability/OKReachability.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Reachability_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/OneKit/OKCellular.h",
+    "pod_support/Headers/Private/OneKit/OKConnection.h",
+    "pod_support/Headers/Private/OneKit/OKReachability+Authorization.h",
+    "pod_support/Headers/Private/OneKit/OKReachability+Cellular.h",
+    "pod_support/Headers/Private/OneKit/OKReachability.h",
+    "pod_support/Headers/Public/OneKit/OKCellular.h",
+    "pod_support/Headers/Public/OneKit/OKConnection.h",
+    "pod_support/Headers/Public/OneKit/OKReachability+Authorization.h",
+    "pod_support/Headers/Public/OneKit/OKReachability+Cellular.h",
+    "pod_support/Headers/Public/OneKit/OKReachability.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Reachability_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Reachability_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Reachability_module_map",
+  module_map = "pod_support/Headers/Public/OneKit/OneKit_Reachability-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/OneKit/OneKit_Reachability-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Reachability_srcs",
+  srcs = [
+    "OneKit/Reachability/OKCellular.m",
+    "OneKit/Reachability/OKConnection.m",
+    "OneKit/Reachability/OKReachability+Authorization.m",
+    "OneKit/Reachability/OKReachability+Cellular.m",
+    "OneKit/Reachability/OKReachability.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Reachability_oc",
+  enable_modules = 1,
+  srcs = [
+    "Reachability_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Reachability_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "CoreTelephony",
+    "SystemConfiguration",
+    "CoreFoundation",
+    "UIKit"
+  ],
+  deps = [
+    ":OneKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":OneKit_private_includes",
+    ":OneKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Reachability_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOneKit_POD_VERSION=@\\\"9999_1.1.30\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Reachability",
+  deps = [
+    ":Reachability_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Reachability_lib",
+  deps = [
+    ":Reachability"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Service_hdrs",
+  srcs = [
+    "OneKit/Service/OKService.h",
+    "OneKit/Service/OKServiceCenter.h",
+    "OneKit/Service/OKServices.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Service_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/OneKit/OKService.h",
+    "pod_support/Headers/Private/OneKit/OKServiceCenter.h",
+    "pod_support/Headers/Private/OneKit/OKServices.h",
+    "pod_support/Headers/Public/OneKit/OKService.h",
+    "pod_support/Headers/Public/OneKit/OKServiceCenter.h",
+    "pod_support/Headers/Public/OneKit/OKServices.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Service_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Service_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Service_module_map",
+  module_map = "pod_support/Headers/Public/OneKit/OneKit_Service-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/OneKit/OneKit_Service-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Service_srcs",
+  srcs = [
+    "OneKit/Service/OKServiceCenter.m",
+    "OneKit/Service/OKServices.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Service_oc",
+  enable_modules = 1,
+  srcs = [
+    "Service_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Service_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":OneKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":OneKit_private_includes",
+    ":OneKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Service_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOneKit_POD_VERSION=@\\\"9999_1.1.30\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Service",
+  deps = [
+    ":Service_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Service_lib",
+  deps = [
+    ":Service"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Database_hdrs",
+  srcs = [
+    "OneKit/Database/OKDatabase.h",
+    "OneKit/Database/OKDatabaseAdditions.h",
+    "OneKit/Database/OKDatabasePool.h",
+    "OneKit/Database/OKDatabaseQueue.h",
+    "OneKit/Database/OKResultSet.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Database_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Database_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Database_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Database_module_map",
+  module_map = "pod_support/Headers/Public/OneKit/OneKit_Database-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/OneKit/OneKit_Database-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Database_srcs",
+  srcs = [
+    "OneKit/Database/OKDatabase.m",
+    "OneKit/Database/OKDatabaseAdditions.m",
+    "OneKit/Database/OKDatabasePool.m",
+    "OneKit/Database/OKDatabaseQueue.m",
+    "OneKit/Database/OKResultSet.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Database_oc",
+  enable_modules = 1,
+  srcs = [
+    "Database_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Database_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":OneKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":OneKit_private_includes",
+    ":OneKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Database_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOneKit_POD_VERSION=@\\\"9999_1.1.30\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Database",
+  deps = [
+    ":Database_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Database_lib",
+  deps = [
+    ":Database"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDMantle_hdrs",
+  srcs = [
+    "OneKit/BDMantle/BDMantle/BDMTLJSONAdapter.h",
+    "OneKit/BDMantle/BDMantle/BDMTLModel+NSCoding.h",
+    "OneKit/BDMantle/BDMantle/BDMTLModel.h",
+    "OneKit/BDMantle/BDMantle/BDMTLReflection.h",
+    "OneKit/BDMantle/BDMantle/BDMTLTransformerErrorHandling.h",
+    "OneKit/BDMantle/BDMantle/BDMTLValueTransformer.h",
+    "OneKit/BDMantle/BDMantle/BDMantle.h",
+    "OneKit/BDMantle/BDMantle/NSArray+BDMTLManipulationAdditions.h",
+    "OneKit/BDMantle/BDMantle/NSDictionary+BDMTLJSONKeyPath.h",
+    "OneKit/BDMantle/BDMantle/NSDictionary+BDMTLManipulationAdditions.h",
+    "OneKit/BDMantle/BDMantle/NSDictionary+BDMTLMappingAdditions.h",
+    "OneKit/BDMantle/BDMantle/NSError+BDMTLModelException.h",
+    "OneKit/BDMantle/BDMantle/NSObject+BDMTLComparisonAdditions.h",
+    "OneKit/BDMantle/BDMantle/NSValueTransformer+BDMTLInversionAdditions.h",
+    "OneKit/BDMantle/BDMantle/NSValueTransformer+BDMTLPredefinedTransformerAdditions.h",
+    "OneKit/BDMantle/BDMantle/extobjc/BDEXTKeyPathCoding.h",
+    "OneKit/BDMantle/BDMantle/extobjc/BDEXTRuntimeExtensions.h",
+    "OneKit/BDMantle/BDMantle/extobjc/BDEXTScope.h",
+    "OneKit/BDMantle/BDMantle/extobjc/metamacros.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDMantle_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDMantle_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDMantle_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "BDMantle_module_map",
+  module_map = "pod_support/Headers/Public/OneKit/OneKit_BDMantle-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/OneKit/OneKit_BDMantle-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDMantle_srcs",
+  srcs = [
+    "OneKit/BDMantle/BDMantle/extobjc/BDEXTRuntimeExtensions.m",
+    "OneKit/BDMantle/BDMantle/extobjc/BDEXTScope.m",
+    "OneKit/BDMantle/BDMantle/BDMTLJSONAdapter.m",
+    "OneKit/BDMantle/BDMantle/BDMTLModel+NSCoding.m",
+    "OneKit/BDMantle/BDMantle/BDMTLModel.m",
+    "OneKit/BDMantle/BDMantle/BDMTLReflection.m",
+    "OneKit/BDMantle/BDMantle/BDMTLTransformerErrorHandling.m",
+    "OneKit/BDMantle/BDMantle/BDMTLValueTransformer.m",
+    "OneKit/BDMantle/BDMantle/NSArray+BDMTLManipulationAdditions.m",
+    "OneKit/BDMantle/BDMantle/NSDictionary+BDMTLJSONKeyPath.m",
+    "OneKit/BDMantle/BDMantle/NSDictionary+BDMTLManipulationAdditions.m",
+    "OneKit/BDMantle/BDMantle/NSDictionary+BDMTLMappingAdditions.m",
+    "OneKit/BDMantle/BDMantle/NSError+BDMTLModelException.m",
+    "OneKit/BDMantle/BDMantle/NSObject+BDMTLComparisonAdditions.m",
+    "OneKit/BDMantle/BDMantle/NSValueTransformer+BDMTLInversionAdditions.m",
+    "OneKit/BDMantle/BDMantle/NSValueTransformer+BDMTLPredefinedTransformerAdditions.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDMantle_oc",
+  enable_modules = 1,
+  srcs = [
+    "BDMantle_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "BDMantle_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":OneKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":OneKit_private_includes",
+    ":OneKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":BDMantle_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOneKit_POD_VERSION=@\\\"9999_1.1.30\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDMantle",
+  deps = [
+    ":BDMantle_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "BDMantle_lib",
+  deps = [
+    ":BDMantle"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "StartUp_hdrs",
+  srcs = [
+    "OneKit/StartUp/Headers/OKApplicationInfo.h",
+    "OneKit/StartUp/Headers/OKStartUpFunction.h",
+    "OneKit/StartUp/Headers/OKStartUpScheduler.h",
+    "OneKit/StartUp/Headers/OKStartUpSchemeHandler.h",
+    "OneKit/StartUp/Headers/OKStartUpTask.h",
+    "OneKit/StartUp/Headers/OneKitApp.h",
+    "OneKit/StartUp/OKStartUpScheduler+Track.h",
+    "OneKit/StartUp/OKStartUpTask+Private.h",
+    "OneKit/StartUp/Tasks/OKInternalTask.h",
+    "OneKit/StartUp/Tasks/OKReachabilityTask.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "StartUp_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/OneKit/OKApplicationInfo.h",
+    "pod_support/Headers/Private/OneKit/OKInternalTask.h",
+    "pod_support/Headers/Private/OneKit/OKReachabilityTask.h",
+    "pod_support/Headers/Private/OneKit/OKStartUpFunction.h",
+    "pod_support/Headers/Private/OneKit/OKStartUpScheduler+Track.h",
+    "pod_support/Headers/Private/OneKit/OKStartUpScheduler.h",
+    "pod_support/Headers/Private/OneKit/OKStartUpSchemeHandler.h",
+    "pod_support/Headers/Private/OneKit/OKStartUpTask+Private.h",
+    "pod_support/Headers/Private/OneKit/OKStartUpTask.h",
+    "pod_support/Headers/Private/OneKit/OneKitApp.h",
+    "pod_support/Headers/Public/OneKit/OKApplicationInfo.h",
+    "pod_support/Headers/Public/OneKit/OKStartUpFunction.h",
+    "pod_support/Headers/Public/OneKit/OKStartUpScheduler.h",
+    "pod_support/Headers/Public/OneKit/OKStartUpSchemeHandler.h",
+    "pod_support/Headers/Public/OneKit/OKStartUpTask.h",
+    "pod_support/Headers/Public/OneKit/OneKitApp.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "StartUp_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "StartUp_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "StartUp_module_map",
+  module_map = "pod_support/Headers/Public/OneKit/OneKit_StartUp-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/OneKit/OneKit_StartUp-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "StartUp_srcs",
+  srcs = [
+    "OneKit/StartUp/Headers/OKApplicationInfo.m",
+    "OneKit/StartUp/Tasks/OKInternalTask.m",
+    "OneKit/StartUp/Tasks/OKReachabilityTask.m",
+    "OneKit/StartUp/OKStartUpScheduler+Track.m",
+    "OneKit/StartUp/Headers/OKStartUpScheduler.m",
+    "OneKit/StartUp/Headers/OKStartUpSchemeHandler.m",
+    "OneKit/StartUp/OKStartUpTask+Private.m",
+    "OneKit/StartUp/Headers/OKStartUpTask.m",
+    "OneKit/StartUp/Headers/OneKitApp.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "StartUp_oc",
+  enable_modules = 1,
+  srcs = [
+    "StartUp_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "StartUp_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":OneKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":OneKit_private_includes",
+    ":OneKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":StartUp_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOneKit_POD_VERSION=@\\\"9999_1.1.30\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "StartUp",
+  deps = [
+    ":StartUp_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "StartUp_lib",
+  deps = [
+    ":StartUp"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "IDFA_hdrs",
+  srcs = [
+    "OneKit/IDFA/OKIDFA.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "IDFA_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "IDFA_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "IDFA_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "IDFA_module_map",
+  module_map = "pod_support/Headers/Public/OneKit/OneKit_IDFA-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/OneKit/OneKit_IDFA-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "IDFA_srcs",
+  srcs = [
+    "OneKit/IDFA/OKIDFA.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "IDFA_oc",
+  enable_modules = 1,
+  srcs = [
+    "IDFA_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "IDFA_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "AdSupport"
+  ],
+  deps = [
+    ":OneKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":OneKit_private_includes",
+    ":OneKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":IDFA_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOneKit_POD_VERSION=@\\\"9999_1.1.30\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "IDFA",
+  deps = [
+    ":IDFA_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "IDFA_lib",
+  deps = [
+    ":IDFA"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "MARS_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "MARS_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "MARS_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "MARS_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "MARS_module_map",
+  module_map = "pod_support/Headers/Public/OneKit/OneKit_MARS-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/OneKit/OneKit_MARS-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "MARS_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "MARS_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":OneKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":OneKit_private_includes",
+    ":OneKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":MARS_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOneKit_POD_VERSION=@\\\"9999_1.1.30\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "MARS",
+  deps = [
+    ":MARS_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "MARS_lib",
+  deps = [
+    ":MARS"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "MARS_Auth_hdrs",
+  srcs = [
+    "OneKit/MARS/Auth/NSMutableURLRequest+OKSignature.h",
+    "OneKit/MARS/Auth/OKMARSAuthHelper.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "MARS_Auth_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "MARS_Auth_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "MARS_Auth_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "MARS_Auth_module_map",
+  module_map = "pod_support/Headers/Public/OneKit/OneKit_MARS_Auth-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/OneKit/OneKit_MARS_Auth-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "MARS_Auth_srcs",
+  srcs = [
+    "OneKit/MARS/Auth/NSMutableURLRequest+OKSignature.m",
+    "OneKit/MARS/Auth/OKMARSAuthHelper.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "MARS_Auth_oc",
+  enable_modules = 1,
+  srcs = [
+    "MARS_Auth_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "MARS_Auth_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":OneKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":OneKit_private_includes",
+    ":OneKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":MARS_Auth_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOneKit_POD_VERSION=@\\\"9999_1.1.30\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "MARS_Auth",
+  deps = [
+    ":MARS_Auth_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "MARS_Auth_lib",
+  deps = [
+    ":MARS_Auth"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ByteDanceKit_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ByteDanceKit_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ByteDanceKit_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ByteDanceKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ByteDanceKit_module_map",
+  module_map = "pod_support/Headers/Public/OneKit/OneKit_ByteDanceKit-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/OneKit/OneKit_ByteDanceKit-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ByteDanceKit_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "ByteDanceKit_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":OneKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":OneKit_private_includes",
+    ":OneKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":ByteDanceKit_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOneKit_POD_VERSION=@\\\"9999_1.1.30\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ByteDanceKit",
+  deps = [
+    ":ByteDanceKit_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ByteDanceKit_lib",
+  deps = [
+    ":ByteDanceKit"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ByteDanceKit_Foundation_hdrs",
+  srcs = [
+    "OneKit/ByteDanceKit/BTDMacros.h",
+    "OneKit/ByteDanceKit/ByteDanceKit.h",
+    "OneKit/ByteDanceKit/Foundation/BTDDispatch.h",
+    "OneKit/ByteDanceKit/Foundation/BTDWeakProxy.h",
+    "OneKit/ByteDanceKit/Foundation/NSArray+BTDAdditions.h",
+    "OneKit/ByteDanceKit/Foundation/NSAttributedString+BTDAdditions.h",
+    "OneKit/ByteDanceKit/Foundation/NSBundle+BTDAdditions.h",
+    "OneKit/ByteDanceKit/Foundation/NSData+BTDAdditions.h",
+    "OneKit/ByteDanceKit/Foundation/NSDate+BTDAdditions.h",
+    "OneKit/ByteDanceKit/Foundation/NSDictionary+BTDAdditions.h",
+    "OneKit/ByteDanceKit/Foundation/NSFileManager+BTDAdditions.h",
+    "OneKit/ByteDanceKit/Foundation/NSNumber+BTDAdditions.h",
+    "OneKit/ByteDanceKit/Foundation/NSObject+BTDAdditions.h",
+    "OneKit/ByteDanceKit/Foundation/NSSet+BTDAdditions.h",
+    "OneKit/ByteDanceKit/Foundation/NSString+BTDAdditions.h",
+    "OneKit/ByteDanceKit/Foundation/NSTimer+BTDAdditions.h",
+    "OneKit/ByteDanceKit/Foundation/NSURL+BTDAdditions.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ByteDanceKit_Foundation_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ByteDanceKit_Foundation_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ByteDanceKit_Foundation_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ByteDanceKit_Foundation_module_map",
+  module_map = "pod_support/Headers/Public/OneKit/OneKit_ByteDanceKit_Foundation-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/OneKit/OneKit_ByteDanceKit_Foundation-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ByteDanceKit_Foundation_srcs",
+  srcs = [
+    "OneKit/ByteDanceKit/Foundation/BTDDispatch.m",
+    "OneKit/ByteDanceKit/BTDMacros.m",
+    "OneKit/ByteDanceKit/Foundation/BTDWeakProxy.m",
+    "OneKit/ByteDanceKit/Foundation/NSArray+BTDAdditions.m",
+    "OneKit/ByteDanceKit/Foundation/NSAttributedString+BTDAdditions.m",
+    "OneKit/ByteDanceKit/Foundation/NSBundle+BTDAdditions.m",
+    "OneKit/ByteDanceKit/Foundation/NSData+BTDAdditions.m",
+    "OneKit/ByteDanceKit/Foundation/NSDate+BTDAdditions.m",
+    "OneKit/ByteDanceKit/Foundation/NSDictionary+BTDAdditions.m",
+    "OneKit/ByteDanceKit/Foundation/NSFileManager+BTDAdditions.m",
+    "OneKit/ByteDanceKit/Foundation/NSNumber+BTDAdditions.m",
+    "OneKit/ByteDanceKit/Foundation/NSObject+BTDAdditions.m",
+    "OneKit/ByteDanceKit/Foundation/NSSet+BTDAdditions.m",
+    "OneKit/ByteDanceKit/Foundation/NSString+BTDAdditions.m",
+    "OneKit/ByteDanceKit/Foundation/NSTimer+BTDAdditions.m",
+    "OneKit/ByteDanceKit/Foundation/NSURL+BTDAdditions.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ByteDanceKit_Foundation_oc",
+  enable_modules = 1,
+  srcs = [
+    "ByteDanceKit_Foundation_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "ByteDanceKit_Foundation_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":OneKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":OneKit_private_includes",
+    ":OneKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":ByteDanceKit_Foundation_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOneKit_POD_VERSION=@\\\"9999_1.1.30\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ByteDanceKit_Foundation",
+  deps = [
+    ":ByteDanceKit_Foundation_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ByteDanceKit_Foundation_lib",
+  deps = [
+    ":ByteDanceKit_Foundation"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ByteDanceKit_UIKit_hdrs",
+  srcs = [
+    "OneKit/ByteDanceKit/UIKit/BTDResponder.h",
+    "OneKit/ByteDanceKit/UIKit/UIApplication+BTDAdditions.h",
+    "OneKit/ByteDanceKit/UIKit/UIButton+BTDAdditions.h",
+    "OneKit/ByteDanceKit/UIKit/UIColor+BTDAdditions.h",
+    "OneKit/ByteDanceKit/UIKit/UIControl+BTDAdditions.h",
+    "OneKit/ByteDanceKit/UIKit/UIDevice+BTDAdditions.h",
+    "OneKit/ByteDanceKit/UIKit/UIGestureRecognizer+BTDAdditions.h",
+    "OneKit/ByteDanceKit/UIKit/UIImage+BTDAdditions.h",
+    "OneKit/ByteDanceKit/UIKit/UILabel+BTDAdditions.h",
+    "OneKit/ByteDanceKit/UIKit/UIScrollView+BTDAdditions.h",
+    "OneKit/ByteDanceKit/UIKit/UIView+BTDAdditions.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ByteDanceKit_UIKit_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ByteDanceKit_UIKit_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ByteDanceKit_UIKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ByteDanceKit_UIKit_module_map",
+  module_map = "pod_support/Headers/Public/OneKit/OneKit_ByteDanceKit_UIKit-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/OneKit/OneKit_ByteDanceKit_UIKit-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ByteDanceKit_UIKit_srcs",
+  srcs = [
+    "OneKit/ByteDanceKit/UIKit/BTDResponder.m",
+    "OneKit/ByteDanceKit/UIKit/UIApplication+BTDAdditions.m",
+    "OneKit/ByteDanceKit/UIKit/UIButton+BTDAdditions.m",
+    "OneKit/ByteDanceKit/UIKit/UIColor+BTDAdditions.m",
+    "OneKit/ByteDanceKit/UIKit/UIControl+BTDAdditions.m",
+    "OneKit/ByteDanceKit/UIKit/UIDevice+BTDAdditions.m",
+    "OneKit/ByteDanceKit/UIKit/UIGestureRecognizer+BTDAdditions.m",
+    "OneKit/ByteDanceKit/UIKit/UIImage+BTDAdditions.m",
+    "OneKit/ByteDanceKit/UIKit/UILabel+BTDAdditions.m",
+    "OneKit/ByteDanceKit/UIKit/UIScrollView+BTDAdditions.m",
+    "OneKit/ByteDanceKit/UIKit/UIView+BTDAdditions.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ByteDanceKit_UIKit_oc",
+  enable_modules = 1,
+  srcs = [
+    "ByteDanceKit_UIKit_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "ByteDanceKit_UIKit_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Accelerate"
+  ],
+  deps = [
+    ":OneKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":OneKit_private_includes",
+    ":OneKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":ByteDanceKit_UIKit_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOneKit_POD_VERSION=@\\\"9999_1.1.30\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ByteDanceKit_UIKit",
+  deps = [
+    ":ByteDanceKit_UIKit_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ByteDanceKit_UIKit_lib",
+  deps = [
+    ":ByteDanceKit_UIKit"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Screenshot_hdrs",
+  srcs = [
+    "OneKit/Screenshot/OKSnapshotManager.h",
+    "OneKit/Screenshot/OKSnapshotScroll.h",
+    "OneKit/Screenshot/Tools/OKScreenshotTools.h",
+    "OneKit/Screenshot/Tools/UIViewController+OKSnapshot.h",
+    "OneKit/Screenshot/UIScrollView+OKSnapshot.h",
+    "OneKit/Screenshot/UIScrollView+OKSplice.h",
+    "OneKit/Screenshot/UIView+OKSnapshot.h",
+    "OneKit/Screenshot/WKWebView+OKSnapshot.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Screenshot_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Screenshot_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Screenshot_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Screenshot_module_map",
+  module_map = "pod_support/Headers/Public/OneKit/OneKit_Screenshot-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/OneKit/OneKit_Screenshot-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Screenshot_srcs",
+  srcs = [
+    "OneKit/Screenshot/OKSnapshotManager.m",
+    "OneKit/Screenshot/OKSnapshotScroll.m",
+    "OneKit/Screenshot/UIScrollView+OKSnapshot.m",
+    "OneKit/Screenshot/UIScrollView+OKSplice.m",
+    "OneKit/Screenshot/UIView+OKSnapshot.m",
+    "OneKit/Screenshot/Tools/UIViewController+OKSnapshot.m",
+    "OneKit/Screenshot/WKWebView+OKSnapshot.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Screenshot_oc",
+  enable_modules = 1,
+  srcs = [
+    "Screenshot_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Screenshot_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "WebKit"
+  ],
+  deps = [
+    ":OneKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":OneKit_private_includes",
+    ":OneKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Screenshot_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOneKit_POD_VERSION=@\\\"9999_1.1.30\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Screenshot",
+  deps = [
+    ":Screenshot_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Screenshot_lib",
+  deps = [
+    ":Screenshot"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "boringssl_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "boringssl_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "boringssl_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "boringssl_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "boringssl_module_map",
+  module_map = "pod_support/Headers/Public/OneKit/OneKit_boringssl-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/OneKit/OneKit_boringssl-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "boringssl_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "boringssl_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":OneKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":OneKit_private_includes",
+    ":OneKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":OneKit_boringssl_VendoredLibraries",
+    ":boringssl_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOneKit_POD_VERSION=@\\\"9999_1.1.30\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "boringssl",
+  deps = [
+    ":boringssl_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "boringssl_lib",
+  deps = [
+    ":boringssl"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Tests_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Tests_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Tests_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Tests_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Tests_module_map",
+  module_map = "pod_support/Headers/Public/OneKit/OneKit_Tests-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/OneKit/OneKit_Tests-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Tests_srcs",
+  srcs = [
+    "OneKit/Tests/BaseKit/TestGzip.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Tests_oc",
+  enable_modules = 1,
+  srcs = [
+    "Tests_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Tests_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":OneKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":OneKit_private_includes",
+    ":OneKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@OCMock//:OCMock_objc_interface",
+    "@OCMock//:OCMock_swift_interface",
+    ":Tests_objc_interface",
+    "@OCMock//:OCMock_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOneKit_POD_VERSION=@\\\"9999_1.1.30\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Tests",
+  deps = [
+    ":Tests_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Tests_lib",
+  deps = [
+    ":Tests"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_OneKit_module_map",
+  module_map = "@OneKit//:pod_support/Headers/Public/OneKit/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@OneKit//:pod_support/Headers/Public/OneKit/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_OneKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@OneKit//:BaseKit_objc_interface", "@OneKit//:Reachability_objc_interface", "@OneKit//:Service_objc_interface", "@OneKit//:StartUp_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_OneKit",
+  target_name = "Lark",
+  module_name = "OneKit",
+  hdrs = ["@OneKit//:BaseKit_pod_hdrs", "@OneKit//:Reachability_pod_hdrs", "@OneKit//:Service_pod_hdrs", "@OneKit//:StartUp_pod_hdrs"],
+  srcs = ["@OneKit//:BaseKit_srcs", "@OneKit//:Reachability_srcs", "@OneKit//:Service_srcs", "@OneKit//:StartUp_srcs"],
+  non_arc_srcs = [],
+  deps = ["@OneKit//:OneKit_BaseKit_VendoredLibraries"],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOneKit_POD_VERSION=@\\\"9999_1.1.30\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "OneKit_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "OneKit_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["Foundation", "CoreTelephony", "SystemConfiguration", "CoreFoundation", "UIKit"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "OneKit_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "OneKit_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "OneKit_dynamic", False),
+  tags = getattr(defs_external_objc_library, "OneKit_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("OneKit", {}),
+  visibility = ["//visibility:public"],
+)

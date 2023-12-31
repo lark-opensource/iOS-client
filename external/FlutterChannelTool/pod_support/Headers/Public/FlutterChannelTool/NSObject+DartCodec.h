@@ -1,0 +1,1 @@
+../../../../FlutterChannelTool/Classes/DartCodec/NSObject+DartCodec.h

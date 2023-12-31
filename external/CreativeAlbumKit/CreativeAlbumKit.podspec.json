@@ -1,0 +1,187 @@
+{
+  "name": "CreativeAlbumKit",
+  "version": "19.9.6-alpha.1-larktest.1.binary",
+  "summary": "biz",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://code.byted.org/ugc/CreativeAlbumKit",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "yuanchang.1227": "yuanchang.1227@bytedance.com"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/aweme-rock/rock_binary/privatethird_binary_repo/CreativeAlbumKit/19.9.6-alpha.1-larktest.1.binary/1673525954/CreativeAlbumKit.tar.xz"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "dependencies": {
+    "Masonry": [
+
+    ],
+    "BDWebImage": [
+
+    ],
+    "IESLiveResourcesButler": [
+
+    ],
+    "Mantle": [
+
+    ],
+    "ReactiveObjC": [
+
+    ],
+    "KVOController": [
+
+    ],
+    "IESInject": [
+
+    ],
+    "libextobjc": [
+
+    ],
+    "CreationKitInfra": [
+
+    ],
+    "CreativeKit": [
+
+    ]
+  },
+  "preserve_paths": [
+    "rock_document/**/*.{h,m,mm,cpp,hpp,swift}",
+    "rock_document/rock-document-files.txt"
+  ],
+  "source_code": {
+    "git": "git@code.byted.org:ugc/CreativeAlbumKit.git",
+    "commit": "dabf7b4299b33dab669716ea9985e0309ba67ad3"
+  },
+  "binary_type": "rock",
+  "package_env": {
+    "id": null,
+    "xcode": "Xcode 14.0\nBuild version 14A309\n"
+  },
+  "subspecs": [
+    {
+      "name": "Core",
+      "source_files": "CreativeAlbumKit/Classes/**/*",
+      "vendored_libraries": [
+        "CreativeAlbumKit/Classes/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "CreativeAlbumKit/Classes/**/*.o",
+          "libCreativeAlbumKit-87b5208.a"
+        ]
+      }
+    },
+    {
+      "name": "Default",
+      "source_files": [
+        "CreativeAlbumKit/Default/**/*",
+        "rock_dummy/rock_dummy_39e291a.m"
+      ],
+      "dependencies": {
+        "CreativeAlbumKit/Core": [
+
+        ]
+      },
+      "resource_bundles": {
+        "CreativeAlbumKit": [
+          "CreativeAlbumKit/Resources/color",
+          "CreativeAlbumKit/Resources/image/*.xcassets",
+          "CreativeAlbumKit/Resources/Config.plist",
+          "CreativeAlbumKit/Resources/languages"
+        ]
+      },
+      "vendored_libraries": [
+        "CreativeAlbumKit/Default/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "CreativeAlbumKit/Default/**/*.o",
+          "libCreativeAlbumKit-39e291a.a"
+        ]
+      }
+    },
+    {
+      "name": "DefaultBundle",
+      "source_files": "CreativeAlbumKit/DefaultBundle/*.{h,m,mm,swift}",
+      "dependencies": {
+        "CreativeAlbumKit/Core": [
+
+        ],
+        "CreativeAlbumKit/Default": [
+
+        ]
+      },
+      "vendored_libraries": [
+        "CreativeAlbumKit/DefaultBundle/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "CreativeAlbumKit/DefaultBundle/*.o",
+          "libCreativeAlbumKit-3077e57.a"
+        ]
+      }
+    },
+    {
+      "name": "DefaultLoading",
+      "source_files": "CreativeAlbumKit/DefaultLoading/*.{h,m,mm,swift}",
+      "dependencies": {
+        "CreativeAlbumKit/Core": [
+
+        ],
+        "CreativeAlbumKit/Default": [
+
+        ]
+      },
+      "vendored_libraries": [
+        "CreativeAlbumKit/DefaultLoading/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "CreativeAlbumKit/DefaultLoading/*.o",
+          "libCreativeAlbumKit-25a8107.a"
+        ]
+      }
+    },
+    {
+      "name": "DefaultToast",
+      "source_files": "CreativeAlbumKit/DefaultToast/*.{h,m,mm,swift}",
+      "dependencies": {
+        "CreativeAlbumKit/Core": [
+
+        ],
+        "CreativeAlbumKit/Default": [
+
+        ]
+      },
+      "vendored_libraries": [
+        "CreativeAlbumKit/DefaultToast/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "CreativeAlbumKit/DefaultToast/*.o",
+          "libCreativeAlbumKit-39ac07b.a"
+        ]
+      }
+    }
+  ]
+}

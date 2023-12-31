@@ -1,0 +1,1 @@
+../../../../core/templatemodel/NLETemplateManifest.h

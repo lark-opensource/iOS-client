@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/BEFBuildInMotionManager.h

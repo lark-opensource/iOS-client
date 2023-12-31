@@ -1,0 +1,725 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "BDXLynxKit_pod_hdrs",
+  srcs = [
+    ":BDXLynxKit_root_pod_hdrs",
+    ":LynxKit_pod_hdrs",
+    ":Deprecated_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "BDXLynxKit_private_includes",
+  include = [
+    "external/BDXLynxKit/pod_support/Headers/Private/BDXLynxKit/"
+  ],
+  deps = [],
+  external_name = "BDXLynxKit"
+)
+gen_includes(
+  name = "BDXLynxKit_public_includes",
+  include = [
+    "external/BDXLynxKit/pod_support/Headers/Public/BDXLynxKit/"
+  ],
+  deps = [],
+  external_name = "BDXLynxKit"
+)
+filegroup(
+  name = "_BDXLynxKit_hdrs",
+  srcs = [
+    ":BDXLynxKit_root_hdrs",
+    ":LynxKit_hdrs",
+    ":Deprecated_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "BDXLynxKit_xcode_hmapsource",
+  hdrs = [
+    ":BDXLynxKit_root_hdrs",
+    ":LynxKit_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "BDXLynxKit_xcode_hmap",
+  dep = ":BDXLynxKit_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/BDXLynxKit/*-bitsky-generated.modulemap", "pod_support/Headers/Public/BDXLynxKit/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "BDXLynxKit_LynxKit_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libBDXLynxKit-5e9e417.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "BDXLynxKit_Deprecated_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libBDXLynxKit-74a2502.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "BDXLynxKit_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "BDXLynxKit",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "BDXLynxKit_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":BDXLynxKit_xcode_hmap"
+  ],
+  external_name = "BDXLynxKit",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDXLynxKit_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDXLynxKit_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDXLynxKit_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDXLynxKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "BDXLynxKit_module_map",
+  module_map = "pod_support/Headers/Public/BDXLynxKit/BDXLynxKit-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXLynxKit/BDXLynxKit-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDXLynxKit_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "BDXLynxKit_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDXLynxKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXLynxKit_private_includes",
+    ":BDXLynxKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":BDXLynxKit_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDXLynxKit",
+  deps = [
+    ":BDXLynxKit_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "BDXLynxKit_lib",
+  deps = [
+    ":BDXLynxKit"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "LynxKit_hdrs",
+  srcs = [
+    "XService/BDXLynxKit/Classes/LynxKit/BDXLazyLoadProxy.h",
+    "XService/BDXLynxKit/Classes/LynxKit/BDXLynxKit.h",
+    "XService/BDXLynxKit/Classes/LynxKit/BDXLynxKitUtils.h",
+    "XService/BDXLynxKit/Classes/LynxKit/BDXLynxResourceProvider.h",
+    "XService/BDXLynxKit/Classes/LynxKit/BDXLynxView.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "LynxKit_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDXLynxKit/BDXLazyLoadProxy.h",
+    "pod_support/Headers/Private/BDXLynxKit/BDXLynxKit.h",
+    "pod_support/Headers/Private/BDXLynxKit/BDXLynxKitUtils.h",
+    "pod_support/Headers/Private/BDXLynxKit/BDXLynxResourceProvider.h",
+    "pod_support/Headers/Private/BDXLynxKit/BDXLynxView.h",
+    "pod_support/Headers/Public/BDXLynxKit/BDXLazyLoadProxy.h",
+    "pod_support/Headers/Public/BDXLynxKit/BDXLynxKit.h",
+    "pod_support/Headers/Public/BDXLynxKit/BDXLynxKitUtils.h",
+    "pod_support/Headers/Public/BDXLynxKit/BDXLynxResourceProvider.h",
+    "pod_support/Headers/Public/BDXLynxKit/BDXLynxView.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "LynxKit_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "LynxKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "LynxKit_module_map",
+  module_map = "pod_support/Headers/Public/BDXLynxKit/BDXLynxKit_LynxKit-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXLynxKit/BDXLynxKit_LynxKit-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "LynxKit_srcs",
+  srcs = [
+    "XService/BDXLynxKit/Classes/LynxKit/BDXLynxKit.m",
+    "XService/BDXLynxKit/Classes/LynxKit/BDXLynxView.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "LynxKit_oc",
+  enable_modules = 1,
+  srcs = [
+    "LynxKit_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "LynxKit_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/LynxKit-prefix.pch",
+  deps = [
+    ":BDXLynxKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXLynxKit_private_includes",
+    ":BDXLynxKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDALog//:BDALog_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@BDWebImage//:BDWebImage_objc_interface",
+    "@BDXBridgeKit//:BDXBridgeKit_objc_interface",
+    "@BDXBridgeKit//:Containers_Lynx_objc_interface",
+    "@BDXResourceLoader//:BDXResourceLoader_objc_interface",
+    "@BDXServiceCenter//:BDXServiceCenter_objc_interface",
+    "@IESWebViewMonitor//:Lynx_objc_interface",
+    "@IESWebViewMonitor//:SettingModel_objc_interface",
+    "@IESWebViewMonitor//:WKWebView_objc_interface",
+    "@Lynx//:BDLynxBridge_objc_interface",
+    "@Lynx//:Framework_objc_interface",
+    "@BDALog//:BDALog_swift_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    "@BDWebImage//:BDWebImage_swift_interface",
+    "@BDXBridgeKit//:BDXBridgeKit_swift_interface",
+    "@BDXBridgeKit//:Containers_Lynx_swift_interface",
+    "@BDXResourceLoader//:BDXResourceLoader_swift_interface",
+    "@BDXServiceCenter//:BDXServiceCenter_swift_interface",
+    "@IESWebViewMonitor//:Lynx_swift_interface",
+    "@IESWebViewMonitor//:SettingModel_swift_interface",
+    "@IESWebViewMonitor//:WKWebView_swift_interface",
+    "@Lynx//:BDLynxBridge_swift_interface",
+    "@Lynx//:Framework_swift_interface",
+    ":BDXLynxKit_LynxKit_VendoredLibraries",
+    ":LynxKit_objc_interface",
+    "@BDALog//:BDALog_module_map",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map",
+    "@BDWebImage//:BDWebImage_module_map",
+    "@BDXBridgeKit//:BDXBridgeKit_module_map",
+    "@BDXBridgeKit//:Containers_Lynx_module_map",
+    "@BDXResourceLoader//:BDXResourceLoader_module_map",
+    "@BDXServiceCenter//:BDXServiceCenter_module_map",
+    "@IESWebViewMonitor//:Lynx_module_map",
+    "@IESWebViewMonitor//:SettingModel_module_map",
+    "@IESWebViewMonitor//:WKWebView_module_map",
+    "@Lynx//:BDLynxBridge_module_map",
+    "@Lynx//:Framework_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "LynxKit",
+  deps = [
+    ":LynxKit_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "LynxKit_lib",
+  deps = [
+    ":LynxKit"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Deprecated_hdrs",
+  srcs = [
+    "XService/BDXLynxKit/Classes/Deprecated/LynxView+BDXDeprecated.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Deprecated_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Deprecated_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Deprecated_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Deprecated_module_map",
+  module_map = "pod_support/Headers/Public/BDXLynxKit/BDXLynxKit_Deprecated-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDXLynxKit/BDXLynxKit_Deprecated-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Deprecated_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Deprecated_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/Deprecated-prefix.pch",
+  deps = [
+    ":BDXLynxKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDXLynxKit_private_includes",
+    ":BDXLynxKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Lynx//:Framework_objc_interface",
+    "@Lynx//:Framework_swift_interface",
+    ":BDXLynxKit_Deprecated_VendoredLibraries",
+    ":Deprecated_objc_interface",
+    "@Lynx//:Framework_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Deprecated",
+  deps = [
+    ":Deprecated_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Deprecated_lib",
+  deps = [
+    ":Deprecated"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_BDXLynxKit_module_map",
+  module_map = "@BDXLynxKit//:pod_support/Headers/Public/BDXLynxKit/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@BDXLynxKit//:pod_support/Headers/Public/BDXLynxKit/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_BDXLynxKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@BDXLynxKit//:BDXLynxKit_objc_interface", "@BDXLynxKit//:LynxKit_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_BDXLynxKit",
+  target_name = "Lark",
+  module_name = "BDXLynxKit",
+  hdrs = ["@BDXLynxKit//:BDXLynxKit_root_pod_hdrs", "@BDXLynxKit//:LynxKit_pod_hdrs"],
+  srcs = ["@BDXLynxKit//:LynxKit_srcs"],
+  non_arc_srcs = [],
+  deps = ["@BDXLynxKit//:BDXLynxKit_LynxKit_VendoredLibraries"],
+  pod_deps = ["BDALog", "BDTrackerProtocol", "BDWebImage", "BDXBridgeKit", "BDXResourceLoader", "BDXServiceCenter", "IESWebViewMonitor", "Lynx"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "BDXLynxKit_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "BDXLynxKit_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "BDXLynxKit_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "BDXLynxKit_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "BDXLynxKit_dynamic", False),
+  tags = getattr(defs_external_objc_library, "BDXLynxKit_tags", []),
+  pch = "pod_support/Headers/Private/Lark_BDXLynxKit-prefix.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("BDXLynxKit", {}),
+  visibility = ["//visibility:public"],
+)

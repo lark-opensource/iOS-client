@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/VEAudioPlayerFactory.h

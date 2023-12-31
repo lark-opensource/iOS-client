@@ -1,0 +1,1 @@
+../../../../CameraArch/Common/Interface/I18nProtocol/ACCMultiAnchorOrdering.h

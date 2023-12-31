@@ -1,0 +1,1 @@
+../../../../CameraClient/MVPComponents/Recorder/RecordFlow/Components/RecordProgress/ACCRecordProgressComponent.h

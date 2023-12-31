@@ -1,0 +1,43 @@
+//
+//  Container+Register.generated.swift
+//  Swinject
+//
+//  Created by CharlieSu on 4/30/20.
+//
+// swiftlint:disable all
+//
+// NOTICE:
+//
+// Container+Register.generated.swift is generated from Container.Arguments.erb by ERB.
+// Do NOT modify Container+Register.generated.swift directly.
+// Instead, modify Container+Register.generated.swift.erb and run `script/gencode` at the project root directory to generate the code.
+//
+
+% arg_count = 9
+
+import Foundation
+
+public extension Container {
+
+    @discardableResult
+    func register<Service>(
+        _ serviceType: Service.Type, name: String? = nil,
+        factory: @escaping (Resolver) throws -> Service
+    ) -> ServiceEntry<Service> {
+        return _register(serviceType, name: name, factory: factory)
+    }
+
+% (1..arg_count).each do |i|
+%   arg_types = (1..i).map { |n| "Arg#{n}" }.join(", ")
+%#   arg_description = i == 1 ? "#{i} argument" : "#{i} arguments"
+    @discardableResult
+    func register<Service, <%= arg_types %>>(
+        _ serviceType: Service.Type, name: String? = nil,
+        factory: @escaping (Resolver, <%= arg_types %>) throws -> Service
+    ) -> ServiceEntry<Service> {
+        return _register(serviceType, name: name, factory: factory)
+    }
+
+% end
+}
+// swiftlint:enable all

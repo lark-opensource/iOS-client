@@ -1,0 +1,1 @@
+../../../../TSPrivacyKit/Classes/Pipelines/Video/AVCaptureStillImageOutput/TSPKVideoOfAVCaptureStillImageOutputPipeline.h

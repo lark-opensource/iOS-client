@@ -1,0 +1,1 @@
+../../../../CreativeKit/CameraArch/Tools/ipadAdapter/ACCPadUIAdapter.h

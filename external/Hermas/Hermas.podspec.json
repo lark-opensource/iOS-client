@@ -1,0 +1,75 @@
+{
+  "name": "Hermas",
+  "version": "0.0.5-rc.7",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/appmonitor/Hermas",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "cuixiaobing.lingyun": "cuixiaobing.lingyun@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:appmonitor/Hermas.git",
+    "commit": "e5790434573d56b5299c7c6a9a78e8447c451779"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "libraries": [
+    "c++",
+    "z"
+  ],
+  "default_subspecs": [
+    "core",
+    "api"
+  ],
+  "pod_target_xcconfig": {
+    "CLANG_CXX_LANGUAGE_STANDARD": "c++14",
+    "CLANG_CXX_LIBRARY": "libc++",
+    "OTHER_CPLUSPLUSFLAGS": "-fno-c++-static-destructors",
+    "DEAD_CODE_STRIPPING": "YES",
+    "USER_HEADER_SEARCH_PATHS": "${PODS_ROOT}/**/**/*.{h, hpp}",
+    "GCC_ENABLE_CPP_EXCEPTIONS": "NO",
+    "GCC_ENABLE_CPP_RTTI": "NO",
+    "GCC_PREPROCESSOR_DEFINITIONS": "HERMAS_USE_EXCEPTION=0 Hermas_POD_VERSION=@\\\"9999_0.0.5-rc.7\\\"",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES"
+  },
+  "subspecs": [
+    {
+      "name": "core",
+      "source_files": "src/core/**/*",
+      "private_header_files": "src/core/**/*.{h,hpp}",
+      "dependencies": {
+        "ZstdDecompressKit/libcommon": [
+          "~> 1.0.1"
+        ],
+        "ZstdDecompressKit/Compress": [
+          "~> 1.0.1"
+        ],
+        "BDALog": [
+          ">= 0.2.6"
+        ],
+        "BDAlogProtocol": []
+      }
+    },
+    {
+      "name": "api",
+      "source_files": "src/api/**/*",
+      "public_header_files": "src/api/**/*.{h}",
+      "dependencies": {
+        "Hermas/core": []
+      }
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "31271",
+    "app_id": "9999"
+  },
+  "repoId": "31271",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "Hermas_POD_VERSION=@\\\"9999_0.0.5-rc.7\\\""
+  }
+}

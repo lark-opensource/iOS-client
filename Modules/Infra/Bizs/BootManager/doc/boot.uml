@@ -1,0 +1,20 @@
+@startuml
+
+if (didFinishLaunch) then (yes)
+    :NewBootManager.boot(rootWindow);
+    #orange:创建BootContext;
+elseif (NewScene) then (yes)
+    :NewBootManager.boot(scene);
+    #orange:创建BootContext;
+endif
+repeat
+:customBoot;
+#orange:创建Launcher(bootContext);
+:Launcher.executeFlow(指定的启动flow);
+:登录流程（fastLogin, Login）;
+#orange:修改当前userID;
+:登录后任务;
+:用户正常运行;
+backward:切换用户，重新登录;
+
+@enduml

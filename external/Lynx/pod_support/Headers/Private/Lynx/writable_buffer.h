@@ -1,0 +1,1 @@
+../../../../third_party/krypton/canvas/gpu/command_buffer_ng/writable_buffer.h

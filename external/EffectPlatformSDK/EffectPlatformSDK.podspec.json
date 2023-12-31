@@ -1,0 +1,74 @@
+{
+  "name": "EffectPlatformSDK",
+  "version": "2.9.158.1-bugfix",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://github.com/keliang0420/EffectPlatformSDK",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "keliang0420": "likeliang@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:ies/EffectPlatformSDK.git",
+    "commit": "57132235f8581ec054a80a2a5d14892bc2736df2"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "default_subspecs": "Core",
+  "subspecs": [
+    {
+      "name": "Core",
+      "source_files": "EffectPlatformSDK/Core/**/*.{h,m}",
+      "private_header_files": "EffectPlatformSDK/Core/Internal/**/*.h",
+      "dependencies": {
+        "TTNetworkManager": [],
+        "Mantle": [],
+        "SSZipArchive": [],
+        "FileMD5Hash": [],
+        "FMDB": []
+      }
+    },
+    {
+      "name": "ModelDistribute",
+      "dependencies": {
+        "EffectPlatformSDK/Core": [],
+        "EffectSDK_iOS": []
+      },
+      "source_files": "EffectPlatformSDK/AlgorithmModel/**/*.{h,m}",
+      "xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "$(inherited) ModelDistribute=1"
+      }
+    },
+    {
+      "name": "UIKit",
+      "source_files": "EffectPlatformSDK/UIKit/**/*.{h,m}",
+      "resource_bundles": {
+        "IESStickerUIKit": [
+          "EffectPlatformSDK/Assets/IESStickerUIKit.xcassets"
+        ]
+      },
+      "frameworks": "UIKit",
+      "dependencies": {
+        "EffectPlatformSDK/Core": [],
+        "Masonry": [],
+        "BDWebImage": []
+      }
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "522",
+    "app_id": "9999"
+  },
+  "repoId": "522",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "EffectPlatformSDK_POD_VERSION=@\\\"9999_2.9.158.1-bugfix\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "EffectPlatformSDK_POD_VERSION=@\\\"9999_2.9.158.1-bugfix\\\""
+  }
+}

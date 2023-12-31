@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayAbility/PayCancelRetain/CJPayRetainInfoV2Config.h

@@ -1,0 +1,1 @@
+../../../../Beauty/View/AWEComposerBeautySwitchCollectionViewCell.h

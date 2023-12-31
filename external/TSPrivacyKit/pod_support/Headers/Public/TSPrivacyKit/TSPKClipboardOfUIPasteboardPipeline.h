@@ -1,0 +1,1 @@
+../../../../TSPrivacyKit/Classes/Pipelines/Clipboard/UIPasteboard/TSPKClipboardOfUIPasteboardPipeline.h

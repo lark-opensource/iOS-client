@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/TTMonitor/Common/Public/HMDTTMonitor+FrequenceDetect.h

@@ -1,0 +1,1 @@
+../../../../IESJSBridgeCore/Core/IWKJSBridgePluginObject.h

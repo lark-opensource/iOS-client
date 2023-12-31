@@ -1,0 +1,41 @@
+# Uncomment the next line to define a global platform for your project
+platform :ios, '11.0'
+
+source 'git@code.byted.org:ee/pods_specs.git'
+source 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+source 'git@code.byted.org:iOS_Library/publicthird_source_repo.git'
+source 'git@code.byted.org:iOS_Library/privatethird_source_repo.git'
+source 'git@code.byted.org:iOS_Library/privatethird_source_repo.git'
+
+def pods
+  pod 'LarkLocalizations', :path => '../../../../Infra/Libs/LarkLocalizations'
+  #pod 'LarkModel', :subspecs => ['Base'], :path => '../../../../Infra/Libs/LarkModel'
+  #pod 'LarkContactComponent', :subspecs => ['Utils'], :path => '../../../../Infra/Bizs/LarkContactComponent'
+  pod 'UniverseDesignColor', :path => '../../../../../Modules/Universe/Components/UniverseDesignColor'
+  #pod 'UniverseDesignShadow', :path => '../../../../../Modules/Universe/Components/UniverseDesignShadow'
+  pod 'UniverseDesignTheme', :path => '../../../../../Modules/Universe/Components/UniverseDesignTheme'
+  pod 'FigmaKit', :path => '../../../../../Modules/Infra/Libs/UI/FigmaKit'
+  pod 'SnapKit'
+  pod 'UniverseDesignFont'
+  #pod 'UniverseDesignButton'
+  #pod 'UniverseDesignIcon'
+
+  pod 'lottie-ios', '2.6.5'
+  pod 'lottie-lark', '4.2.7-lark'
+end
+
+target 'LKLaunchGuideDemo' do
+  # Comment the next line if you don't want to use dynamic frameworks
+  use_frameworks!
+  pod 'LookinServer'
+  pod 'LKLaunchGuide', :subspecs => ['View'], :path => '../'
+  pods
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '11.0'
+    end
+  end
+end

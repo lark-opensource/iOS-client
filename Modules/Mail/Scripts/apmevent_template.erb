@@ -1,0 +1,91 @@
+<% for event in @configEventList %>
+class <%= event.swiftEventClass %>: MailAPMBaseEvent, MailAPMMonitorable {
+    var reciableConfig: MailAPMReciableConfig? {
+        return MailAPMReciableConfig(event: endKey,
+                                    scene: <%= event.swiftScene %>,
+                                    page: <%= event.swiftPage %>,
+                                    latencyDetailKeys:<% if event.lantencyDetails.count > 0 -%>[
+                                        <% for const in event.lantencyDetails.take(event.lantencyDetails.count - 1) -%><%= "EndParam." + const.defaultEnumValue + "," %>
+                                        <% end -%><%= "EndParam." + event.lantencyDetails.last.defaultEnumValue %>
+                                    ],
+                                        <% else -%>nil,
+                                    <% end -%>
+metricKeys: <% if event.metrics.count > 0 -%>[
+                                        <% for const in event.metrics.take(event.metrics.count - 1) -%><%= "EndParam." + const.defaultEnumValue + "," %>
+                                        <% end -%><%= "EndParam." + event.metrics.last.defaultEnumValue %>
+                                    ])
+                                        <% else -%>nil)
+                                    <% end %>
+    }
+
+    var endKey: MailAPMEventConstant.EndKey {
+        return .messageListLoaded
+    }
+
+    enum EndParam: MailAPMEventParamAble, CaseIterable {<% for param in event.paramAll -%>
+        <% if param.hasAssociateValue %>
+        <%= "case " + param.swiftEnumAssociated -%>
+        <% else -%>
+        <% for const in param.swiftEnumConst %>
+        <%= "case " + const -%>
+        <% end -%>
+        <% end -%>
+        <% end %>
+
+        var key: String {
+            switch self {<% for param in event.paramAll -%>
+            <% if param.hasAssociateValue %>
+            <%= "case " + param.swiftEnumKey(false) + ":" -%>
+            <% else -%>
+            <% for const in param.swiftEnumConst.take(param.swiftEnumConst.count - 1) %>
+            <%= "case " + const + "," -%>
+            <% end %>
+            <%= "case " + const + ":" -%>
+            <% end %>
+                <%= "return \"#{param.key}\"" -%>
+            <% end %>
+            }
+        }
+
+        var value: Any {
+            switch self {<% for param in event.paramAll -%>
+            <% if param.hasAssociateValue %>
+            <%= "case " + param.swiftEnumKey(true) + ":" %>
+                <%= "return value" -%>
+            <% else -%>
+            <% for const in param.swiftEnumConst %>
+            <%= "case " + const + ":" %>
+                <%= "return \"#{const.delete_prefix("#{param.key}_")}\"" -%>
+            <% end -%>
+            <% end -%>
+            <% end %>
+            }
+        }
+
+
+        static var allCases: [EndParam] {
+            return [<% for param in event.paramAll.take(event.paramAll.count - 1) -%>
+                <% if param.hasAssociateValue %>
+                <%= "EndParam.#{param.defaultCase}," -%>
+                <% else -%>
+                <% for const in param.swiftEnumConst %>
+                <%= "EndParam.#{const}," -%>
+                <% end -%>
+                <% end -%>
+                <% end -%>
+                <% if event.paramAll.last.hasAssociateValue %>
+                <%= "EndParam.#{event.paramAll.last.defaultCase}" -%>
+                <% else -%>
+                <% for const in event.paramAll.last.swiftEnumConst %>
+                <%= "EndParam.#{const}" -%>
+                <% end -%>
+                <% end %>
+            ]
+        }
+    }
+
+    var requireEndParamsKey: Set<String> {
+        return EndParam.allKeys().union(MailAPMEventConstant.CommonParam.allKeys())
+    }
+}
+<% end %>

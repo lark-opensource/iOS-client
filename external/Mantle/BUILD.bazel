@@ -1,0 +1,621 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "Mantle_pod_hdrs",
+  srcs = [
+    ":Mantle_root_pod_hdrs",
+    ":extobjc_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "Mantle_private_includes",
+  include = [
+    "external/Mantle/pod_support/Headers/Private/Mantle/"
+  ],
+  deps = [],
+  external_name = "Mantle"
+)
+gen_includes(
+  name = "Mantle_public_includes",
+  include = [
+    "external/Mantle/pod_support/Headers/Public/Mantle/"
+  ],
+  deps = [],
+  external_name = "Mantle"
+)
+filegroup(
+  name = "_Mantle_hdrs",
+  srcs = [
+    ":Mantle_root_hdrs",
+    ":extobjc_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "Mantle_xcode_hmapsource",
+  hdrs = [
+    ":Mantle_root_hdrs",
+    ":extobjc_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "Mantle_xcode_hmap",
+  dep = ":Mantle_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/Mantle/*-bitsky-generated.modulemap", "pod_support/Headers/Public/Mantle/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "Mantle_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "Mantle",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "Mantle_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":Mantle_xcode_hmap"
+  ],
+  external_name = "Mantle",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Mantle_root_hdrs",
+  srcs = [
+    "Mantle/MTLJSONAdapter.h",
+    "Mantle/MTLModel+NSCoding.h",
+    "Mantle/MTLModel.h",
+    "Mantle/MTLReflection.h",
+    "Mantle/MTLTransformerErrorHandling.h",
+    "Mantle/MTLValueTransformer.h",
+    "Mantle/Mantle.h",
+    "Mantle/NSArray+MTLManipulationAdditions.h",
+    "Mantle/NSDictionary+MTLJSONKeyPath.h",
+    "Mantle/NSDictionary+MTLManipulationAdditions.h",
+    "Mantle/NSDictionary+MTLMappingAdditions.h",
+    "Mantle/NSError+MTLModelException.h",
+    "Mantle/NSObject+MTLComparisonAdditions.h",
+    "Mantle/NSValueTransformer+MTLInversionAdditions.h",
+    "Mantle/NSValueTransformer+MTLPredefinedTransformerAdditions.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Mantle_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/Mantle/MTLJSONAdapter.h",
+    "pod_support/Headers/Private/Mantle/MTLModel+NSCoding.h",
+    "pod_support/Headers/Private/Mantle/MTLModel.h",
+    "pod_support/Headers/Private/Mantle/MTLReflection.h",
+    "pod_support/Headers/Private/Mantle/MTLTransformerErrorHandling.h",
+    "pod_support/Headers/Private/Mantle/MTLValueTransformer.h",
+    "pod_support/Headers/Private/Mantle/Mantle.h",
+    "pod_support/Headers/Private/Mantle/NSArray+MTLManipulationAdditions.h",
+    "pod_support/Headers/Private/Mantle/NSDictionary+MTLJSONKeyPath.h",
+    "pod_support/Headers/Private/Mantle/NSDictionary+MTLManipulationAdditions.h",
+    "pod_support/Headers/Private/Mantle/NSDictionary+MTLMappingAdditions.h",
+    "pod_support/Headers/Private/Mantle/NSError+MTLModelException.h",
+    "pod_support/Headers/Private/Mantle/NSObject+MTLComparisonAdditions.h",
+    "pod_support/Headers/Private/Mantle/NSValueTransformer+MTLInversionAdditions.h",
+    "pod_support/Headers/Private/Mantle/NSValueTransformer+MTLPredefinedTransformerAdditions.h",
+    "pod_support/Headers/Public/Mantle/MTLJSONAdapter.h",
+    "pod_support/Headers/Public/Mantle/MTLModel+NSCoding.h",
+    "pod_support/Headers/Public/Mantle/MTLModel.h",
+    "pod_support/Headers/Public/Mantle/MTLReflection.h",
+    "pod_support/Headers/Public/Mantle/MTLTransformerErrorHandling.h",
+    "pod_support/Headers/Public/Mantle/MTLValueTransformer.h",
+    "pod_support/Headers/Public/Mantle/Mantle.h",
+    "pod_support/Headers/Public/Mantle/NSArray+MTLManipulationAdditions.h",
+    "pod_support/Headers/Public/Mantle/NSDictionary+MTLJSONKeyPath.h",
+    "pod_support/Headers/Public/Mantle/NSDictionary+MTLManipulationAdditions.h",
+    "pod_support/Headers/Public/Mantle/NSDictionary+MTLMappingAdditions.h",
+    "pod_support/Headers/Public/Mantle/NSError+MTLModelException.h",
+    "pod_support/Headers/Public/Mantle/NSObject+MTLComparisonAdditions.h",
+    "pod_support/Headers/Public/Mantle/NSValueTransformer+MTLInversionAdditions.h",
+    "pod_support/Headers/Public/Mantle/NSValueTransformer+MTLPredefinedTransformerAdditions.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Mantle_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Mantle_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Mantle_module_map",
+  module_map = "pod_support/Headers/Public/Mantle/Mantle-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Mantle/Mantle-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Mantle_root_srcs",
+  srcs = [
+    "Mantle/MTLJSONAdapter.m",
+    "Mantle/MTLModel+NSCoding.m",
+    "Mantle/MTLModel.m",
+    "Mantle/MTLReflection.m",
+    "Mantle/MTLTransformerErrorHandling.m",
+    "Mantle/MTLValueTransformer.m",
+    "Mantle/NSArray+MTLManipulationAdditions.m",
+    "Mantle/NSDictionary+MTLJSONKeyPath.m",
+    "Mantle/NSDictionary+MTLManipulationAdditions.m",
+    "Mantle/NSDictionary+MTLMappingAdditions.m",
+    "Mantle/NSError+MTLModelException.m",
+    "Mantle/NSObject+MTLComparisonAdditions.m",
+    "Mantle/NSValueTransformer+MTLInversionAdditions.m",
+    "Mantle/NSValueTransformer+MTLPredefinedTransformerAdditions.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Mantle_oc",
+  enable_modules = 1,
+  srcs = [
+    "Mantle_root_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Mantle_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":Mantle_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Mantle_private_includes",
+    ":Mantle_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Mantle_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DMantle_POD_VERSION=@\\\"1128_2.1.2-rc2\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Mantle",
+  deps = [
+    ":Mantle_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Mantle_lib",
+  deps = [
+    ":Mantle"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "extobjc_hdrs",
+  srcs = [
+    "Mantle/extobjc/EXTKeyPathCoding.h",
+    "Mantle/extobjc/EXTRuntimeExtensions.h",
+    "Mantle/extobjc/EXTScope.h",
+    "Mantle/extobjc/metamacros.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "extobjc_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/Mantle/EXTKeyPathCoding.h",
+    "pod_support/Headers/Private/Mantle/EXTRuntimeExtensions.h",
+    "pod_support/Headers/Private/Mantle/EXTScope.h",
+    "pod_support/Headers/Private/Mantle/metamacros.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "extobjc_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "extobjc_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "extobjc_module_map",
+  module_map = "pod_support/Headers/Public/Mantle/Mantle_extobjc-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Mantle/Mantle_extobjc-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "extobjc_srcs",
+  srcs = [
+    "Mantle/extobjc/EXTRuntimeExtensions.m",
+    "Mantle/extobjc/EXTScope.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "extobjc_oc",
+  enable_modules = 1,
+  srcs = [
+    "extobjc_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "extobjc_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":Mantle_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Mantle_private_includes",
+    ":Mantle_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":extobjc_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DMantle_POD_VERSION=@\\\"1128_2.1.2-rc2\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "extobjc",
+  deps = [
+    ":extobjc_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "extobjc_lib",
+  deps = [
+    ":extobjc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_Mantle_module_map",
+  module_map = "@Mantle//:pod_support/Headers/Public/Mantle/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@Mantle//:pod_support/Headers/Public/Mantle/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_Mantle_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@Mantle//:Mantle_objc_interface", "@Mantle//:extobjc_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_Mantle",
+  target_name = "Lark",
+  module_name = "Mantle",
+  hdrs = ["@Mantle//:Mantle_root_pod_hdrs", "@Mantle//:extobjc_pod_hdrs"],
+  srcs = ["@Mantle//:Mantle_root_srcs", "@Mantle//:extobjc_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DMantle_POD_VERSION=@\\\"1128_2.1.2-rc2\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "Mantle_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "Mantle_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["Foundation"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "Mantle_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "Mantle_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "Mantle_dynamic", False),
+  tags = getattr(defs_external_objc_library, "Mantle_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("Mantle", {}),
+  visibility = ["//visibility:public"],
+)

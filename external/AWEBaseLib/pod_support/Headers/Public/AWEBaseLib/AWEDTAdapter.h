@@ -1,0 +1,1 @@
+../../../../AWEBaseLib/Classes/AWEDTAdapter.h

@@ -1,0 +1,1 @@
+../../../../third_party/perfetto/include/perfetto/base/build_configs/bazel/perfetto_build_flags.h

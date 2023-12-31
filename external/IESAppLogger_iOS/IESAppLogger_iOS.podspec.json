@@ -1,0 +1,72 @@
+{
+  "name": "IESAppLogger_iOS",
+  "version": "0.1.0.1-binary",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "authors": {
+    "stan.shen": "stan.shen@bytedance.com"
+  },
+  "license": "IES",
+  "homepage": "https://code.byted.org/ies/AppLogger_iOS",
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/9999/IESAppLogger_iOS/0.1.0.1-binary/IESAppLogger_iOS.framework.tar.xz"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "ios": {
+    "frameworks": [
+      "Foundation",
+      "UIKit",
+      "JavaScriptCore"
+    ]
+  },
+  "libraries": "c++",
+  "requires_arc": true,
+  "header_mappings_dir": "inc",
+  "subspecs": [
+    {
+      "name": "CPPInterface",
+      "source_files": "inc/IESAppLogTracker.h",
+      "vendored_libraries": "lib/Release/libIESAppLogger.a",
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_CPPInterface_*awesome_*.a"
+      },
+      "preserve_paths": [
+        "**/*.bwp"
+      ]
+    },
+    {
+      "name": "OCInterface",
+      "source_files": "inc/IESAppLogger.h",
+      "vendored_libraries": "lib/Release/libIESAppLogger.a",
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_OCInterface_*awesome_*.a"
+      },
+      "preserve_paths": [
+        "**/*.bwp"
+      ]
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "13233",
+    "app_id": "9999"
+  },
+  "repoId": "13233",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "IESAppLogger_iOS_POD_VERSION=@\\\"9999_0.1.0\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "IESAppLogger_iOS_POD_VERSION=@\\\"9999_0.1.0\\\""
+  },
+  "source_code": {
+    "git": "git@code.byted.org:ies/AppLogger_iOS.git",
+    "commit": "2d4b7243404718d4d7603e4f9233b4620f542d72"
+  },
+  "prepare_command": "curl https://ios.bytedance.net/wlapi/tosDownload/iosbinary/platform/master/awesomecommand_xz.sh | bash ;",
+  "preserve_paths": [
+    "**/*.bwp"
+  ]
+}

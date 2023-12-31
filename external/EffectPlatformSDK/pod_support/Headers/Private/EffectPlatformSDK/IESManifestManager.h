@@ -1,0 +1,1 @@
+../../../../EffectPlatformSDK/Core/Internal/Manifest/IESManifestManager.h

@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_framework_public_base_define.h

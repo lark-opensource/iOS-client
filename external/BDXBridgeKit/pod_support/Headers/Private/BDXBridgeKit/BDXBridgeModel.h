@@ -1,0 +1,1 @@
+../../../../BDXBridgeKit/Classes/Core/BDXBridgeModel.h

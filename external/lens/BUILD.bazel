@@ -1,0 +1,1065 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "lens_pod_hdrs",
+  srcs = [
+    ":lens_root_pod_hdrs",
+    ":core_pod_hdrs",
+    ":SmartCodec_pod_hdrs",
+    ":LumaDetection_pod_hdrs",
+    ":lark_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "lens_private_includes",
+  include = [
+    "external/lens/pod_support/Headers/Private/lens/"
+  ],
+  deps = [],
+  external_name = "lens"
+)
+gen_includes(
+  name = "lens_public_includes",
+  include = [
+    "external/lens/pod_support/Headers/Public/lens/"
+  ],
+  deps = [],
+  external_name = "lens"
+)
+filegroup(
+  name = "_lens_hdrs",
+  srcs = [
+    ":lens_root_hdrs",
+    ":core_hdrs",
+    ":SmartCodec_hdrs",
+    ":LumaDetection_hdrs",
+    ":lark_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "lens_xcode_hmapsource",
+  hdrs = [
+    ":lens_root_hdrs",
+    ":core_hdrs",
+    ":lark_hdrs",
+    ":LumaDetection_hdrs",
+    ":SmartCodec_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "lens_xcode_hmap",
+  dep = ":lens_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/lens/*-bitsky-generated.modulemap", "pod_support/Headers/Public/lens/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "lens_core_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/liblens_core_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "lens_SmartCodec_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/liblens_SmartCodec_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "lens_LumaDetection_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "lensengine/src/cpp/third_party/OneKeyDetection/libs/ios/libhdr_detect_ios.a",
+        "ios-arch-iphone/liblens_LumaDetection_awesome_ios.a"
+      ],
+      ":osxCase": [
+        "lensengine/src/cpp/third_party/OneKeyDetection/libs/ios/libhdr_detect_ios.a"
+      ],
+      ":tvosCase": [
+        "lensengine/src/cpp/third_party/OneKeyDetection/libs/ios/libhdr_detect_ios.a"
+      ],
+      ":watchosCase": [
+        "lensengine/src/cpp/third_party/OneKeyDetection/libs/ios/libhdr_detect_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "lens_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "lens",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "lens_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":lens_xcode_hmap"
+  ],
+  external_name = "lens",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "lens_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "lens_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "lens_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "lens_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "lens_module_map",
+  module_map = "pod_support/Headers/Public/lens/lens-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/lens/lens-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "lens_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "lens_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":lens_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":lens_private_includes",
+    ":lens_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":lens_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dlens_POD_VERSION=@\\\"9999_8.5.18-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "lens",
+  deps = [
+    ":lens_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "lens_lib",
+  deps = [
+    ":lens"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "core_hdrs",
+  srcs = [
+    "lensengine/src/cpp/include/LensCWrapper.h",
+    "lensengine/src/cpp/include/LensConfigType.h",
+    "lensengine/src/cpp/include/LensEngine.h",
+    "lensengine/src/cpp/include/LensEngineExt.h",
+    "lensengine/src/cpp/third_party/cppjson/include/cJSON.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/lens/LensCWrapper.h",
+    "pod_support/Headers/Private/lens/LensConfigType.h",
+    "pod_support/Headers/Private/lens/LensEngine.h",
+    "pod_support/Headers/Private/lens/LensEngineExt.h",
+    "pod_support/Headers/Private/lens/cJSON.h",
+    "pod_support/Headers/Public/lens/LensCWrapper.h",
+    "pod_support/Headers/Public/lens/LensConfigType.h",
+    "pod_support/Headers/Public/lens/LensEngine.h",
+    "pod_support/Headers/Public/lens/LensEngineExt.h",
+    "pod_support/Headers/Public/lens/cJSON.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "core_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "core_module_map",
+  module_map = "pod_support/Headers/Public/lens/lens_core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/lens/lens_core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "core_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":lens_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":lens_private_includes",
+    ":lens_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":lens_core_VendoredLibraries",
+    ":core_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dlens_POD_VERSION=@\\\"9999_8.5.18-lark\\\"",
+    "-DLENSCore=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "core",
+  deps = [
+    ":core_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "core_lib",
+  deps = [
+    ":core"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SmartCodec_hdrs",
+  srcs = [
+    "lensengine/src/cpp/algorithm/SmartCodec/include/SmartCodecBackend.h",
+    "lensengine/src/cpp/algorithm/SmartCodec/include/SmartCodecFlowGraph.h",
+    "lensengine/src/cpp/algorithm/SmartCodec/include/SmartCodecProcess.h",
+    "lensengine/src/cpp/algorithm/SmartCodec/src/ios/ASCSharpen.h",
+    "lensengine/src/cpp/algorithm/SmartCodec/src/ios/ASCSharpen_CPU.h",
+    "lensengine/src/cpp/algorithm/SmartCodec/src/ios/BlurDetect.h",
+    "lensengine/src/cpp/algorithm/SmartCodec/src/ios/FeatureGLCMGPU.h",
+    "lensengine/src/cpp/algorithm/SmartCodec/src/ios/FeatureKernels.h",
+    "lensengine/src/cpp/algorithm/SmartCodec/src/ios/GroupFeature.h",
+    "lensengine/src/cpp/algorithm/SmartCodec/src/ios/KerasModel.h",
+    "lensengine/src/cpp/algorithm/SmartCodec/src/ios/PreTransform.h",
+    "lensengine/src/cpp/algorithm/SmartCodec/src/ios/SceneCut.h",
+    "lensengine/src/cpp/algorithm/SmartCodec/src/ios/SmartCodecIOSInterface.h",
+    "lensengine/src/cpp/algorithm/SmartCodec/src/ios/VFImageFilter.h",
+    "lensengine/src/cpp/algorithm/SmartCodec/src/ios/VFMetalContext.h",
+    "lensengine/src/cpp/algorithm/SmartCodec/src/ios/sse2neon.h",
+    "lensengine/src/cpp/include/LensCWrapper.h",
+    "lensengine/src/cpp/include/LensConfigType.h",
+    "lensengine/src/cpp/include/LensEngine.h",
+    "lensengine/src/cpp/include/LensEngineExt.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SmartCodec_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/lens/ASCSharpen.h",
+    "pod_support/Headers/Private/lens/ASCSharpen_CPU.h",
+    "pod_support/Headers/Private/lens/BlurDetect.h",
+    "pod_support/Headers/Private/lens/FeatureGLCMGPU.h",
+    "pod_support/Headers/Private/lens/FeatureKernels.h",
+    "pod_support/Headers/Private/lens/GroupFeature.h",
+    "pod_support/Headers/Private/lens/KerasModel.h",
+    "pod_support/Headers/Private/lens/PreTransform.h",
+    "pod_support/Headers/Private/lens/SceneCut.h",
+    "pod_support/Headers/Private/lens/SmartCodecBackend.h",
+    "pod_support/Headers/Private/lens/SmartCodecFlowGraph.h",
+    "pod_support/Headers/Private/lens/SmartCodecIOSInterface.h",
+    "pod_support/Headers/Private/lens/SmartCodecProcess.h",
+    "pod_support/Headers/Private/lens/VFImageFilter.h",
+    "pod_support/Headers/Private/lens/VFMetalContext.h",
+    "pod_support/Headers/Private/lens/sse2neon.h",
+    "pod_support/Headers/Public/lens/LensCWrapper.h",
+    "pod_support/Headers/Public/lens/LensConfigType.h",
+    "pod_support/Headers/Public/lens/LensEngine.h",
+    "pod_support/Headers/Public/lens/LensEngineExt.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SmartCodec_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SmartCodec_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "SmartCodec_module_map",
+  module_map = "pod_support/Headers/Public/lens/lens_SmartCodec-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/lens/lens_SmartCodec-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SmartCodec_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "SmartCodec_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore",
+    "Metal",
+    "MetalPerformanceShaders"
+  ],
+  sdk_dylibs = [
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":lens_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":lens_private_includes",
+    ":lens_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@fastcv//:fastcv_objc_interface",
+    "@fastcv//:fastcv_swift_interface",
+    ":lens_SmartCodec_VendoredLibraries",
+    ":SmartCodec_objc_interface",
+    "@fastcv//:fastcv_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dlens_POD_VERSION=@\\\"9999_8.5.18-lark\\\"",
+    "-DHAVE_SMART_CODEC=1",
+    "-DHAVE_FASTCV=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SmartCodec",
+  deps = [
+    ":SmartCodec_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "SmartCodec_lib",
+  deps = [
+    ":SmartCodec"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "LumaDetection_hdrs",
+  srcs = [
+    "lensengine/src/cpp/algorithm/LumaDetection/include/LumaDetectionCpuBackend.h",
+    "lensengine/src/cpp/algorithm/LumaDetection/include/LumaDetectionFlowGraph.h",
+    "lensengine/src/cpp/algorithm/LumaDetection/include/LumaDetectionProcess.h",
+    "lensengine/src/cpp/algorithm/LumaDetection/include/metal_shader.h",
+    "lensengine/src/cpp/include/LensCWrapper.h",
+    "lensengine/src/cpp/include/LensConfigType.h",
+    "lensengine/src/cpp/include/LensEngine.h",
+    "lensengine/src/cpp/include/LensEngineExt.h",
+    "lensengine/src/cpp/third_party/OneKeyDetection/include/hdr_detect_export.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "LumaDetection_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/lens/LumaDetectionCpuBackend.h",
+    "pod_support/Headers/Private/lens/LumaDetectionFlowGraph.h",
+    "pod_support/Headers/Private/lens/LumaDetectionProcess.h",
+    "pod_support/Headers/Private/lens/hdr_detect_export.h",
+    "pod_support/Headers/Private/lens/metal_shader.h",
+    "pod_support/Headers/Public/lens/LensCWrapper.h",
+    "pod_support/Headers/Public/lens/LensConfigType.h",
+    "pod_support/Headers/Public/lens/LensEngine.h",
+    "pod_support/Headers/Public/lens/LensEngineExt.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "LumaDetection_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "LumaDetection_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "LumaDetection_module_map",
+  module_map = "pod_support/Headers/Public/lens/lens_LumaDetection-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/lens/lens_LumaDetection-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "LumaDetection_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "LumaDetection_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":lens_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":lens_private_includes",
+    ":lens_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":lens_LumaDetection_VendoredLibraries",
+    ":LumaDetection_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dlens_POD_VERSION=@\\\"9999_8.5.18-lark\\\"",
+    "-DHAVE_LUMA_DETECT=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "LumaDetection",
+  deps = [
+    ":LumaDetection_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "LumaDetection_lib",
+  deps = [
+    ":LumaDetection"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "lark_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "lark_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "lark_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "lark_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "lark_module_map",
+  module_map = "pod_support/Headers/Public/lens/lens_lark-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/lens/lens_lark-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "lark_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "lark_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":lens_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":lens_private_includes",
+    ":lens_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":lark_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dlens_POD_VERSION=@\\\"9999_8.5.18-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "lark",
+  deps = [
+    ":lark_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "lark_lib",
+  deps = [
+    ":lark"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_lens_module_map",
+  module_map = "@lens//:pod_support/Headers/Public/lens/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@lens//:pod_support/Headers/Public/lens/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_lens_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@lens//:LumaDetection_objc_interface", "@lens//:SmartCodec_objc_interface", "@lens//:core_objc_interface", "@lens//:lark_objc_interface", "@lens//:lens_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_library")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_library(
+  name = "Lark_lens",
+  target_name = "Lark",
+  module_name = "lens",
+  hdrs = ["@lens//:LumaDetection_pod_hdrs", "@lens//:SmartCodec_pod_hdrs", "@lens//:core_pod_hdrs", "@lens//:lark_pod_hdrs", "@lens//:lens_root_pod_hdrs"],
+  srcs = [],
+  non_arc_srcs = [],
+  deps = ["@lens//:lens_LumaDetection_VendoredLibraries", "@lens//:lens_SmartCodec_VendoredLibraries", "@lens//:lens_core_VendoredLibraries"],
+  pod_deps = ["fastcv"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dlens_POD_VERSION=@\\\"9999_8.5.18-lark\\\"",
+    "-DHAVE_LUMA_DETECT=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-DHAVE_SMART_CODEC=1",
+    "-DHAVE_FASTCV=1",
+    "-DLENSCore=1",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "lens_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "lens_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["UIKit", "Foundation", "JavaScriptCore", "Metal", "MetalPerformanceShaders"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = ["z", "c++"],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "lens_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "lens_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "lens_dynamic", False),
+  tags = getattr(defs_external_objc_library, "lens_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("lens", {}),
+  visibility = ["//visibility:public"],
+)

@@ -1,0 +1,104 @@
+{
+  "name": "TTNetworkPredict",
+  "version": "0.5.2",
+  "summary": "framework_summary",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "shenchen": "shenchen.2018@bytedance.com"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "requires_arc": true,
+  "homepage": "https://code.byted.org/ttmp/networkpredict",
+  "source": {
+    "git": "git@code.byted.org:ttmp/networkpredict.git",
+    "commit": "17f5f40da370d9725e04487b8cf51c54609b3be4"
+  },
+  "frameworks": [
+    "Foundation",
+    "UIKit"
+  ],
+  "libraries": "c++",
+  "default_subspecs": [
+    "interface",
+    "common",
+    "algorithms",
+    "public",
+    "bridge"
+  ],
+  "subspecs": [
+    {
+      "name": "common",
+      "source_files": [
+        "common/**/*.h",
+        "common/*.{cpp,mm,m,c}"
+      ],
+      "private_header_files": [
+        "common/**/*.h"
+      ]
+    },
+    {
+      "name": "algorithms",
+      "source_files": [
+        "algorithms/**/*.h",
+        "algorithms/*.{cpp,mm,m,c}"
+      ],
+      "private_header_files": [
+        "algorithms/**/*.h"
+      ]
+    },
+    {
+      "name": "interface",
+      "source_files": [
+        "ios/TTNetworkPredictInterface/*.h",
+        "ios/TTNetworkPredictInterface/*.{m}"
+      ],
+      "public_header_files": [
+        "ios/TTNetworkPredictInterface/*.h"
+      ]
+    },
+    {
+      "name": "bridge",
+      "source_files": [
+        "ios/TTNetworkPredictModule/bridge/**/*.h",
+        "ios/TTNetworkPredictModule/bridge/**/*.{m,mm}"
+      ],
+      "private_header_files": [
+        "ios/TTNetworkPredictModule/bridge/**/*.h"
+      ]
+    },
+    {
+      "name": "public",
+      "source_files": [
+        "ios/TTNetworkPredictModule/imp/**/*.h",
+        "ios/TTNetworkPredictModule/imp/**/*.{m,mm}"
+      ],
+      "public_header_files": [
+        "ios/TTNetworkPredictModule/imp/**/*.h"
+      ],
+      "dependencies": {
+        "TTNetworkPredict/common": [],
+        "TTNetworkPredict/algorithms": [],
+        "TTNetworkPredict/interface": [],
+        "TTNetworkPredict/bridge": []
+      }
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "9660",
+    "app_id": "9999"
+  },
+  "repoId": "9660",
+  "description": "framework_description",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "TTNetworkPredict_POD_VERSION=@\\\"9999_0.5.2\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "TTNetworkPredict_POD_VERSION=@\\\"9999_0.5.2\\\""
+  }
+}

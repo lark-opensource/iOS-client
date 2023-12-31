@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/Edit/Manager/SpecialEffectsSimplifiedPanel/AWESpecialEffectSimplifiedABManager.h

@@ -1,0 +1,1069 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "Hermas_pod_hdrs",
+  srcs = [
+    ":Hermas_root_pod_hdrs",
+    ":core_pod_hdrs",
+    ":api_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "Hermas_private_includes",
+  include = [
+    "external/Hermas/pod_support/Headers/Private/Hermas/"
+  ],
+  deps = [],
+  external_name = "Hermas"
+)
+gen_includes(
+  name = "Hermas_public_includes",
+  include = [
+    "external/Hermas/pod_support/Headers/Public/Hermas/"
+  ],
+  deps = [],
+  external_name = "Hermas"
+)
+filegroup(
+  name = "_Hermas_hdrs",
+  srcs = [
+    ":Hermas_root_hdrs",
+    ":core_hdrs",
+    ":api_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "Hermas_xcode_hmapsource",
+  hdrs = [
+    ":Hermas_root_hdrs",
+    ":api_hdrs",
+    ":core_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "Hermas_xcode_hmap",
+  dep = ":Hermas_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/Hermas/*-bitsky-generated.modulemap", "pod_support/Headers/Public/Hermas/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "Hermas_custom_includes",
+  include = [
+    "external",
+    "hpp}",
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "Hermas",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "Hermas_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":Hermas_xcode_hmap"
+  ],
+  external_name = "Hermas",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Hermas_root_private_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Hermas_root_public_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Hermas_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Hermas_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Hermas_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Hermas_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Hermas_module_map",
+  module_map = "pod_support/Headers/Public/Hermas/Hermas-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Hermas/Hermas-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Hermas_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Hermas_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_dylibs = [
+    "c++",
+    "z"
+  ],
+  deps = [
+    ":Hermas_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Hermas_private_includes",
+    ":Hermas_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Hermas_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DHERMAS_USE_EXCEPTION=0",
+    "-DHermas_POD_VERSION=@\\\"9999_0.0.5-rc.7\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=c++14",
+    "-stdlib=libc++",
+    "-fno-exceptions",
+    "-fno-rtti",
+    "-fno-c++-static-destructors"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Hermas",
+  deps = [
+    ":Hermas_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Hermas_lib",
+  deps = [
+    ":Hermas"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "core_private_hdrs",
+  srcs = [
+    "src/core/domain/aggregation/aggregate_service.h",
+    "src/core/domain/aggregation/record_aggregation.h",
+    "src/core/domain/cache/cache_service.h",
+    "src/core/domain/config/zstd_service.h",
+    "src/core/domain/disaster/disaster_service.h",
+    "src/core/domain/fileaccess/aggre_mmap_file.h",
+    "src/core/domain/fileaccess/file_service.h",
+    "src/core/domain/fileaccess/file_service_util.h",
+    "src/core/domain/fileaccess/files_collect.h",
+    "src/core/domain/fileaccess/mmap_file.h",
+    "src/core/domain/fileaccess/mmap_read_file.h",
+    "src/core/domain/fileaccess/mmap_write_file.h",
+    "src/core/domain/fileaccess/process_lock.h",
+    "src/core/domain/fileaccess/semi_mmap_file.h",
+    "src/core/domain/filefragment/file_fragment.h",
+    "src/core/domain/filefragment/file_fragment_config.h",
+    "src/core/domain/filefragment/file_fragment_header.h",
+    "src/core/domain/filefragment/file_fragment_rbtree.h",
+    "src/core/domain/filefragment/file_fragment_store_rb.h",
+    "src/core/domain/filefragment/file_fragment_util.h",
+    "src/core/domain/flowcontrol/flow_control.h",
+    "src/core/domain/migration/migrate_service.h",
+    "src/core/domain/monitor/storage_monitor.h",
+    "src/core/domain/network/network_service.h",
+    "src/core/domain/protocol/protocol_service.h",
+    "src/core/domain/record/file_record.h",
+    "src/core/domain/record/fun_wrapper.h",
+    "src/core/domain/record/ifile_record.h",
+    "src/core/domain/record/record_circle.h",
+    "src/core/domain/record/record_service.h",
+    "src/core/domain/record/records.h",
+    "src/core/domain/search/condition_node.h",
+    "src/core/domain/search/search_filter.h",
+    "src/core/domain/search/search_service.h",
+    "src/core/domain/semifinished/semfinished_service.h",
+    "src/core/domain/semifinished/semifinished_helper.h",
+    "src/core/domain/session/session_service.h",
+    "src/core/domain/upload/cycle_handler.h",
+    "src/core/domain/upload/forward_protocol.h",
+    "src/core/domain/upload/forward_service.h",
+    "src/core/domain/upload/upload_service.h",
+    "src/core/infrastruct/base_domain.h",
+    "src/core/infrastruct/domain_manager.h",
+    "src/core/infrastruct/file_path/file_path.h",
+    "src/core/infrastruct/handler/handler.h",
+    "src/core/infrastruct/json_util.h",
+    "src/core/infrastruct/service_factory.hpp",
+    "src/core/infrastruct/task_queue/task_queue.h",
+    "src/core/instance/constants.h",
+    "src/core/instance/env.h",
+    "src/core/instance/hermas.hpp",
+    "src/core/instance/hermas_internal.h",
+    "src/core/instance/iuploader.h",
+    "src/core/instance/recorder.h",
+    "src/core/port/platform/ios/alog/log_ios.h",
+    "src/core/port/platform/ios/network/HMRequestMonitor.h",
+    "src/core/port/platform/ios/network/HMURLSessionManager.h",
+    "src/core/port/platform/ios/network/HMUploader.h",
+    "src/core/port/platform/ios/userdefault/UserDefault_iOS.h",
+    "src/core/port/platform/ios/utils/HMTools.h",
+    "src/core/port/port.h",
+    "src/core/util/any.h",
+    "src/core/util/base64_util.hpp",
+    "src/core/util/file_util.h",
+    "src/core/util/functor.hpp",
+    "src/core/util/gzip_util.h",
+    "src/core/util/json/json-forwards.h",
+    "src/core/util/json/json.h",
+    "src/core/util/log.h",
+    "src/core/util/macro.h",
+    "src/core/util/network_util.h",
+    "src/core/util/no_destructor.hpp",
+    "src/core/util/resource.h",
+    "src/core/util/rwlock.h",
+    "src/core/util/singleton.hpp",
+    "src/core/util/string_util.h",
+    "src/core/util/time_util.h",
+    "src/core/util/user_default.h",
+    "src/core/util/vector_util.h",
+    "src/core/util/weak_handler.h",
+    "src/core/util/zstd_util.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "core_public_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "core_hdrs",
+  srcs = [
+    "src/core/domain/aggregation/aggregate_service.h",
+    "src/core/domain/aggregation/record_aggregation.h",
+    "src/core/domain/cache/cache_service.h",
+    "src/core/domain/config/zstd_service.h",
+    "src/core/domain/disaster/disaster_service.h",
+    "src/core/domain/fileaccess/aggre_mmap_file.h",
+    "src/core/domain/fileaccess/file_service.h",
+    "src/core/domain/fileaccess/file_service_util.h",
+    "src/core/domain/fileaccess/files_collect.h",
+    "src/core/domain/fileaccess/mmap_file.h",
+    "src/core/domain/fileaccess/mmap_read_file.h",
+    "src/core/domain/fileaccess/mmap_write_file.h",
+    "src/core/domain/fileaccess/process_lock.h",
+    "src/core/domain/fileaccess/semi_mmap_file.h",
+    "src/core/domain/filefragment/file_fragment.h",
+    "src/core/domain/filefragment/file_fragment_config.h",
+    "src/core/domain/filefragment/file_fragment_header.h",
+    "src/core/domain/filefragment/file_fragment_rbtree.h",
+    "src/core/domain/filefragment/file_fragment_store_rb.h",
+    "src/core/domain/filefragment/file_fragment_util.h",
+    "src/core/domain/flowcontrol/flow_control.h",
+    "src/core/domain/migration/migrate_service.h",
+    "src/core/domain/monitor/storage_monitor.h",
+    "src/core/domain/network/network_service.h",
+    "src/core/domain/protocol/protocol_service.h",
+    "src/core/domain/record/file_record.h",
+    "src/core/domain/record/fun_wrapper.h",
+    "src/core/domain/record/ifile_record.h",
+    "src/core/domain/record/record_circle.h",
+    "src/core/domain/record/record_service.h",
+    "src/core/domain/record/records.h",
+    "src/core/domain/search/condition_node.h",
+    "src/core/domain/search/search_filter.h",
+    "src/core/domain/search/search_service.h",
+    "src/core/domain/semifinished/semfinished_service.h",
+    "src/core/domain/semifinished/semifinished_helper.h",
+    "src/core/domain/session/session_service.h",
+    "src/core/domain/upload/cycle_handler.h",
+    "src/core/domain/upload/forward_protocol.h",
+    "src/core/domain/upload/forward_service.h",
+    "src/core/domain/upload/upload_service.h",
+    "src/core/infrastruct/base_domain.h",
+    "src/core/infrastruct/domain_manager.h",
+    "src/core/infrastruct/file_path/file_path.h",
+    "src/core/infrastruct/handler/handler.h",
+    "src/core/infrastruct/json_util.h",
+    "src/core/infrastruct/service_factory.hpp",
+    "src/core/infrastruct/task_queue/task_queue.h",
+    "src/core/instance/constants.h",
+    "src/core/instance/env.h",
+    "src/core/instance/hermas.hpp",
+    "src/core/instance/hermas_internal.h",
+    "src/core/instance/iuploader.h",
+    "src/core/instance/recorder.h",
+    "src/core/port/platform/ios/alog/log_ios.h",
+    "src/core/port/platform/ios/network/HMRequestMonitor.h",
+    "src/core/port/platform/ios/network/HMURLSessionManager.h",
+    "src/core/port/platform/ios/network/HMUploader.h",
+    "src/core/port/platform/ios/userdefault/UserDefault_iOS.h",
+    "src/core/port/platform/ios/utils/HMTools.h",
+    "src/core/port/port.h",
+    "src/core/util/any.h",
+    "src/core/util/base64_util.hpp",
+    "src/core/util/file_util.h",
+    "src/core/util/functor.hpp",
+    "src/core/util/gzip_util.h",
+    "src/core/util/json/json-forwards.h",
+    "src/core/util/json/json.h",
+    "src/core/util/log.h",
+    "src/core/util/macro.h",
+    "src/core/util/network_util.h",
+    "src/core/util/no_destructor.hpp",
+    "src/core/util/resource.h",
+    "src/core/util/rwlock.h",
+    "src/core/util/singleton.hpp",
+    "src/core/util/string_util.h",
+    "src/core/util/time_util.h",
+    "src/core/util/user_default.h",
+    "src/core/util/vector_util.h",
+    "src/core/util/weak_handler.h",
+    "src/core/util/zstd_util.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/Hermas/HMRequestMonitor.h",
+    "pod_support/Headers/Private/Hermas/HMTools.h",
+    "pod_support/Headers/Private/Hermas/HMURLSessionManager.h",
+    "pod_support/Headers/Private/Hermas/HMUploader.h",
+    "pod_support/Headers/Private/Hermas/UserDefault_iOS.h",
+    "pod_support/Headers/Private/Hermas/aggre_mmap_file.h",
+    "pod_support/Headers/Private/Hermas/aggregate_service.h",
+    "pod_support/Headers/Private/Hermas/any.h",
+    "pod_support/Headers/Private/Hermas/base64_util.hpp",
+    "pod_support/Headers/Private/Hermas/base_domain.h",
+    "pod_support/Headers/Private/Hermas/cache_service.h",
+    "pod_support/Headers/Private/Hermas/condition_node.h",
+    "pod_support/Headers/Private/Hermas/constants.h",
+    "pod_support/Headers/Private/Hermas/cycle_handler.h",
+    "pod_support/Headers/Private/Hermas/disaster_service.h",
+    "pod_support/Headers/Private/Hermas/domain_manager.h",
+    "pod_support/Headers/Private/Hermas/env.h",
+    "pod_support/Headers/Private/Hermas/file_fragment.h",
+    "pod_support/Headers/Private/Hermas/file_fragment_config.h",
+    "pod_support/Headers/Private/Hermas/file_fragment_header.h",
+    "pod_support/Headers/Private/Hermas/file_fragment_rbtree.h",
+    "pod_support/Headers/Private/Hermas/file_fragment_store_rb.h",
+    "pod_support/Headers/Private/Hermas/file_fragment_util.h",
+    "pod_support/Headers/Private/Hermas/file_path.h",
+    "pod_support/Headers/Private/Hermas/file_record.h",
+    "pod_support/Headers/Private/Hermas/file_service.h",
+    "pod_support/Headers/Private/Hermas/file_service_util.h",
+    "pod_support/Headers/Private/Hermas/file_util.h",
+    "pod_support/Headers/Private/Hermas/files_collect.h",
+    "pod_support/Headers/Private/Hermas/flow_control.h",
+    "pod_support/Headers/Private/Hermas/forward_protocol.h",
+    "pod_support/Headers/Private/Hermas/forward_service.h",
+    "pod_support/Headers/Private/Hermas/fun_wrapper.h",
+    "pod_support/Headers/Private/Hermas/functor.hpp",
+    "pod_support/Headers/Private/Hermas/gzip_util.h",
+    "pod_support/Headers/Private/Hermas/handler.h",
+    "pod_support/Headers/Private/Hermas/hermas.hpp",
+    "pod_support/Headers/Private/Hermas/hermas_internal.h",
+    "pod_support/Headers/Private/Hermas/ifile_record.h",
+    "pod_support/Headers/Private/Hermas/iuploader.h",
+    "pod_support/Headers/Private/Hermas/json-forwards.h",
+    "pod_support/Headers/Private/Hermas/json.h",
+    "pod_support/Headers/Private/Hermas/json_util.h",
+    "pod_support/Headers/Private/Hermas/log.h",
+    "pod_support/Headers/Private/Hermas/log_ios.h",
+    "pod_support/Headers/Private/Hermas/macro.h",
+    "pod_support/Headers/Private/Hermas/migrate_service.h",
+    "pod_support/Headers/Private/Hermas/mmap_file.h",
+    "pod_support/Headers/Private/Hermas/mmap_read_file.h",
+    "pod_support/Headers/Private/Hermas/mmap_write_file.h",
+    "pod_support/Headers/Private/Hermas/network_service.h",
+    "pod_support/Headers/Private/Hermas/network_util.h",
+    "pod_support/Headers/Private/Hermas/no_destructor.hpp",
+    "pod_support/Headers/Private/Hermas/port.h",
+    "pod_support/Headers/Private/Hermas/process_lock.h",
+    "pod_support/Headers/Private/Hermas/protocol_service.h",
+    "pod_support/Headers/Private/Hermas/record_aggregation.h",
+    "pod_support/Headers/Private/Hermas/record_circle.h",
+    "pod_support/Headers/Private/Hermas/record_service.h",
+    "pod_support/Headers/Private/Hermas/recorder.h",
+    "pod_support/Headers/Private/Hermas/records.h",
+    "pod_support/Headers/Private/Hermas/resource.h",
+    "pod_support/Headers/Private/Hermas/rwlock.h",
+    "pod_support/Headers/Private/Hermas/search_filter.h",
+    "pod_support/Headers/Private/Hermas/search_service.h",
+    "pod_support/Headers/Private/Hermas/semfinished_service.h",
+    "pod_support/Headers/Private/Hermas/semi_mmap_file.h",
+    "pod_support/Headers/Private/Hermas/semifinished_helper.h",
+    "pod_support/Headers/Private/Hermas/service_factory.hpp",
+    "pod_support/Headers/Private/Hermas/session_service.h",
+    "pod_support/Headers/Private/Hermas/singleton.hpp",
+    "pod_support/Headers/Private/Hermas/storage_monitor.h",
+    "pod_support/Headers/Private/Hermas/string_util.h",
+    "pod_support/Headers/Private/Hermas/task_queue.h",
+    "pod_support/Headers/Private/Hermas/time_util.h",
+    "pod_support/Headers/Private/Hermas/upload_service.h",
+    "pod_support/Headers/Private/Hermas/user_default.h",
+    "pod_support/Headers/Private/Hermas/vector_util.h",
+    "pod_support/Headers/Private/Hermas/weak_handler.h",
+    "pod_support/Headers/Private/Hermas/zstd_service.h",
+    "pod_support/Headers/Private/Hermas/zstd_util.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "core_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "core_module_map",
+  module_map = "pod_support/Headers/Public/Hermas/Hermas_core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Hermas/Hermas_core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "core_srcs",
+  srcs = [
+    "src/core/domain/fileaccess/aggre_mmap_file.cpp",
+    "src/core/domain/aggregation/aggregate_service.cpp",
+    "src/core/domain/cache/cache_service.cpp",
+    "src/core/domain/search/condition_node.cpp",
+    "src/core/domain/upload/cycle_handler.cpp",
+    "src/core/domain/disaster/disaster_service.cpp",
+    "src/core/infrastruct/domain_manager.cpp",
+    "src/core/instance/env.cpp",
+    "src/core/domain/filefragment/file_fragment.cpp",
+    "src/core/domain/filefragment/file_fragment_store_rb.cpp",
+    "src/core/infrastruct/file_path/file_path.cpp",
+    "src/core/domain/record/file_record.cpp",
+    "src/core/domain/fileaccess/file_service.cpp",
+    "src/core/domain/fileaccess/file_service_util.cpp",
+    "src/core/util/file_util.cpp",
+    "src/core/domain/fileaccess/files_collect.cpp",
+    "src/core/domain/flowcontrol/flow_control.cpp",
+    "src/core/domain/upload/forward_service.cpp",
+    "src/core/util/gzip_util.cpp",
+    "src/core/infrastruct/handler/handler.cpp",
+    "src/core/instance/hermas.cpp",
+    "src/core/instance/hermas_internal.cpp",
+    "src/core/port/platform/ios/utils/HMTools.mm",
+    "src/core/port/platform/ios/network/HMUploader.mm",
+    "src/core/port/platform/ios/network/HMURLSessionManager.mm",
+    "src/core/infrastruct/json_util.cpp",
+    "src/core/util/json/jsoncpp.cpp",
+    "src/core/port/platform/ios/alog/log_ios.mm",
+    "src/core/domain/migration/migrate_service.cpp",
+    "src/core/domain/fileaccess/mmap_file.cpp",
+    "src/core/domain/fileaccess/mmap_read_file.cpp",
+    "src/core/domain/fileaccess/mmap_write_file.cpp",
+    "src/core/domain/network/network_service.cpp",
+    "src/core/util/network_util.cpp",
+    "src/core/domain/fileaccess/process_lock.cpp",
+    "src/core/domain/protocol/protocol_service.cpp",
+    "src/core/domain/aggregation/record_aggregation.cpp",
+    "src/core/domain/record/record_circle.cpp",
+    "src/core/domain/record/record_service.cpp",
+    "src/core/instance/recorder.cpp",
+    "src/core/domain/record/records.cpp",
+    "src/core/domain/search/search_filter.cpp",
+    "src/core/domain/search/search_service.cpp",
+    "src/core/domain/semifinished/semfinished_service.cpp",
+    "src/core/domain/fileaccess/semi_mmap_file.cpp",
+    "src/core/domain/session/session_service.cpp",
+    "src/core/domain/monitor/storage_monitor.cpp",
+    "src/core/util/string_util.cpp",
+    "src/core/infrastruct/task_queue/task_queue.cpp",
+    "src/core/util/time_util.cpp",
+    "src/core/domain/upload/upload_service.cpp",
+    "src/core/util/user_default.cpp",
+    "src/core/port/platform/ios/userdefault/UserDefault_iOS.mm",
+    "src/core/util/vector_util.cpp",
+    "src/core/domain/config/zstd_service.cpp",
+    "src/core/util/zstd_util.cpp"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "core_oc",
+  enable_modules = 1,
+  srcs = [
+    "core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_dylibs = [
+    "c++",
+    "z"
+  ],
+  deps = [
+    ":Hermas_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Hermas_private_includes",
+    ":Hermas_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDALog//:BDALog_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@ZstdDecompressKit//:Compress_objc_interface",
+    "@ZstdDecompressKit//:libcommon_objc_interface",
+    "@BDALog//:BDALog_swift_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@ZstdDecompressKit//:Compress_swift_interface",
+    "@ZstdDecompressKit//:libcommon_swift_interface",
+    ":core_objc_interface",
+    "@BDALog//:BDALog_module_map",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@ZstdDecompressKit//:Compress_module_map",
+    "@ZstdDecompressKit//:libcommon_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DHERMAS_USE_EXCEPTION=0",
+    "-DHermas_POD_VERSION=@\\\"9999_0.0.5-rc.7\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=c++14",
+    "-stdlib=libc++",
+    "-fno-exceptions",
+    "-fno-rtti",
+    "-fno-c++-static-destructors"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "core",
+  deps = [
+    ":core_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "core_lib",
+  deps = [
+    ":core"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "api_private_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "api_public_hdrs",
+  srcs = [
+    "src/api/ios/HMConfig.h",
+    "src/api/ios/HMEngine.h",
+    "src/api/ios/HMInstance.h",
+    "src/api/ios/Hermas.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "api_hdrs",
+  srcs = [
+    "src/api/ios/HMConfig.h",
+    "src/api/ios/HMEngine.h",
+    "src/api/ios/HMInstance.h",
+    "src/api/ios/Hermas.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "api_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/Hermas/HMConfig.h",
+    "pod_support/Headers/Private/Hermas/HMEngine.h",
+    "pod_support/Headers/Private/Hermas/HMInstance.h",
+    "pod_support/Headers/Private/Hermas/Hermas.h",
+    "pod_support/Headers/Public/Hermas/HMConfig.h",
+    "pod_support/Headers/Public/Hermas/HMEngine.h",
+    "pod_support/Headers/Public/Hermas/HMInstance.h",
+    "pod_support/Headers/Public/Hermas/Hermas.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "api_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "api_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "api_module_map",
+  module_map = "pod_support/Headers/Public/Hermas/Hermas_api-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Hermas/Hermas_api-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "api_srcs",
+  srcs = [
+    "src/api/ios/HMConfig.m",
+    "src/api/ios/HMEngine.mm",
+    "src/api/ios/HMInstance.mm"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "api_oc",
+  enable_modules = 1,
+  srcs = [
+    "api_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "api_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_dylibs = [
+    "c++",
+    "z"
+  ],
+  deps = [
+    ":Hermas_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Hermas_private_includes",
+    ":Hermas_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":api_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DHERMAS_USE_EXCEPTION=0",
+    "-DHermas_POD_VERSION=@\\\"9999_0.0.5-rc.7\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=c++14",
+    "-stdlib=libc++",
+    "-fno-exceptions",
+    "-fno-rtti",
+    "-fno-c++-static-destructors"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "api",
+  deps = [
+    ":api_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "api_lib",
+  deps = [
+    ":api"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_Hermas_module_map",
+  module_map = "@Hermas//:pod_support/Headers/Public/Hermas/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@Hermas//:pod_support/Headers/Public/Hermas/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_Hermas_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@Hermas//:Hermas_objc_interface", "@Hermas//:api_objc_interface", "@Hermas//:core_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_Hermas",
+  target_name = "Lark",
+  module_name = "Hermas",
+  public_hdrs = ["@Hermas//:Hermas_root_public_hdrs", "@Hermas//:api_public_hdrs", "@Hermas//:core_public_hdrs"],
+  private_hdrs = ["@Hermas//:Hermas_root_private_hdrs", "@Hermas//:api_private_hdrs", "@Hermas//:core_private_hdrs"],
+  srcs = ["@Hermas//:api_srcs", "@Hermas//:core_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["BDALog", "BDAlogProtocol", "ZstdDecompressKit"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DHERMAS_USE_EXCEPTION=0",
+    "-DHermas_POD_VERSION=@\\\"9999_0.0.5-rc.7\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "Hermas_copts", []),
+  cxxopts = ["-std=c++14", "-stdlib=libc++", "-fno-exceptions", "-fno-rtti", "-fno-c++-static-destructors", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "Hermas_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = ["c++", "z"],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "Hermas_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "Hermas_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "Hermas_dynamic", False),
+  tags = getattr(defs_external_objc_library, "Hermas_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("Hermas", {}),
+  visibility = ["//visibility:public"],
+)

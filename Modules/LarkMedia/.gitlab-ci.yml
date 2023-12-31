@@ -1,0 +1,42 @@
+# This file is a template, and might need editing before it works on your project.
+# Lifted from: https://about.gitlab.com/2016/03/10/setting-up-gitlab-ci-for-ios-projects/
+# This file assumes an own GitLab CI runner, setup on an OS X system.
+stages:
+  - openMr
+  - build
+  - deploy
+
+openmr:
+  variables:
+    GIT_STRATEGY: none # We do not need a clone of the GIT repository to create a Merge Request
+  stage: openMr
+  only:
+    - /^feature\/*/ # We have a very strict naming convention
+  script:
+    - Merge-request.sh # The name of the script
+  tags:
+    - EESH
+
+
+lint:
+  stage: build
+  script:
+    - export LANG=en_US.UTF-8
+    - eval "$(rbenv init -)"
+    - env
+    - EEScaffold module test --force
+  only:
+    - branches
+  tags:
+    - EESH
+
+publish:
+  stage: deploy
+  script:
+    - export LANG=en_US.UTF-8
+    - eval "$(rbenv init -)"
+    - EEScaffold module publish
+  only:
+    - tags
+  tags:
+    - EESH

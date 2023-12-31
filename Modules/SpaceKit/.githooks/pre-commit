@@ -1,0 +1,103 @@
+#!/bin/sh
+#
+# SwiftLint uncommitted files and display the errors and warnings. 
+# Abort commit if there are warnings and errors left.
+
+
+# make for .. in work with the shitty spaces in our filenames
+OIFS="$IFS"
+IFS=$'\n'
+
+count=0
+
+# Changed files not added to stage area yet
+# for file_path in $(git diff --diff-filter=d --name-only | grep ".swift$"); do
+  # export SCRIPT_INPUT_FILE_$count=$file_path
+  # count=$((count + 1))
+# done
+
+# Changed files added to stage area
+for file_path in $(git diff --diff-filter=d --name-only --cached | grep ".swift$"); do
+  export SCRIPT_INPUT_FILE_$count=$file_path
+  count=$((count + 1))
+done
+
+# Newly added untracked files
+for file_path in $(git ls-files --others --exclude-standard | grep ".swift$"); do
+  export SCRIPT_INPUT_FILE_$count=$file_path
+  count=$((count + 1))
+done
+
+if [ "$count" -ne 0 ]; then
+  # Finding SwiftLint
+  SWIFT_LINT="./Pods/SwiftLint/swiftlint"
+  if [[ -e "${SWIFT_LINT}" ]]; then :
+  else
+    echo "\033[31mSwiftLint does not exist, execute pod install first! \033[39m\n"
+    exit 1
+  fi
+  export SCRIPT_INPUT_FILE_COUNT=$count
+  RESULT=$($SWIFT_LINT lint --use-script-input-files --force-exclude)
+fi
+
+
+if [ "$RESULT" == '' ]; then :
+else
+  printf "\033[41mSwiftLint Failed.\033[49m Please check below:\n"
+  while read -r line; do
+    FILEPATH=$(echo $line | cut -d : -f 1)
+    L=$(echo $line | cut -d : -f 2)
+    C=$(echo $line | cut -d : -f 3)
+    TYPE=$(echo $line | cut -d : -f 4 | cut -c 2-)
+    MESSAGE=$(echo $line | cut -d : -f 5 | cut -c 2-)
+    DESCRIPTION=$(echo $line | cut -d : -f 6 | cut -c 2-)
+    if [ "$TYPE" == 'error' ]; then
+      printf "\n  \033[31m$TYPE\033[39m\n"
+    else
+      printf "\n  \033[33m$TYPE\033[39m\n"
+    fi
+    printf "    \033[90m$FILEPATH:$L:$C\033[39m\n"
+    printf "    $MESSAGE - $DESCRIPTION\n"
+  done <<< "$RESULT"
+  printf "\n\033[33mCOMMIT ABORTED. Please fix them before committing your code.\n\033[39m"
+  exit 1
+fi
+
+
+
+# Prohibits PDF files from being uploaded
+
+pdf_count=0
+
+# Changed files not added to stage area yet
+for file_path in $(git diff --diff-filter=d --name-only | grep "SKResource" | grep ".pdf$"); do
+  pdf_count=$((pdf_count + 1))
+done
+
+# Changed files added to stage area
+for file_path in $(git diff --diff-filter=d --name-only --cached | grep "SKResource" | grep ".pdf$"); do
+  pdf_count=$((pdf_count + 1))
+done
+
+# Newly added untracked files
+for file_path in $(git ls-files --others --exclude-standard | grep "SKResource" | grep ".pdf$"); do
+  pdf_count=$((pdf_count + 1))
+done
+
+if [ "$pdf_count" -ne 0 ]; then
+  echo "\n\033[33mCOMMIT ABORTED. Please remove $pdf_count PDF files before committing.\033[39m"
+  exit 1
+fi
+
+
+
+# Prohibits non-slim web offline resource from being uploaded
+
+export current_branch_name=`git rev-parse --abbrev-ref HEAD`
+if [[ $current_branch_name == "develop" || $current_branch_name =~ ^release[0-9/\.]*$ ]]; then
+  export current_eesz_is_slim_str=`cat Libs/SKResource/Resources/eesz-zip/current_revision | grep is_slim`
+  if [[ ${current_eesz_is_slim_str: -1} -ne 1 ]]; then
+    echo "\n\033[33mCOMMIT ABORTED. Current web offline resource is not slim.\033[39m"
+    exit 1
+  fi
+fi

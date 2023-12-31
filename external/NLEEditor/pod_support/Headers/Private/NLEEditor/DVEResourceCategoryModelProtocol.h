@@ -1,0 +1,1 @@
+../../../../NLEEditor/Classes/EditorArch/ModuleInterface/Protocol/InjectItems/DVEResourceCategoryModelProtocol.h

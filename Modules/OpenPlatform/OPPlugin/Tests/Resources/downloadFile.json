@@ -1,0 +1,46 @@
+{
+  "test_downloadFile_success()": {
+    "params": {
+      "url": "https://gimg2.baidu.com/xx.jpg",
+      "downloadTaskId": "rtyiombf-3y6276678432-fvueyguf23g7vyuce"
+    },
+    "responsePayload": {
+      "statusCode": 200,
+      "tempFilePath": "ttfile://temp/suggested.jpg",
+      "filePath": "ttfile://temp/suggested.jpg",
+      "requestTaskId": "rtyiombf-3y6276678432-fvueyguf23g7vyuce"
+    },
+    "extra": {
+      "url": "https://gimg2.baidu.com/xx.jpg",
+      "statusCode": 200,
+      "downloadFilePath": "${downloadFilePath}",
+      "suggestedFileName": "suggested.jpg",
+      "cookies": []
+    },
+    "desc": "downloadFile 正常流程，传入 filePath，并且 suggestedFileName 为 \"\""
+  },
+  "test_downloadFile_fail_with_filePath_not_ttfile()": {
+    "params": {
+      "url": "https://gimg2.baidu.com/xx.jpg",
+      "filePath": "temp/xx.jpg",
+      "downloadTaskId": "rtyiombf-3y6276678432-fvueyguf23g7vyuce"
+    },
+    "errResult": {
+      "errno": 104,
+      "errString": "Parameter error. Invalid value for filePath"
+    },
+    "desc": "downloadFile 错误流程，传入非 ttFile filePath，并且 suggestedFileName 为 \"\""
+  },
+  "test_downloadFile_request_canceled()": {
+    "params": {
+      "url": "https://gimg2.baidu.com/xx.jpg",
+      "filePath": "ttfile://temp/xx.jpg",
+      "downloadTaskId": "rtyiombf-3y6276678432-fvueyguf23g7vyuce"
+    },
+    "errResult": {
+      "errno": 301,
+      "errString": "Network request cancelled"
+    },
+    "desc": "downloadFile 错误流程，传入的 filePath 没有写权限，并且 suggestedFileName 为 \"\""
+  }
+}

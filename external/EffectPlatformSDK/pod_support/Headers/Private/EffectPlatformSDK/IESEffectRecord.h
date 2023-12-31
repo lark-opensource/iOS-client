@@ -1,0 +1,1 @@
+../../../../EffectPlatformSDK/Core/Internal/Manifest/IESEffectRecord.h

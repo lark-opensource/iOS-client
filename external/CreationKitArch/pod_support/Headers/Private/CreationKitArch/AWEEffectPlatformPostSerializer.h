@@ -1,0 +1,1 @@
+../../../../CameraArch/Record/Manager/AWEEffectPlatformPostSerializer.h

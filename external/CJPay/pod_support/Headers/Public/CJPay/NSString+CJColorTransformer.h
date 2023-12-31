@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayComponent/Base/Category/NSString+CJColorTransformer.h

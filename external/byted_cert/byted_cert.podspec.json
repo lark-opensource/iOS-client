@@ -1,0 +1,303 @@
+{
+  "name": "byted_cert",
+  "version": "4.10.2-alpha.36",
+  "summary": "framework_summary",
+  "homepage": "https://code.byted.org/lab-cv/byted_cert_ios",
+  "license": {
+    "type": "Proprietary",
+    "text": "            smash. All Rights Reserved.\n"
+  },
+  "authors": {
+    "liuchundian": "liuchundian@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:lab-cv/byted_cert_ios.git",
+    "commit": "3d33906c8c672560583bdaf11b89dc43f0cfb522"
+  },
+  "description": "framework_description",
+  "platforms": {
+    "ios": "9.0",
+    "osx": "10.9"
+  },
+  "frameworks": [
+    "UIKit",
+    "CoreFoundation",
+    "SystemConfiguration",
+    "Photos",
+    "GLKit",
+    "CoreNFC"
+  ],
+  "libraries": "stdc++",
+  "default_subspecs": "lightcore",
+  "subspecs": [
+    {
+      "name": "lightcore",
+      "dependencies": {
+        "ByteDanceKit/Foundation": [],
+        "ByteDanceKit/UIKit": [],
+        "TTNetworkManager": [],
+        "BDAssert": [],
+        "BDTrackerProtocol": [],
+        "BDAlogProtocol": [],
+        "BDModel": [],
+        "Masonry": [],
+        "smash/action_liveness": [
+          ">=9.0.3-stablecode"
+        ]
+      },
+      "source_files": [
+        "byted_cert/Classes/Core/**/*.{h,m,mm}"
+      ],
+      "private_header_files": [
+        "byted_cert/Classes/Core/Private/**/*.{h,m,mm}"
+      ],
+      "resource_bundles": {
+        "byted_cert": [
+          "byted_cert/Resources/*",
+          "byted_cert/Classes/Core/Private/VideoRecord/Resources/*"
+        ]
+      }
+    },
+    {
+      "name": "aliyun",
+      "dependencies": {
+        "AliyunFaceSDK": [
+          ">= 1.5.2"
+        ]
+      },
+      "source_files": [
+        "byted_cert/Classes/Aliyun/**/*.{h,m,mm}"
+      ],
+      "private_header_files": [
+        "byted_cert/Classes/Aliyun/Private/**/*.{h,m,mm}"
+      ]
+    },
+    {
+      "name": "core",
+      "dependencies": {
+        "byted_cert/aliyun": [],
+        "byted_cert/lightcore": []
+      }
+    },
+    {
+      "name": "download",
+      "dependencies": {
+        "byted_cert/lightcore": [],
+        "IESGeckoKit": [
+          ">= 2.0.0"
+        ]
+      },
+      "source_files": [
+        "byted_cert/Classes/Download/**/*.{h,m}"
+      ],
+      "private_header_files": [
+        "byted_cert/Classes/Download/Private/**/*.{h,m,mm}"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "BD_CERT_ENABLE_DOWNLOAD=1"
+      }
+    },
+    {
+      "name": "offline",
+      "dependencies": {
+        "byted_cert/download": [],
+        "byted_cert/lightcore": []
+      },
+      "vendored_libraries": [
+        "byted_cert/Classes/Offline/Private/libs/face/*.a",
+        "byted_cert/Classes/Offline/Private/libs/faceverify/*.a",
+        "byted_cert/Classes/Offline/Private/libs/still_liveness/*.a"
+      ],
+      "source_files": [
+        "byted_cert/Classes/Offline/**/*.{h,m,mm}",
+        "byted_cert/Classes/Offline/Private/libs/face/inc/*.{h}",
+        "byted_cert/Classes/Offline/Private/libs/faceverify/inc/*.{h}",
+        "byted_cert/Classes/Offline/Private/libs/still_liveness/inc/*.{h}"
+      ],
+      "private_header_files": [
+        "byted_cert/Classes/Offline/Private/**/*.{h,m,mm}"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "BD_CERT_ENABLE_LOCAL_VERIFY=1"
+      }
+    },
+    {
+      "name": "reflection",
+      "dependencies": {
+        "byted_cert/download": []
+      },
+      "vendored_libraries": [
+        "byted_cert/Classes/Reflection/Private/libs/reflection_liveness/*.a"
+      ],
+      "source_files": [
+        "byted_cert/Classes/Reflection/**/*.{h,m,mm}",
+        "byted_cert/Classes/Reflection/Private/libs/reflection_liveness/inc/*.{h}"
+      ],
+      "private_header_files": [
+        "byted_cert/Classes/Reflection/Private/**/*.{h,m,mm}"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "BD_CERT_ENABLE_REFLECTION_LIVENESS=1"
+      }
+    },
+    {
+      "name": "jsbridge",
+      "dependencies": {
+        "byted_cert/bridgecore": [],
+        "TTBridgeUnify/TTBridgeAuthManager": [
+          ">=4.2.0"
+        ]
+      }
+    },
+    {
+      "name": "bridgecore",
+      "dependencies": {
+        "byted_cert/lightcore": [],
+        "TTBridgeUnify/TTBridge": [
+          ">=4.2.0"
+        ],
+        "TTBridgeUnify/WebView": [
+          ">=4.2.0"
+        ],
+        "TTBridgeUnify/TTBridgeAuthManager/Core": [
+          ">=4.2.0"
+        ],
+        "TTBridgeUnify/TTBridgeNameDefines": [
+          ">=4.2.0"
+        ],
+        "TTBridgeUnify/UnifiedWebView": [
+          ">=4.2.0"
+        ]
+      },
+      "source_files": [
+        "byted_cert/Classes/BridgeHandler/**/*.{h,m,mm}"
+      ],
+      "private_header_files": [
+        "byted_cert/Classes/BridgeHandler/Private/**/*.{h,m,mm}"
+      ],
+      "exclude_files": [
+        "byted_cert/Classes/BridgeHandler/BytedCertIESJSBridgeHandler.{h,m}"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "BD_CERT_USE_TT_JSB=1"
+      }
+    },
+    {
+      "name": "crypto",
+      "dependencies": {
+        "arkcrypto-minigame-iOS": []
+      },
+      "source_files": [
+        "byted_cert/Classes/Crypto/**/*.{h,m,mm}"
+      ],
+      "private_header_files": [
+        "byted_cert/Classes/Crypto/Private/**/*.{h,m,mm}"
+      ]
+    },
+    {
+      "name": "bpea",
+      "dependencies": {
+        "BDPolicyKit/PolicyEntry/Microphone": [],
+        "BDPolicyKit/PolicyEntry/Camera": [],
+        "BDPolicyKit/PolicyEntry/AppJump": [],
+        "BDPolicyKit/PolicyEntry/AlbumPrivacy": [],
+        "BDPolicyKit/Cert": []
+      },
+      "source_files": [
+        "byted_cert/Classes/BPEA/**/*.{h,m,mm}"
+      ],
+      "private_header_files": [
+        "byted_cert/Classes/BPEA/Private/**/*.{h,m,mm}"
+      ]
+    },
+    {
+      "name": "mask",
+      "dependencies": {
+        "smash/action_liveness": [
+          ">=9.0.2"
+        ]
+      },
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "BD_CERT_ENABLE_MASK_LIVENESS=1"
+      }
+    },
+    {
+      "name": "risk",
+      "dependencies": {
+        "smash/action_liveness": [
+          ">=9.0.5-risklable"
+        ]
+      },
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "BD_CERT_ENABLE_RISK_LABEL_LIVENESS=1"
+      }
+    },
+    {
+      "name": "nfc",
+      "vendored_libraries": "byted_cert/Classes/NFC/libs/*.a",
+      "dependencies": {
+        "byted_cert/lightcore": []
+      },
+      "source_files": [
+        "byted_cert/Classes/NFC/**/*.{h,m,mm}"
+      ],
+      "private_header_files": [
+        "byted_cert/Classes/NFC/Private/**/*.{h,m,mm}"
+      ]
+    },
+    {
+      "name": "xbridge",
+      "dependencies": {
+        "byted_cert/lightcore": [],
+        "BDXBridgeKit/Core": []
+      },
+      "source_files": [
+        "byted_cert/Classes/XBridge/**/*.{h,m,mm}"
+      ],
+      "private_header_files": [
+        "byted_cert/Classes/XBridge/Private/**/*.{h,m,mm}"
+      ]
+    },
+    {
+      "name": "metasec",
+      "dependencies": {
+        "byted_cert/lightcore": [],
+        "MetaSecML": [
+          ">=4.4.7.2-bugfix"
+        ]
+      },
+      "source_files": [
+        "byted_cert/Classes/MetaSec/**/*.{h,m,mm}"
+      ],
+      "private_header_files": [
+        "byted_cert/Classes/MetaSec/Private/**/*.{h,m,mm}"
+      ]
+    },
+    {
+      "name": "debug",
+      "dependencies": {
+        "byted_cert/lightcore": [],
+        "byted_cert/nfc": []
+      },
+      "source_files": [
+        "byted_cert/Classes/Debug/**/*.{h,m,mm}"
+      ],
+      "public_header_files": [
+        "byted_cert/Classes/Debug/**/*.{h,m,mm}"
+      ]
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "2540",
+    "app_id": "9999"
+  },
+  "repoId": "2540",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "byted_cert_POD_VERSION=@\\\"9999_4.10.2-alpha.36\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "byted_cert_POD_VERSION=@\\\"9999_4.10.2-alpha.36\\\""
+  }
+}

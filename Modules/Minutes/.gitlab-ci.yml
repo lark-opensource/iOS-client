@@ -1,0 +1,19 @@
+# This file is a template, and might need editing before it works on your project.
+# Lifted from: https://about.gitlab.com/2016/03/10/setting-up-gitlab-ci-for-ios-projects/
+# This file assumes an own GitLab CI runner, setup on an OS X system.
+stages:
+  - deploy
+
+publish_tag:
+  stage: deploy
+  script: 
+    - export LANG=en_US.UTF-8
+    - export FL_VERSION_BUMP_PODSPEC_VERSION_NUMBER=$TAG_NAME
+    - bundle install
+    - bundle exec EEScaffold module semver increase --type patch ALL_CHANGED
+    - bundle exec eesc module publish --no-lint-project-git --skip-build
+    - cd ~/lark/minutes/ios-client;bundle exec pod update LarkMinutes Minutes MinutesFoundation MinutesInterface;cd -;
+    - bundle exec fastlane ios package_build_lark project_path:~/lark/minutes/ios-client lark_config_name:inhouse
+  when: manual 
+  tags:
+    - minutes

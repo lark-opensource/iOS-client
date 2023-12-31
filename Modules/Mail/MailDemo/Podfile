@@ -1,0 +1,209 @@
+# coding: utf-8
+# @!domain [Pod::Podfile]
+# @!parse
+#  require 'cocoapods'
+
+require_relative '../../../bin/lib/lark-project/lib/lark/project/podfile_mixin'
+require_relative '../../../bin/lib/lark-project/lib/lark/project/assembly'
+require_relative '../../../if_pod'
+
+# 不进行 dependency 检查
+ENV['CHECK_ARCH_DEPS'] = "false"
+
+
+#ENV['TMP_PB_VERSION'] ||= "6.4.0-2a67d5d3c2ff.149419169-dev"
+
+hummer_tags = {}
+hummer_tags["COCOAPODS_LINK_POD_CACHE"] = 1 if Lark::Misc.true? ENV['COCOAPODS_LINK_POD_CACHE']
+hummer_tags["COCOAPODS_INTEGRATE_SPECIFIC_TARGETS"] = 1 if Lark::Misc.true? ENV['COCOAPODS_INTEGRATE_SPECIFIC_TARGETS']
+lark_template_common_setup(hummer_tags: hummer_tags)
+
+strict_lock_mode!
+
+disable_swiftlint! if respond_to?(:disable_swiftlint!)
+
+lark_use_common_binary_config(strategy: :all) do
+  # additional config
+  [
+    'LarkMail',
+    'MailSDK',
+  ].each { |v| source v } # dev pod 使用源码
+end
+
+class MailParam
+  def self.iOSClient; "../../.."; end
+  def self.LarkMessenger; "../../../Modules/Messenger"; end
+end
+
+$enbale_LarkContact = 0 ##默认为false，修改为1开启picker，供本地调试，请勿将1提交到master
+$enable_injection = 1 ## 默认开启injection，改为0关闭
+$enable_calendar = 0 # 默认为0，修改为1开启日历
+
+target 'MailDemo' do
+  lark_main_target_if_pods
+
+  #tools
+  pod 'MLeaksFinder'
+  pod 'LookinServer'
+  pod 'PassportDebug'
+
+  #需demo额外引入
+  pod 'LarkRustClientAssembly'
+  pod 'OPFoundation'
+  pod 'LarkCloudScheme'
+  pod 'LarkSetting'
+  pod 'LarkMessengerInterface'
+  pod 'SKDrive'
+  pod 'LarkBaseService'
+  pod 'LarkSDK'
+
+  def pod_messenger(name, path)
+    eepod name, inhibit_warnings: false
+  end
+
+  #Mail Source Code
+  if $enbale_LarkContact == 1
+    pod_messenger('LarkContact')
+    pod_messenger('LarkSDKInterface')
+    pod_messenger('LarkSDK')
+    pod_messenger('LarkMessengerInterface')
+
+    if_pod 'LarkMail', :subspecs => ['CCMMod', 'MessengerMod']
+  elsif $enable_calendar == 1
+    if_pod 'LarkMail', :subspecs => ['CCMMod', 'CalendarMod']
+    pod 'CalendarMod'
+  else
+    if_pod 'LarkMail', :subspecs => ['CCMMod']
+  end
+
+
+  pod 'LarkMail', :path => '../LarkMail', inhibit_warnings: false
+  pod 'MailSDK', :path => '../MailSDK', inhibit_warnings: false
+  #pod 'LarkMailInterface', :path => '../LarkMailInterface'
+#  pod 'RustPB', '5.28.0-926b26e4b4e1.105731094-dev'
+#  pod 'LarkSQLCipher', '5.28.0-926b26e4b4e1.105731094-dev'
+end
+
+# @param installer [Pod::Installer]
+pre_install do |installer|
+  lark_template_common_pre_install installer
+  installer.pod_targets.each do |pod_target|
+    if pod_target.name == 'MailSDK'
+      # 增加编译宏：MAILDEMO
+      attributes_hash = pod_target.root_spec.attributes_hash
+      pod_target_xcconfig = (attributes_hash['pod_target_xcconfig'] ||= {})
+      pod_target_xcconfig['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] += ' MAILDEMO'
+      if $enable_injection == 1
+        pod_target_xcconfig['OTHER_LDFLAGS'] += ' -Xlinker -interposable'
+      end
+    end
+  end
+end
+
+def replaceContent(path, text, replaceText)
+  if !File.file?  path
+    puts "umbrellaReplace failed, file not exist: #{path}"
+    return
+  end
+  lineArr = IO.readlines(path)
+  modifyArray = Array.new
+  lineArr.each { |line|
+    if line.index(text)
+      modifyArray.push(replaceText)
+    else
+      modifyArray.push(line)
+    end
+  }
+  safeWrite(path, modifyArray)
+end
+
+def umbrellaDelete(path, nameArr)
+  if !File.file? path
+    puts "umbrellaDelete failed, file not exist: #{path}"
+    return
+  end
+  lineArr = IO.readlines(path)
+  deleteArray = Array.new
+  exit = false
+  lineArr.each { |line|
+    nameArr.each { |name|
+      if line.index(name)
+        exit = true
+        deleteArray.push(line)
+      end
+    }
+  }
+  if !exit
+    return
+  end
+  lineArr = lineArr - deleteArray
+  safeWrite(path, lineArr)
+end
+
+def safeWrite(path, lineArr)
+  if FileTest.file?(path+".tmp")
+    return
+  end
+  File.delete(path)
+  aFile = File.new(path+".tmp", "a+")
+  lineArr.each { |subline|
+    aFile.syswrite(subline)
+  }
+  File.rename(path+".tmp", path)
+end
+
+# @param installer [Pod::Installer]
+post_install do |installer|
+  lark_template_common_post_install installer
+  installer.pod_targets.each do |pod_target|
+    attributes_hash = pod_target.root_spec.attributes_hash
+    pod_target_xcconfig = (attributes_hash['pod_target_xcconfig'] ||= {})
+    pod_target_xcconfig['SWIFT_COMPILATION_MODE'] ||= 'wholemodule'
+  end
+  pods_path = installer.sandbox.root.to_path
+  parent_path = File.expand_path("..", installer.sandbox.root)
+
+  umbrellaDelete(pods_path + '/LarkAccount/src/SuiteLogin/Classes/Base/V3APIHelper.swift', ['n_action_domain_EnvDomain(.passportAccounts)_was_not_found'])
+
+
+  # 自动收集 Assembly，生成/更新 BasicAssembly.swift
+  Assembly.rebuild installer
+
+
+  calendar_macro = ""
+  if $enable_calendar == 1
+    calendar_macro = "CalendarMod "
+  end
+  
+  injection_macro = "INJECTION "
+  if $enable_injection == 0
+    injection_macro = ""
+  else
+    injection_replace_text = '#import <YYText/YYTextSelectionView.h>
+'
+    replaceContent(pods_path + '/Target Support Files/MailSDK/ios-SystemFrameworks/YYText.framework/Headers/YYTextEffectWindow.h','#import <YYtext/YYTextSelectionView.h>',injection_replace_text)
+  end
+  if $enbale_LarkContact == 1
+    replaceConfig = '                SWIFT_ACTIVE_COMPILATION_CONDITIONS = "' + injection_macro + calendar_macro + 'DEBUG LARKCONTACT";
+';
+    replaceContent(parent_path + '/MailDemo.xcodeproj/project.pbxproj','SWIFT_ACTIVE_COMPILATION_CONDITIONS', replaceConfig)
+   else
+    replaceConfig = '                SWIFT_ACTIVE_COMPILATION_CONDITIONS = "' + injection_macro + calendar_macro + 'DEBUG";
+';
+    replaceContent(parent_path + '/MailDemo.xcodeproj/project.pbxproj','SWIFT_ACTIVE_COMPILATION_CONDITIONS', replaceConfig)
+  end
+  #将MailSDK编译模式改为 incremental
+  replaceConfig = '                SWIFT_COMPILATION_MODE = Incremental;
+';
+  replaceContent(pods_path + '/Target Support Files/MailSDK/MailSDK.debug.xcconfig', 'SWIFT_COMPILATION_MODE', replaceConfig)
+  #将LarkMail编译模式改为 incremental
+  replaceConfig = '                SWIFT_COMPILATION_MODE = Incremental;
+';
+  replaceContent(pods_path + '/Target Support Files/LarkMail/LarkMail.debug.xcconfig', 'SWIFT_COMPILATION_MODE', replaceConfig)
+
+end
+
+# Podfile结束eval前需要执行的一些代码，目前是引用if_pod的集成需要延后生效
+flush_defer_actions!
+
+# rubocop:enable all

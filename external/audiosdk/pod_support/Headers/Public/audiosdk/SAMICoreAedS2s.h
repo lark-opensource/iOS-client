@@ -1,0 +1,1 @@
+../../../../inc/SAMICoreAedS2s.h

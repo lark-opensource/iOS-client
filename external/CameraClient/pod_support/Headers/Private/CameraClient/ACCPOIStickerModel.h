@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/Edit/Model/Sticker/ACCPOIStickerModel.h

@@ -1,0 +1,134 @@
+eval_tonic 'pod_pre_install_0.0'
+
+# 生成依赖描述
+# run cmd
+#  rake podspec_patch[LarkLaunchGuide]
+# 指定ios-client目录详见 Rakefile
+debug_dependency 'AppContainer', :integration => :local
+debug_dependency 'BootManager', :integration => :local
+debug_dependency 'LarkSceneManager', :integration => :local
+debug_dependency 'LarkAccountInterface', '3.44.4', :inhibit_warnings => false
+debug_dependency 'LarkAccount', '3.44.5', subspecs: ['Core', 'LarkExtension', 'Authorization', 'Chatter', 'IDP', 'RustPlugin', 'NativePlugin', 'OneKeyLogin']
+#START_PODSPEC_GENERATE
+
+debug_dependency 'AFNetworking', '2.5.5', :source => 'git@code.byted.org:iOS_Library/publicthird_source_repo.git', :subspecs => ["NSURLConnection", "NSURLSession", "Reachability", "Security", "Serialization", "UIKit"]
+debug_dependency 'APIHandler', '0.1.13', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'Alamofire', '4.7.3', :source => 'git@code.byted.org:iOS_Library/publicthird_source_repo.git'
+debug_dependency 'AnimatedTabBar', '0.25.6', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'AppReciableSDK', '0.1.7', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'AsyncComponent', '0.1.16', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'AudioSessionScenario', '0.6.15', :source => 'git@code.byted.org:ee/pods_specs.git', :subspecs => ["Core", "Debug"]
+debug_dependency 'BDAlogProtocol', '1.2.2', :source => 'git@code.byted.org:iOS_Library/privatethird_source_repo.git'
+debug_dependency 'BDDataDecorator', '2.0.1.1-binary', :source => 'git@code.byted.org:iOS_Library/privatethird_binary_repo.git', :subspecs => ["Data", "AES"]
+debug_dependency 'Blockit', '0.5.5', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'CryptoSwift', '1.1.3', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'EEAtomic', '0.1.4', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'EEFlexiable', '0.1.9', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'EEImageMagick', '0.1.0', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'EEImageService', '0.23.9', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git', :subspecs => ["Core"]
+debug_dependency 'EEKeyValue', '0.2.4', :source => 'git@code.byted.org:ee/pods_specs.git', :subspecs => ["Core", "UserDefaults"]
+debug_dependency 'EENavigator', '0.10.32', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'EEPodInfoDebugger', '0.0.3', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'EETroubleKiller', '1.2.6', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'EditTextView', '0.20.3', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'FLEX', '3.1.2', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'FMDB', '2.7.7', :source => 'git@code.byted.org:iOS_Library/privatethird_source_repo.git', :subspecs => ["standard"]
+debug_dependency 'HTTProtocol', '0.1.6', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'Heimdallr', '0.7.23-rc.6', :source => 'git@code.byted.org:iOS_Library/privatethird_source_repo.git', :subspecs => ["Core", "CrashDetector", "Monitors", "TTMonitor", "DeviceInfo", "HMDOOMCrash", "HMDAlogProtocol", "HMDConfig", "HMDSession", "HMDStore", "Network", "Upload", "Utility", "Mach", "CrashCapture", "Log", "Runloop", "HMDStart", "OpenTracing", "HMDWatchDog", "UITracker", "UserException", "ALog", "BootingProtect", "HMDLaunchTracing", "HMDANR", "HMDOOM", "HMDCoreDump", "HMDDomestic", "MemoryGraph", "Protect", "UIFrozen", "WatchdogProtect", "Zombie"]
+debug_dependency 'Homeric', '0.2.652', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'KeychainAccess', '3.1.2', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'Kingfisher', '5.3.1-lark.21', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'KingfisherWebP', '0.6.0-lark.0', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LKCommonsLogging', '0.4.10', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LKCommonsTracker', '0.4.10', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LKLaunchGuide', '3.39.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LKMetric', '0.20.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LKTracing', '0.19.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkActionSheet', '0.22.2', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkActivityIndicatorView', '1.18.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkAlertController', '0.11.2', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkAppConfig', '3.41.4', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkAppLinkSDK', '3.44.0.2', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkAppResources', '3.38.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkAssetsBrowser', '0.3.7', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkAudioKit', '0.22.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkAvatar', '0.22.5', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkBadge', '0.20.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkButton', '0.1.7', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkCache', '1.13.1', :source => 'git@code.byted.org:ee/pods_specs.git', :subspecs => ["Core", "CryptoRustImpl"]
+debug_dependency 'LarkCamera', '0.14.2', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkColor', '0.11.0', :source => 'git@code.byted.org:ee/pods_specs.git', :subspecs => ["Core"]
+debug_dependency 'LarkCombine', '0.0.7', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkCompatible', '0.1.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkContainer', '1.4.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkDebug', '3.41.4', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git', :subspecs => ["core", "Flex"]
+debug_dependency 'LarkDebugExtensionPoint', '3.38.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkEmotion', '0.22.4', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkEnv', '3.41.4', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkExtensions', '0.22.3', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkFeatureGating', '3.43.6', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkFeatureSwitch', '3.40.4', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkFileKit', '0.6.2', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkFoundation', '1.7.0', :source => 'git@code.byted.org:ee/pods_specs.git', :subspecs => ["Date", "Encryption", "Error", "Extensions", "File", "FuncContext", "JumpApplication", "ProepertyWrapper", "Resource", "URL", "Utils"]
+debug_dependency 'LarkGuide', '3.12.5', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkGuideUI', '0.14.2', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkImageEditor', '0.3.2', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkInteraction', '0.18.5', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkInterface', '3.43.0', :subspecs => ["Category", "UnCategory", "Category/Navigation", "Category/Track"]
+debug_dependency 'LarkKAFeatureSwitch', '3.41.6', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkKeyCommandKit', '0.21.2', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkKeyboardKit', '0.8.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkLeanMode', '0.21.2', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkLocalizations', '1.15.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkMessageBase', '3.42.6', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkMessengerInterface', '3.43.0.89', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkModel', '3.42.8', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkNavigation', '3.43.11', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkOPInterface', '3.44.0.2', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git', :subspecs => ["OPMonitor", "OPInterfaceSwiftHeader", "OPApp", "OPLog", "OPTrace", "OPWeb", "Utils"]
+debug_dependency 'LarkPerf', '3.41.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkReleaseConfig', '0.12.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkRustClient', '3.42.4', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git', :subspecs => ["Interface", "Client"]
+debug_dependency 'LarkSDKInterface', '3.43.0.91', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkSQLCipher', '1.0.0-alpha.6894-alpha', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkScene', '0.22.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkSegmentedView', '5.12.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkSnsShare', '2.8.4', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git', :subspecs => ["Interface", "Base", "ExpansionAbility"], :feature => 'InternalSnsShareDependency'
+debug_dependency 'LarkSplitViewController', '0.15.5', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkTab', '0.1.2', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkTag', '0.24.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkTimeFormatUtils', '1.1.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkTraitCollection', '0.3.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkUIKit', '1.34.16', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git', :subspecs => ["Base", "Common", "LoadPlaceholder", "NaviProtocol", "BaseComponent", "Checkbox", "ConfirmContainer", "FloatWindow", "LanguageSelector", "MobileCodeSelect", "NaviBar", "OtherDependency", "Others", "Resources", "Switch", "TextField", "Utils"]
+debug_dependency 'LarkWebViewContainer', '0.1.26', :source => 'git@code.byted.org:ee/pods_specs.git', :subspecs => ["APIHandler", "Base", "Bridge", "Container", "Quality"]
+debug_dependency 'LarkWebViewController', '3.43.0-alpha.10', :source => 'git@code.byted.org:ee/pods_specs.git', :subspecs => ["Core", "AppLink", "NavigationIntegration", "Share", "WebDefaultExtension"]
+debug_dependency 'LarkZoomable', '0.1.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'Logger', '1.4.12', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'OpenCombine', '10.11.4', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'OpenCombineDispatch', '10.11.3', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'OpenCombineFoundation', '10.11.3', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'ReachabilitySwift', '4.3.0', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'RichLabel', '0.22.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'RoundedHUD', '1.21.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'RunloopTools', '0.1.0', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'RustPB', '3.42.0-alpha.103-alpha', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'RxCocoa', '5.1.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'RxRelay', '5.1.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'RxSwift', '5.1.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'ServerPB', '1.0.507', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'SnapKit', '5.0.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'SuiteAppConfig', '0.13.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'SuiteCodable', '0.1.4', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'SwiftProtobuf', '1.7.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'SwiftyJSON', '4.1.0', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'Swinject', '10.13.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'TTMacroManager', '1.0.3', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'TTReachability', '1.8.2', :source => 'git@code.byted.org:iOS_Library/privatethird_source_repo.git'
+debug_dependency 'ThreadSafeDataStructure', '0.18.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'YYCache', '4.11.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'Yoga', '1.9.0', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'ZeroTrust', '0.4.2', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git', :subspecs => ["Base", "Common"]
+debug_dependency 'libwebp', '0.6.1.1-binary', :source => 'git@code.byted.org:iOS_Library/publicthird_binary_repo.git', :subspecs => ["core", "dec", "demux", "dsp", "enc", "mux", "utils", "webp"]
+debug_dependency 'lottie-ios', '2.6.5', :source => 'git@code.byted.org:iOS_Library/privatethird_source_repo.git'
+debug_dependency 'oc-opus-codec', '0.2.7', :source => 'git@code.byted.org:ee/pods_specs.git'
+
+#END_PODSPEC_GENERATE

@@ -1,0 +1,1 @@
+../../../../../../Lynx/tasm/generator/template_scope.h

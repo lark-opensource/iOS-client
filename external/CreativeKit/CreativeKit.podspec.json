@@ -1,0 +1,186 @@
+{
+  "name": "CreativeKit",
+  "version": "19.9.5-alpha.10-larktest.1.binary",
+  "summary": "base",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://code.byted.org/ugc/CreativeKit",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "raomengyun": "raomengyun@bytedance.com"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/aweme-rock/rock_binary/privatethird_binary_repo/CreativeKit/19.9.5-alpha.10-larktest.1.binary/1649731563/CreativeKit.tar.xz"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "default_subspecs": [
+    "MobileInfra",
+    "CameraArch",
+    "Performance"
+  ],
+  "preserve_paths": [
+    "rock_document/**/*.{h,m,mm,cpp,hpp,swift}",
+    "rock_document/rock-document-files.txt"
+  ],
+  "source_code": {
+    "git": "git@code.byted.org:ugc/CreativeKit.git",
+    "commit": "6197adcc84907abbabb69cc4b53bc8f35f496499"
+  },
+  "binary_type": "rock",
+  "package_env": {
+    "id": null,
+    "xcode": "Xcode 13.0\nBuild version 13A233\n"
+  },
+  "subspecs": [
+    {
+      "name": "MobileInfra",
+      "source_files": [
+        "CreativeKit/MobileInfra/**/*.{h,m,mm,c}"
+      ],
+      "dependencies": {
+        "libextobjc": [
+
+        ],
+        "IESInject/Core": [
+
+        ]
+      },
+      "vendored_libraries": [
+        "CreativeKit/MobileInfra/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "CreativeKit/MobileInfra/**/*.o",
+          "libCreativeKit-da64985.a"
+        ]
+      }
+    },
+    {
+      "name": "CameraArch",
+      "dependencies": {
+        "IESInject/Core": [
+
+        ],
+        "IESLiveResourcesButler": [
+
+        ],
+        "CreativeKit/MobileInfra": [
+
+        ]
+      },
+      "source_files": [
+        "CreativeKit/CameraArch/**/*.{h,m,mm,c}"
+      ],
+      "vendored_libraries": [
+        "CreativeKit/CameraArch/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "CreativeKit/CameraArch/**/*.o",
+          "libCreativeKit-ffa8c15.a"
+        ]
+      }
+    },
+    {
+      "name": "Debug",
+      "source_files": [
+        "CreativeKit/Debug/**/*.{h,m,mm,c}"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "$(inherited) ACC_DEBUG_MODE=1"
+      },
+      "vendored_libraries": [
+        "CreativeKit/Debug/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "CreativeKit/Debug/**/*.o",
+          "libCreativeKit-13b38ab.a"
+        ]
+      }
+    },
+    {
+      "name": "Performance",
+      "source_files": [
+        "CreativeKit/Performance/**/*.{h,m,mm,c}"
+      ],
+      "dependencies": {
+        "CreativeKit/CameraArch": [
+
+        ]
+      },
+      "vendored_libraries": [
+        "CreativeKit/Performance/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "CreativeKit/Performance/**/*.o",
+          "libCreativeKit-65bd617.a"
+        ]
+      }
+    },
+    {
+      "name": "Tests",
+      "source_files": [
+        "CreativeKit/Tests/src/**/*.{h,m,mm}"
+      ],
+      "dependencies": {
+        "Baymax": [
+
+        ],
+        "OCMock": [
+
+        ]
+      },
+      "xcconfig": {
+        "HEADER_SEARCH_PATHS": "\"$(PODS_ROOT)/Headers/Private\"",
+        "SYSTEM_FRAMEWORK_SEARCH_PATHS": "$(inherited) \"$(PLATFORM_DIR)/Developer/Library/PrivateFrameworks\" \"$(PLATFORM_DIR)/Developer/Library/Frameworks\""
+      },
+      "vendored_libraries": [
+        "CreativeKit/Tests/src/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "CreativeKit/Tests/src/**/*.o",
+          "libCreativeKit-c5ae7d3.a"
+        ]
+      }
+    },
+    {
+      "name": "_Dummy",
+      "source_files": [
+
+      ],
+      "vendored_libraries": [
+
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "libCreativeKit-f33a1a9.a"
+        ]
+      }
+    }
+  ]
+}

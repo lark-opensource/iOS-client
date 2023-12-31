@@ -1,0 +1,37 @@
+{
+  "name": "nfdsdk",
+  "version": "2.2.0-lark.nolto",
+  "summary": "近场发现SDK",
+  "description": "飞书会议体系中近场发现的SDK",
+  "homepage": "https://code.byted.org/vc/nfdsdk",
+  "authors": {
+    "lvdaqian": "lvdaqian@bytedance.com",
+    "lujunhui": "lujunhui.2nd@bytedance.com",
+    "zhanghaifeng": "zhanghaifeng.frank@bytedance.com"
+  },
+  "platforms": {
+    "ios": "11.0"
+  },
+  "public_header_files": [
+    "include/NFDKit*.h",
+    "include/nfd_enum_code_gen.h"
+  ],
+  "source_files": [
+    "Classes/**/*.{h,hpp,c,cpp,m,mm}",
+    "include/*.{h,hpp}"
+  ],
+  "license": "MIT",
+  "source": {
+    "http": "https://voffline.byted.org/download/tos/schedule/iOSPackageBackUp/271200566/nfdsdk2.2.0-lark.nolto.tgz"
+  },
+  "vendored_libraries": "lib/libnfdsdk.a",
+  "libraries": "c++",
+  "frameworks": [
+    "AudioToolBox",
+    "CoreBluetooth",
+    "Foundation"
+  ],
+  "dependencies": {
+    "LarkSensitivityControl": []
+  }
+}

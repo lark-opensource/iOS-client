@@ -1,0 +1,1 @@
+../../../../XService/BDXServiceCenter/Classes/Registry/BDXServiceManager+Register.h

@@ -1,0 +1,1 @@
+../../../../NLEEditor/Classes/EditorArch/Utils/Manager/DVEAlbumResourcePicker.h

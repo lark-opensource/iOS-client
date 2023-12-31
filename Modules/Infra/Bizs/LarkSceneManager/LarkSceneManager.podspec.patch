@@ -1,0 +1,11 @@
+# 生成依赖描述
+# run cmd
+#  rake podspec_patch[LarkTour]
+# 指定ios-client目录详见 Rakefile
+
+debug_dependency 'Homeric', '0.2.724'
+debug_dependency 'SnapKit', '5.0.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkKeyCommandKit', subspecs: ['Core', 'Extensions'], path: '../../Libs/LarkKeyCommandKit'
+debug_dependency 'LarkSceneManager', subspecs: ['Core', 'Extensions'], path: '../../Bizs/LarkSceneManager'
+
+eval_tonic 'pod_pre_install_0.1'

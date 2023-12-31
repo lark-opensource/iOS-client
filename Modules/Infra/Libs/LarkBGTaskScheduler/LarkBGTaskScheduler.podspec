@@ -1,0 +1,49 @@
+# frozen_string_literal: true
+
+#
+# Be sure to run `pod lib lint LarkBGTaskScheduler.podspec' to ensure this is a
+# valid spec before submitting.
+#
+# Any lines starting with a # are optional, but their use is encouraged
+# To learn more about a Podspec see http://guides.cocoapods.org/syntax/podspec.html
+# To learn more about  EEScaffold see http://eescaffold.ee-dns.top
+#
+
+Pod::Spec.new do |s|
+  # 修改此文件前请先浏览 *Podspec规范* https://bytedance.feishu.cn/space/doc/doccnZwORNUpwphkrhiTgv#
+  s.name             = 'LarkBGTaskScheduler'
+  s.version          = "1.18.0"
+  s.summary          = 'LarkBGTaskScheduler'
+  s.description      = 'LarkBGTaskScheduler'
+  s.homepage         = 'http://LarkBGTaskScheduler'
+
+  # 界面相关的Pod必填。设置为展示该界面功能的图片地址
+  # s.screenshots     = "www.example.com/screenshots_1", "www.example.com/screenshots_2"
+
+  # 责任人，必填。必要时要及时更新该信息
+  s.authors = { "李勇" => "liyong.520@bytedance.com" }
+
+  s.ios.deployment_target = '11.0'
+  s.swift_version = '5.0'
+
+  # s.public_header_files = 'Pod/Classes/**/*.h'
+  s.source_files = 'src/**/*.{swift}'
+
+  # 以下2个字段不要修改。EEScaffold会自动修改source字段为生成的zip包地址。
+  s.license          = 'MIT'
+  s.source           = { git: 'generated_by_eesc.zip', tag: s.version.to_s }
+
+  # s.frameworks = 'UIKit', 'MapKit'
+
+  # s.dependency 'AFNetworking', '~> 2.3'
+  s.dependency 'ThreadSafeDataStructure'
+  s.dependency 'AppContainer'
+  s.dependency 'LKCommonsLogging'
+  s.dependency 'LKCommonsTracker'
+  s.dependency 'Homeric'
+  s.dependency 'LarkAssembler/LarkAccountInterfaceBuilder'
+  s.dependency 'LarkAssembler/AppContainerBuilder'
+  s.dependency 'LarkAssembler/BootManagerBuilder'
+
+  s.dependency 'LarkKAFeatureSwitch'    
+end

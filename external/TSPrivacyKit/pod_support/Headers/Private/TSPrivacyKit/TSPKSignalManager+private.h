@@ -1,0 +1,1 @@
+../../../../TSPrivacyKit/Classes/Core/Signal/TSPKSignalManager+private.h

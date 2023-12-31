@@ -1,0 +1,196 @@
+{
+  "default_subspecs": [
+    "Core"
+  ],
+  "platforms": {
+    "ios": "8.0"
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "VCPreloadStrategy_POD_VERSION=@\\\"9999_1.108.2-lark\\\""
+  },
+  "pod_target_xcconfig": {
+    "GCC_ENABLE_CPP_EXCEPTIONS": "NO",
+    "GCC_PREPROCESSOR_DEFINITIONS[config=Debug]": "$(inherited) LOG_OUTPUT",
+    "CLANG_CXX_LANGUAGE_STANDARD": "c++17",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "CLANG_ENABLE_CPP_STATIC_DESTRUCTORS": "NO",
+    "GCC_PREPROCESSOR_DEFINITIONS": "$(inherited) COCOAPODS=1 __IOS__ VCPreloadStrategy_POD_VERSION=@\\\"9999_1.108.2-lark\\\""
+  },
+  "_bytebus_platform": {
+    "repo_id": "7832",
+    "app_id": "9999"
+  },
+  "libraries": "stdc++",
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/9999/VCPreloadStrategy/1.108.2-lark.1.binary/VCPreloadStrategy.framework.tar.xz"
+  },
+  "version": "1.108.2-lark.1.binary",
+  "homepage": "https://code.byted.org/ttmp/VCPreloadStrategy",
+  "repoId": "7832",
+  "subspecs": [
+    {
+      "dependencies": {
+        "VCPreloadStrategy/Bridge": [],
+        "VCPreloadStrategy/Base": [],
+        "VCPreloadStrategy/Center": [],
+        "VCPreloadStrategy/Settings": [],
+        "VCPreloadStrategy/SmartTask": [],
+        "VCPreloadStrategy/Extern": [],
+        "VCPreloadStrategy/PlayRange": []
+      },
+      "name": "Core",
+      "preserve_paths": [
+        "**/*.bwp"
+      ]
+    },
+    {
+      "public_header_files": [
+        "ios/bridge/VCVodStrategyManager.h"
+      ],
+      "private_header_files": [
+        "ios/bridge/VCUtilBridge.h",
+        "ios/bridge/VCVodStrategyBridge.h"
+      ],
+      "name": "Bridge",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Bridge_*awesome_*.a"
+      },
+      "source_files": [
+        "ios/bridge/*.{h,m,mm,cpp,c}"
+      ]
+    },
+    {
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "private_header_files": [
+        "extern/player/*.{h}",
+        "extern/json/**/*.{h}"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Extern_*awesome_*.a"
+      },
+      "name": "Extern",
+      "source_files": [
+        "extern/player/*.{h}",
+        "extern/json/**/*.{h}"
+      ]
+    },
+    {
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "private_header_files": [
+        "sources/**/*.h"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Base_*awesome_*.a"
+      },
+      "name": "Base",
+      "source_files": [
+        "sources/base/*.{h,m,mm,cpp,c}",
+        "sources/base/apple/*.{h,m,mm,cpp,c}",
+        "sources/imodule/*.{h,m,mm,cpp,c}",
+        "sources/interface/*.{h,m,mm,cpp,c}"
+      ]
+    },
+    {
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "private_header_files": [
+        "sources/center/*.h"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Center_*awesome_*.a"
+      },
+      "name": "Center",
+      "source_files": [
+        "sources/center/**/*.{h,cpp,c}"
+      ]
+    },
+    {
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "private_header_files": [
+        "sources/settings/*.h"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Settings_*awesome_*.a"
+      },
+      "name": "Settings",
+      "source_files": [
+        "sources/settings/**/*.{h,m,mm,cpp,c}"
+      ]
+    },
+    {
+      "private_header_files": [
+        "sources/play/vc_play_range*.h"
+      ],
+      "name": "PlayRange",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_PlayRange_*awesome_*.a"
+      },
+      "source_files": [
+        "sources/play/vc_play_range*.{h,cpp,c}"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "VCMODULE_PLAY_RANGE"
+      }
+    },
+    {
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "private_header_files": [
+        "sources/smartTask/*.h"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_SmartTask_*awesome_*.a"
+      },
+      "name": "SmartTask",
+      "source_files": [
+        "sources/smartTask/**/*.{h,cpp,c}"
+      ]
+    }
+  ],
+  "prepare_command": "curl https://ios.bytedance.net/wlapi/tosDownload/iosbinary/platform/master/awesomecommand_xz.sh | bash ;",
+  "description": "framework_description",
+  "ios": {
+    "frameworks": [
+      "UIKit",
+      "Foundation",
+      "JavaScriptCore"
+    ]
+  },
+  "dependencies": {
+    "MDLMediaDataLoader": [
+      ">=1.1.95.0"
+    ]
+  },
+  "authors": {
+    "huangqing.yangtze": "huangqing.yangtze@bytedance.com"
+  },
+  "source_code": {
+    "commit": "bfb10e4707632e69b98d0c807f663a685fe447ea",
+    "git": "git@code.byted.org:ttmp/VCPreloadStrategy.git"
+  },
+  "build_type": "system",
+  "name": "VCPreloadStrategy",
+  "license": {
+    "type": "MIT"
+  },
+  "build_file_count": 72,
+  "preserve_paths": [
+    "**/*.bwp"
+  ],
+  "summary": "framework_summary"
+}

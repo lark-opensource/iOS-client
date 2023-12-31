@@ -1,0 +1,18 @@
+#!/bin/sh
+command -v git-lfs >/dev/null 2>&1 || { echo >&2 "\nThis repository is configured for Git LFS but 'git-lfs' was not found on your path. If you no longer wish to use Git LFS, remove this hook by deleting '.git/hooks/pre-push'.\n"; exit 2; }
+git lfs pre-push "$@"
+
+# 检查是否有
+while read local_ref local_sha remote_ref remote_sha; do
+    # echo "======"
+    # echo "local_ref: $local_ref"
+    # echo "local_sha: $local_sha"
+    # echo "remote_ref: $remote_ref"
+    # echo "remote_sha: $remote_sha"
+
+    # upper remote_ref shouldn't push
+    if [[ "$remote_ref" =~ [A-Z].*/ ]]; then
+        echo -e "\033[34m[$remote_ref]\033[0m 包含大写字母目录，请全部使用小写字母, 混用大小写会导致git损坏"
+        exit 1
+    fi
+done

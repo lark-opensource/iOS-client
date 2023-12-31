@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/Common/Interface/CommonProtocol/Record/ACCRecorderBackgroundManagerProtocol.h

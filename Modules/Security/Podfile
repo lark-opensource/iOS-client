@@ -1,0 +1,114 @@
+# rubocop:disable all
+# @!domain [Pod::Podfile]
+
+# @!parse
+#  require 'cocoapods'
+
+require_relative '../../if_pod'
+require_relative '../../bin/lib/lark-project/lib/lark/project/podfile_mixin'
+require_relative '../../bin/lib/lark-project/lib/lark/project/podfile_unit_test_mixin'
+require_relative '../../bin/lib/lark-project/lib/lark/project/assembly'
+require_relative '../../bin/lib/lark-project/lib/lark/project/lark_assert'
+plugin 'cocoapods-monitor'
+
+# 下面这行为M1 arm64的配置，取消注释后工程将会以M1 原生的编译, 详细见https://bytedance.feishu.cn/wiki/wikcnwks71unvjEFltDHpinn9Yc
+lark_build_for_all_arch!
+
+# 使git hook生效
+`git config core.hooksPath hooks`
+# 删除本地残留的 .eescaffold 避免影响 eesc 工作
+`eesc_dir=$(git rev-parse --show-toplevel)/Modules/Security/.eescaffold; ([[ -e $eesc_dir ]] && rm -rf $eesc_dir)`
+
+# 不进行 dependency 检查
+ENV['CHECK_ARCH_DEPS'] = "false"
+# 不需要自动登录
+ENV['bytest_autoLogin'] = 'false'
+
+hummer_tags = {
+  use_bd_build_infra: true
+}
+hummer_tags["COCOAPODS_LINK_POD_CACHE"] = true if Lark::Misc.true? ENV['COCOAPODS_LINK_POD_CACHE']
+hummer_tags["COCOAPODS_INTEGRATE_SPECIFIC_TARGETS"] = true if Lark::Misc.true? ENV['COCOAPODS_INTEGRATE_SPECIFIC_TARGETS']
+hummer_tags["CODE_BYTED_ORG_PRIVATE_TOKEN"] = true if v = ENV['CODE_BYTED_ORG_PRIVATE_TOKEN'] and !v.empty?
+lark_template_common_setup(hummer_tags: hummer_tags)
+# Framework search path 使用短链接
+use_short_link!(except: ['LarkExpressionEngine']) # 解决 OCMock 头文件索引问题
+
+strict_lock_mode!
+disable_swiftlint! if respond_to?(:disable_swiftlint!)
+
+dev_pods = %w[
+  LarkSecurityCompliance
+  LarkSecurityComplianceInfra
+  SecurityComplianceDebug
+  LarkEMM
+  LarkSecurityAudit
+  LarkSecurityComplianceInterface
+  LarkSnCService
+  LarkSensitivityControl
+  LarkExpressionEngine
+  LarkPolicyEngine
+  LarkPrivacyMonitor
+  SCDemoImp
+  ByteWebImage
+]
+
+# 无需使用引号、逗号
+dev_pods_unit_test = %w[
+  LarkExpressionEngine
+  LarkPolicyEngine
+  LarkSensitivityControl
+  LarkSecurityAudit
+  LarkSecurityCompliance
+]
+
+lark_use_common_binary_config(strategy: :all) do
+  # additional config
+  source_pods = dev_pods
+  source_pods.each { |v| source v } # 使用源码
+end
+
+target 'SCDemo' do
+  # Comment the next line if you don't want to use dynamic frameworks
+
+  lark_main_target_if_pods
+
+  # 壳工程依赖
+  pod 'LarkRustClientAssembly'
+  pod 'LarkAppConfig'
+  pod 'SwiftLint', :configurations => ['Debug']
+  pod 'FLEX', :configurations => ['Debug']
+  pod 'LookinServer', :configurations => ['Debug']
+  pod 'PassportDebug'
+  pod 'LarkBaseService'
+  
+  #安全依赖
+  pod 'OPFoundation'
+  
+  dev_pods_unit_test.each { |v| eepod v, :testspecs => ['Tests'], inhibit_warnings: false }
+  
+  pod 'SCDemoImp', :path => './SCDemoImp'
+end
+
+# @param installer [Pod::Installer]
+pre_install do |installer|
+  lark_template_common_pre_install installer
+  lark_unit_test_common_pre_install installer
+end
+
+# @param installer [Pod::Installer]
+post_install do |installer|
+  lark_template_common_post_install installer
+
+  # 自动收集 Assembly，生成/更新 BasicAssembly.swift
+  Assembly.rebuild installer
+end
+
+post_integrate do |installer|
+  lark_unit_test_common_post_integrate(installer, dev_pods_unit_test)
+end
+
+# Podfile结束eval前需要执行的一些代码，目前是引用if_pod的集成需要延后生效
+flush_defer_actions!
+
+# rubocop:enable all

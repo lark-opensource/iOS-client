@@ -1,0 +1,1 @@
+../../../../Beauty/Protocol/ACCBeautyItemCellProtocol.h

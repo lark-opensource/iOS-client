@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/CrashDetector/ToD/Private/HMDCrashURLHostProvider.h

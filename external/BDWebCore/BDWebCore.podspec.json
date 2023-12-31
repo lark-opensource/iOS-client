@@ -1,0 +1,65 @@
+{
+  "name": "BDWebCore",
+  "version": "2.1.2",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/iOS_Library/BDWebCore",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "li keliang": "likeliang@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:iOS_Library/BDWebCore.git",
+    "commit": "5d2f77963fac"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "frameworks": [
+    "UIKit",
+    "WebKit"
+  ],
+  "default_subspecs": "Core",
+  "subspecs": [
+    {
+      "name": "Core",
+      "public_header_files": "BDWebCore/Core/*.h",
+      "source_files": "BDWebCore/Core/*.{h,m}",
+      "dependencies": {
+        "BDMonitorProtocol": []
+      }
+    },
+    {
+      "name": "JSBridge",
+      "source_files": "BDWebCore/JSBridge/*.{h,m}",
+      "dependencies": {
+        "BDWebCore/Core": [],
+        "ByteDanceKit": [],
+        "Gaia": []
+      }
+    },
+    {
+      "name": "Legacy",
+      "source_files": "BDWebCore/Legacy/*.{h,m}",
+      "public_header_files": "BDWebCore/Legacy/*.h",
+      "dependencies": {
+        "BDWebCore/Core": []
+      }
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "4457",
+    "app_id": "9999"
+  },
+  "repoId": "4457",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDWebCore_POD_VERSION=@\\\"9999_2.1.2\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDWebCore_POD_VERSION=@\\\"9999_2.1.2\\\""
+  }
+}

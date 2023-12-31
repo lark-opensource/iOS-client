@@ -1,0 +1,27 @@
+platform :ios, '11.0'
+#use_frameworks!
+install! 'cocoapods', :disable_input_output_paths => true
+
+# 优先查找组件平台的source
+source 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+
+# make ours main source first
+source 'git@code.byted.org:ee/pods_specs.git'
+
+# old bd extension sources
+# source 'git@code.byted.org:iOS_Library/privatethird_binary_repo.git'
+# source 'git@code.byted.org:iOS_Library/privatethird_source_repo.git'
+# source 'git@code.byted.org:iOS_Library/toutiao_source_repo.git'
+# source 'git@code.byted.org:TTVideo/ttvideo-pods.git'
+# source 'git@code.byted.org:iOS_Library/publicthird_binary_repo.git'
+# source 'git@code.byted.org:iOS_Library/publicthird_source_repo.git'
+# source 'git@code.byted.org:ugc/UGCSpecs.git'
+# source 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+
+target 'LibArchiveExample' do
+  pod 'SnapKit'
+  pod 'LibArchiveKit', :path => '../'
+end
+
+
+

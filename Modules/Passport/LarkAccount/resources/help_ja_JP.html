@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+    <meta name="description" content="ネットワークに接続できません">
+    <title>ネットワークに接続できません</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: "PingFang SC", "Microsoft YaHei", "微软雅黑", "Tahoma", sans-serif;
+            background-color: #fff;
+        }
+        p, ul, ol {
+            font-size: 14px;
+            line-height: 22px;
+            word-break: break-word;
+        }
+        a {
+            text-decoration: none;
+        }
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 60px 30px;
+            box-sizing: content-box;
+        }
+        @media screen and (max-width: 750px) {
+            .container {
+                padding: 10px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+<main class="container">
+    <h1>ネットワークに接続できません</h1>
+    <p>ネットワークに接続できない場合は、下記の方法をお試しください。</p>
+    <h3 class="template">1. ご利用のシステムはiOS 10またはiOS 10以上、そしてFeishuがWLANとモバイルデータ通信の使用を許可されていない場合：</h3>
+    <p class="template"><strong>「設定」</strong>-<strong>「モバイル通信」</strong>-<strong>「WLANとモバイル通信を使用するAPP」</strong>に進み、Feishuにデータの使用を許可してください。
+    </p>
+    <p class="template"><strong>「WLANとモバイル通信を使用するAPP」</strong>にてFeishuが見つからない場合は、他のアプリのデータ使用権限をオン/オフにして、Feishuを見つけて、データの使用を許可してください。
+    </p>
+    <h3>2. ご利用のiPhoneがWLANまたはモバイル通信に接続されていない場合：</h3>
+    <p>
+        ネットワークに接続するには、iPhoneの<strong>「設定」</strong>-<strong>「WLAN」</strong>に進み、利用可能なWi-Fiネットワークを選択してください。
+        またはiPhoneの<strong>「設定」</strong>-<strong>「モバイル通信」</strong>に進み、<strong>モバイルデータ通信</strong>をオンにしてください。
+    </p>
+    <h3>3. WLANに接続済みの場合：</h3>
+    <p>
+        接続中のWi-Fiネットワークがインターネットに接続されているかどうか、またはネットワークがiPhoneをインターネットへの接続を許可されたかどうかを確認してください。
+    </p>
+    <script>
+        function getQueryVariable(variable) {
+            var query = window.location.search.substring(1);
+            var vars = query.split("&");
+            for (var i=0;i<vars.length;i++) {
+                var pair = vars[i].split("=");
+                if(pair[0] === variable){return decodeURIComponent(pair[1]);}
+            }
+            return "";
+        }
+        var es = document.getElementsByClassName("template");
+        var appName = getQueryVariable("app_name");
+        if (appName.length > 0) {
+            for (var i = 0; i < es.length; i++) {
+                var e = es[i];
+                e.innerHTML = e.innerHTML.replace(/Feishu/g, appName);
+            }
+        }
+    </script>
+</main>
+</body></html>

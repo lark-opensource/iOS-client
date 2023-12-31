@@ -1,0 +1,1 @@
+../../../../CameraClient/MobileInfra/Foundation/Animation/AWEBigToSmallModalDelegate.h

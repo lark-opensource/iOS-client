@@ -1,0 +1,1 @@
+../../../../../../../libEffectSDK/inc/Bach/Algorithm/VideoMoment/BachVideoMomentBuffer.h

@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/Record/Manager/AWEStickerDataManager.h

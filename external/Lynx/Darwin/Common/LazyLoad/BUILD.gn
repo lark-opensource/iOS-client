@@ -1,0 +1,29 @@
+# Copyright 2022 The Lynx Authors. All rights reserved.
+
+import("//Lynx/Lynx.gni")
+
+assert(is_ios || is_mac)
+
+if (target_cpu == "arm" || target_cpu == "arm64") {
+  import("//build/config/arm.gni")
+}
+
+lazy_load_shared_sources = [
+  "LynxLazyLoad.h",
+  "LynxLazyRegister.h",
+  "LynxLazyRegister.m",
+]
+
+source_set("lazy_load") {
+  sources = lazy_load_shared_sources
+
+  defines = [ "LYNX_LAZY_LOAD = 1" ]
+
+  configs += [ "//Lynx:config" ]
+}
+
+gen_subspec_file("lazy_load_podspec") {
+  parent_path = "subspecs"
+  podspec_name = "LazyLoad"
+  sources = lazy_load_shared_sources
+}

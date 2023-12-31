@@ -1,0 +1,1 @@
+../../../../CreativeAlbumKit/Classes/Core/Protocol/CAKAlbumListViewControllerProtocol.h

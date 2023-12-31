@@ -1,0 +1,68 @@
+{
+  "name": "espresso",
+  "version": "3.0.1",
+  "summary": "framework_summary",
+  "homepage": "https://bits.bytedance.net/bytebus/components/components/detail/1041?appId=9999",
+  "license": {
+    "type": "Proprietary",
+    "text": "            espresso. All Rights Reserved.\n"
+  },
+  "authors": {
+    "liuchundian": "liuchundian@bytedance.com"
+  },
+  "source": {
+    "http": "http://tosv.byted.org/obj/iosbinary/archive_source/9999/espresso/3.0.1/espresso.zip"
+  },
+  "description": "framework_description",
+  "ios": {
+    "dependencies": {
+      "bytenn-ios": [
+        "~> 3.4.70"
+      ]
+    },
+    "source_files": "ios/espresso.h",
+    "vendored_libraries": "ios/libEspressoLibrary.a",
+    "frameworks": [
+      "Accelerate",
+      "AssetsLibrary"
+    ],
+    "weak_frameworks": [
+      "MetalPerformanceShaders"
+    ]
+  },
+  "platforms": {
+    "ios": "8.0",
+    "osx": "10.9"
+  },
+  "osx": {
+    "source_files": "mac/espresso.h",
+    "vendored_libraries": "mac/libespresso.a",
+    "frameworks": [
+      "Accelerate"
+    ],
+    "weak_frameworks": [
+      "Metal",
+      "MetalPerformanceShaders",
+      "CoreVideo"
+    ]
+  },
+  "libraries": "c++",
+  "commit": "1de58de93b40886a29581f59b1debe3625fd0040\n",
+  "source_code": {
+    "git": "git@code.byted.org:lab-cv/espresso-sdk.git",
+    "commit": "1de58de93b40886a29581f59b1debe3625fd0040"
+  },
+  "_bytebus_platform": {
+    "repo_id": "1041",
+    "app_id": "9999"
+  },
+  "repoId": "1041",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "espresso_POD_VERSION=@\\\"9999_3.0.1\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "espresso_POD_VERSION=@\\\"9999_3.0.1\\\""
+  }
+}

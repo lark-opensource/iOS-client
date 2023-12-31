@@ -1,0 +1,1 @@
+../../../../CameraClient/MVPComponents/Recorder/GestureComponent/ACCRecordGestureServiceImpl.h

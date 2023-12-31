@@ -1,0 +1,1 @@
+../../../../CameraArch/Record/View/AWEScrollStringFadeLabel.h

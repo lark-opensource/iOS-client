@@ -1,0 +1,53 @@
+apply plugin: 'maven'
+
+def getRepositoryUrl() {
+  return LIB_IMAGE_VERSION.endsWith('-SNAPSHOT') ?
+      'https://maven.byted.org/repository/lark_android_snapshots/'
+      : 'https://maven.byted.org/repository/lark_android/'
+}
+
+
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      pom.project {
+        version = LIB_IMAGE_VERSION
+        artifactId = POM_ARTIFACT_ID
+        groupId = GROUP
+        packaging 'aar'
+      }
+
+      println "upload: ${pom.groupId}:${pom.artifactId}:${pom.version}"
+      println "maven url " + getRepositoryUrl()
+
+      repository(url: getRepositoryUrl()) {
+        authentication(userName: 'deploy', password: 'bytedance123') // maven授权信息
+      }
+    }
+  }
+}
+
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.srcDirs
+}
+
+artifacts {
+  archives sourcesJar
+}
+
+//task javadoc(type: Javadoc) {
+//    source = android.sourceSets.main.java.srcDirs
+//    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+//}
+//
+//task javadocJar(type: Jar, dependsOn: javadoc) {
+//    classifier = 'javadoc'
+//    from javadoc.destinationDir
+//}
+//
+//artifacts {
+//    archives javadocJar
+//    archives sourcesJar
+//}

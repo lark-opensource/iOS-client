@@ -1,0 +1,306 @@
+// swiftlint:disable all
+/**
+Warning: Do Not Edit It!
+Created by EEScaffold, if you want to edit it please check the manual of EEScaffold
+Toolchains For EE
+
+
+______ ______ _____        __
+|  ____|  ____|_   _|      / _|
+| |__  | |__    | |  _ __ | |_ _ __ __ _
+|  __| |  __|   | | | '_ \|  _| '__/ _` |
+| |____| |____ _| |_| | | | | | | | (_| |
+|______|______|_____|_| |_|_| |_|  \__,_|
+
+
+Meta信息不要删除！如果冲突，重新生成BundleI18n就好
+---Meta---
+{
+"keys":{
+"Lark_File_ToastSingleFileSizeLimit":{
+"hash":"UW8",
+"#vars":1,
+"normal_vars":["max_single_size"]
+},
+"Lark_Legacy_Cancel":{
+"hash":"ewo",
+"#vars":0
+},
+"Lark_Legacy_CannotPickBothType":{
+"hash":"ZBw",
+"#vars":0
+},
+"Lark_Legacy_ShareAlertOK":{
+"hash":"oGw",
+"#vars":0
+},
+"Lark_Legacy_ShareLoginCheckFailed":{
+"hash":"GA8",
+"#vars":1,
+"normal_vars":["APP_DISPLAY_NAME"]
+},
+"Lark_Legacy_ShareNumberOfFilesExceeded":{
+"hash":"QME",
+"#vars":0
+},
+"Lark_Legacy_SharePrepareDataError":{
+"hash":"ROg",
+"#vars":0
+},
+"Lark_Legacy_ShareToChat":{
+"hash":"ZOg",
+"#vars":0
+},
+"Lark_Legacy_ShareToSelf":{
+"hash":"+vk",
+"#vars":0
+},
+"Lark_Legacy_ShareUnknownError":{
+"hash":"hFU",
+"#vars":0
+},
+"Lark_Legacy_ShareUnsupportTextlengthError":{
+"hash":"aYU",
+"#vars":0
+},
+"Lark_Legacy_ShareUnsupportTypeError":{
+"hash":"IYI",
+"#vars":0
+}
+},
+"name":"LarkShareExtension",
+"short_key":true,
+"config":{
+"positional-args":true,
+"use-native":true
+},
+"fetch":{
+"resources":[{
+"projectId":2207,
+"namespaceId":[34815,38483,34810]
+},{
+"projectId":2094,
+"namespaceId":[34132,34137]
+},{
+"projectId":2085,
+"namespaceId":[34083]
+},{
+"projectId":2103,
+"namespaceId":[34186,34191,34187]
+},{
+"projectId":2108,
+"namespaceId":[34221,34216]
+},{
+"projectId":2187,
+"namespaceId":[34695]
+},{
+"projectId":2521,
+"namespaceId":[38139]
+},{
+"projectId":3545,
+"namespaceId":[37986]
+},{
+"projectId":4394,
+"namespaceId":[41385]
+},{
+"projectId":8217,
+"namespaceId":[50340,50342,50344],
+"support_single_param":true
+},{
+"projectId":3788,
+"namespaceId":[38915]
+},{
+"projectId":2095,
+"namespaceId":[34143,34138]
+},{
+"projectId":3129,
+"namespaceId":[37171]
+},{
+"projectId":2268,
+"namespaceId":[35181],
+"support_single_param":true
+},{
+"projectId":2176,
+"namespaceId":[34629,41969,41970]
+},{
+"projectId":2085,
+"namespaceId":[34078,34083]
+},{
+"projectId":2113,
+"namespaceId":[34251,34246]
+},{
+"projectId":2086,
+"namespaceId":[38121,34089]
+},{
+"projectId":2231,
+"namespaceId":[34959]
+},{
+"projectId":8770,
+"namespaceId":[52445,66909]
+},{
+"projectId":23858,
+"namespaceId":[81561]
+}],
+"locale":["en-US","zh-CN","zh-TW","zh-HK","ja-JP","id-ID","de-DE","es-ES","fr-FR","it-IT","pt-BR","vi-VN","ru-RU","hi-IN","th-TH","ko-KR","ms-MY"]
+}
+}
+---Meta---
+*/
+
+import Foundation
+import LarkLocalizations
+
+final class BundleI18n: LanguageManager {
+    private static let _tableLock = NSLock()
+    private static var _tableMap: [String: String] = {
+        _ = NotificationCenter.default.addObserver(
+            forName: Notification.Name("preferLanguageChangeNotification"),
+            object: nil,
+            queue: nil
+        ) { (_) -> Void in
+            _tableLock.lock(); defer { _tableLock.unlock() }
+            BundleI18n._tableMap = [:]
+        }
+        return [:]
+    }()
+    @usableFromInline
+    static func LocalizedString(key: String, originalKey: String, lang: Lang? = nil) -> String {
+        func fetch() -> String {
+            #if USE_DYNAMIC_RESOURCE
+            return self.localizedString(key: key, originalKey: originalKey, bundle: BundleConfig.LarkShareExtensionAutoBundle, moduleName: "LarkShareExtension", lang: lang) ?? key
+            #else
+            return self.localizedString(key: key, bundle: BundleConfig.LarkShareExtensionAutoBundle, moduleName: "LarkShareExtension", lang: lang) ?? key
+            #endif
+        }
+
+        if lang != nil { return fetch() } // speicify lang will no cache, call api directly
+        _tableLock.lock(); defer { _tableLock.unlock() }
+        if let str = _tableMap[key] { return str }
+        let str = fetch()
+        _tableMap[key] = str
+        return str
+    }
+
+    /*
+     * you can set I18n like that:
+     * static var done: String { @inline(__always) get { return LocalizedString(key: "done") } }
+     */
+    final class ShareExtension {
+        @inlinable
+        static var __Lark_File_ToastSingleFileSizeLimit: String {
+            return LocalizedString(key: "UW8", originalKey: "Lark_File_ToastSingleFileSizeLimit")
+        }
+        /// - Parameter lang: 使用指定语言获取文案，同时获取多个不同语言的文案时，注意初始化加载主线程卡死风险
+        @inlinable
+        static func Lark_File_ToastSingleFileSizeLimit(_ max_single_size: Any, lang __lang: Lang? = nil) -> String {
+          return Lark_File_ToastSingleFileSizeLimit(max_single_size: `max_single_size`, lang: __lang)
+        }
+        /// - Parameter lang: 使用指定语言获取文案，同时获取多个不同语言的文案时，注意初始化加载主线程卡死风险
+        static func Lark_File_ToastSingleFileSizeLimit(max_single_size: Any, lang __lang: Lang? = nil) -> String {
+            var template = LocalizedString(key: "UW8", originalKey: "Lark_File_ToastSingleFileSizeLimit", lang: __lang)
+            template = template.replacingOccurrences(of: "{{max_single_size}}", with: "\(`max_single_size`)")
+            return template
+        }
+        @inlinable
+        static var Lark_Legacy_Cancel: String {
+            return LocalizedString(key: "ewo", originalKey: "Lark_Legacy_Cancel")
+        }
+        /// - Parameter lang: 使用指定语言获取文案，同时获取多个不同语言的文案时，注意初始化加载主线程卡死风险
+        @inlinable
+        static func Lark_Legacy_Cancel(lang __lang: Lang? = nil) -> String {
+            return LocalizedString(key: "ewo", originalKey: "Lark_Legacy_Cancel", lang: __lang)
+        }
+        @inlinable
+        static var Lark_Legacy_CannotPickBothType: String {
+            return LocalizedString(key: "ZBw", originalKey: "Lark_Legacy_CannotPickBothType")
+        }
+        /// - Parameter lang: 使用指定语言获取文案，同时获取多个不同语言的文案时，注意初始化加载主线程卡死风险
+        @inlinable
+        static func Lark_Legacy_CannotPickBothType(lang __lang: Lang? = nil) -> String {
+            return LocalizedString(key: "ZBw", originalKey: "Lark_Legacy_CannotPickBothType", lang: __lang)
+        }
+        @inlinable
+        static var Lark_Legacy_ShareAlertOK: String {
+            return LocalizedString(key: "oGw", originalKey: "Lark_Legacy_ShareAlertOK")
+        }
+        /// - Parameter lang: 使用指定语言获取文案，同时获取多个不同语言的文案时，注意初始化加载主线程卡死风险
+        @inlinable
+        static func Lark_Legacy_ShareAlertOK(lang __lang: Lang? = nil) -> String {
+            return LocalizedString(key: "oGw", originalKey: "Lark_Legacy_ShareAlertOK", lang: __lang)
+        }
+        @inlinable
+        static var __Lark_Legacy_ShareLoginCheckFailed: String {
+            return LocalizedString(key: "GA8", originalKey: "Lark_Legacy_ShareLoginCheckFailed")
+        }
+        /// - Parameter lang: 使用指定语言获取文案，同时获取多个不同语言的文案时，注意初始化加载主线程卡死风险
+        static func Lark_Legacy_ShareLoginCheckFailed(lang __lang: Lang? = nil) -> String {
+            var template = LocalizedString(key: "GA8", originalKey: "Lark_Legacy_ShareLoginCheckFailed", lang: __lang)
+            template = template.replacingOccurrences(of: "{{APP_DISPLAY_NAME}}", with: "\(LanguageManager.bundleDisplayName)")
+            return template
+        }
+        @inlinable
+        static var Lark_Legacy_ShareNumberOfFilesExceeded: String {
+            return LocalizedString(key: "QME", originalKey: "Lark_Legacy_ShareNumberOfFilesExceeded")
+        }
+        /// - Parameter lang: 使用指定语言获取文案，同时获取多个不同语言的文案时，注意初始化加载主线程卡死风险
+        @inlinable
+        static func Lark_Legacy_ShareNumberOfFilesExceeded(lang __lang: Lang? = nil) -> String {
+            return LocalizedString(key: "QME", originalKey: "Lark_Legacy_ShareNumberOfFilesExceeded", lang: __lang)
+        }
+        @inlinable
+        static var Lark_Legacy_SharePrepareDataError: String {
+            return LocalizedString(key: "ROg", originalKey: "Lark_Legacy_SharePrepareDataError")
+        }
+        /// - Parameter lang: 使用指定语言获取文案，同时获取多个不同语言的文案时，注意初始化加载主线程卡死风险
+        @inlinable
+        static func Lark_Legacy_SharePrepareDataError(lang __lang: Lang? = nil) -> String {
+            return LocalizedString(key: "ROg", originalKey: "Lark_Legacy_SharePrepareDataError", lang: __lang)
+        }
+        @inlinable
+        static var Lark_Legacy_ShareToChat: String {
+            return LocalizedString(key: "ZOg", originalKey: "Lark_Legacy_ShareToChat")
+        }
+        /// - Parameter lang: 使用指定语言获取文案，同时获取多个不同语言的文案时，注意初始化加载主线程卡死风险
+        @inlinable
+        static func Lark_Legacy_ShareToChat(lang __lang: Lang? = nil) -> String {
+            return LocalizedString(key: "ZOg", originalKey: "Lark_Legacy_ShareToChat", lang: __lang)
+        }
+        @inlinable
+        static var Lark_Legacy_ShareToSelf: String {
+            return LocalizedString(key: "+vk", originalKey: "Lark_Legacy_ShareToSelf")
+        }
+        /// - Parameter lang: 使用指定语言获取文案，同时获取多个不同语言的文案时，注意初始化加载主线程卡死风险
+        @inlinable
+        static func Lark_Legacy_ShareToSelf(lang __lang: Lang? = nil) -> String {
+            return LocalizedString(key: "+vk", originalKey: "Lark_Legacy_ShareToSelf", lang: __lang)
+        }
+        @inlinable
+        static var Lark_Legacy_ShareUnknownError: String {
+            return LocalizedString(key: "hFU", originalKey: "Lark_Legacy_ShareUnknownError")
+        }
+        /// - Parameter lang: 使用指定语言获取文案，同时获取多个不同语言的文案时，注意初始化加载主线程卡死风险
+        @inlinable
+        static func Lark_Legacy_ShareUnknownError(lang __lang: Lang? = nil) -> String {
+            return LocalizedString(key: "hFU", originalKey: "Lark_Legacy_ShareUnknownError", lang: __lang)
+        }
+        @inlinable
+        static var Lark_Legacy_ShareUnsupportTextlengthError: String {
+            return LocalizedString(key: "aYU", originalKey: "Lark_Legacy_ShareUnsupportTextlengthError")
+        }
+        /// - Parameter lang: 使用指定语言获取文案，同时获取多个不同语言的文案时，注意初始化加载主线程卡死风险
+        @inlinable
+        static func Lark_Legacy_ShareUnsupportTextlengthError(lang __lang: Lang? = nil) -> String {
+            return LocalizedString(key: "aYU", originalKey: "Lark_Legacy_ShareUnsupportTextlengthError", lang: __lang)
+        }
+        @inlinable
+        static var Lark_Legacy_ShareUnsupportTypeError: String {
+            return LocalizedString(key: "IYI", originalKey: "Lark_Legacy_ShareUnsupportTypeError")
+        }
+        /// - Parameter lang: 使用指定语言获取文案，同时获取多个不同语言的文案时，注意初始化加载主线程卡死风险
+        @inlinable
+        static func Lark_Legacy_ShareUnsupportTypeError(lang __lang: Lang? = nil) -> String {
+            return LocalizedString(key: "IYI", originalKey: "Lark_Legacy_ShareUnsupportTypeError", lang: __lang)
+        }
+    }
+}
+// swiftlint:enable all

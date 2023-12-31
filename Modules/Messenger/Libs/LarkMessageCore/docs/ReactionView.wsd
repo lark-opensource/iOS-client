@@ -1,0 +1,47 @@
+@startuml ReactionView
+
+interface ITagLayoutEngine {
+    + float preferMaxLayoutWidth
+    + EdgeInsets padding
+    + Array<ItagLayoutItem> subviews
+    + Size layout(Size containerSize)
+}
+
+interface ItagLayoutItem {
+    + EdgeInsets margin
+    + Point origin
+    + Size contentSize
+    + Size featWidth(float width)
+}
+
+class TagItem<Model, View> extends ItagLayoutItem {
+    + Model model
+    + View createView()
+    + void updateView(View view)
+}
+
+class TagView<TagModel, View> extends UIView {
+    + ITagLayoutEngine layout
+    + TagItem<TagModel, View> tags
+}
+
+class ReactionTag extends UIImageView {
+    + UIImageView icon
+    + UILabel namesLabel
+    + UIView splitLine
+}
+
+class ReactionTagItem<Reaction, ReactionTag> extends TagItem {
+    + Reaction model
+    + ReactionTag createView()
+    + void updateView(ReactionTag view)
+}
+
+class ReactionView extends TagView {
+}
+
+TagView "1"*--"1" ITagLayoutEngine
+ITagLayoutEngine "1"*--"n" ItagLayoutItem
+ReactionTagItem --> ReactionTag
+
+@enduml

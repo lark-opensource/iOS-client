@@ -1,0 +1,16 @@
+type: pipeline # 必填, 表示类型为pipeline
+
+jobs:
+  compile_verify:
+    display_name: 编译验证
+    type: service
+    service_name: build # 如果是mr打包 用build, template没有mr逻辑 仅触发模版配置
+    settings: # 参数透传给job执行者
+      template_config_id: 15572
+      queue_id: 4
+      merge_target: true
+      failed_approvers:
+        - lvdaqian
+        - panzaofeng
+        - supeng.charlie
+

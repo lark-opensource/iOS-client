@@ -1,0 +1,1606 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "CreativeKit_pod_hdrs",
+  srcs = [
+    ":CreativeKit_root_pod_hdrs",
+    ":MobileInfra_pod_hdrs",
+    ":CameraArch_pod_hdrs",
+    ":Debug_pod_hdrs",
+    ":Performance_pod_hdrs",
+    ":Tests_pod_hdrs",
+    ":_Dummy_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "CreativeKit_private_includes",
+  include = [
+    "external/CreativeKit/pod_support/Headers/Private/CreativeKit/"
+  ],
+  deps = [],
+  external_name = "CreativeKit"
+)
+gen_includes(
+  name = "CreativeKit_public_includes",
+  include = [
+    "external/CreativeKit/pod_support/Headers/Public/CreativeKit/"
+  ],
+  deps = [],
+  external_name = "CreativeKit"
+)
+filegroup(
+  name = "_CreativeKit_hdrs",
+  srcs = [
+    ":CreativeKit_root_hdrs",
+    ":MobileInfra_hdrs",
+    ":CameraArch_hdrs",
+    ":Debug_hdrs",
+    ":Performance_hdrs",
+    ":Tests_hdrs",
+    ":_Dummy_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "CreativeKit_xcode_hmapsource",
+  hdrs = [
+    ":CreativeKit_root_hdrs",
+    ":CameraArch_hdrs",
+    ":Debug_hdrs",
+    ":MobileInfra_hdrs",
+    ":Performance_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "CreativeKit_xcode_hmap",
+  dep = ":CreativeKit_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/CreativeKit/*-bitsky-generated.modulemap", "pod_support/Headers/Public/CreativeKit/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "CreativeKit_MobileInfra_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libCreativeKit-da64985.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "CreativeKit_CameraArch_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libCreativeKit-ffa8c15.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "CreativeKit_Debug_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libCreativeKit-13b38ab.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "CreativeKit_Performance_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libCreativeKit-65bd617.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "CreativeKit_Tests_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libCreativeKit-c5ae7d3.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "CreativeKit__Dummy_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libCreativeKit-f33a1a9.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "CreativeKit_custom_includes",
+  include = [
+    "external/Protobuf/objectivec",
+    "external/Headers/Private"
+  ],
+  include_files = [],
+  external_name = "CreativeKit",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "CreativeKit_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":CreativeKit_xcode_hmap"
+  ],
+  external_name = "CreativeKit",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CreativeKit_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CreativeKit_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CreativeKit_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CreativeKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "CreativeKit_module_map",
+  module_map = "pod_support/Headers/Public/CreativeKit/CreativeKit-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreativeKit/CreativeKit-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CreativeKit_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "CreativeKit_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreativeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreativeKit_private_includes",
+    ":CreativeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":CreativeKit_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CreativeKit",
+  deps = [
+    ":CreativeKit_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "CreativeKit_lib",
+  deps = [
+    ":CreativeKit"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "MobileInfra_hdrs",
+  srcs = [
+    "CreativeKit/MobileInfra/ComponentKit/ACCComponentController.h",
+    "CreativeKit/MobileInfra/ComponentKit/ACCComponentLogDelegate.h",
+    "CreativeKit/MobileInfra/ComponentKit/ACCComponentManager.h",
+    "CreativeKit/MobileInfra/ComponentKit/ACCComponentViewModelProvider.h",
+    "CreativeKit/MobileInfra/ComponentKit/ACCCreativePathManagable.h",
+    "CreativeKit/MobileInfra/ComponentKit/ACCCreativeSession.h",
+    "CreativeKit/MobileInfra/ComponentKit/ACCFastComponentManager.h",
+    "CreativeKit/MobileInfra/ComponentKit/ACCFeatureComponent.h",
+    "CreativeKit/MobileInfra/ComponentKit/ACCServiceBindable.h",
+    "CreativeKit/MobileInfra/ComponentKit/ACCSessionServiceContainer.h",
+    "CreativeKit/MobileInfra/ComponentKit/ACCViewModel.h",
+    "CreativeKit/MobileInfra/ComponentKit/ACCViewModelContainer.h",
+    "CreativeKit/MobileInfra/ComponentKit/ACCViewModelContainerHolder.h",
+    "CreativeKit/MobileInfra/ComponentKit/ACCViewModelFactory.h",
+    "CreativeKit/MobileInfra/ComponentUIKit/ACCAnimatedButton.h",
+    "CreativeKit/MobileInfra/ComponentUIKit/ACCBarItem.h",
+    "CreativeKit/MobileInfra/ComponentUIKit/ACCBarItemContainerView.h",
+    "CreativeKit/MobileInfra/ComponentUIKit/ACCBarItemCustomView.h",
+    "CreativeKit/MobileInfra/ComponentUIKit/ACCBusinessConfiguration.h",
+    "CreativeKit/MobileInfra/ComponentUIKit/ACCBusinessTemplate.h",
+    "CreativeKit/MobileInfra/ComponentUIKit/ACCComponentsFactory.h",
+    "CreativeKit/MobileInfra/ComponentUIKit/ACCExternalBussinessTemplate.h",
+    "CreativeKit/MobileInfra/ComponentUIKit/ACCFeatureComponentPlugin.h",
+    "CreativeKit/MobileInfra/ComponentUIKit/ACCGlobalTemplateMap.h",
+    "CreativeKit/MobileInfra/ComponentUIKit/ACCPanelAnimator.h",
+    "CreativeKit/MobileInfra/ComponentUIKit/ACCPanelViewController.h",
+    "CreativeKit/MobileInfra/ComponentUIKit/ACCPanelViewProtocol.h",
+    "CreativeKit/MobileInfra/ComponentUIKit/ACCRouterCoordinatorProtocol.h",
+    "CreativeKit/MobileInfra/ComponentUIKit/ACCRouterService.h",
+    "CreativeKit/MobileInfra/ComponentUIKit/ACCServiceBinding.h",
+    "CreativeKit/MobileInfra/ComponentUIKit/ACCUIViewControllerProtocol.h",
+    "CreativeKit/MobileInfra/ComponentUIKit/ACCViewController.h",
+    "CreativeKit/MobileInfra/ServiceLocator/ACCServiceLocator.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "MobileInfra_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CreativeKit/ACCAnimatedButton.h",
+    "pod_support/Headers/Private/CreativeKit/ACCBarItem.h",
+    "pod_support/Headers/Private/CreativeKit/ACCBarItemContainerView.h",
+    "pod_support/Headers/Private/CreativeKit/ACCBarItemCustomView.h",
+    "pod_support/Headers/Private/CreativeKit/ACCBusinessConfiguration.h",
+    "pod_support/Headers/Private/CreativeKit/ACCBusinessTemplate.h",
+    "pod_support/Headers/Private/CreativeKit/ACCComponentController.h",
+    "pod_support/Headers/Private/CreativeKit/ACCComponentLogDelegate.h",
+    "pod_support/Headers/Private/CreativeKit/ACCComponentManager.h",
+    "pod_support/Headers/Private/CreativeKit/ACCComponentViewModelProvider.h",
+    "pod_support/Headers/Private/CreativeKit/ACCComponentsFactory.h",
+    "pod_support/Headers/Private/CreativeKit/ACCCreativePathManagable.h",
+    "pod_support/Headers/Private/CreativeKit/ACCCreativeSession.h",
+    "pod_support/Headers/Private/CreativeKit/ACCExternalBussinessTemplate.h",
+    "pod_support/Headers/Private/CreativeKit/ACCFastComponentManager.h",
+    "pod_support/Headers/Private/CreativeKit/ACCFeatureComponent.h",
+    "pod_support/Headers/Private/CreativeKit/ACCFeatureComponentPlugin.h",
+    "pod_support/Headers/Private/CreativeKit/ACCGlobalTemplateMap.h",
+    "pod_support/Headers/Private/CreativeKit/ACCPanelAnimator.h",
+    "pod_support/Headers/Private/CreativeKit/ACCPanelViewController.h",
+    "pod_support/Headers/Private/CreativeKit/ACCPanelViewProtocol.h",
+    "pod_support/Headers/Private/CreativeKit/ACCRouterCoordinatorProtocol.h",
+    "pod_support/Headers/Private/CreativeKit/ACCRouterService.h",
+    "pod_support/Headers/Private/CreativeKit/ACCServiceBindable.h",
+    "pod_support/Headers/Private/CreativeKit/ACCServiceBinding.h",
+    "pod_support/Headers/Private/CreativeKit/ACCServiceLocator.h",
+    "pod_support/Headers/Private/CreativeKit/ACCSessionServiceContainer.h",
+    "pod_support/Headers/Private/CreativeKit/ACCUIViewControllerProtocol.h",
+    "pod_support/Headers/Private/CreativeKit/ACCViewController.h",
+    "pod_support/Headers/Private/CreativeKit/ACCViewModel.h",
+    "pod_support/Headers/Private/CreativeKit/ACCViewModelContainer.h",
+    "pod_support/Headers/Private/CreativeKit/ACCViewModelContainerHolder.h",
+    "pod_support/Headers/Private/CreativeKit/ACCViewModelFactory.h",
+    "pod_support/Headers/Public/CreativeKit/ACCAnimatedButton.h",
+    "pod_support/Headers/Public/CreativeKit/ACCBarItem.h",
+    "pod_support/Headers/Public/CreativeKit/ACCBarItemContainerView.h",
+    "pod_support/Headers/Public/CreativeKit/ACCBarItemCustomView.h",
+    "pod_support/Headers/Public/CreativeKit/ACCBusinessConfiguration.h",
+    "pod_support/Headers/Public/CreativeKit/ACCBusinessTemplate.h",
+    "pod_support/Headers/Public/CreativeKit/ACCComponentController.h",
+    "pod_support/Headers/Public/CreativeKit/ACCComponentLogDelegate.h",
+    "pod_support/Headers/Public/CreativeKit/ACCComponentManager.h",
+    "pod_support/Headers/Public/CreativeKit/ACCComponentViewModelProvider.h",
+    "pod_support/Headers/Public/CreativeKit/ACCComponentsFactory.h",
+    "pod_support/Headers/Public/CreativeKit/ACCCreativePathManagable.h",
+    "pod_support/Headers/Public/CreativeKit/ACCCreativeSession.h",
+    "pod_support/Headers/Public/CreativeKit/ACCExternalBussinessTemplate.h",
+    "pod_support/Headers/Public/CreativeKit/ACCFastComponentManager.h",
+    "pod_support/Headers/Public/CreativeKit/ACCFeatureComponent.h",
+    "pod_support/Headers/Public/CreativeKit/ACCFeatureComponentPlugin.h",
+    "pod_support/Headers/Public/CreativeKit/ACCGlobalTemplateMap.h",
+    "pod_support/Headers/Public/CreativeKit/ACCPanelAnimator.h",
+    "pod_support/Headers/Public/CreativeKit/ACCPanelViewController.h",
+    "pod_support/Headers/Public/CreativeKit/ACCPanelViewProtocol.h",
+    "pod_support/Headers/Public/CreativeKit/ACCRouterCoordinatorProtocol.h",
+    "pod_support/Headers/Public/CreativeKit/ACCRouterService.h",
+    "pod_support/Headers/Public/CreativeKit/ACCServiceBindable.h",
+    "pod_support/Headers/Public/CreativeKit/ACCServiceBinding.h",
+    "pod_support/Headers/Public/CreativeKit/ACCServiceLocator.h",
+    "pod_support/Headers/Public/CreativeKit/ACCSessionServiceContainer.h",
+    "pod_support/Headers/Public/CreativeKit/ACCUIViewControllerProtocol.h",
+    "pod_support/Headers/Public/CreativeKit/ACCViewController.h",
+    "pod_support/Headers/Public/CreativeKit/ACCViewModel.h",
+    "pod_support/Headers/Public/CreativeKit/ACCViewModelContainer.h",
+    "pod_support/Headers/Public/CreativeKit/ACCViewModelContainerHolder.h",
+    "pod_support/Headers/Public/CreativeKit/ACCViewModelFactory.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "MobileInfra_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "MobileInfra_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "MobileInfra_module_map",
+  module_map = "pod_support/Headers/Public/CreativeKit/CreativeKit_MobileInfra-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreativeKit/CreativeKit_MobileInfra-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "MobileInfra_srcs",
+  srcs = [
+    "CreativeKit/MobileInfra/ComponentKit/ACCComponentManager.m",
+    "CreativeKit/MobileInfra/ComponentUIKit/ACCExternalBussinessTemplate.m",
+    "CreativeKit/MobileInfra/ComponentKit/ACCFastComponentManager.m",
+    "CreativeKit/MobileInfra/ComponentUIKit/ACCPanelViewController.m",
+    "CreativeKit/MobileInfra/ServiceLocator/ACCServiceLocator.m",
+    "CreativeKit/MobileInfra/ComponentUIKit/ACCViewController.m",
+    "CreativeKit/MobileInfra/ComponentKit/ACCViewModelContainer.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "MobileInfra_oc",
+  enable_modules = 1,
+  srcs = [
+    "MobileInfra_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "MobileInfra_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreativeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreativeKit_private_includes",
+    ":CreativeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@IESInject//:Core_objc_interface",
+    "@libextobjc//:libextobjc_objc_interface",
+    "@IESInject//:Core_swift_interface",
+    "@libextobjc//:libextobjc_swift_interface",
+    ":CreativeKit_MobileInfra_VendoredLibraries",
+    ":MobileInfra_objc_interface",
+    "@IESInject//:Core_module_map",
+    "@libextobjc//:libextobjc_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "MobileInfra",
+  deps = [
+    ":MobileInfra_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "MobileInfra_lib",
+  deps = [
+    ":MobileInfra"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CameraArch_hdrs",
+  srcs = [
+    "CreativeKit/CameraArch/MobileRuntime/ACCAPMProtocol.h",
+    "CreativeKit/CameraArch/MobileRuntime/ACCAccessibilityProtocol.h",
+    "CreativeKit/CameraArch/MobileRuntime/ACCCacheProtocol.h",
+    "CreativeKit/CameraArch/MobileRuntime/ACCENVProtocol.h",
+    "CreativeKit/CameraArch/MobileRuntime/ACCFontProtocol.h",
+    "CreativeKit/CameraArch/MobileRuntime/ACCLanguageProtocol.h",
+    "CreativeKit/CameraArch/MobileRuntime/ACCMemoryTrackProtocol.h",
+    "CreativeKit/CameraArch/MobileRuntime/ACCMonitorProtocol.h",
+    "CreativeKit/CameraArch/MobileRuntime/ACCMonitorToolProtocol.h",
+    "CreativeKit/CameraArch/MobileRuntime/ACCResourceBundleProtocol.h",
+    "CreativeKit/CameraArch/MobileRuntime/ACCRouterProtocol.h",
+    "CreativeKit/CameraArch/MobileRuntime/ACCTrackProtocol.h",
+    "CreativeKit/CameraArch/MobileRuntime/NetServiceProtocol/ACCNetServiceProtocol.h",
+    "CreativeKit/CameraArch/MobileRuntime/NetServiceProtocol/ACCRequestModel.h",
+    "CreativeKit/CameraArch/MobileRuntime/WebImage/ACCWebImageProtocol.h",
+    "CreativeKit/CameraArch/Tools/Animate/UIView+Animation.h",
+    "CreativeKit/CameraArch/Tools/Application/UIApplication+ACC.h",
+    "CreativeKit/CameraArch/Tools/Category/CALayer+AWEStudioAddtions.h",
+    "CreativeKit/CameraArch/Tools/Category/Container/ACCProtocolContainer.h",
+    "CreativeKit/CameraArch/Tools/Category/Container/NSObject+ACCProtocolContainer.h",
+    "CreativeKit/CameraArch/Tools/Category/Container/NSProxy+ACCProtocolContainer.h",
+    "CreativeKit/CameraArch/Tools/Category/NSArray+ACCAdditions.h",
+    "CreativeKit/CameraArch/Tools/Category/NSDate+ACCAdditions.h",
+    "CreativeKit/CameraArch/Tools/Category/NSDictionary+ACCAdditions.h",
+    "CreativeKit/CameraArch/Tools/Category/NSNumber+ACCAdditions.h",
+    "CreativeKit/CameraArch/Tools/Category/NSObject+ACCAdditions.h",
+    "CreativeKit/CameraArch/Tools/Category/NSObject+ACCSwizzle.h",
+    "CreativeKit/CameraArch/Tools/Category/UIButton+ACCAdditions.h",
+    "CreativeKit/CameraArch/Tools/Category/UIColor+ACCAdditions.h",
+    "CreativeKit/CameraArch/Tools/Category/UIFont+ACCAdditions.h",
+    "CreativeKit/CameraArch/Tools/Category/UIFont+ACCUIKit.h",
+    "CreativeKit/CameraArch/Tools/Category/UIImage+ACCAdditions.h",
+    "CreativeKit/CameraArch/Tools/Category/UIImageView+ACCAddtions.h",
+    "CreativeKit/CameraArch/Tools/Category/UISearchBar+ACCAdditions.h",
+    "CreativeKit/CameraArch/Tools/Category/UIView+AWEStudioAdditions.h",
+    "CreativeKit/CameraArch/Tools/Category/UIView+AWESubtractMask.h",
+    "CreativeKit/CameraArch/Tools/Config/ACCConfigImpl.h",
+    "CreativeKit/CameraArch/Tools/Config/ACCConfigProtocol.h",
+    "CreativeKit/CameraArch/Tools/Define/ACCFunctionUtils.h",
+    "CreativeKit/CameraArch/Tools/Define/ACCMacros.h",
+    "CreativeKit/CameraArch/Tools/Define/ACCMacrosTool.h",
+    "CreativeKit/CameraArch/Tools/Device/UIDevice+ACCHardware.h",
+    "CreativeKit/CameraArch/Tools/Extensions/CMTime+ACC.h",
+    "CreativeKit/CameraArch/Tools/Extensions/NSTimer+ACCAdditions.h",
+    "CreativeKit/CameraArch/Tools/Extensions/UIButton+ACCAdd.h",
+    "CreativeKit/CameraArch/Tools/Extensions/UIColor+ACC.h",
+    "CreativeKit/CameraArch/Tools/Extensions/UIFont+ACC.h",
+    "CreativeKit/CameraArch/Tools/Extensions/UIImage+ACC.h",
+    "CreativeKit/CameraArch/Tools/Extensions/UILabel+ACCShadow.h",
+    "CreativeKit/CameraArch/Tools/Logger/ACCLogger.h",
+    "CreativeKit/CameraArch/Tools/Proxy/ACCWeakProxy.h",
+    "CreativeKit/CameraArch/Tools/Resource/ACCResourceHeaders.h",
+    "CreativeKit/CameraArch/Tools/Resource/ACCResourceUnion.h",
+    "CreativeKit/CameraArch/Tools/Resource/ACCUIDynamicColor.h",
+    "CreativeKit/CameraArch/Tools/Resource/ConfigKeys/ACCColorNameDefines.h",
+    "CreativeKit/CameraArch/Tools/Resource/ConfigKeys/ACCResourceColorConfigKeys.h",
+    "CreativeKit/CameraArch/Tools/Resource/ConfigKeys/ACCResourceFontConfigKeys.h",
+    "CreativeKit/CameraArch/Tools/Resource/NSNumber+CameraClientResource.h",
+    "CreativeKit/CameraArch/Tools/Resource/NSString+CameraClientResource.h",
+    "CreativeKit/CameraArch/Tools/Resource/Theme/ACCUIThemeManager.h",
+    "CreativeKit/CameraArch/Tools/Resource/Theme/ACCUIThemeProtocol.h",
+    "CreativeKit/CameraArch/Tools/Resource/Theme/NSAttributedString+ACCUIDynamicColor.h",
+    "CreativeKit/CameraArch/Tools/Resource/Theme/UIView+ACCLayerColor.h",
+    "CreativeKit/CameraArch/Tools/Resource/Theme/UIView+ACCUITheme.h",
+    "CreativeKit/CameraArch/Tools/Resource/Theme/UIViewController+ACCUITheme.h",
+    "CreativeKit/CameraArch/Tools/Resource/UIColor+CameraClientResource.h",
+    "CreativeKit/CameraArch/Tools/Resource/UIFont+CameraClientResource.h",
+    "CreativeKit/CameraArch/Tools/Resource/UIImage+CameraClientResource.h",
+    "CreativeKit/CameraArch/Tools/ipadAdapter/ACCPadUIAdapter.h",
+    "CreativeKit/CameraArch/ViewContainer/ACCEditBarItemContainerView.h",
+    "CreativeKit/CameraArch/ViewContainer/ACCEditContainerViewProtocol.h",
+    "CreativeKit/CameraArch/ViewContainer/ACCEditTRBarItemContainerView.h",
+    "CreativeKit/CameraArch/ViewContainer/ACCEditViewContainer.h",
+    "CreativeKit/CameraArch/ViewContainer/ACCLayoutContainerProtocol.h",
+    "CreativeKit/CameraArch/ViewContainer/ACCLayoutDefines.h",
+    "CreativeKit/CameraArch/ViewContainer/ACCLayoutViewTypeDefines.h",
+    "CreativeKit/CameraArch/ViewContainer/ACCRecordLayoutGuideProtocol.h",
+    "CreativeKit/CameraArch/ViewContainer/ACCRecorderBarItemContainerView.h",
+    "CreativeKit/CameraArch/ViewContainer/ACCRecorderViewContainer.h",
+    "CreativeKit/CameraArch/ViewContainer/ACCSwitchModeContainerCollectionView.h",
+    "CreativeKit/CameraArch/ViewContainer/ACCSwitchModeContainerView.h",
+    "CreativeKit/CameraArch/ViewContainer/AWEEditActionItemView.h",
+    "CreativeKit/CameraArch/ViewContainer/AWEEditAndPublishViewActionContainerModel.h",
+    "CreativeKit/CameraArch/ViewContainer/AWEEditAndPublishViewData.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CameraArch_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CreativeKit/ACCAPMProtocol.h",
+    "pod_support/Headers/Private/CreativeKit/ACCAccessibilityProtocol.h",
+    "pod_support/Headers/Private/CreativeKit/ACCCacheProtocol.h",
+    "pod_support/Headers/Private/CreativeKit/ACCColorNameDefines.h",
+    "pod_support/Headers/Private/CreativeKit/ACCConfigImpl.h",
+    "pod_support/Headers/Private/CreativeKit/ACCConfigProtocol.h",
+    "pod_support/Headers/Private/CreativeKit/ACCENVProtocol.h",
+    "pod_support/Headers/Private/CreativeKit/ACCEditBarItemContainerView.h",
+    "pod_support/Headers/Private/CreativeKit/ACCEditContainerViewProtocol.h",
+    "pod_support/Headers/Private/CreativeKit/ACCEditTRBarItemContainerView.h",
+    "pod_support/Headers/Private/CreativeKit/ACCEditViewContainer.h",
+    "pod_support/Headers/Private/CreativeKit/ACCFontProtocol.h",
+    "pod_support/Headers/Private/CreativeKit/ACCFunctionUtils.h",
+    "pod_support/Headers/Private/CreativeKit/ACCLanguageProtocol.h",
+    "pod_support/Headers/Private/CreativeKit/ACCLayoutContainerProtocol.h",
+    "pod_support/Headers/Private/CreativeKit/ACCLayoutDefines.h",
+    "pod_support/Headers/Private/CreativeKit/ACCLayoutViewTypeDefines.h",
+    "pod_support/Headers/Private/CreativeKit/ACCLogger.h",
+    "pod_support/Headers/Private/CreativeKit/ACCMacros.h",
+    "pod_support/Headers/Private/CreativeKit/ACCMacrosTool.h",
+    "pod_support/Headers/Private/CreativeKit/ACCMemoryTrackProtocol.h",
+    "pod_support/Headers/Private/CreativeKit/ACCMonitorProtocol.h",
+    "pod_support/Headers/Private/CreativeKit/ACCMonitorToolProtocol.h",
+    "pod_support/Headers/Private/CreativeKit/ACCNetServiceProtocol.h",
+    "pod_support/Headers/Private/CreativeKit/ACCPadUIAdapter.h",
+    "pod_support/Headers/Private/CreativeKit/ACCProtocolContainer.h",
+    "pod_support/Headers/Private/CreativeKit/ACCRecordLayoutGuideProtocol.h",
+    "pod_support/Headers/Private/CreativeKit/ACCRecorderBarItemContainerView.h",
+    "pod_support/Headers/Private/CreativeKit/ACCRecorderViewContainer.h",
+    "pod_support/Headers/Private/CreativeKit/ACCRequestModel.h",
+    "pod_support/Headers/Private/CreativeKit/ACCResourceBundleProtocol.h",
+    "pod_support/Headers/Private/CreativeKit/ACCResourceColorConfigKeys.h",
+    "pod_support/Headers/Private/CreativeKit/ACCResourceFontConfigKeys.h",
+    "pod_support/Headers/Private/CreativeKit/ACCResourceHeaders.h",
+    "pod_support/Headers/Private/CreativeKit/ACCResourceUnion.h",
+    "pod_support/Headers/Private/CreativeKit/ACCRouterProtocol.h",
+    "pod_support/Headers/Private/CreativeKit/ACCSwitchModeContainerCollectionView.h",
+    "pod_support/Headers/Private/CreativeKit/ACCSwitchModeContainerView.h",
+    "pod_support/Headers/Private/CreativeKit/ACCTrackProtocol.h",
+    "pod_support/Headers/Private/CreativeKit/ACCUIDynamicColor.h",
+    "pod_support/Headers/Private/CreativeKit/ACCUIThemeManager.h",
+    "pod_support/Headers/Private/CreativeKit/ACCUIThemeProtocol.h",
+    "pod_support/Headers/Private/CreativeKit/ACCWeakProxy.h",
+    "pod_support/Headers/Private/CreativeKit/ACCWebImageProtocol.h",
+    "pod_support/Headers/Private/CreativeKit/AWEEditActionItemView.h",
+    "pod_support/Headers/Private/CreativeKit/AWEEditAndPublishViewActionContainerModel.h",
+    "pod_support/Headers/Private/CreativeKit/AWEEditAndPublishViewData.h",
+    "pod_support/Headers/Private/CreativeKit/CALayer+AWEStudioAddtions.h",
+    "pod_support/Headers/Private/CreativeKit/CMTime+ACC.h",
+    "pod_support/Headers/Private/CreativeKit/NSArray+ACCAdditions.h",
+    "pod_support/Headers/Private/CreativeKit/NSAttributedString+ACCUIDynamicColor.h",
+    "pod_support/Headers/Private/CreativeKit/NSDate+ACCAdditions.h",
+    "pod_support/Headers/Private/CreativeKit/NSDictionary+ACCAdditions.h",
+    "pod_support/Headers/Private/CreativeKit/NSNumber+ACCAdditions.h",
+    "pod_support/Headers/Private/CreativeKit/NSNumber+CameraClientResource.h",
+    "pod_support/Headers/Private/CreativeKit/NSObject+ACCAdditions.h",
+    "pod_support/Headers/Private/CreativeKit/NSObject+ACCProtocolContainer.h",
+    "pod_support/Headers/Private/CreativeKit/NSObject+ACCSwizzle.h",
+    "pod_support/Headers/Private/CreativeKit/NSProxy+ACCProtocolContainer.h",
+    "pod_support/Headers/Private/CreativeKit/NSString+CameraClientResource.h",
+    "pod_support/Headers/Private/CreativeKit/NSTimer+ACCAdditions.h",
+    "pod_support/Headers/Private/CreativeKit/UIApplication+ACC.h",
+    "pod_support/Headers/Private/CreativeKit/UIButton+ACCAdd.h",
+    "pod_support/Headers/Private/CreativeKit/UIButton+ACCAdditions.h",
+    "pod_support/Headers/Private/CreativeKit/UIColor+ACC.h",
+    "pod_support/Headers/Private/CreativeKit/UIColor+ACCAdditions.h",
+    "pod_support/Headers/Private/CreativeKit/UIColor+CameraClientResource.h",
+    "pod_support/Headers/Private/CreativeKit/UIDevice+ACCHardware.h",
+    "pod_support/Headers/Private/CreativeKit/UIFont+ACC.h",
+    "pod_support/Headers/Private/CreativeKit/UIFont+ACCAdditions.h",
+    "pod_support/Headers/Private/CreativeKit/UIFont+ACCUIKit.h",
+    "pod_support/Headers/Private/CreativeKit/UIFont+CameraClientResource.h",
+    "pod_support/Headers/Private/CreativeKit/UIImage+ACC.h",
+    "pod_support/Headers/Private/CreativeKit/UIImage+ACCAdditions.h",
+    "pod_support/Headers/Private/CreativeKit/UIImage+CameraClientResource.h",
+    "pod_support/Headers/Private/CreativeKit/UIImageView+ACCAddtions.h",
+    "pod_support/Headers/Private/CreativeKit/UILabel+ACCShadow.h",
+    "pod_support/Headers/Private/CreativeKit/UISearchBar+ACCAdditions.h",
+    "pod_support/Headers/Private/CreativeKit/UIView+ACCLayerColor.h",
+    "pod_support/Headers/Private/CreativeKit/UIView+ACCUITheme.h",
+    "pod_support/Headers/Private/CreativeKit/UIView+AWEStudioAdditions.h",
+    "pod_support/Headers/Private/CreativeKit/UIView+AWESubtractMask.h",
+    "pod_support/Headers/Private/CreativeKit/UIView+Animation.h",
+    "pod_support/Headers/Private/CreativeKit/UIViewController+ACCUITheme.h",
+    "pod_support/Headers/Public/CreativeKit/ACCAPMProtocol.h",
+    "pod_support/Headers/Public/CreativeKit/ACCAccessibilityProtocol.h",
+    "pod_support/Headers/Public/CreativeKit/ACCCacheProtocol.h",
+    "pod_support/Headers/Public/CreativeKit/ACCColorNameDefines.h",
+    "pod_support/Headers/Public/CreativeKit/ACCConfigImpl.h",
+    "pod_support/Headers/Public/CreativeKit/ACCConfigProtocol.h",
+    "pod_support/Headers/Public/CreativeKit/ACCENVProtocol.h",
+    "pod_support/Headers/Public/CreativeKit/ACCEditBarItemContainerView.h",
+    "pod_support/Headers/Public/CreativeKit/ACCEditContainerViewProtocol.h",
+    "pod_support/Headers/Public/CreativeKit/ACCEditTRBarItemContainerView.h",
+    "pod_support/Headers/Public/CreativeKit/ACCEditViewContainer.h",
+    "pod_support/Headers/Public/CreativeKit/ACCFontProtocol.h",
+    "pod_support/Headers/Public/CreativeKit/ACCFunctionUtils.h",
+    "pod_support/Headers/Public/CreativeKit/ACCLanguageProtocol.h",
+    "pod_support/Headers/Public/CreativeKit/ACCLayoutContainerProtocol.h",
+    "pod_support/Headers/Public/CreativeKit/ACCLayoutDefines.h",
+    "pod_support/Headers/Public/CreativeKit/ACCLayoutViewTypeDefines.h",
+    "pod_support/Headers/Public/CreativeKit/ACCLogger.h",
+    "pod_support/Headers/Public/CreativeKit/ACCMacros.h",
+    "pod_support/Headers/Public/CreativeKit/ACCMacrosTool.h",
+    "pod_support/Headers/Public/CreativeKit/ACCMemoryTrackProtocol.h",
+    "pod_support/Headers/Public/CreativeKit/ACCMonitorProtocol.h",
+    "pod_support/Headers/Public/CreativeKit/ACCMonitorToolProtocol.h",
+    "pod_support/Headers/Public/CreativeKit/ACCNetServiceProtocol.h",
+    "pod_support/Headers/Public/CreativeKit/ACCPadUIAdapter.h",
+    "pod_support/Headers/Public/CreativeKit/ACCProtocolContainer.h",
+    "pod_support/Headers/Public/CreativeKit/ACCRecordLayoutGuideProtocol.h",
+    "pod_support/Headers/Public/CreativeKit/ACCRecorderBarItemContainerView.h",
+    "pod_support/Headers/Public/CreativeKit/ACCRecorderViewContainer.h",
+    "pod_support/Headers/Public/CreativeKit/ACCRequestModel.h",
+    "pod_support/Headers/Public/CreativeKit/ACCResourceBundleProtocol.h",
+    "pod_support/Headers/Public/CreativeKit/ACCResourceColorConfigKeys.h",
+    "pod_support/Headers/Public/CreativeKit/ACCResourceFontConfigKeys.h",
+    "pod_support/Headers/Public/CreativeKit/ACCResourceHeaders.h",
+    "pod_support/Headers/Public/CreativeKit/ACCResourceUnion.h",
+    "pod_support/Headers/Public/CreativeKit/ACCRouterProtocol.h",
+    "pod_support/Headers/Public/CreativeKit/ACCSwitchModeContainerCollectionView.h",
+    "pod_support/Headers/Public/CreativeKit/ACCSwitchModeContainerView.h",
+    "pod_support/Headers/Public/CreativeKit/ACCTrackProtocol.h",
+    "pod_support/Headers/Public/CreativeKit/ACCUIDynamicColor.h",
+    "pod_support/Headers/Public/CreativeKit/ACCUIThemeManager.h",
+    "pod_support/Headers/Public/CreativeKit/ACCUIThemeProtocol.h",
+    "pod_support/Headers/Public/CreativeKit/ACCWeakProxy.h",
+    "pod_support/Headers/Public/CreativeKit/ACCWebImageProtocol.h",
+    "pod_support/Headers/Public/CreativeKit/AWEEditActionItemView.h",
+    "pod_support/Headers/Public/CreativeKit/AWEEditAndPublishViewActionContainerModel.h",
+    "pod_support/Headers/Public/CreativeKit/AWEEditAndPublishViewData.h",
+    "pod_support/Headers/Public/CreativeKit/CALayer+AWEStudioAddtions.h",
+    "pod_support/Headers/Public/CreativeKit/CMTime+ACC.h",
+    "pod_support/Headers/Public/CreativeKit/NSArray+ACCAdditions.h",
+    "pod_support/Headers/Public/CreativeKit/NSAttributedString+ACCUIDynamicColor.h",
+    "pod_support/Headers/Public/CreativeKit/NSDate+ACCAdditions.h",
+    "pod_support/Headers/Public/CreativeKit/NSDictionary+ACCAdditions.h",
+    "pod_support/Headers/Public/CreativeKit/NSNumber+ACCAdditions.h",
+    "pod_support/Headers/Public/CreativeKit/NSNumber+CameraClientResource.h",
+    "pod_support/Headers/Public/CreativeKit/NSObject+ACCAdditions.h",
+    "pod_support/Headers/Public/CreativeKit/NSObject+ACCProtocolContainer.h",
+    "pod_support/Headers/Public/CreativeKit/NSObject+ACCSwizzle.h",
+    "pod_support/Headers/Public/CreativeKit/NSProxy+ACCProtocolContainer.h",
+    "pod_support/Headers/Public/CreativeKit/NSString+CameraClientResource.h",
+    "pod_support/Headers/Public/CreativeKit/NSTimer+ACCAdditions.h",
+    "pod_support/Headers/Public/CreativeKit/UIApplication+ACC.h",
+    "pod_support/Headers/Public/CreativeKit/UIButton+ACCAdd.h",
+    "pod_support/Headers/Public/CreativeKit/UIButton+ACCAdditions.h",
+    "pod_support/Headers/Public/CreativeKit/UIColor+ACC.h",
+    "pod_support/Headers/Public/CreativeKit/UIColor+ACCAdditions.h",
+    "pod_support/Headers/Public/CreativeKit/UIColor+CameraClientResource.h",
+    "pod_support/Headers/Public/CreativeKit/UIDevice+ACCHardware.h",
+    "pod_support/Headers/Public/CreativeKit/UIFont+ACC.h",
+    "pod_support/Headers/Public/CreativeKit/UIFont+ACCAdditions.h",
+    "pod_support/Headers/Public/CreativeKit/UIFont+ACCUIKit.h",
+    "pod_support/Headers/Public/CreativeKit/UIFont+CameraClientResource.h",
+    "pod_support/Headers/Public/CreativeKit/UIImage+ACC.h",
+    "pod_support/Headers/Public/CreativeKit/UIImage+ACCAdditions.h",
+    "pod_support/Headers/Public/CreativeKit/UIImage+CameraClientResource.h",
+    "pod_support/Headers/Public/CreativeKit/UIImageView+ACCAddtions.h",
+    "pod_support/Headers/Public/CreativeKit/UILabel+ACCShadow.h",
+    "pod_support/Headers/Public/CreativeKit/UISearchBar+ACCAdditions.h",
+    "pod_support/Headers/Public/CreativeKit/UIView+ACCLayerColor.h",
+    "pod_support/Headers/Public/CreativeKit/UIView+ACCUITheme.h",
+    "pod_support/Headers/Public/CreativeKit/UIView+AWEStudioAdditions.h",
+    "pod_support/Headers/Public/CreativeKit/UIView+AWESubtractMask.h",
+    "pod_support/Headers/Public/CreativeKit/UIView+Animation.h",
+    "pod_support/Headers/Public/CreativeKit/UIViewController+ACCUITheme.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CameraArch_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CameraArch_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "CameraArch_module_map",
+  module_map = "pod_support/Headers/Public/CreativeKit/CreativeKit_CameraArch-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreativeKit/CreativeKit_CameraArch-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CameraArch_srcs",
+  srcs = [
+    "CreativeKit/CameraArch/ViewContainer/ACCLayoutViewTypeDefines.m",
+    "CreativeKit/CameraArch/Tools/Category/UISearchBar+ACCAdditions.m",
+    "CreativeKit/CameraArch/Tools/Resource/Theme/UIView+ACCUITheme.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CameraArch_oc",
+  enable_modules = 1,
+  srcs = [
+    "CameraArch_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "CameraArch_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreativeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreativeKit_private_includes",
+    ":CreativeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@IESInject//:Core_objc_interface",
+    "@IESLiveResourcesButler//:IESLiveResourcesButler_objc_interface",
+    "@IESInject//:Core_swift_interface",
+    "@IESLiveResourcesButler//:IESLiveResourcesButler_swift_interface",
+    ":CreativeKit_CameraArch_VendoredLibraries",
+    ":CameraArch_objc_interface",
+    "@IESInject//:Core_module_map",
+    "@IESLiveResourcesButler//:IESLiveResourcesButler_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CameraArch",
+  deps = [
+    ":CameraArch_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "CameraArch_lib",
+  deps = [
+    ":CameraArch"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Debug_hdrs",
+  srcs = [
+    "CreativeKit/Debug/ACCMemoryMonitor.h",
+    "CreativeKit/Debug/ACCWeakObjectWrapper.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Debug_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CreativeKit/ACCMemoryMonitor.h",
+    "pod_support/Headers/Private/CreativeKit/ACCWeakObjectWrapper.h",
+    "pod_support/Headers/Public/CreativeKit/ACCMemoryMonitor.h",
+    "pod_support/Headers/Public/CreativeKit/ACCWeakObjectWrapper.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Debug_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Debug_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Debug_module_map",
+  module_map = "pod_support/Headers/Public/CreativeKit/CreativeKit_Debug-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreativeKit/CreativeKit_Debug-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Debug_srcs",
+  srcs = [
+    "CreativeKit/Debug/ACCMemoryMonitor.mm"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Debug_oc",
+  enable_modules = 1,
+  srcs = [
+    "Debug_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Debug_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreativeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreativeKit_private_includes",
+    ":CreativeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":CreativeKit_Debug_VendoredLibraries",
+    ":Debug_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-DACC_DEBUG_MODE=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Debug",
+  deps = [
+    ":Debug_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Debug_lib",
+  deps = [
+    ":Debug"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Performance_hdrs",
+  srcs = [
+    "CreativeKit/Performance/ACCPerformanceUtilsProtocol.h",
+    "CreativeKit/Performance/ACCToolPerformanceTrakcer.h",
+    "CreativeKit/Performance/ACCToolUIReactTracker.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Performance_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CreativeKit/ACCPerformanceUtilsProtocol.h",
+    "pod_support/Headers/Private/CreativeKit/ACCToolPerformanceTrakcer.h",
+    "pod_support/Headers/Private/CreativeKit/ACCToolUIReactTracker.h",
+    "pod_support/Headers/Public/CreativeKit/ACCPerformanceUtilsProtocol.h",
+    "pod_support/Headers/Public/CreativeKit/ACCToolPerformanceTrakcer.h",
+    "pod_support/Headers/Public/CreativeKit/ACCToolUIReactTracker.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Performance_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Performance_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Performance_module_map",
+  module_map = "pod_support/Headers/Public/CreativeKit/CreativeKit_Performance-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreativeKit/CreativeKit_Performance-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Performance_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Performance_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreativeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreativeKit_private_includes",
+    ":CreativeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":CreativeKit_Performance_VendoredLibraries",
+    ":Performance_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Performance",
+  deps = [
+    ":Performance_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Performance_lib",
+  deps = [
+    ":Performance"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Tests_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Tests_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Tests_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Tests_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Tests_module_map",
+  module_map = "pod_support/Headers/Public/CreativeKit/CreativeKit_Tests-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreativeKit/CreativeKit_Tests-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Tests_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Tests_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreativeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreativeKit_private_includes",
+    ":CreativeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Baymax//:Baymax_objc_interface",
+    "@OCMock//:OCMock_objc_interface",
+    "@Baymax//:Baymax_swift_interface",
+    "@OCMock//:OCMock_swift_interface",
+    ":CreativeKit_Tests_VendoredLibraries",
+    ":Tests_objc_interface",
+    "@Baymax//:Baymax_module_map",
+    "@OCMock//:OCMock_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Tests",
+  deps = [
+    ":Tests_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Tests_lib",
+  deps = [
+    ":Tests"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "_Dummy_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "_Dummy_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "_Dummy_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "_Dummy_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "_Dummy_module_map",
+  module_map = "pod_support/Headers/Public/CreativeKit/CreativeKit__Dummy-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreativeKit/CreativeKit__Dummy-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "_Dummy_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "_Dummy_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreativeKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreativeKit_private_includes",
+    ":CreativeKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":CreativeKit__Dummy_VendoredLibraries",
+    ":_Dummy_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "_Dummy",
+  deps = [
+    ":_Dummy_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "_Dummy_lib",
+  deps = [
+    ":_Dummy"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_CreativeKit_module_map",
+  module_map = "@CreativeKit//:pod_support/Headers/Public/CreativeKit/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@CreativeKit//:pod_support/Headers/Public/CreativeKit/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_CreativeKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@CreativeKit//:CameraArch_objc_interface", "@CreativeKit//:CreativeKit_objc_interface", "@CreativeKit//:Debug_objc_interface", "@CreativeKit//:MobileInfra_objc_interface", "@CreativeKit//:Performance_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_CreativeKit",
+  target_name = "Lark",
+  module_name = "CreativeKit",
+  hdrs = ["@CreativeKit//:CameraArch_pod_hdrs", "@CreativeKit//:CreativeKit_root_pod_hdrs", "@CreativeKit//:Debug_pod_hdrs", "@CreativeKit//:MobileInfra_pod_hdrs", "@CreativeKit//:Performance_pod_hdrs"],
+  srcs = ["@CreativeKit//:CameraArch_srcs", "@CreativeKit//:Debug_srcs", "@CreativeKit//:MobileInfra_srcs"],
+  non_arc_srcs = [],
+  deps = ["@CreativeKit//:CreativeKit_CameraArch_VendoredLibraries", "@CreativeKit//:CreativeKit_Debug_VendoredLibraries", "@CreativeKit//:CreativeKit_MobileInfra_VendoredLibraries", "@CreativeKit//:CreativeKit_Performance_VendoredLibraries"],
+  pod_deps = ["IESInject", "IESLiveResourcesButler", "libextobjc"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-DACC_DEBUG_MODE=1",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "CreativeKit_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "CreativeKit_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "CreativeKit_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "CreativeKit_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "CreativeKit_dynamic", False),
+  tags = getattr(defs_external_objc_library, "CreativeKit_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("CreativeKit", {}),
+  visibility = ["//visibility:public"],
+)

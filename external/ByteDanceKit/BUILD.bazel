@@ -1,0 +1,1112 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "ByteDanceKit_pod_hdrs",
+  srcs = [
+    ":ByteDanceKit_root_pod_hdrs",
+    ":UIKit_pod_hdrs",
+    ":Foundation_pod_hdrs",
+    ":Utilities_pod_hdrs",
+    ":Legacy_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "ByteDanceKit_private_includes",
+  include = [
+    "external/ByteDanceKit/pod_support/Headers/Private/ByteDanceKit/"
+  ],
+  deps = [],
+  external_name = "ByteDanceKit"
+)
+gen_includes(
+  name = "ByteDanceKit_public_includes",
+  include = [
+    "external/ByteDanceKit/pod_support/Headers/Public/ByteDanceKit/"
+  ],
+  deps = [],
+  external_name = "ByteDanceKit"
+)
+filegroup(
+  name = "_ByteDanceKit_hdrs",
+  srcs = [
+    ":ByteDanceKit_root_hdrs",
+    ":UIKit_hdrs",
+    ":Foundation_hdrs",
+    ":Utilities_hdrs",
+    ":Legacy_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "ByteDanceKit_xcode_hmapsource",
+  hdrs = [
+    ":ByteDanceKit_root_hdrs",
+    ":Foundation_hdrs",
+    ":UIKit_hdrs",
+    ":Utilities_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "ByteDanceKit_xcode_hmap",
+  dep = ":ByteDanceKit_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/ByteDanceKit/*-bitsky-generated.modulemap", "pod_support/Headers/Public/ByteDanceKit/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "ByteDanceKit_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "ByteDanceKit",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "ByteDanceKit_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":ByteDanceKit_xcode_hmap"
+  ],
+  external_name = "ByteDanceKit",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ByteDanceKit_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ByteDanceKit_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ByteDanceKit_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ByteDanceKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ByteDanceKit_module_map",
+  module_map = "pod_support/Headers/Public/ByteDanceKit/ByteDanceKit-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/ByteDanceKit/ByteDanceKit-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ByteDanceKit_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "ByteDanceKit_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Accelerate",
+    "CoreTelephony",
+    "QuartzCore",
+    "CoreGraphics",
+    "SystemConfiguration",
+    "CoreImage",
+    "CoreText",
+    "Security"
+  ],
+  deps = [
+    ":ByteDanceKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":ByteDanceKit_private_includes",
+    ":ByteDanceKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":ByteDanceKit_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DByteDanceKit_POD_VERSION=@\\\"9999_2.2.10\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ByteDanceKit",
+  deps = [
+    ":ByteDanceKit_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ByteDanceKit_lib",
+  deps = [
+    ":ByteDanceKit"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "UIKit_hdrs",
+  srcs = [
+    "ByteDanceKit/Classes/UIKit/BTDResponder.h",
+    "ByteDanceKit/Classes/UIKit/UIApplication+BTDAdditions.h",
+    "ByteDanceKit/Classes/UIKit/UIButton+BTDAdditions.h",
+    "ByteDanceKit/Classes/UIKit/UIColor+BTDAdditions.h",
+    "ByteDanceKit/Classes/UIKit/UIControl+BTDAdditions.h",
+    "ByteDanceKit/Classes/UIKit/UIDevice+BTDAdditions.h",
+    "ByteDanceKit/Classes/UIKit/UIGestureRecognizer+BTDAdditions.h",
+    "ByteDanceKit/Classes/UIKit/UIImage+BTDAdditions.h",
+    "ByteDanceKit/Classes/UIKit/UILabel+BTDAdditions.h",
+    "ByteDanceKit/Classes/UIKit/UIScrollView+BTDAdditions.h",
+    "ByteDanceKit/Classes/UIKit/UIView+BTDAdditions.h",
+    "ByteDanceKit/Classes/UIKit/UIWindow+BTDAdditions.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "UIKit_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/ByteDanceKit/BTDResponder.h",
+    "pod_support/Headers/Private/ByteDanceKit/UIApplication+BTDAdditions.h",
+    "pod_support/Headers/Private/ByteDanceKit/UIButton+BTDAdditions.h",
+    "pod_support/Headers/Private/ByteDanceKit/UIColor+BTDAdditions.h",
+    "pod_support/Headers/Private/ByteDanceKit/UIControl+BTDAdditions.h",
+    "pod_support/Headers/Private/ByteDanceKit/UIDevice+BTDAdditions.h",
+    "pod_support/Headers/Private/ByteDanceKit/UIGestureRecognizer+BTDAdditions.h",
+    "pod_support/Headers/Private/ByteDanceKit/UIImage+BTDAdditions.h",
+    "pod_support/Headers/Private/ByteDanceKit/UILabel+BTDAdditions.h",
+    "pod_support/Headers/Private/ByteDanceKit/UIScrollView+BTDAdditions.h",
+    "pod_support/Headers/Private/ByteDanceKit/UIView+BTDAdditions.h",
+    "pod_support/Headers/Private/ByteDanceKit/UIWindow+BTDAdditions.h",
+    "pod_support/Headers/Public/ByteDanceKit/BTDResponder.h",
+    "pod_support/Headers/Public/ByteDanceKit/UIApplication+BTDAdditions.h",
+    "pod_support/Headers/Public/ByteDanceKit/UIButton+BTDAdditions.h",
+    "pod_support/Headers/Public/ByteDanceKit/UIColor+BTDAdditions.h",
+    "pod_support/Headers/Public/ByteDanceKit/UIControl+BTDAdditions.h",
+    "pod_support/Headers/Public/ByteDanceKit/UIDevice+BTDAdditions.h",
+    "pod_support/Headers/Public/ByteDanceKit/UIGestureRecognizer+BTDAdditions.h",
+    "pod_support/Headers/Public/ByteDanceKit/UIImage+BTDAdditions.h",
+    "pod_support/Headers/Public/ByteDanceKit/UILabel+BTDAdditions.h",
+    "pod_support/Headers/Public/ByteDanceKit/UIScrollView+BTDAdditions.h",
+    "pod_support/Headers/Public/ByteDanceKit/UIView+BTDAdditions.h",
+    "pod_support/Headers/Public/ByteDanceKit/UIWindow+BTDAdditions.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "UIKit_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "UIKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "UIKit_module_map",
+  module_map = "pod_support/Headers/Public/ByteDanceKit/ByteDanceKit_UIKit-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/ByteDanceKit/ByteDanceKit_UIKit-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "UIKit_srcs",
+  srcs = [
+    "ByteDanceKit/Classes/UIKit/BTDResponder.m",
+    "ByteDanceKit/Classes/UIKit/UIApplication+BTDAdditions.m",
+    "ByteDanceKit/Classes/UIKit/UIButton+BTDAdditions.m",
+    "ByteDanceKit/Classes/UIKit/UIColor+BTDAdditions.m",
+    "ByteDanceKit/Classes/UIKit/UIControl+BTDAdditions.m",
+    "ByteDanceKit/Classes/UIKit/UIDevice+BTDAdditions.m",
+    "ByteDanceKit/Classes/UIKit/UIGestureRecognizer+BTDAdditions.m",
+    "ByteDanceKit/Classes/UIKit/UIImage+BTDAdditions.m",
+    "ByteDanceKit/Classes/UIKit/UILabel+BTDAdditions.m",
+    "ByteDanceKit/Classes/UIKit/UIScrollView+BTDAdditions.m",
+    "ByteDanceKit/Classes/UIKit/UIView+BTDAdditions.m",
+    "ByteDanceKit/Classes/UIKit/UIWindow+BTDAdditions.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "UIKit_oc",
+  enable_modules = 1,
+  srcs = [
+    "UIKit_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "UIKit_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Accelerate",
+    "CoreTelephony",
+    "QuartzCore",
+    "CoreGraphics",
+    "SystemConfiguration",
+    "CoreImage",
+    "CoreText",
+    "Security",
+    "UIKit"
+  ],
+  deps = [
+    ":ByteDanceKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":ByteDanceKit_private_includes",
+    ":ByteDanceKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":UIKit_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DByteDanceKit_POD_VERSION=@\\\"9999_2.2.10\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "UIKit",
+  deps = [
+    ":UIKit_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "UIKit_lib",
+  deps = [
+    ":UIKit"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Foundation_hdrs",
+  srcs = [
+    "ByteDanceKit/Classes/BTDMacros.h",
+    "ByteDanceKit/Classes/ByteDanceKit.h",
+    "ByteDanceKit/Classes/Foundation/BTDDispatch.h",
+    "ByteDanceKit/Classes/Foundation/BTDWeakProxy.h",
+    "ByteDanceKit/Classes/Foundation/NSArray+BTDAdditions.h",
+    "ByteDanceKit/Classes/Foundation/NSBundle+BTDAdditions.h",
+    "ByteDanceKit/Classes/Foundation/NSData+BTDAdditions.h",
+    "ByteDanceKit/Classes/Foundation/NSDate+BTDAdditions.h",
+    "ByteDanceKit/Classes/Foundation/NSDictionary+BTDAdditions.h",
+    "ByteDanceKit/Classes/Foundation/NSFileManager+BTDAdditions.h",
+    "ByteDanceKit/Classes/Foundation/NSNumber+BTDAdditions.h",
+    "ByteDanceKit/Classes/Foundation/NSObject+BTDAdditions.h",
+    "ByteDanceKit/Classes/Foundation/NSObject+BTDBlockObservation.h",
+    "ByteDanceKit/Classes/Foundation/NSSet+BTDAdditions.h",
+    "ByteDanceKit/Classes/Foundation/NSString+BTDAdditions.h",
+    "ByteDanceKit/Classes/Foundation/NSTimer+BTDAdditions.h",
+    "ByteDanceKit/Classes/Foundation/NSURL+BTDAdditions.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Foundation_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/ByteDanceKit/BTDDispatch.h",
+    "pod_support/Headers/Private/ByteDanceKit/BTDMacros.h",
+    "pod_support/Headers/Private/ByteDanceKit/BTDWeakProxy.h",
+    "pod_support/Headers/Private/ByteDanceKit/ByteDanceKit.h",
+    "pod_support/Headers/Private/ByteDanceKit/NSArray+BTDAdditions.h",
+    "pod_support/Headers/Private/ByteDanceKit/NSBundle+BTDAdditions.h",
+    "pod_support/Headers/Private/ByteDanceKit/NSData+BTDAdditions.h",
+    "pod_support/Headers/Private/ByteDanceKit/NSDate+BTDAdditions.h",
+    "pod_support/Headers/Private/ByteDanceKit/NSDictionary+BTDAdditions.h",
+    "pod_support/Headers/Private/ByteDanceKit/NSFileManager+BTDAdditions.h",
+    "pod_support/Headers/Private/ByteDanceKit/NSNumber+BTDAdditions.h",
+    "pod_support/Headers/Private/ByteDanceKit/NSObject+BTDAdditions.h",
+    "pod_support/Headers/Private/ByteDanceKit/NSObject+BTDBlockObservation.h",
+    "pod_support/Headers/Private/ByteDanceKit/NSSet+BTDAdditions.h",
+    "pod_support/Headers/Private/ByteDanceKit/NSString+BTDAdditions.h",
+    "pod_support/Headers/Private/ByteDanceKit/NSTimer+BTDAdditions.h",
+    "pod_support/Headers/Private/ByteDanceKit/NSURL+BTDAdditions.h",
+    "pod_support/Headers/Public/ByteDanceKit/BTDDispatch.h",
+    "pod_support/Headers/Public/ByteDanceKit/BTDMacros.h",
+    "pod_support/Headers/Public/ByteDanceKit/BTDWeakProxy.h",
+    "pod_support/Headers/Public/ByteDanceKit/ByteDanceKit.h",
+    "pod_support/Headers/Public/ByteDanceKit/NSArray+BTDAdditions.h",
+    "pod_support/Headers/Public/ByteDanceKit/NSBundle+BTDAdditions.h",
+    "pod_support/Headers/Public/ByteDanceKit/NSData+BTDAdditions.h",
+    "pod_support/Headers/Public/ByteDanceKit/NSDate+BTDAdditions.h",
+    "pod_support/Headers/Public/ByteDanceKit/NSDictionary+BTDAdditions.h",
+    "pod_support/Headers/Public/ByteDanceKit/NSFileManager+BTDAdditions.h",
+    "pod_support/Headers/Public/ByteDanceKit/NSNumber+BTDAdditions.h",
+    "pod_support/Headers/Public/ByteDanceKit/NSObject+BTDAdditions.h",
+    "pod_support/Headers/Public/ByteDanceKit/NSObject+BTDBlockObservation.h",
+    "pod_support/Headers/Public/ByteDanceKit/NSSet+BTDAdditions.h",
+    "pod_support/Headers/Public/ByteDanceKit/NSString+BTDAdditions.h",
+    "pod_support/Headers/Public/ByteDanceKit/NSTimer+BTDAdditions.h",
+    "pod_support/Headers/Public/ByteDanceKit/NSURL+BTDAdditions.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Foundation_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Foundation_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Foundation_module_map",
+  module_map = "pod_support/Headers/Public/ByteDanceKit/ByteDanceKit_Foundation-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/ByteDanceKit/ByteDanceKit_Foundation-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Foundation_srcs",
+  srcs = [
+    "ByteDanceKit/Classes/Foundation/BTDDispatch.m",
+    "ByteDanceKit/Classes/BTDMacros.m",
+    "ByteDanceKit/Classes/Foundation/BTDWeakProxy.m",
+    "ByteDanceKit/Classes/Foundation/NSArray+BTDAdditions.m",
+    "ByteDanceKit/Classes/Foundation/NSBundle+BTDAdditions.m",
+    "ByteDanceKit/Classes/Foundation/NSData+BTDAdditions.m",
+    "ByteDanceKit/Classes/Foundation/NSDate+BTDAdditions.m",
+    "ByteDanceKit/Classes/Foundation/NSDictionary+BTDAdditions.m",
+    "ByteDanceKit/Classes/Foundation/NSFileManager+BTDAdditions.m",
+    "ByteDanceKit/Classes/Foundation/NSNumber+BTDAdditions.m",
+    "ByteDanceKit/Classes/Foundation/NSObject+BTDAdditions.m",
+    "ByteDanceKit/Classes/Foundation/NSObject+BTDBlockObservation.m",
+    "ByteDanceKit/Classes/Foundation/NSSet+BTDAdditions.m",
+    "ByteDanceKit/Classes/Foundation/NSString+BTDAdditions.m",
+    "ByteDanceKit/Classes/Foundation/NSTimer+BTDAdditions.m",
+    "ByteDanceKit/Classes/Foundation/NSURL+BTDAdditions.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Foundation_oc",
+  enable_modules = 1,
+  srcs = [
+    "Foundation_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Foundation_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Accelerate",
+    "CoreTelephony",
+    "QuartzCore",
+    "CoreGraphics",
+    "SystemConfiguration",
+    "CoreImage",
+    "CoreText",
+    "Security"
+  ],
+  deps = [
+    ":ByteDanceKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":ByteDanceKit_private_includes",
+    ":ByteDanceKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Foundation_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DByteDanceKit_POD_VERSION=@\\\"9999_2.2.10\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Foundation",
+  deps = [
+    ":Foundation_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Foundation_lib",
+  deps = [
+    ":Foundation"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Utilities_hdrs",
+  srcs = [
+    "ByteDanceKit/Classes/Utilities/BTDNetworkUtilities.h",
+    "ByteDanceKit/Classes/Utilities/BTDPingServices.h",
+    "ByteDanceKit/Classes/Utilities/BTDReachability.h",
+    "ByteDanceKit/Classes/Utilities/BTDSimplePing.h",
+    "ByteDanceKit/Classes/Utilities/BTDkeyChainStorage.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Utilities_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/ByteDanceKit/BTDNetworkUtilities.h",
+    "pod_support/Headers/Private/ByteDanceKit/BTDPingServices.h",
+    "pod_support/Headers/Private/ByteDanceKit/BTDReachability.h",
+    "pod_support/Headers/Private/ByteDanceKit/BTDSimplePing.h",
+    "pod_support/Headers/Private/ByteDanceKit/BTDkeyChainStorage.h",
+    "pod_support/Headers/Public/ByteDanceKit/BTDNetworkUtilities.h",
+    "pod_support/Headers/Public/ByteDanceKit/BTDPingServices.h",
+    "pod_support/Headers/Public/ByteDanceKit/BTDReachability.h",
+    "pod_support/Headers/Public/ByteDanceKit/BTDSimplePing.h",
+    "pod_support/Headers/Public/ByteDanceKit/BTDkeyChainStorage.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Utilities_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Utilities_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Utilities_module_map",
+  module_map = "pod_support/Headers/Public/ByteDanceKit/ByteDanceKit_Utilities-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/ByteDanceKit/ByteDanceKit_Utilities-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Utilities_srcs",
+  srcs = [
+    "ByteDanceKit/Classes/Utilities/BTDkeyChainStorage.m",
+    "ByteDanceKit/Classes/Utilities/BTDNetworkUtilities.m",
+    "ByteDanceKit/Classes/Utilities/BTDPingServices.m",
+    "ByteDanceKit/Classes/Utilities/BTDReachability.m",
+    "ByteDanceKit/Classes/Utilities/BTDSimplePing.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Utilities_oc",
+  enable_modules = 1,
+  srcs = [
+    "Utilities_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Utilities_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Accelerate",
+    "CoreTelephony",
+    "QuartzCore",
+    "CoreGraphics",
+    "SystemConfiguration",
+    "CoreImage",
+    "CoreText",
+    "Security",
+    "CFNetwork"
+  ],
+  deps = [
+    ":ByteDanceKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":ByteDanceKit_private_includes",
+    ":ByteDanceKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Utilities_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DByteDanceKit_POD_VERSION=@\\\"9999_2.2.10\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Utilities",
+  deps = [
+    ":Utilities_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Utilities_lib",
+  deps = [
+    ":Utilities"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Legacy_hdrs",
+  srcs = [
+    "ByteDanceKit/Classes/Legacy/UIDevice+BTDLegacy.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Legacy_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Legacy_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Legacy_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Legacy_module_map",
+  module_map = "pod_support/Headers/Public/ByteDanceKit/ByteDanceKit_Legacy-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/ByteDanceKit/ByteDanceKit_Legacy-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Legacy_srcs",
+  srcs = [
+    "ByteDanceKit/Classes/Legacy/UIDevice+BTDLegacy.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Legacy_oc",
+  enable_modules = 1,
+  srcs = [
+    "Legacy_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Legacy_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Accelerate",
+    "CoreTelephony",
+    "QuartzCore",
+    "CoreGraphics",
+    "SystemConfiguration",
+    "CoreImage",
+    "CoreText",
+    "Security",
+    "UIKit"
+  ],
+  deps = [
+    ":ByteDanceKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":ByteDanceKit_private_includes",
+    ":ByteDanceKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Legacy_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DByteDanceKit_POD_VERSION=@\\\"9999_2.2.10\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Legacy",
+  deps = [
+    ":Legacy_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Legacy_lib",
+  deps = [
+    ":Legacy"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_ByteDanceKit_module_map",
+  module_map = "@ByteDanceKit//:pod_support/Headers/Public/ByteDanceKit/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@ByteDanceKit//:pod_support/Headers/Public/ByteDanceKit/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_ByteDanceKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@ByteDanceKit//:ByteDanceKit_objc_interface", "@ByteDanceKit//:Foundation_objc_interface", "@ByteDanceKit//:UIKit_objc_interface", "@ByteDanceKit//:Utilities_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_ByteDanceKit",
+  target_name = "Lark",
+  module_name = "ByteDanceKit",
+  hdrs = ["@ByteDanceKit//:ByteDanceKit_root_pod_hdrs", "@ByteDanceKit//:Foundation_pod_hdrs", "@ByteDanceKit//:UIKit_pod_hdrs", "@ByteDanceKit//:Utilities_pod_hdrs"],
+  srcs = ["@ByteDanceKit//:Foundation_srcs", "@ByteDanceKit//:UIKit_srcs", "@ByteDanceKit//:Utilities_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DByteDanceKit_POD_VERSION=@\\\"9999_2.2.10\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "ByteDanceKit_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "ByteDanceKit_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["Accelerate", "CoreTelephony", "QuartzCore", "CoreGraphics", "SystemConfiguration", "CoreImage", "CoreText", "Security", "UIKit", "CFNetwork"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "ByteDanceKit_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "ByteDanceKit_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "ByteDanceKit_dynamic", False),
+  tags = getattr(defs_external_objc_library, "ByteDanceKit_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("ByteDanceKit", {}),
+  visibility = ["//visibility:public"],
+)

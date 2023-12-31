@@ -1,0 +1,61 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+require_relative '../../../fastlane/remove_unused_pb_common'
+
+default_platform(:ios)
+
+platform :ios do
+  lane :build_verify do |options|
+    merge_policy = lambda do |key, o, n|
+      if o.is_a? Hash and n.is_a? Hash
+        o.merge!(n, &merge_policy)
+      elsif Fastlane::Actions::XcodebuildAction::ARGS_MAP.include? key and n == 'false'
+        nil # remove action
+      else
+        n
+      end
+    end
+    LOG_DIR="#{ENV['TARGETCODEPATH']}/Logs" # 默认的收集的LOG路径
+    options = {
+      workspace: 'LarkTodo.xcworkspace',
+      scheme: 'LarkTodo',
+      configuration: 'Debug',
+      clean: true,
+      build: true,
+      raw_buildlog: false, # show output from script like swiftlint
+      destination: 'generic/platform=iOS Simulator',
+      buildlog_path: LOG_DIR,
+      build_settings: {
+        'CODE_SIGNING_REQUIRED' => 'NO',
+        'VALID_ARCHS' => 'x86_64'
+      },
+      derivedDataPath: ENV['DERIVED_DATA_PATH'],
+      result_bundle_path: ENV['RESULT_DATA_PATH']
+    }.merge!(options, &merge_policy)
+    xcodebuild options
+
+  end
+
+  lane :revert_remove_unused_pb do |options|
+    _revert_remove_unused_pb(options)
+  end
+
+  lane :remove_unused_pb do |options|
+    # 删除无用pb message（文档：https://bytedance.feishu.cn/wiki/wikcnSevDX5Izu7OSlfmAmVxrle）
+    options['REMOVE_PB_PROEJCT_DIR'] = "../../.."
+    _remove_unused_pb(options)
+  end
+end
+

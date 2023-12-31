@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/HMDLaunchOptimizer/Common/Private/HMDThreadQosCollector.h

@@ -1,0 +1,1 @@
+../../../../inc/sami_core_device_register.h

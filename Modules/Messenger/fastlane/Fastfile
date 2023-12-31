@@ -1,0 +1,377 @@
+# coding: utf-8
+# Customise this file, documentation can be found here:
+# https://github.com/fastlane/fastlane/tree/master/fastlane/docs
+# All available actions: https://docs.fastlane.tools/actions
+# can also be listed using the `fastlane actions` command
+
+# Change the syntax highlighting to Ruby
+# All lines starting with a # are ignored when running `fastlane`
+
+# If you want to automatically update fastlane if a new version is available:
+# update_fastlane
+
+# This is the minimum version number required.
+# Update this, if you use features of a newer version
+require 'yaml'
+require '../../../bin/lib/lark-project/lib/lark/project/environment'
+require_relative '../../../fastlane/remove_unused_pb_common'
+
+fastlane_version "2.108.0"
+
+default_platform :ios
+
+# 并发时xcodebuild极容易超时，设置一个长一点的超时，增加稳定性
+ENV['FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT'] ||= '60'
+# 推荐使用这个缩写来获取环境相关配置
+$lark_env ||= Lark::Project::Environment.instance
+
+platform :ios do
+  before_all do |lane|
+
+    lanes_to_skip = [:LarkCI, :execute_cocoapods, :UnitTest, :remove_unused_pb]
+
+    if lanes_to_skip.include?(lane)
+      puts "Skip #{lane} In Before All"
+    else
+      # switch between swift binary cache and source code
+      if ENV['IS_SWIFT_BINARY_CACHE_ENABLE'] == 'true'
+        sh 'echo "binary_all!" > ../Podfile.patch'
+      else
+        sh 'if [ -f ../Podfile.patch ]; then  rm ../Podfile.patch; fi'
+      end
+
+      execute_cocoapods
+    end
+  end
+
+  desc "Runs all the tests"
+  lane :test do
+    scan(
+      scheme: "LarkTests",
+      fail_build: false
+    )
+  end
+
+  def __c_log(string)
+    puts "* * * * * * * * #{string} * * * * * * * *"
+  end
+
+  # consume the build_channel, so only execute once
+  def consume_build_channel(options)
+    if (build_channel = options.delete(:build_channel))
+      sh "cd .. && ./BuildScript/XcodeEdit ./ BuildScript/config.json #{build_channel}"
+    end
+  end
+
+  desc "编译 Lark 包"
+  lane :Lark do |options|
+    if ENV['____SKIP_BUILD'].to_s == 'true'
+      next;
+    end
+
+    consume_build_channel(options)
+
+    sh "rm -rf #{options[:output_directory]}"
+
+    scheme = options[:scheme]
+    if !scheme
+      scheme = "Lark"
+    end
+    increment_build_number_in_plist(
+      scheme: scheme,
+      build_number: options[:build_number]
+    )
+    version = get_version_number_from_plist(scheme: scheme)
+    build = get_build_number_from_plist(scheme: scheme)
+    # cert
+    # sigh
+
+    export_method = options[:export_method]
+    if !export_method
+      export_method = "enterprise"
+    end
+    configuration = options[:configuration]
+    if !configuration
+      configuration = "Release"
+    end
+    iCloud_container_environment = options[:iCloud_container_environment]
+    if !iCloud_container_environment
+      iCloud_container_environment = "Production"
+    end
+
+    sh "mkdir -p #{options[:output_directory]}"
+
+    # write build commit hash to info.plist
+    sh '''
+      /usr/libexec/PlistBuddy -c "Delete build_commit_hash" ../LarkMessengerDemo/Info.plist || echo "Not found."
+      build_commit_hash=$(git -C ../ log -1 --pretty=format:"%h")
+      /usr/libexec/PlistBuddy -c "Add build_commit_hash string $build_commit_hash" ../LarkMessengerDemo/Info.plist || \
+      echo "Set commit hash failed."
+    '''
+    sh "rm ../archives/build_time.txt || exit 0"
+    # sh "xcode-build-times uninstall ../; xcode-build-times install ../ --events-file ../archives/build_time.txt"
+
+    # prepare for custom dsym
+    # 这里原本计划直接放到 xcode phases，但是有ruby环境依赖问题
+    # 所以这里先放置到 fastlane 中
+
+    project = Xcodeproj::Project.open("../Lark.xcodeproj")
+
+    target = project.targets.find { |target| target.name == "LarkMessengerDemo" }
+    target.build_configurations.each do |config|
+      next unless config.name == 'Release'
+      config.build_settings['DEBUG_INFORMATION_FORMAT'] = ''
+    end
+    project.save()
+
+    remove_unused_pb(options)
+
+    gym(
+      scheme: scheme,
+      clean: true,
+      silent: true,
+      configuration: configuration,
+      export_method: export_method,
+      export_options: {
+        iCloudContainerEnvironment: iCloud_container_environment
+      },
+      output_directory: options[:output_directory],
+      output_name: "#{scheme}_#{version}_#{build}",
+      xcargs: "LD_MAP_FILE_PATH='#{options[:output_directory]}/lark_link_map.txt'",
+      result_bundle: (!ENV['RESULT_DATA_PATH'].nil? and !ENV['RESULT_DATA_PATH'].empty?),
+      result_bundle_path: ENV['RESULT_DATA_PATH']
+    )
+  end
+
+  def get_lint_file_paths()
+
+    # find all changed files
+    change_file_list = `git diff --name-only --diff-filter=ACMRTX HEAD~1..HEAD ..`.split("\n")
+
+    # get excluded config
+    excluded = YAML.load(File.open("../.swiftlint.yml"))["excluded"].map { |path| path.to_s }
+
+    # filter all swift file
+    swift_file_list = change_file_list.find_all { |name|
+      name.end_with?(".swift") && !(excluded.any? { |e| name.start_with?(e) })
+    }
+    swift_file_list = swift_file_list.map { |v| v.delete_prefix("Modules/Messenger/") }
+
+    return [swift_file_list, change_file_list, excluded]
+  end
+
+  def get_swift_lint_executable_path()
+    fastlane_path = File::dirname(File.expand_path(__FILE__))
+    # Pods 下的 SwiftLint 文件路径
+    executable_path = File.join(File::dirname(fastlane_path), "Pods/SwiftLint/swiftlint")
+
+    # 有则说明命中了缓存，直接返回
+    if File::exist?(executable_path)
+      return executable_path
+    else
+      # 没有则去TOS下载可执行文件。
+      executable_zip_path = "#{fastlane_path}/swiftlint.zip"
+      executable_path = "#{fastlane_path}/swiftlint"
+      executable_zip_url = "http://tosv.byted.org/obj/ee-infra-ios/tools/swiftlint/swiftlint_0.50.0.zip"
+      sh "curl #{executable_zip_url} --output #{executable_zip_path}; unzip -o #{executable_zip_path}"
+
+      return executable_path
+    end
+  end
+
+  # 执行 swift lint
+  def run_swift_lint()
+    swift_file_list, change_file_list, excluded = get_lint_file_paths()
+
+    executable_path = get_swift_lint_executable_path().to_s
+
+    if File::exist?(executable_path) && swift_file_list.length > 0
+      swiftlint(
+        config_file: ".swiftlint.yml",
+        strict: true,
+        files: swift_file_list,
+        executable: executable_path
+      )
+    else
+      puts "Skip swiftlint, File list:\n#{change_file_list.join("\n")}\n\nIgnore config:\n #{excluded.join("\n")}"
+      return false
+    end
+
+    return true
+  end
+
+  desc "增量编译 Lark Debug 包，反馈编译结果"
+  lane :LarkCI do |options|
+    options[:iCloud_container_environment] = "Development"
+
+    puts options
+
+    # 执行SwiftLint并记录结果
+    has_lint = run_swift_lint()
+
+    # 验证appsize
+#    sh "pip3 install -r ../bin/verifyAppSize/requirements.txt"
+#    sh "python3 ../bin/verifyAppSize/check_size_quota.py --dir ../"
+
+    # see 'Podfile' for more detail.
+    if options.has_key?(:whole_module)
+      whole_module = options[:whole_module]
+    else
+      whole_module = true
+    end
+    ENV['SWIFT_WHOLE_MODULE_OPTIMIZATION'] = whole_module ? 'YES' : 'NO'
+
+    if options.has_key?(:build_for_testing)
+      build_for_testing = " build-for-testing"
+    else
+      build_for_testing = ""
+    end
+
+    # run pod install before swiftlint to download swiftlint executable.
+    execute_cocoapods incremental: true
+    # 如果第一次执行失败（不是lint失败，而是调用Lint失败）则再次执行
+    if !has_lint
+      run_swift_lint()
+    end
+
+    # 统一在主仓检测
+    # sh 'ruby ../checkSum/checkPodLock.rb'
+
+    if (ENV['BAZEL_ENABLE'] || "") == 'true'
+      puts "Using Bazel build system"
+      sh <<~SHELL
+      cd ..
+      bundle exec bitsky_install --need-pod-install false
+      bundle exec bitsky_build
+    SHELL
+    else       
+      puts "Using Xcode build system"
+      begin
+        sh <<~SHELL
+          cd ..
+          SYMROOT="$(PWD)/../Build"
+          # ByteView目前这个bundle导致pod脚本rsync删除失败，先提前删除，失败原因以后再查
+          # 而多余的link Frameworks缓存会导致BDLog c文件引入错误头文件
+          rm -rf "$SYMROOT"/*/*.app/ByteView.bundle
+          LOG_DIR="${GYM_BUILDLOG_PATH:-Logs}"
+          LOG_PATH="$LOG_DIR"/xcodebuild.log
+          echo "xcodebuild log output to $LOG_PATH"
+          mkdir -p "$LOG_DIR"
+          "$DEVELOPER_DIR/usr/bin/"xcodebuild -workspace Lark.xcworkspace -scheme LarkMessengerDemo -configuration Debug -sdk iphonesimulator -derivedDataPath "$DERIVED_DATA_PATH" -resultBundlePath "$RESULT_DATA_PATH" SYMROOT="$SYMROOT" clean build\
+          | tee "$LOG_PATH" \
+          | xcpretty && exit ${PIPESTATUS[0]}
+        SHELL
+        # sh "cd .. && fastlane/app-size-check.rb"
+      end
+    end
+  end
+
+  desc "Runs LarkMessenger Unit Test"
+  lane :UnitTest do
+    xctestrun = sh <<~'SHELL'
+      cd ..
+      SYMROOT="$(PWD)/../Build/"
+      find $SYMROOT -maxdepth 1 -name "*.xctestrun" | head -n 1
+    SHELL
+    puts xctestrun
+    scan(
+      scheme: "LarkMessengerUnitTest",
+      output_types: "html",
+      output_files: "scan.html",
+      output_directory: './UnitTestReport',
+      skip_build: 'true',
+      test_without_building: 'true',
+      xctestrun: xctestrun.chomp,
+    )
+    xcov(
+      workspace: "Lark.xcworkspace",
+      scheme: "LarkMessengerUnitTest",
+      output_directory: "./UnitTestReport"
+    )
+  end
+
+  desc "上传 DSYM zip 包"
+  def upload_symbols(options)
+    dsym_path = sh "find #{options[:output_directory]} -iname \"*dsym*.zip\" | head -1"
+    options[:dsym_path] = dsym_path.strip
+    upload_sym options
+  end
+
+  desc "上传 DSYM zip 包"
+  lane :upload_sym do |options|
+    dsym_path = options.delete(:dsym_path)
+    raise unless dsym_path
+    upload_symbols_to_slardar(dsym_path, options)
+  end
+
+  desc "上传 DSYM zip 包到 slardar"
+  def upload_symbols_to_slardar(dsym_path, options)
+    puts "begin upload dsym to slardar"
+
+    scheme = options[:scheme]
+    if !scheme
+      scheme = "Lark"
+    end
+
+    plistPath = get_info_plist_path(scheme: scheme)
+    appID = get_info_plist_value(path: plistPath, key: "AppId")
+
+    version = get_info_plist_value(path: plistPath, key: "CFBundleShortVersionString")
+    littleVersion = get_info_plist_value(path: plistPath, key: "CFBundleVersion")
+
+    versionUpdate_url = "https://cloudapi.bytedance.net/faas/services/tt4446x260a16e6e03/invoke/ObserveVersionUpdate\?aid\=#{appID}\&os\=iOS\&version\=#{version}\&littleVersion\=#{littleVersion}"
+    sh "curl \"#{versionUpdate_url}\" "
+
+    slardar_url = "http://symbolicate.byted.org/slardar_ios_upload"
+    sh "curl #{slardar_url} -F \"file=@#{dsym_path}\"  -F \"aid=#{appID}\" \"Content-Type: multipart/form-data\" -w %{http_code} -v"
+  end
+
+  desc "Execute Cocoapods"
+  lane :execute_cocoapods do |options|
+    pod_options = options.delete(:incremental) ? "" : "--clean-install"
+    begin
+      # eesc 0.1.130 deals some compatible issue, so may not need to full install
+      # when dev pod add international resources, generate new i18n auto.bundle, cache has problem
+      # The release package is still --clean-installl, since it is fully compiled.
+      sh "cd .. && pod install #{pod_options} || pod update LarkSQLCipher #{pod_options} --no-repo-update"
+    rescue
+      puts "Execute Pod Repo Update!"
+      sh "cd .. && pod install #{pod_options} --repo-update || pod update LarkSQLCipher #{pod_options}"
+    end
+  end
+
+
+  lane :revert_remove_unused_pb do |options|
+    _revert_remove_unused_pb(options)
+  end
+
+  lane :remove_unused_pb do |options|
+    # 删除无用pb message（文档：https://bytedance.feishu.cn/wiki/wikcnSevDX5Izu7OSlfmAmVxrle）
+    options['REMOVE_PB_PROEJCT_DIR'] = "../../.."
+    _remove_unused_pb(options)
+  end
+
+  # You can define as many lanes as you want
+
+  after_all do |lane|
+    # This block is called, only if the executed lane was successful
+
+    # slack(
+    #   message: "Successfully deployed new App Update."
+    # )
+  end
+
+  error do |lane, exception|
+    # slack(
+    #   message: exception.message,
+    #   success: false
+    # )
+  end
+end
+
+
+# More information about multiple platforms in fastlane: https://github.com/fastlane/fastlane/blob/master/fastlane/docs/Platforms.md
+# All available actions: https://docs.fastlane.tools/actions
+
+# fastlane reports which actions are used. No personal data is recorded.
+# Learn more at https://github.com/fastlane/fastlane#metrics

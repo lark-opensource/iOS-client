@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayAbility/PayManage/Protocol/CJPayMemProtocolListResponse.h

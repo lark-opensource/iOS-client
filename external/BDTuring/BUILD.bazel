@@ -1,0 +1,5918 @@
+load('@build_bazel_rules_apple//apple:resources.bzl', 'apple_resource_bundle', 'gen_bundle_plist')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "BDTuring_pod_hdrs",
+  srcs = [
+    ":BDTuring_root_pod_hdrs",
+    ":Utility_pod_hdrs",
+    ":Network_pod_hdrs",
+    ":Settings_pod_hdrs",
+    ":JSBridge_pod_hdrs",
+    ":View_pod_hdrs",
+    ":Core_pod_hdrs",
+    ":Localized_pod_hdrs",
+    ":Localized_EN_pod_hdrs",
+    ":Localized_ZH_pod_hdrs",
+    ":Localized_ZH-Hant_pod_hdrs",
+    ":Host_pod_hdrs",
+    ":Host_CN_pod_hdrs",
+    ":Host_IN_pod_hdrs",
+    ":Host_SG_pod_hdrs",
+    ":Host_VA_pod_hdrs",
+    ":Host_Custom_pod_hdrs",
+    ":Host_MT_pod_hdrs",
+    ":Identity_pod_hdrs",
+    ":TwiceVerify_pod_hdrs",
+    ":TwiceVerify_Main_pod_hdrs",
+    ":TwiceVerify_MessageUI_pod_hdrs",
+    ":Components_pod_hdrs",
+    ":Components_NetworkTag_pod_hdrs",
+    ":AccountSeal_pod_hdrs",
+    ":AutoVerify_pod_hdrs",
+    ":SMSCode_pod_hdrs",
+    ":TTNet_pod_hdrs",
+    ":TTNetProcessor_pod_hdrs",
+    ":mPaaS_pod_hdrs",
+    ":mPaaS_Task_pod_hdrs",
+    ":mPaaS_InHouse_pod_hdrs",
+    ":mPaaS_AutoVerifyInHouse_pod_hdrs",
+    ":mPaaS_h5bridgeInHouse_pod_hdrs",
+    ":mPaaS_China_pod_hdrs",
+    ":mPaaS_I18N_pod_hdrs",
+    ":mPaaS_SealInHouse_pod_hdrs",
+    ":mPaaS_IdentityInHouse_pod_hdrs",
+    ":Tests_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "BDTuring_private_includes",
+  include = [
+    "external/BDTuring/pod_support/Headers/Private/BDTuring/"
+  ],
+  deps = [],
+  external_name = "BDTuring"
+)
+gen_includes(
+  name = "BDTuring_public_includes",
+  include = [
+    "external/BDTuring/pod_support/Headers/Public/BDTuring/"
+  ],
+  deps = [],
+  external_name = "BDTuring"
+)
+filegroup(
+  name = "_BDTuring_hdrs",
+  srcs = [
+    ":BDTuring_root_hdrs",
+    ":Utility_hdrs",
+    ":Network_hdrs",
+    ":Settings_hdrs",
+    ":JSBridge_hdrs",
+    ":View_hdrs",
+    ":Core_hdrs",
+    ":Localized_hdrs",
+    ":Localized_EN_hdrs",
+    ":Localized_ZH_hdrs",
+    ":Localized_ZH-Hant_hdrs",
+    ":Host_hdrs",
+    ":Host_CN_hdrs",
+    ":Host_IN_hdrs",
+    ":Host_SG_hdrs",
+    ":Host_VA_hdrs",
+    ":Host_Custom_hdrs",
+    ":Host_MT_hdrs",
+    ":Identity_hdrs",
+    ":TwiceVerify_hdrs",
+    ":TwiceVerify_Main_hdrs",
+    ":TwiceVerify_MessageUI_hdrs",
+    ":Components_hdrs",
+    ":Components_NetworkTag_hdrs",
+    ":AccountSeal_hdrs",
+    ":AutoVerify_hdrs",
+    ":SMSCode_hdrs",
+    ":TTNet_hdrs",
+    ":TTNetProcessor_hdrs",
+    ":mPaaS_hdrs",
+    ":mPaaS_Task_hdrs",
+    ":mPaaS_InHouse_hdrs",
+    ":mPaaS_AutoVerifyInHouse_hdrs",
+    ":mPaaS_h5bridgeInHouse_hdrs",
+    ":mPaaS_China_hdrs",
+    ":mPaaS_I18N_hdrs",
+    ":mPaaS_SealInHouse_hdrs",
+    ":mPaaS_IdentityInHouse_hdrs",
+    ":Tests_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "BDTuring_xcode_hmapsource",
+  hdrs = [
+    ":BDTuring_root_hdrs",
+    ":Core_hdrs",
+    ":Host_CN_hdrs",
+    ":JSBridge_hdrs",
+    ":Localized_EN_hdrs",
+    ":Localized_ZH_hdrs",
+    ":Network_hdrs",
+    ":Settings_hdrs",
+    ":TTNet_hdrs",
+    ":TTNetProcessor_hdrs",
+    ":Utility_hdrs",
+    ":View_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "BDTuring_xcode_hmap",
+  dep = ":BDTuring_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/BDTuring/*-bitsky-generated.modulemap", "pod_support/Headers/Public/BDTuring/*-bitsky-generated-umbrella.h"]))
+gen_bundle_plist(
+  name = "GEN_BDTuringResource_Plist",
+  bundle_name = "BDTuringResource",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "2.2.9",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "BDTuring_Core_BDTuringResource",
+  bundle_name = "BDTuringResource",
+  infoplists = [
+    ":GEN_BDTuringResource_Plist"
+  ],
+  resources = glob(
+    [
+      "BDTuring/Assets/UI.xcassets/**"
+    ]
+  ) + [
+    "BDTuring/Assets/turing_close@2x.png",
+    "BDTuring/Assets/turing_NoNetwork@2x.png"
+  ],
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_bundle_plist(
+  name = "GEN_BDTuringLocalized-en_Plist",
+  bundle_name = "BDTuringLocalized-en",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "2.2.9",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "BDTuring_Localized_EN_BDTuringLocalized-en",
+  bundle_name = "BDTuringLocalized-en",
+  infoplists = [
+    ":GEN_BDTuringLocalized-en_Plist"
+  ],
+  resources = [
+    "BDTuring/Assets/LocalizedString/en.lproj/Localizable.strings"
+  ],
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_bundle_plist(
+  name = "GEN_BDTuringLocalized-zh_Plist",
+  bundle_name = "BDTuringLocalized-zh",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "2.2.9",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "BDTuring_Localized_ZH_BDTuringLocalized-zh",
+  bundle_name = "BDTuringLocalized-zh",
+  infoplists = [
+    ":GEN_BDTuringLocalized-zh_Plist"
+  ],
+  resources = [
+    "BDTuring/Assets/LocalizedString/zh.lproj/Localizable.strings"
+  ],
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_bundle_plist(
+  name = "GEN_BDTuringLocalized-zh-Hant_Plist",
+  bundle_name = "BDTuringLocalized-zh-Hant",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "2.2.9",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "BDTuring_Localized_ZH-Hant_BDTuringLocalized-zh-Hant",
+  bundle_name = "BDTuringLocalized-zh-Hant",
+  infoplists = [
+    ":GEN_BDTuringLocalized-zh-Hant_Plist"
+  ],
+  resources = [
+    "BDTuring/Assets/LocalizedString/zh-Hant.lproj/Localizable.strings"
+  ],
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_bundle_plist(
+  name = "GEN_BDTuringInHouseResource_Plist",
+  bundle_name = "BDTuringInHouseResource",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "2.2.9",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "BDTuring_mPaaS_InHouse_BDTuringInHouseResource",
+  bundle_name = "BDTuringInHouseResource",
+  infoplists = [
+    ":GEN_BDTuringInHouseResource_Plist"
+  ],
+  resources = [
+    "BDTuring/mPaaS/InHouse/Assets/sms_theme.json",
+    "BDTuring/mPaaS/InHouse/Assets/qa_theme.json",
+    "BDTuring/mPaaS/InHouse/Assets/test.json",
+    "BDTuring/mPaaS/InHouse/Assets/qa_text.json",
+    "BDTuring/mPaaS/InHouse/Assets/seal_theme.json",
+    "BDTuring/mPaaS/InHouse/Assets/picture_theme.json",
+    "BDTuring/mPaaS/InHouse/Assets/sms_text.json",
+    "BDTuring/mPaaS/InHouse/Assets/seal_text.json"
+  ],
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "BDTuring_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "BDTuring",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "BDTuring_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":BDTuring_xcode_hmap"
+  ],
+  external_name = "BDTuring",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDTuring_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDTuring_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDTuring_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDTuring_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "BDTuring_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDTuring_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "BDTuring_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":BDTuring_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDTuring",
+  deps = [
+    ":BDTuring_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "BDTuring_lib",
+  deps = [
+    ":BDTuring"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Utility_hdrs",
+  srcs = [
+    "BDTuring/Classes/Utility/BDTuringConfig+Parameters.h",
+    "BDTuring/Classes/Utility/BDTuringCoreConstant.h",
+    "BDTuring/Classes/Utility/BDTuringDeviceHelper.h",
+    "BDTuring/Classes/Utility/BDTuringMacro.h",
+    "BDTuring/Classes/Utility/BDTuringSandBoxHelper.h",
+    "BDTuring/Classes/Utility/BDTuringUtility.h",
+    "BDTuring/Classes/Utility/Event/BDTuringEventConstant.h",
+    "BDTuring/Classes/Utility/Event/BDTuringEventService.h",
+    "BDTuring/Classes/Utility/Extension/NSArray+BDTuring.h",
+    "BDTuring/Classes/Utility/Extension/NSData+BDTuring.h",
+    "BDTuring/Classes/Utility/Extension/NSDictionary+BDTuring.h",
+    "BDTuring/Classes/Utility/Extension/NSMutableDictionary+BDTuring.h",
+    "BDTuring/Classes/Utility/Extension/NSNumber+BDTuring.h",
+    "BDTuring/Classes/Utility/Extension/NSObject+BDTuring.h",
+    "BDTuring/Classes/Utility/Extension/NSString+BDTuring.h",
+    "BDTuring/Classes/Utility/Extension/UIColor+TuringHex.h",
+    "BDTuring/Classes/Utility/Model/BDTuringParameter.h",
+    "BDTuring/Classes/Utility/Model/BDTuringVerifyModel+Config.h",
+    "BDTuring/Classes/Utility/Model/BDTuringVerifyModel+Result.h",
+    "BDTuring/Classes/Utility/Model/BDTuringVerifyResult+Result.h",
+    "BDTuring/Classes/Utility/Model/BDTuringVerifyState.h",
+    "BDTuring/Classes/Utility/Service/BDTuringService.h",
+    "BDTuring/Classes/Utility/Service/BDTuringServiceCenter.h",
+    "BDTuring/Classes/Utility/public/BDTuringConfig.h",
+    "BDTuring/Classes/Utility/public/BDTuringDefine.h",
+    "BDTuring/Classes/Utility/public/BDTuringVerifyModel.h",
+    "BDTuring/Classes/Utility/public/BDTuringVerifyResult.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Utility_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDTuring/BDTuringConfig+Parameters.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringConfig.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringCoreConstant.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringDefine.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringDeviceHelper.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringEventConstant.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringEventService.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringMacro.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringParameter.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringSandBoxHelper.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringService.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringServiceCenter.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringUtility.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringVerifyModel+Config.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringVerifyModel+Result.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringVerifyModel.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringVerifyResult+Result.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringVerifyResult.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringVerifyState.h",
+    "pod_support/Headers/Private/BDTuring/NSArray+BDTuring.h",
+    "pod_support/Headers/Private/BDTuring/NSData+BDTuring.h",
+    "pod_support/Headers/Private/BDTuring/NSDictionary+BDTuring.h",
+    "pod_support/Headers/Private/BDTuring/NSMutableDictionary+BDTuring.h",
+    "pod_support/Headers/Private/BDTuring/NSNumber+BDTuring.h",
+    "pod_support/Headers/Private/BDTuring/NSObject+BDTuring.h",
+    "pod_support/Headers/Private/BDTuring/NSString+BDTuring.h",
+    "pod_support/Headers/Private/BDTuring/UIColor+TuringHex.h",
+    "pod_support/Headers/Public/BDTuring/BDTuringConfig.h",
+    "pod_support/Headers/Public/BDTuring/BDTuringDefine.h",
+    "pod_support/Headers/Public/BDTuring/BDTuringVerifyModel.h",
+    "pod_support/Headers/Public/BDTuring/BDTuringVerifyResult.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Utility_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Utility_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Utility_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_Utility-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_Utility-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Utility_srcs",
+  srcs = [
+    "BDTuring/Classes/Utility/BDTuringConfig+Parameters.m",
+    "BDTuring/Classes/Utility/public/BDTuringConfig.m",
+    "BDTuring/Classes/Utility/BDTuringCoreConstant.m",
+    "BDTuring/Classes/Utility/public/BDTuringDefine.m",
+    "BDTuring/Classes/Utility/BDTuringDeviceHelper.m",
+    "BDTuring/Classes/Utility/Event/BDTuringEventConstant.m",
+    "BDTuring/Classes/Utility/Event/BDTuringEventService.m",
+    "BDTuring/Classes/Utility/Model/BDTuringParameter.m",
+    "BDTuring/Classes/Utility/BDTuringSandBoxHelper.m",
+    "BDTuring/Classes/Utility/Service/BDTuringService.m",
+    "BDTuring/Classes/Utility/Service/BDTuringServiceCenter.m",
+    "BDTuring/Classes/Utility/BDTuringUtility.m",
+    "BDTuring/Classes/Utility/Model/BDTuringVerifyModel+Config.m",
+    "BDTuring/Classes/Utility/Model/BDTuringVerifyModel+Result.m",
+    "BDTuring/Classes/Utility/public/BDTuringVerifyModel.m",
+    "BDTuring/Classes/Utility/Model/BDTuringVerifyResult+Result.m",
+    "BDTuring/Classes/Utility/public/BDTuringVerifyResult.m",
+    "BDTuring/Classes/Utility/Model/BDTuringVerifyState.m",
+    "BDTuring/Classes/Utility/Extension/NSArray+BDTuring.m",
+    "BDTuring/Classes/Utility/Extension/NSData+BDTuring.m",
+    "BDTuring/Classes/Utility/Extension/NSDictionary+BDTuring.m",
+    "BDTuring/Classes/Utility/Extension/NSMutableDictionary+BDTuring.m",
+    "BDTuring/Classes/Utility/Extension/NSNumber+BDTuring.m",
+    "BDTuring/Classes/Utility/Extension/NSObject+BDTuring.m",
+    "BDTuring/Classes/Utility/Extension/NSString+BDTuring.m",
+    "BDTuring/Classes/Utility/Extension/UIColor+TuringHex.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Utility_oc",
+  enable_modules = 1,
+  srcs = [
+    "Utility_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Utility_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "CoreFoundation",
+    "Security",
+    "UIKit",
+    "CoreGraphics"
+  ],
+  sdk_dylibs = [
+    "z",
+    "sqlite3"
+  ],
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    ":Utility_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Utility",
+  deps = [
+    ":Utility_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Utility_lib",
+  deps = [
+    ":Utility"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Network_hdrs",
+  srcs = [
+    "BDTuring/Classes/Network/BDTNetworkManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Network_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDTuring/BDTNetworkManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Network_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Network_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Network_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_Network-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_Network-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Network_srcs",
+  srcs = [
+    "BDTuring/Classes/Network/BDTNetworkManager.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Network_oc",
+  enable_modules = 1,
+  srcs = [
+    "Network_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Network_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "CoreFoundation",
+    "SystemConfiguration",
+    "CoreTelephony"
+  ],
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDDataDecorator//:Data_objc_interface",
+    "@BDDataDecorator//:Data_swift_interface",
+    ":Network_objc_interface",
+    "@BDDataDecorator//:Data_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Network",
+  deps = [
+    ":Network_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Network_lib",
+  deps = [
+    ":Network"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Settings_hdrs",
+  srcs = [
+    "BDTuring/Classes/Settings/BDTuringSettings+Custom.h",
+    "BDTuring/Classes/Settings/BDTuringSettings+Default.h",
+    "BDTuring/Classes/Settings/BDTuringSettings+Report.h",
+    "BDTuring/Classes/Settings/BDTuringSettings.h",
+    "BDTuring/Classes/Settings/BDTuringSettingsHelper.h",
+    "BDTuring/Classes/Settings/BDTuringSettingsKeys.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Settings_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDTuring/BDTuringSettings+Custom.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringSettings+Default.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringSettings+Report.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringSettings.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringSettingsHelper.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringSettingsKeys.h",
+    "pod_support/Headers/Public/BDTuring/BDTuringSettingsHelper.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Settings_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Settings_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Settings_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_Settings-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_Settings-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Settings_srcs",
+  srcs = [
+    "BDTuring/Classes/Settings/BDTuringSettings+Custom.m",
+    "BDTuring/Classes/Settings/BDTuringSettings+Default.m",
+    "BDTuring/Classes/Settings/BDTuringSettings+Report.m",
+    "BDTuring/Classes/Settings/BDTuringSettings.m",
+    "BDTuring/Classes/Settings/BDTuringSettingsHelper.m",
+    "BDTuring/Classes/Settings/BDTuringSettingsKeys.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Settings_oc",
+  enable_modules = 1,
+  srcs = [
+    "Settings_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Settings_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDDataDecorator//:AES_objc_interface",
+    "@Godzippa//:Godzippa_objc_interface",
+    "@BDDataDecorator//:AES_swift_interface",
+    "@Godzippa//:Godzippa_swift_interface",
+    ":Settings_objc_interface",
+    "@BDDataDecorator//:AES_module_map",
+    "@Godzippa//:Godzippa_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Settings",
+  deps = [
+    ":Settings_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Settings_lib",
+  deps = [
+    ":Settings"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "JSBridge_hdrs",
+  srcs = [
+    "BDTuring/Classes/JSBridge/BDTuringPiper.h",
+    "BDTuring/Classes/JSBridge/BDTuringPiperCommand.h",
+    "BDTuring/Classes/JSBridge/BDTuringPiperConstant.h",
+    "BDTuring/Classes/JSBridge/WKWebView+Piper.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "JSBridge_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDTuring/BDTuringPiper.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringPiperCommand.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringPiperConstant.h",
+    "pod_support/Headers/Private/BDTuring/WKWebView+Piper.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "JSBridge_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "JSBridge_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "JSBridge_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_JSBridge-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_JSBridge-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "JSBridge_srcs",
+  srcs = [
+    "BDTuring/Classes/JSBridge/BDTuringPiper.m",
+    "BDTuring/Classes/JSBridge/BDTuringPiperCommand.m",
+    "BDTuring/Classes/JSBridge/BDTuringPiperConstant.m",
+    "BDTuring/Classes/JSBridge/WKWebView+Piper.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "JSBridge_oc",
+  enable_modules = 1,
+  srcs = [
+    "JSBridge_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "JSBridge_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":JSBridge_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "JSBridge",
+  deps = [
+    ":JSBridge_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "JSBridge_lib",
+  deps = [
+    ":JSBridge"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "View_hdrs",
+  srcs = [
+    "BDTuring/Classes/View/View/BDTuringViewAdditions.h",
+    "BDTuring/Classes/View/WebView/BDTuringWebView.h",
+    "BDTuring/Classes/View/Window/BDTuringNavigationController.h",
+    "BDTuring/Classes/View/Window/BDTuringPresentView.h",
+    "BDTuring/Classes/View/Window/BDTuringUIHelper.h",
+    "BDTuring/Classes/View/Window/BDTuringViewController.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "View_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDTuring/BDTuringNavigationController.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringPresentView.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringUIHelper.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringViewAdditions.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringViewController.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringWebView.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "View_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "View_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "View_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_View-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_View-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "View_srcs",
+  srcs = [
+    "BDTuring/Classes/View/Window/BDTuringNavigationController.m",
+    "BDTuring/Classes/View/Window/BDTuringPresentView.m",
+    "BDTuring/Classes/View/Window/BDTuringUIHelper.m",
+    "BDTuring/Classes/View/View/BDTuringViewAdditions.m",
+    "BDTuring/Classes/View/Window/BDTuringViewController.m",
+    "BDTuring/Classes/View/WebView/BDTuringWebView.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "View_oc",
+  enable_modules = 1,
+  srcs = [
+    "View_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "View_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "WebKit"
+  ],
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":View_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "View",
+  deps = [
+    ":View_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "View_lib",
+  deps = [
+    ":View"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [
+    "BDTuring/Classes/Core/BDTuring+Delegate.h",
+    "BDTuring/Classes/Core/BDTuring+Notification.h",
+    "BDTuring/Classes/Core/BDTuring+Preload.h",
+    "BDTuring/Classes/Core/BDTuring+Private.h",
+    "BDTuring/Classes/Core/BDTuringVerifyConstant.h",
+    "BDTuring/Classes/Core/BDTuringVerifyViewDefine.h",
+    "BDTuring/Classes/Core/Keyboard/BDTuringKeyboard.h",
+    "BDTuring/Classes/Core/Model/BDTuringAccessibilityModel.h",
+    "BDTuring/Classes/Core/Model/BDTuringParameterVerifyModel.h",
+    "BDTuring/Classes/Core/Model/BDTuringPictureVerifyModel.h",
+    "BDTuring/Classes/Core/Model/BDTuringQAVerifyModel.h",
+    "BDTuring/Classes/Core/Model/BDTuringSMSVerifyModel.h",
+    "BDTuring/Classes/Core/Model/BDTuringSlidePictureVerifyModel.h",
+    "BDTuring/Classes/Core/Model/BDTuringVerifyModel+Parameter.h",
+    "BDTuring/Classes/Core/Model/BDTuringVerifyModel+View.h",
+    "BDTuring/Classes/Core/Model/BDTuringWhirlPictureVerifyModel.h",
+    "BDTuring/Classes/Core/TipView/BDTuringImageTipView.h",
+    "BDTuring/Classes/Core/TipView/BDTuringNetworkTipView.h",
+    "BDTuring/Classes/Core/TipView/BDTuringToast.h",
+    "BDTuring/Classes/Core/View/BDTuringPictureVerifyView.h",
+    "BDTuring/Classes/Core/View/BDTuringQAVerifyView.h",
+    "BDTuring/Classes/Core/View/BDTuringSMSVerifyView.h",
+    "BDTuring/Classes/Core/View/BDTuringVerifyView+Delegate.h",
+    "BDTuring/Classes/Core/View/BDTuringVerifyView+Loading.h",
+    "BDTuring/Classes/Core/View/BDTuringVerifyView+Piper.h",
+    "BDTuring/Classes/Core/View/BDTuringVerifyView+Report.h",
+    "BDTuring/Classes/Core/View/BDTuringVerifyView+Result.h",
+    "BDTuring/Classes/Core/View/BDTuringVerifyView+UI.h",
+    "BDTuring/Classes/Core/View/BDTuringVerifyView.h",
+    "BDTuring/Classes/Core/public/BDTuring+UserInterface.h",
+    "BDTuring/Classes/Core/public/BDTuring.h",
+    "BDTuring/Classes/Core/public/BDTuringVerifyModel+Creator.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDTuring/BDTuring+Delegate.h",
+    "pod_support/Headers/Private/BDTuring/BDTuring+Notification.h",
+    "pod_support/Headers/Private/BDTuring/BDTuring+Preload.h",
+    "pod_support/Headers/Private/BDTuring/BDTuring+Private.h",
+    "pod_support/Headers/Private/BDTuring/BDTuring+UserInterface.h",
+    "pod_support/Headers/Private/BDTuring/BDTuring.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringAccessibilityModel.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringImageTipView.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringKeyboard.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringNetworkTipView.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringParameterVerifyModel.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringPictureVerifyModel.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringPictureVerifyView.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringQAVerifyModel.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringQAVerifyView.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringSMSVerifyModel.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringSMSVerifyView.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringSlidePictureVerifyModel.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringToast.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringVerifyConstant.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringVerifyModel+Creator.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringVerifyModel+Parameter.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringVerifyModel+View.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringVerifyView+Delegate.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringVerifyView+Loading.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringVerifyView+Piper.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringVerifyView+Report.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringVerifyView+Result.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringVerifyView+UI.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringVerifyView.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringVerifyViewDefine.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringWhirlPictureVerifyModel.h",
+    "pod_support/Headers/Public/BDTuring/BDTuring+UserInterface.h",
+    "pod_support/Headers/Public/BDTuring/BDTuring.h",
+    "pod_support/Headers/Public/BDTuring/BDTuringVerifyModel+Creator.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_srcs",
+  srcs = [
+    "BDTuring/Classes/Core/BDTuring+Delegate.m",
+    "BDTuring/Classes/Core/BDTuring+Notification.m",
+    "BDTuring/Classes/Core/BDTuring+Preload.m",
+    "BDTuring/Classes/Core/BDTuring+Private.m",
+    "BDTuring/Classes/Core/public/BDTuring+UserInterface.m",
+    "BDTuring/Classes/Core/public/BDTuring.m",
+    "BDTuring/Classes/Core/Model/BDTuringAccessibilityModel.m",
+    "BDTuring/Classes/Core/TipView/BDTuringImageTipView.m",
+    "BDTuring/Classes/Core/Keyboard/BDTuringKeyboard.m",
+    "BDTuring/Classes/Core/TipView/BDTuringNetworkTipView.m",
+    "BDTuring/Classes/Core/Model/BDTuringParameterVerifyModel.m",
+    "BDTuring/Classes/Core/Model/BDTuringPictureVerifyModel.m",
+    "BDTuring/Classes/Core/View/BDTuringPictureVerifyView.m",
+    "BDTuring/Classes/Core/Model/BDTuringQAVerifyModel.m",
+    "BDTuring/Classes/Core/View/BDTuringQAVerifyView.m",
+    "BDTuring/Classes/Core/Model/BDTuringSlidePictureVerifyModel.m",
+    "BDTuring/Classes/Core/Model/BDTuringSMSVerifyModel.m",
+    "BDTuring/Classes/Core/View/BDTuringSMSVerifyView.m",
+    "BDTuring/Classes/Core/TipView/BDTuringToast.m",
+    "BDTuring/Classes/Core/BDTuringVerifyConstant.m",
+    "BDTuring/Classes/Core/public/BDTuringVerifyModel+Creator.m",
+    "BDTuring/Classes/Core/Model/BDTuringVerifyModel+Parameter.m",
+    "BDTuring/Classes/Core/Model/BDTuringVerifyModel+View.m",
+    "BDTuring/Classes/Core/View/BDTuringVerifyView+Delegate.m",
+    "BDTuring/Classes/Core/View/BDTuringVerifyView+Loading.m",
+    "BDTuring/Classes/Core/View/BDTuringVerifyView+Piper.m",
+    "BDTuring/Classes/Core/View/BDTuringVerifyView+Report.m",
+    "BDTuring/Classes/Core/View/BDTuringVerifyView+Result.m",
+    "BDTuring/Classes/Core/View/BDTuringVerifyView+UI.m",
+    "BDTuring/Classes/Core/View/BDTuringVerifyView.m",
+    "BDTuring/Classes/Core/BDTuringVerifyViewDefine.m",
+    "BDTuring/Classes/Core/Model/BDTuringWhirlPictureVerifyModel.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [
+    "Core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "WebKit",
+    "CoreFoundation",
+    "CoreGraphics"
+  ],
+  sdk_dylibs = [
+    "z"
+  ],
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Core_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":BDTuring_Core_BDTuringResource"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Localized_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Localized_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Localized_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Localized_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Localized_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_Localized-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_Localized-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Localized_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Localized_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Localized_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Localized",
+  deps = [
+    ":Localized_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Localized_lib",
+  deps = [
+    ":Localized"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Localized_EN_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Localized_EN_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Localized_EN_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Localized_EN_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Localized_EN_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_Localized_EN-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_Localized_EN-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Localized_EN_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Localized_EN_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Localized_EN_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":BDTuring_Localized_EN_BDTuringLocalized-en"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Localized_EN",
+  deps = [
+    ":Localized_EN_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Localized_EN_lib",
+  deps = [
+    ":Localized_EN"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Localized_ZH_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Localized_ZH_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Localized_ZH_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Localized_ZH_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Localized_ZH_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_Localized_ZH-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_Localized_ZH-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Localized_ZH_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Localized_ZH_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Localized_ZH_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":BDTuring_Localized_ZH_BDTuringLocalized-zh"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Localized_ZH",
+  deps = [
+    ":Localized_ZH_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Localized_ZH_lib",
+  deps = [
+    ":Localized_ZH"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Localized_ZH-Hant_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Localized_ZH-Hant_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Localized_ZH-Hant_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Localized_ZH-Hant_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Localized_ZH-Hant_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_Localized_ZH-Hant-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_Localized_ZH-Hant-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Localized_ZH-Hant_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Localized_ZH-Hant_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Localized_ZH-Hant_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":BDTuring_Localized_ZH-Hant_BDTuringLocalized-zh-Hant"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Localized_ZH-Hant",
+  deps = [
+    ":Localized_ZH-Hant_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Localized_ZH-Hant_lib",
+  deps = [
+    ":Localized_ZH-Hant"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Host_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Host_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Host_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_Host-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_Host-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Host_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Host_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Host_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Host",
+  deps = [
+    ":Host_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Host_lib",
+  deps = [
+    ":Host"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_CN_hdrs",
+  srcs = [
+    "BDTuring/Classes/Host/CN/BDTuringConfig+HostCN.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_CN_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDTuring/BDTuringConfig+HostCN.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Host_CN_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Host_CN_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Host_CN_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_Host_CN-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_Host_CN-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_CN_srcs",
+  srcs = [
+    "BDTuring/Classes/Host/CN/BDTuringConfig+HostCN.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Host_CN_oc",
+  enable_modules = 1,
+  srcs = [
+    "Host_CN_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Host_CN_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Host_CN_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Host_CN",
+  deps = [
+    ":Host_CN_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Host_CN_lib",
+  deps = [
+    ":Host_CN"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_IN_hdrs",
+  srcs = [
+    "BDTuring/Classes/Host/IN/BDTuringConfig+HostIN.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_IN_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Host_IN_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Host_IN_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Host_IN_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_Host_IN-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_Host_IN-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_IN_srcs",
+  srcs = [
+    "BDTuring/Classes/Host/IN/BDTuringConfig+HostIN.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Host_IN_oc",
+  enable_modules = 1,
+  srcs = [
+    "Host_IN_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Host_IN_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Host_IN_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Host_IN",
+  deps = [
+    ":Host_IN_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Host_IN_lib",
+  deps = [
+    ":Host_IN"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_SG_hdrs",
+  srcs = [
+    "BDTuring/Classes/Host/SG/BDTuringConfig+HostSG.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_SG_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Host_SG_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Host_SG_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Host_SG_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_Host_SG-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_Host_SG-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_SG_srcs",
+  srcs = [
+    "BDTuring/Classes/Host/SG/BDTuringConfig+HostSG.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Host_SG_oc",
+  enable_modules = 1,
+  srcs = [
+    "Host_SG_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Host_SG_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Host_SG_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Host_SG",
+  deps = [
+    ":Host_SG_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Host_SG_lib",
+  deps = [
+    ":Host_SG"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_VA_hdrs",
+  srcs = [
+    "BDTuring/Classes/Host/VA/BDTuringConfig+HostVA.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_VA_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Host_VA_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Host_VA_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Host_VA_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_Host_VA-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_Host_VA-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_VA_srcs",
+  srcs = [
+    "BDTuring/Classes/Host/VA/BDTuringConfig+HostVA.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Host_VA_oc",
+  enable_modules = 1,
+  srcs = [
+    "Host_VA_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Host_VA_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Host_VA_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Host_VA",
+  deps = [
+    ":Host_VA_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Host_VA_lib",
+  deps = [
+    ":Host_VA"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_Custom_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_Custom_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Host_Custom_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Host_Custom_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Host_Custom_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_Host_Custom-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_Host_Custom-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Host_Custom_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Host_Custom_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Host_Custom_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Host_Custom",
+  deps = [
+    ":Host_Custom_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Host_Custom_lib",
+  deps = [
+    ":Host_Custom"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_MT_hdrs",
+  srcs = [
+    "BDTuring/Classes/Host/MT/BDTuringConfig+MT.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_MT_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Host_MT_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Host_MT_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Host_MT_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_Host_MT-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_Host_MT-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_MT_srcs",
+  srcs = [
+    "BDTuring/Classes/Host/MT/BDTuringConfig+MT.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Host_MT_oc",
+  enable_modules = 1,
+  srcs = [
+    "Host_MT_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Host_MT_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Host_MT_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Host_MT",
+  deps = [
+    ":Host_MT_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Host_MT_lib",
+  deps = [
+    ":Host_MT"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Identity_hdrs",
+  srcs = [
+    "BDTuring/Classes/Identity/public/BDTuringIdentity.h",
+    "BDTuring/Classes/Identity/public/BDTuringIdentityDefine.h",
+    "BDTuring/Classes/Identity/public/BDTuringIdentityModel.h",
+    "BDTuring/Classes/Identity/public/BDTuringIdentityResult.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Identity_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Identity_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Identity_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Identity_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_Identity-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_Identity-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Identity_srcs",
+  srcs = [
+    "BDTuring/Classes/Identity/public/BDTuringIdentity.m",
+    "BDTuring/Classes/Identity/public/BDTuringIdentityDefine.m",
+    "BDTuring/Classes/Identity/public/BDTuringIdentityModel.m",
+    "BDTuring/Classes/Identity/public/BDTuringIdentityResult.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Identity_oc",
+  enable_modules = 1,
+  srcs = [
+    "Identity_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Identity_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "AVFoundation",
+    "CoreMedia",
+    "CoreMotion"
+  ],
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Identity_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Identity",
+  deps = [
+    ":Identity_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Identity_lib",
+  deps = [
+    ":Identity"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TwiceVerify_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TwiceVerify_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TwiceVerify_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TwiceVerify_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TwiceVerify_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_TwiceVerify-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_TwiceVerify-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TwiceVerify_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "TwiceVerify_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":TwiceVerify_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TwiceVerify",
+  deps = [
+    ":TwiceVerify_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TwiceVerify_lib",
+  deps = [
+    ":TwiceVerify"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TwiceVerify_Main_hdrs",
+  srcs = [
+    "BDTuring/Classes/TwiceVerify/Main/BDTuringIndicatorView.h",
+    "BDTuring/Classes/TwiceVerify/Main/BDTuringTVConverter.h",
+    "BDTuring/Classes/TwiceVerify/Main/BDTuringTVHelper.h",
+    "BDTuring/Classes/TwiceVerify/Main/BDTuringTVTracker.h",
+    "BDTuring/Classes/TwiceVerify/Main/BDTuringTVViewController+Piper.h",
+    "BDTuring/Classes/TwiceVerify/Main/BDTuringTVViewController+Utility.h",
+    "BDTuring/Classes/TwiceVerify/Main/BDTuringTVViewController.h",
+    "BDTuring/Classes/TwiceVerify/Main/BDTuringTwiceVerifyModel+Creator.h",
+    "BDTuring/Classes/TwiceVerify/Main/BDTuringWaitingView.h",
+    "BDTuring/Classes/TwiceVerify/Main/public/BDTuringTVDefine.h",
+    "BDTuring/Classes/TwiceVerify/Main/public/BDTuringTwiceVerify.h",
+    "BDTuring/Classes/TwiceVerify/Main/public/BDTuringTwiceVerifyModel.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TwiceVerify_Main_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TwiceVerify_Main_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TwiceVerify_Main_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TwiceVerify_Main_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_TwiceVerify_Main-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_TwiceVerify_Main-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TwiceVerify_Main_srcs",
+  srcs = [
+    "BDTuring/Classes/TwiceVerify/Main/BDTuringIndicatorView.m",
+    "BDTuring/Classes/TwiceVerify/Main/BDTuringTVConverter.m",
+    "BDTuring/Classes/TwiceVerify/Main/public/BDTuringTVDefine.m",
+    "BDTuring/Classes/TwiceVerify/Main/BDTuringTVHelper.m",
+    "BDTuring/Classes/TwiceVerify/Main/BDTuringTVTracker.m",
+    "BDTuring/Classes/TwiceVerify/Main/BDTuringTVViewController+Piper.m",
+    "BDTuring/Classes/TwiceVerify/Main/BDTuringTVViewController+Utility.m",
+    "BDTuring/Classes/TwiceVerify/Main/BDTuringTVViewController.m",
+    "BDTuring/Classes/TwiceVerify/Main/public/BDTuringTwiceVerify.m",
+    "BDTuring/Classes/TwiceVerify/Main/BDTuringTwiceVerifyModel+Creator.m",
+    "BDTuring/Classes/TwiceVerify/Main/public/BDTuringTwiceVerifyModel.m",
+    "BDTuring/Classes/TwiceVerify/Main/BDTuringWaitingView.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TwiceVerify_Main_oc",
+  enable_modules = 1,
+  srcs = [
+    "TwiceVerify_Main_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "TwiceVerify_Main_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":TwiceVerify_Main_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TwiceVerify_Main",
+  deps = [
+    ":TwiceVerify_Main_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TwiceVerify_Main_lib",
+  deps = [
+    ":TwiceVerify_Main"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TwiceVerify_MessageUI_hdrs",
+  srcs = [
+    "BDTuring/Classes/TwiceVerify/MessageUI/BDTuringTVViewController+MessageUI.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TwiceVerify_MessageUI_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TwiceVerify_MessageUI_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TwiceVerify_MessageUI_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TwiceVerify_MessageUI_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_TwiceVerify_MessageUI-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_TwiceVerify_MessageUI-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TwiceVerify_MessageUI_srcs",
+  srcs = [
+    "BDTuring/Classes/TwiceVerify/MessageUI/BDTuringTVViewController+MessageUI.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TwiceVerify_MessageUI_oc",
+  enable_modules = 1,
+  srcs = [
+    "TwiceVerify_MessageUI_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "TwiceVerify_MessageUI_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "MessageUI"
+  ],
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":TwiceVerify_MessageUI_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TwiceVerify_MessageUI",
+  deps = [
+    ":TwiceVerify_MessageUI_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TwiceVerify_MessageUI_lib",
+  deps = [
+    ":TwiceVerify_MessageUI"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Components_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Components_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Components_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Components_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Components_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_Components-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_Components-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Components_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Components_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Components_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Components",
+  deps = [
+    ":Components_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Components_lib",
+  deps = [
+    ":Components"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Components_NetworkTag_hdrs",
+  srcs = [
+    "BDTuring/Classes/Components/NetworkTag/BDTNetworkManager+Tag.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Components_NetworkTag_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Components_NetworkTag_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Components_NetworkTag_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Components_NetworkTag_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_Components_NetworkTag-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_Components_NetworkTag-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Components_NetworkTag_srcs",
+  srcs = [
+    "BDTuring/Classes/Components/NetworkTag/BDTNetworkManager+Tag.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Components_NetworkTag_oc",
+  enable_modules = 1,
+  srcs = [
+    "Components_NetworkTag_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Components_NetworkTag_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDNetworkTag//:BDNetworkTag_objc_interface",
+    "@BDNetworkTag//:BDNetworkTag_swift_interface",
+    ":Components_NetworkTag_objc_interface",
+    "@BDNetworkTag//:BDNetworkTag_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Components_NetworkTag",
+  deps = [
+    ":Components_NetworkTag_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Components_NetworkTag_lib",
+  deps = [
+    ":Components_NetworkTag"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "AccountSeal_hdrs",
+  srcs = [
+    "BDTuring/Classes/AccountSeal/BDAccountSealConstant.h",
+    "BDTuring/Classes/AccountSeal/BDAccountSealEvent.h",
+    "BDTuring/Classes/AccountSeal/BDAccountSealResult+Creator.h",
+    "BDTuring/Classes/AccountSeal/BDAccountSealView.h",
+    "BDTuring/Classes/AccountSeal/BDAccountSealer+Delegate.h",
+    "BDTuring/Classes/AccountSeal/BDAccountSealer+Model.h",
+    "BDTuring/Classes/AccountSeal/BDTuringAlertOption+Creator.h",
+    "BDTuring/Classes/AccountSeal/BDTuringConfig+AccountSeal.h",
+    "BDTuring/Classes/AccountSeal/public/BDAccountSealDefine.h",
+    "BDTuring/Classes/AccountSeal/public/BDAccountSealModel.h",
+    "BDTuring/Classes/AccountSeal/public/BDAccountSealResult.h",
+    "BDTuring/Classes/AccountSeal/public/BDAccountSealer+Theme.h",
+    "BDTuring/Classes/AccountSeal/public/BDAccountSealer.h",
+    "BDTuring/Classes/AccountSeal/public/BDTuringAlertOption.h",
+    "BDTuring/Classes/AccountSeal/public/BDTuringUIHandler.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "AccountSeal_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "AccountSeal_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "AccountSeal_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "AccountSeal_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_AccountSeal-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_AccountSeal-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "AccountSeal_srcs",
+  srcs = [
+    "BDTuring/Classes/AccountSeal/BDAccountSealConstant.m",
+    "BDTuring/Classes/AccountSeal/public/BDAccountSealDefine.m",
+    "BDTuring/Classes/AccountSeal/BDAccountSealer+Delegate.m",
+    "BDTuring/Classes/AccountSeal/BDAccountSealer+Model.m",
+    "BDTuring/Classes/AccountSeal/public/BDAccountSealer+Theme.m",
+    "BDTuring/Classes/AccountSeal/public/BDAccountSealer.m",
+    "BDTuring/Classes/AccountSeal/BDAccountSealEvent.m",
+    "BDTuring/Classes/AccountSeal/public/BDAccountSealModel.m",
+    "BDTuring/Classes/AccountSeal/BDAccountSealResult+Creator.m",
+    "BDTuring/Classes/AccountSeal/public/BDAccountSealResult.m",
+    "BDTuring/Classes/AccountSeal/BDAccountSealView.m",
+    "BDTuring/Classes/AccountSeal/BDTuringAlertOption+Creator.m",
+    "BDTuring/Classes/AccountSeal/public/BDTuringAlertOption.m",
+    "BDTuring/Classes/AccountSeal/BDTuringConfig+AccountSeal.m",
+    "BDTuring/Classes/AccountSeal/public/BDTuringUIHandler.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "AccountSeal_oc",
+  enable_modules = 1,
+  srcs = [
+    "AccountSeal_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "AccountSeal_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit"
+  ],
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":AccountSeal_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "AccountSeal",
+  deps = [
+    ":AccountSeal_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "AccountSeal_lib",
+  deps = [
+    ":AccountSeal"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "AutoVerify_hdrs",
+  srcs = [
+    "BDTuring/Classes/AutoVerify/BDAutoVerify+Private.h",
+    "BDTuring/Classes/AutoVerify/BDAutoVerifyConstant.h",
+    "BDTuring/Classes/AutoVerify/BDAutoVerifyDataModel.h",
+    "BDTuring/Classes/AutoVerify/BDAutoVerifyMaskView.h",
+    "BDTuring/Classes/AutoVerify/BDAutoVerifyView+Piper.h",
+    "BDTuring/Classes/AutoVerify/BDAutoVerifyView.h",
+    "BDTuring/Classes/AutoVerify/public/BDAutoVerify.h",
+    "BDTuring/Classes/AutoVerify/public/BDAutoVerifyModel.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "AutoVerify_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "AutoVerify_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "AutoVerify_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "AutoVerify_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_AutoVerify-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_AutoVerify-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "AutoVerify_srcs",
+  srcs = [
+    "BDTuring/Classes/AutoVerify/BDAutoVerify+Private.m",
+    "BDTuring/Classes/AutoVerify/public/BDAutoVerify.m",
+    "BDTuring/Classes/AutoVerify/BDAutoVerifyConstant.m",
+    "BDTuring/Classes/AutoVerify/BDAutoVerifyDataModel.m",
+    "BDTuring/Classes/AutoVerify/BDAutoVerifyMaskView.m",
+    "BDTuring/Classes/AutoVerify/public/BDAutoVerifyModel.m",
+    "BDTuring/Classes/AutoVerify/BDAutoVerifyView+Piper.m",
+    "BDTuring/Classes/AutoVerify/BDAutoVerifyView.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "AutoVerify_oc",
+  enable_modules = 1,
+  srcs = [
+    "AutoVerify_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "AutoVerify_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":AutoVerify_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "AutoVerify",
+  deps = [
+    ":AutoVerify_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "AutoVerify_lib",
+  deps = [
+    ":AutoVerify"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SMSCode_hdrs",
+  srcs = [
+    "BDTuring/SMSCode/BDTuringConfig+SMSCode.h",
+    "BDTuring/SMSCode/Public/BDTuring+SMSCode.h",
+    "BDTuring/SMSCode/Public/BDTuringCheckCodeModel.h",
+    "BDTuring/SMSCode/Public/BDTuringSMSCodeResult.h",
+    "BDTuring/SMSCode/Public/BDTuringSMSModel.h",
+    "BDTuring/SMSCode/Public/BDTuringSendCodeModel.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SMSCode_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SMSCode_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SMSCode_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "SMSCode_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_SMSCode-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_SMSCode-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SMSCode_srcs",
+  srcs = [
+    "BDTuring/SMSCode/Public/BDTuring+SMSCode.m",
+    "BDTuring/SMSCode/Public/BDTuringCheckCodeModel.m",
+    "BDTuring/SMSCode/BDTuringConfig+SMSCode.m",
+    "BDTuring/SMSCode/Public/BDTuringSendCodeModel.m",
+    "BDTuring/SMSCode/Public/BDTuringSMSCodeResult.m",
+    "BDTuring/SMSCode/Public/BDTuringSMSModel.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SMSCode_oc",
+  enable_modules = 1,
+  srcs = [
+    "SMSCode_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "SMSCode_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":SMSCode_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SMSCode",
+  deps = [
+    ":SMSCode_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "SMSCode_lib",
+  deps = [
+    ":SMSCode"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTNet_hdrs",
+  srcs = [
+    "BDTuring/Classes/TTNet/BDTNetworkManager+TTNet.h",
+    "BDTuring/Classes/TTNet/Serializer/BDTuringPostCommonRequestSerializer.h",
+    "BDTuring/Classes/TTNet/Serializer/BDTuringPostRequestSerializer.h",
+    "BDTuring/Classes/TTNet/Serializer/BDTuringTVAppNetworkRequestSerializer.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTNet_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDTuring/BDTNetworkManager+TTNet.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringPostCommonRequestSerializer.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringPostRequestSerializer.h",
+    "pod_support/Headers/Private/BDTuring/BDTuringTVAppNetworkRequestSerializer.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTNet_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTNet_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TTNet_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_TTNet-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_TTNet-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTNet_srcs",
+  srcs = [
+    "BDTuring/Classes/TTNet/BDTNetworkManager+TTNet.m",
+    "BDTuring/Classes/TTNet/Serializer/BDTuringPostCommonRequestSerializer.m",
+    "BDTuring/Classes/TTNet/Serializer/BDTuringPostRequestSerializer.m",
+    "BDTuring/Classes/TTNet/Serializer/BDTuringTVAppNetworkRequestSerializer.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTNet_oc",
+  enable_modules = 1,
+  srcs = [
+    "TTNet_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "TTNet_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@TTReachability//:TTReachability_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    "@TTReachability//:TTReachability_swift_interface",
+    ":TTNet_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map",
+    "@TTReachability//:TTReachability_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTNet",
+  deps = [
+    ":TTNet_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TTNet_lib",
+  deps = [
+    ":TTNet"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTNetProcessor_hdrs",
+  srcs = [
+    "BDTuring/TTNetProcessor/Public/BDTuring+TTNet.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTNetProcessor_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDTuring/BDTuring+TTNet.h",
+    "pod_support/Headers/Public/BDTuring/BDTuring+TTNet.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTNetProcessor_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTNetProcessor_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TTNetProcessor_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_TTNetProcessor-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_TTNetProcessor-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTNetProcessor_srcs",
+  srcs = [
+    "BDTuring/TTNetProcessor/Public/BDTuring+TTNet.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTNetProcessor_oc",
+  enable_modules = 1,
+  srcs = [
+    "TTNetProcessor_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "TTNetProcessor_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDAssert//:BDAssert_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDAssert//:BDAssert_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":TTNetProcessor_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDAssert//:BDAssert_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTNetProcessor",
+  deps = [
+    ":TTNetProcessor_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TTNetProcessor_lib",
+  deps = [
+    ":TTNetProcessor"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_mPaaS-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_mPaaS-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":mPaaS_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS",
+  deps = [
+    ":mPaaS_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_lib",
+  deps = [
+    ":mPaaS"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_Task_hdrs",
+  srcs = [
+    "BDTuring/mPaaS/Task/BDTuringStartUpTask.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_Task_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_Task_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_Task_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_Task_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_mPaaS_Task-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_mPaaS_Task-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_Task_srcs",
+  srcs = [
+    "BDTuring/mPaaS/Task/BDTuringStartUpTask.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_Task_oc",
+  enable_modules = 1,
+  srcs = [
+    "mPaaS_Task_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_Task_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDGaiaExtension//:BDGaiaExtension_objc_interface",
+    "@BDStartUp//:Base_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@BDUGAccountSDKInterface//:BDUGAccountSDKInterface_objc_interface",
+    "@BDUGContainer//:BDUGContainer_objc_interface",
+    "@BDUGTuringInterface//:BDUGTuringInterface_objc_interface",
+    "@BDGaiaExtension//:BDGaiaExtension_swift_interface",
+    "@BDStartUp//:Base_swift_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    "@BDUGAccountSDKInterface//:BDUGAccountSDKInterface_swift_interface",
+    "@BDUGContainer//:BDUGContainer_swift_interface",
+    "@BDUGTuringInterface//:BDUGTuringInterface_swift_interface",
+    ":mPaaS_Task_objc_interface",
+    "@BDGaiaExtension//:BDGaiaExtension_module_map",
+    "@BDStartUp//:Base_module_map",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map",
+    "@BDUGAccountSDKInterface//:BDUGAccountSDKInterface_module_map",
+    "@BDUGContainer//:BDUGContainer_module_map",
+    "@BDUGTuringInterface//:BDUGTuringInterface_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_Task",
+  deps = [
+    ":mPaaS_Task_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_Task_lib",
+  deps = [
+    ":mPaaS_Task"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_InHouse_hdrs",
+  srcs = [
+    "BDTuring/mPaaS/InHouse/BDDebugFeedParameterTuring.h",
+    "BDTuring/mPaaS/InHouse/BDDebugFeedTuring.h",
+    "BDTuring/mPaaS/InHouse/BDTuring+InHouse.h",
+    "BDTuring/mPaaS/InHouse/BDTuringConfig+Debug.h",
+    "BDTuring/mPaaS/InHouse/PreloadViewController.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_InHouse_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_InHouse_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_InHouse_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_InHouse_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_mPaaS_InHouse-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_mPaaS_InHouse-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_InHouse_srcs",
+  srcs = [
+    "BDTuring/mPaaS/InHouse/BDDebugFeedParameterTuring.m",
+    "BDTuring/mPaaS/InHouse/BDDebugFeedTuring.m",
+    "BDTuring/mPaaS/InHouse/BDTuring+InHouse.m",
+    "BDTuring/mPaaS/InHouse/BDTuringConfig+Debug.m",
+    "BDTuring/mPaaS/InHouse/PreloadViewController.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_InHouse_oc",
+  enable_modules = 1,
+  srcs = [
+    "mPaaS_InHouse_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_InHouse_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDStartUp//:Debug_objc_interface",
+    "@BDStartUp//:Debug_swift_interface",
+    ":mPaaS_InHouse_objc_interface",
+    "@BDStartUp//:Debug_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":BDTuring_mPaaS_InHouse_BDTuringInHouseResource"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_InHouse",
+  deps = [
+    ":mPaaS_InHouse_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_InHouse_lib",
+  deps = [
+    ":mPaaS_InHouse"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_AutoVerifyInHouse_hdrs",
+  srcs = [
+    "BDTuring/mPaaS/AutoVerifyInHouse/BDAutoVerifyViewController.h",
+    "BDTuring/mPaaS/AutoVerifyInHouse/BDDebugFeedAutoVerify.h",
+    "BDTuring/mPaaS/AutoVerifyInHouse/BDFullAutoVerifyViewController.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_AutoVerifyInHouse_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_AutoVerifyInHouse_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_AutoVerifyInHouse_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_AutoVerifyInHouse_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_mPaaS_AutoVerifyInHouse-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_mPaaS_AutoVerifyInHouse-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_AutoVerifyInHouse_srcs",
+  srcs = [
+    "BDTuring/mPaaS/AutoVerifyInHouse/BDAutoVerifyViewController.m",
+    "BDTuring/mPaaS/AutoVerifyInHouse/BDDebugFeedAutoVerify.m",
+    "BDTuring/mPaaS/AutoVerifyInHouse/BDFullAutoVerifyViewController.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_AutoVerifyInHouse_oc",
+  enable_modules = 1,
+  srcs = [
+    "mPaaS_AutoVerifyInHouse_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_AutoVerifyInHouse_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDStartUp//:Debug_objc_interface",
+    "@BDStartUp//:Debug_swift_interface",
+    ":mPaaS_AutoVerifyInHouse_objc_interface",
+    "@BDStartUp//:Debug_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_AutoVerifyInHouse",
+  deps = [
+    ":mPaaS_AutoVerifyInHouse_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_AutoVerifyInHouse_lib",
+  deps = [
+    ":mPaaS_AutoVerifyInHouse"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_h5bridgeInHouse_hdrs",
+  srcs = [
+    "BDTuring/mPaaS/h5bridgeInHouse/Lynx/BDTuringLynxDebugFeed.h",
+    "BDTuring/mPaaS/h5bridgeInHouse/Lynx/BDTuringLynxPlugin.h",
+    "BDTuring/mPaaS/h5bridgeInHouse/Lynx/BDTuringLynxViewController.h",
+    "BDTuring/mPaaS/h5bridgeInHouse/TwiceVerify/BDDebugFeedTwiceVerify.h",
+    "BDTuring/mPaaS/h5bridgeInHouse/TwiceVerify/BDTVLoginViewController.h",
+    "BDTuring/mPaaS/h5bridgeInHouse/TwiceVerify/BDTuringEmailViewController.h",
+    "BDTuring/mPaaS/h5bridgeInHouse/TwiceVerify/BDTuringFullScreenH5ViewController.h",
+    "BDTuring/mPaaS/h5bridgeInHouse/TwiceVerify/BDTuringH5VerifyModel.h",
+    "BDTuring/mPaaS/h5bridgeInHouse/TwiceVerify/BDTwiceVerifyH5ViewController.h",
+    "BDTuring/mPaaS/h5bridgeInHouse/TwiceVerify/BDTwiceVerifyViewController.h",
+    "BDTuring/mPaaS/h5bridgeInHouse/h5bridge/BDTuringGlobalH5Bridge.h",
+    "BDTuring/mPaaS/h5bridgeInHouse/h5bridge/BDTuringH5bridgeDebugFeed.h",
+    "BDTuring/mPaaS/h5bridgeInHouse/h5bridge/BDTuringH5bridgeViewController.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_h5bridgeInHouse_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_h5bridgeInHouse_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_h5bridgeInHouse_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_h5bridgeInHouse_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_mPaaS_h5bridgeInHouse-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_mPaaS_h5bridgeInHouse-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_h5bridgeInHouse_srcs",
+  srcs = [
+    "BDTuring/mPaaS/h5bridgeInHouse/TwiceVerify/BDDebugFeedTwiceVerify.m",
+    "BDTuring/mPaaS/h5bridgeInHouse/TwiceVerify/BDTuringEmailViewController.m",
+    "BDTuring/mPaaS/h5bridgeInHouse/TwiceVerify/BDTuringFullScreenH5ViewController.m",
+    "BDTuring/mPaaS/h5bridgeInHouse/h5bridge/BDTuringGlobalH5Bridge.m",
+    "BDTuring/mPaaS/h5bridgeInHouse/h5bridge/BDTuringH5bridgeDebugFeed.m",
+    "BDTuring/mPaaS/h5bridgeInHouse/h5bridge/BDTuringH5bridgeViewController.m",
+    "BDTuring/mPaaS/h5bridgeInHouse/TwiceVerify/BDTuringH5VerifyModel.m",
+    "BDTuring/mPaaS/h5bridgeInHouse/Lynx/BDTuringLynxDebugFeed.m",
+    "BDTuring/mPaaS/h5bridgeInHouse/Lynx/BDTuringLynxPlugin.m",
+    "BDTuring/mPaaS/h5bridgeInHouse/Lynx/BDTuringLynxViewController.m",
+    "BDTuring/mPaaS/h5bridgeInHouse/TwiceVerify/BDTVLoginViewController.m",
+    "BDTuring/mPaaS/h5bridgeInHouse/TwiceVerify/BDTwiceVerifyH5ViewController.m",
+    "BDTuring/mPaaS/h5bridgeInHouse/TwiceVerify/BDTwiceVerifyViewController.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_h5bridgeInHouse_oc",
+  enable_modules = 1,
+  srcs = [
+    "mPaaS_h5bridgeInHouse_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_h5bridgeInHouse_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDStartUp//:Debug_objc_interface",
+    "@Lynx//:BDConfig_CN_objc_interface",
+    "@Lynx//:BDLynx_Core_objc_interface",
+    "@Lynx//:BDLynxBridge_objc_interface",
+    "@TTAccountSDK//:Account_objc_interface",
+    "@TTBridgeUnify//:TTBridge_objc_interface",
+    "@TTBridgeUnify//:TTBridgeAuthManager_Core_objc_interface",
+    "@TTBridgeUnify//:UnifiedWebView_objc_interface",
+    "@TTBridgeUnify//:WebView_objc_interface",
+    "@BDStartUp//:Debug_swift_interface",
+    "@Lynx//:BDConfig_CN_swift_interface",
+    "@Lynx//:BDLynx_Core_swift_interface",
+    "@Lynx//:BDLynxBridge_swift_interface",
+    "@TTAccountSDK//:Account_swift_interface",
+    "@TTBridgeUnify//:TTBridge_swift_interface",
+    "@TTBridgeUnify//:TTBridgeAuthManager_Core_swift_interface",
+    "@TTBridgeUnify//:UnifiedWebView_swift_interface",
+    "@TTBridgeUnify//:WebView_swift_interface",
+    ":mPaaS_h5bridgeInHouse_objc_interface",
+    "@BDStartUp//:Debug_module_map",
+    "@Lynx//:BDConfig_CN_module_map",
+    "@Lynx//:BDLynx_Core_module_map",
+    "@Lynx//:BDLynxBridge_module_map",
+    "@TTAccountSDK//:Account_module_map",
+    "@TTBridgeUnify//:TTBridge_module_map",
+    "@TTBridgeUnify//:TTBridgeAuthManager_Core_module_map",
+    "@TTBridgeUnify//:UnifiedWebView_module_map",
+    "@TTBridgeUnify//:WebView_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_h5bridgeInHouse",
+  deps = [
+    ":mPaaS_h5bridgeInHouse_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_h5bridgeInHouse_lib",
+  deps = [
+    ":mPaaS_h5bridgeInHouse"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_China_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_China_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_China_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_China_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_China_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_mPaaS_China-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_mPaaS_China-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_China_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_China_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":mPaaS_China_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_China",
+  deps = [
+    ":mPaaS_China_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_China_lib",
+  deps = [
+    ":mPaaS_China"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_I18N_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_I18N_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_I18N_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_I18N_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_I18N_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_mPaaS_I18N-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_mPaaS_I18N-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_I18N_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_I18N_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":mPaaS_I18N_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_I18N",
+  deps = [
+    ":mPaaS_I18N_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_I18N_lib",
+  deps = [
+    ":mPaaS_I18N"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_SealInHouse_hdrs",
+  srcs = [
+    "BDTuring/mPaaS/SealInHouse/BDDebugFeedSeal.h",
+    "BDTuring/mPaaS/SealInHouse/BDDebugFeedTuringTheme.h",
+    "BDTuring/mPaaS/SealInHouse/BDDebugSealNavigatePage.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_SealInHouse_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_SealInHouse_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_SealInHouse_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_SealInHouse_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_mPaaS_SealInHouse-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_mPaaS_SealInHouse-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_SealInHouse_srcs",
+  srcs = [
+    "BDTuring/mPaaS/SealInHouse/BDDebugFeedSeal.m",
+    "BDTuring/mPaaS/SealInHouse/BDDebugFeedTuringTheme.m",
+    "BDTuring/mPaaS/SealInHouse/BDDebugSealNavigatePage.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_SealInHouse_oc",
+  enable_modules = 1,
+  srcs = [
+    "mPaaS_SealInHouse_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_SealInHouse_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDStartUp//:Debug_objc_interface",
+    "@BDStartUp//:Debug_swift_interface",
+    ":mPaaS_SealInHouse_objc_interface",
+    "@BDStartUp//:Debug_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_SealInHouse",
+  deps = [
+    ":mPaaS_SealInHouse_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_SealInHouse_lib",
+  deps = [
+    ":mPaaS_SealInHouse"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_IdentityInHouse_hdrs",
+  srcs = [
+    "BDTuring/mPaaS/IdentityInHouse/BDDebugFeedIdentity.h",
+    "BDTuring/mPaaS/IdentityInHouse/BDTuringConfig+Identity.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_IdentityInHouse_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_IdentityInHouse_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_IdentityInHouse_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mPaaS_IdentityInHouse_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_mPaaS_IdentityInHouse-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_mPaaS_IdentityInHouse-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mPaaS_IdentityInHouse_srcs",
+  srcs = [
+    "BDTuring/mPaaS/IdentityInHouse/BDDebugFeedIdentity.m",
+    "BDTuring/mPaaS/IdentityInHouse/BDTuringConfig+Identity.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mPaaS_IdentityInHouse_oc",
+  enable_modules = 1,
+  srcs = [
+    "mPaaS_IdentityInHouse_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "mPaaS_IdentityInHouse_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDStartUp//:Debug_objc_interface",
+    "@byted_cert//:jsbridge_objc_interface",
+    "@BDStartUp//:Debug_swift_interface",
+    "@byted_cert//:jsbridge_swift_interface",
+    ":mPaaS_IdentityInHouse_objc_interface",
+    "@BDStartUp//:Debug_module_map",
+    "@byted_cert//:jsbridge_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mPaaS_IdentityInHouse",
+  deps = [
+    ":mPaaS_IdentityInHouse_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mPaaS_IdentityInHouse_lib",
+  deps = [
+    ":mPaaS_IdentityInHouse"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Tests_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Tests_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Tests_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Tests_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Tests_module_map",
+  module_map = "pod_support/Headers/Public/BDTuring/BDTuring_Tests-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDTuring/BDTuring_Tests-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Tests_srcs",
+  srcs = [
+    "BDTuring/Tests/Bridge/TestBridgeCommand.m",
+    "BDTuring/Tests/Service/TestConfigService.m",
+    "BDTuring/Tests/Database/TestDatabase.m",
+    "BDTuring/Tests/Utility/TestDeviceHelper.m",
+    "BDTuring/Tests/Database/TestEventCollect.m",
+    "BDTuring/Tests/Utility/TestJSON.m",
+    "BDTuring/Tests/Network/TestRequest.m",
+    "BDTuring/Tests/Utility/TestSandBoxHelper.m",
+    "BDTuring/Tests/Service/TestService.m",
+    "BDTuring/Tests/Network/TestURLConfig.m",
+    "BDTuring/Tests/Utility/TestUtility.m",
+    "BDTuring/Tests/Bridge/TestWKWebView.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Tests_oc",
+  enable_modules = 1,
+  srcs = [
+    "Tests_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Tests_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDTuring_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDTuring_private_includes",
+    ":BDTuring_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Aspects//:Aspects_objc_interface",
+    "@OCMock//:OCMock_objc_interface",
+    "@XcodeCoverage//:XcodeCoverage_objc_interface",
+    "@Aspects//:Aspects_swift_interface",
+    "@OCMock//:OCMock_swift_interface",
+    "@XcodeCoverage//:XcodeCoverage_swift_interface",
+    ":Tests_objc_interface",
+    "@Aspects//:Aspects_module_map",
+    "@OCMock//:OCMock_module_map",
+    "@XcodeCoverage//:XcodeCoverage_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Tests",
+  deps = [
+    ":Tests_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Tests_lib",
+  deps = [
+    ":Tests"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_BDTuring_module_map",
+  module_map = "@BDTuring//:pod_support/Headers/Public/BDTuring/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@BDTuring//:pod_support/Headers/Public/BDTuring/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_BDTuring_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@BDTuring//:Core_objc_interface", "@BDTuring//:Host_CN_objc_interface", "@BDTuring//:JSBridge_objc_interface", "@BDTuring//:Localized_EN_objc_interface", "@BDTuring//:Localized_ZH_objc_interface", "@BDTuring//:Network_objc_interface", "@BDTuring//:Settings_objc_interface", "@BDTuring//:TTNet_objc_interface", "@BDTuring//:TTNetProcessor_objc_interface", "@BDTuring//:Utility_objc_interface", "@BDTuring//:View_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_BDTuring",
+  target_name = "Lark",
+  module_name = "BDTuring",
+  hdrs = ["@BDTuring//:Core_pod_hdrs", "@BDTuring//:Host_CN_pod_hdrs", "@BDTuring//:JSBridge_pod_hdrs", "@BDTuring//:Localized_EN_pod_hdrs", "@BDTuring//:Localized_ZH_pod_hdrs", "@BDTuring//:Network_pod_hdrs", "@BDTuring//:Settings_pod_hdrs", "@BDTuring//:TTNet_pod_hdrs", "@BDTuring//:TTNetProcessor_pod_hdrs", "@BDTuring//:Utility_pod_hdrs", "@BDTuring//:View_pod_hdrs"],
+  srcs = ["@BDTuring//:Core_srcs", "@BDTuring//:Host_CN_srcs", "@BDTuring//:JSBridge_srcs", "@BDTuring//:Network_srcs", "@BDTuring//:Settings_srcs", "@BDTuring//:TTNetProcessor_srcs", "@BDTuring//:TTNet_srcs", "@BDTuring//:Utility_srcs", "@BDTuring//:View_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["BDDataDecorator", "Godzippa", "BDAlogProtocol", "TTNetworkManager", "TTReachability", "BDAssert", "BDTrackerProtocol"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDTuring_POD_VERSION=@\\\"9999_2.2.9-alpha.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "BDTuring_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "BDTuring_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["Foundation", "UIKit", "WebKit", "CoreFoundation", "CoreGraphics", "SystemConfiguration", "CoreTelephony", "Security"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = ["z", "sqlite3"],
+  data = ["@BDTuring//:BDTuring_Core_BDTuringResource", "@BDTuring//:BDTuring_Localized_EN_BDTuringLocalized-en", "@BDTuring//:BDTuring_Localized_ZH_BDTuringLocalized-zh"],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "BDTuring_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "BDTuring_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "BDTuring_dynamic", False),
+  tags = getattr(defs_external_objc_library, "BDTuring_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("BDTuring", {}),
+  visibility = ["//visibility:public"],
+)

@@ -1,0 +1,47 @@
+@startuml
+
+[*] --> WAITING: UO
+WAITING --> [*] : RE
+WAITING --> EARLYCANCELLED: UC/TO
+EARLYCANCELLED --> [*]: RE
+EARLYCANCELLED --> CANCELLED: RC
+
+[*] --> CALLING: RUC
+WAITING --> CALLING: RC
+CALLING --> CANCELLED: UC/TO
+CANCELLED --> [*]
+CALLING --> [*] : RT
+CALLING --> HANG_UP: ZF
+
+[*] --> RINGING: RN/RUR
+RINGING --> REFUSED: UR
+REFUSED  --> [*]
+RINGING --> [*] : RT/RUT
+RINGING --> ACCEPTED: UA
+
+[*] --> ON_THE_CALL: RUT
+CALLING --> ON_THE_CALL: RO/RUT
+ACCEPTED  --> ON_THE_CALL
+ON_THE_CALL --> [*]: RT
+ON_THE_CALL --> HANG_UP : UH/ZF
+HANG_UP --> [*]
+
+
+WAITING: Show 呼叫界面
+WAITING: 发出创建会议请求
+WAITING: 启动超时
+EARLYCANCELLED: 挂断按钮置灰
+CANCELLED: 更新 CANCELLED 状态
+CALLING: 加入会议
+CALLING: Show Zoom会议界面（显示自己）
+CALLING: Show 呼叫界面(仅限恢复逻辑)
+
+RINGING: Show 被叫界面
+REFUSED: 更新 REFUSED 状态
+ACCEPTED: 更新 ACCEPTED 状态
+
+ON_THE_CALL: 加入 zoom 会议
+ON_THE_CALL: Show zoom会议界面
+ON_THE_CALL: Show 通话中界面
+HANG_UP: 更新 HANG_UP 状态
+@enduml

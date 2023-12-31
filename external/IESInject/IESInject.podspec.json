@@ -1,0 +1,40 @@
+{
+  "name": "IESInject",
+  "version": "3.11.4-alpha.2",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://github.com/volcengine/volcengine-specs",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "bytedance": "bytedance@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:ies/IESInject.git",
+    "commit": "5b1eb029f659c7cbf2d577828917ae8ad1af0f08"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "default_subspecs": "Core",
+  "subspecs": [
+    {
+      "name": "Core",
+      "source_files": "IESInject/Classes/Core/**/*"
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "5856",
+    "app_id": "1128"
+  },
+  "repoId": "5856",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "IESInject_POD_VERSION=@\\\"1128_3.11.4-alpha.2\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "IESInject_POD_VERSION=@\\\"1128_3.11.4-alpha.2\\\""
+  }
+}

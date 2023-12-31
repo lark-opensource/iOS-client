@@ -1,0 +1,62 @@
+{
+  "name": "TransBridge-iOS",
+  "version": "0.1.8",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/tech_client/trans-bridge-ios",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "lfkdsk": "liufengkai@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:tech_client/trans-bridge-ios.git",
+    "commit": "017703b49b51648fd1e902426591d701788dd0f8"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "subspecs": [
+    {
+      "name": "Channel",
+      "source_files": "TransBridge-iOS/Classes/Channel/**/*.{h,m}",
+      "public_header_files": "TransBridge-iOS/Classes/Channel/**/*.h"
+    },
+    {
+      "name": "Util",
+      "source_files": "TransBridge-iOS/Classes/Util/**/*.{h,m}",
+      "public_header_files": "TransBridge-iOS/Classes/Util/**/*.h"
+    },
+    {
+      "name": "Core",
+      "source_files": "TransBridge-iOS/Classes/Core/**/*.{h,m}",
+      "public_header_files": "TransBridge-iOS/Classes/Core/**/*.h",
+      "dependencies": {
+        "TransBridge-iOS/Util": []
+      }
+    },
+    {
+      "name": "FlutterMk",
+      "source_files": "TransBridge-iOS/Classes/Flutter/**/*.{h,m}",
+      "public_header_files": "TransBridge-iOS/Classes/Flutter/**/*.h",
+      "dependencies": {
+        "TransBridge-iOS/Channel": [],
+        "TransBridge-iOS/Core": []
+      }
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "7279",
+    "app_id": "9999"
+  },
+  "repoId": "7279",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "TransBridge_iOS_POD_VERSION=@\\\"9999_0.1.8\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "TransBridge_iOS_POD_VERSION=@\\\"9999_0.1.8\\\""
+  }
+}

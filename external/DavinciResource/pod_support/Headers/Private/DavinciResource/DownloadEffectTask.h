@@ -1,0 +1,1 @@
+../../../../loki_resource/task/DownloadEffectTask.h

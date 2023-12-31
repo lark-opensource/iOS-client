@@ -1,0 +1,614 @@
+
+@startuml
+
+set namespaceSeparator none
+/' left to right direction '/
+
+package "外部依赖" {
+    interface SearchAPI {
+        .. Used Rust API ..
+        Search_V1_SearchFeedbackRequest
+        Search_V1_IntegrationSearchRequest
+        Search_V1_MultiIntegrationSearchRequest
+        Search_V1_LocalIntegrationSearchRequest
+        Search_V1_MultiLocalIntegrationSearchRequest # 但都只设置了一个req
+        Search_V1_ChatterPermissionsRequest
+        ..
+        GetLocalSearchInfoHistoryRequest
+        GetSearchInfosHistoryRequest
+        SetSearchInfoHistoryRequest
+        DeleteSearchInfoHistoryRequest
+        DeleteAllSearchInfosHistoryRequest
+        --
+        /// 搜索结果反馈
+        /// 目前只有大搜, SearchResultViewController, MessageBaseViewController调用
+        putSearch(feedbacks:...)
+        /// 单场景搜索接口
+        integrationSearch(text, scene, ...)
+        /// 按场景并发请求, 按场景多次回调(没有用Search_V1_MultiIntegrationSearchRequest?)
+        multiRemoteIntegrationSearch(text, scenes, ...)
+        /// 按场景并发本地请求, 按场景多次回调
+        multiLocalIntegrationSearch(text, scenes)
+        /// 外部搜索
+        func externalSearches(text, externalIds)
+        func externalSearch(text, externalId)
+    }
+    interface ChatAPI
+    interface ChatterAPI {
+        --
+        /// 获取@列表
+        func fetchAtList(chatId: String, query: String?) -> Observable<GetAtListResult>
+        /// 分页拉取群成员列表
+        func getChatChatters(chatId, filter, cursor, limit, condition, forceRemote, offset) -> Observable<GetChatChatterResult>
+    }
+    SearchAPI <|.. RustSearchAPI
+    ChatAPI <|.. RustChatAPI
+    ChatterAPI <|.. RustChatterAPI
+}
+interface SearchCache {
+    目前只有searchInChat使用
+}
+
+class SearchHistoryInfo {
+    var _query: String? = nil
+    var _filterParam: Search_V1_IntegrationSearchRequest.FilterParam? = nil
+    var _id: String? = nil
+    var _source: Search_V1_SearchHistoryInfo.Source? = nil
+    var _subSource: Search_V1_SearchHistoryInfo.OneOf_SubSource?
+    var _externalIds: [String] = []
+}
+
+class SearchDataCenter {
+    大搜页，负责调用搜索api和搜索结果数据处理,
+    封装搜索页数据状态.
+    -- State --
+    history
+    result: [SearchCallBack]
+    -- Func --
+    searchText()
+}
+class SearchResultDataCenter {
+    搜索结果页，二级搜索页
+    封装搜索API和搜索结果数据处理
+    ..
+    var state: BehaviorRelay<(SecondSearchResultState, SearchRequestInfo?)>
+    var externalID: String?
+    private let vmFactory: SearchCellViewModelFactory
+    --
+    func set(searchText: String, result: SearchCallBack)
+    func loadMore(searchText: String, filters: [SearchFilter], modifiers: [ModifierAttributedValue] = [])
+    func searchText(_ searchText: String?, filters: [SearchFilter], modifiers: [ModifierAttributedValue] = [])
+}
+
+class ModifierManager {
+    管理modifiers的类, 目前有FG, 大搜会跳message子搜索. message子搜索会同步到filter上
+    modifiers：通过特定运算符组合，实现条件过滤，比如 from: @me
+    缩小搜索范围，帮助用户检索到目标信息
+    [[https://bytedance.feishu.cn/docs/doccndJWCr4Th9O7MQ5Boc PRD]]
+    ..
+    func modifierViewController(_ vc: ModifierViewController, didSelect) # 选中modifier
+}
+class ModifierViewController {
+    modify相关的提示UI, 符合modifier条件时显示
+}
+ModifierManager *-- ModifierViewController
+
+enum SearchFilter {
+    结果过滤设置, 目前只二级搜索页使用
+    ..
+    // 消息发布者
+    case chatter(mode: ChatFilterMode, picker: [SearchChatterPickerItem])
+    // 消息所在会话
+    case chat(mode: ChatFilterMode, picker: [SearchChatPickerItem])
+    case date((startDate: Date?, endDate: Date)?)
+    case doc([DocFilterType])
+    case docCreator([SearchChatterPickerItem])
+    case wikiCreator([SearchChatterPickerItem])
+    // 包含成员
+    case chatMemeber(mode: ChatFilterMode, picker: [SearchChatterPickerItem])
+    case chatKeyWord(String)
+    // 群组类型
+    case chatType([ChatFilterType])
+    // 小组类型
+    case threadType(ThreadFilterType)
+}
+
+class SearchInChatVCConifg {
+    let type: SearchInChatType
+    let searchWhenEmpty: Bool
+    let defaultDataSearchScene: SearchScene?
+    let placeHolderImage: UIImage
+    let placeHolderText: String?
+    let searchScene: SearchScene
+    let supportedFilters: [SearchFilter]
+    let cellType: UITableViewCell.Type
+}
+SearchInChatVCConifg *-- "n" SearchFilter
+
+package "SearchViewControllerUI" {
+    class SearchNaviBar {
+        搜索框
+    }
+    class SearchQueryHistoryView
+    class SearchResultView
+    class SearchQueryHistoryTopBar {
+        大搜顶部二级导航
+    }
+    class SearchQueryBottomView {
+        大搜底部历史记录
+    }
+    SearchQueryHistoryView *-- SearchQueryHistoryTopBar
+    SearchQueryHistoryView *-- SearchQueryBottomView
+}
+
+package "SearchViewCell" {
+    enum SearchSceneSection {
+        .. 搜索场景版块 ..
+        // 传入rustScene中的searchChats、searchMessages、searchChatsInAdvanceScene时
+        // 大搜会根据fg判断是否要切分成小组和群组、话题和会话
+        // 不切分或其他不走大搜相关流程的则默认搜全部
+        case rustScene(SearchScene)
+        // 大搜单搜话题消息
+        case searchTopicOnly
+        // 高级搜索单搜话题消息
+        case searchTopicInAdvanceOnly
+        // 单搜普通消息
+        case searchMessageOnly
+        // 大搜单搜普通会话
+        case searchChatOnly
+        // 大搜单搜小组会话
+        case searchThreadOnly
+        // 高级搜索搜小组会话
+        case searchThreadInAdvanceOnly
+        // 高级搜索搜普通会话
+        case searchChatInAdvanceOnly
+    }
+    interface SearchTableViewCellProtocol {
+        搜索Cell基础要求
+        由实现类实现各业务内容的具体样式
+        -- Requirement --
+        set(viewModel: SearchCellViewModel, currentAccount, searchText)
+        viewModel: SearchCellViewModel?
+        -- 实现类 --
+        ChatterSearchTableViewCell
+        ExternalTableViewCell
+        FileSearchTableViewCell
+        MessageSearchTableViewCell
+        URLSearchTableViewCell
+    }
+    SearchTableViewCellProtocol <|-- SearchTableViewCell
+    class SearchTableViewCell {
+        -- 子类 --
+        AppSearchTableViewCell
+        BoxSearchTableViewCell
+        CalendarSearchTableViewCell
+        ChatAdvancedSearchTableViewCell
+        ChatSearchTableViewCell
+        DocsSearchTableViewCell
+        OncallSearchTableViewCell
+        TopicSearchTableViewCell
+        WikiSearchTableViewCell
+    }
+    interface SearchCellViewModel {
+        各种子视图视图逻辑处理的抽象类
+        ..
+        var searchResult: IntegrationSearchResult { get }
+        var searchClickInfo: String { get } /// 埋点信息
+
+        func didSelectCell(from vc: UIViewController) -> SearchHistoryModel?
+        func requestPeakCorrectFeed(failedCallback: (() -> Void)?)
+        -- 实现类 --
+        ExternalSearchViewModel
+        BoxSearchViewModel
+        CalendarSearchViewModel
+        AppSearchViewModel
+        ChatSearchViewModel
+        ChatterSearchViewModel
+        MessageSearchViewModel
+        DocsSearchViewModel
+        OncallSearchViewModel
+        TopicSearchViewModel
+        WikiSearchViewModel
+        FileSearchViewModel
+        URLSearchViewModel
+    }
+    interface SearchCellViewModelFactory {
+        CellViewModel工厂和胶水配置类，
+        负责返回该场景的类型、搜索结果的group名称、搜索结果的cell、
+        是否支持本地搜索等基本信息，提供一个创建搜索结果VM的方法
+        ..
+        createViewModel(result, context) # 创建VM
+        searchCellType # 对应的TableViewCell类
+        SearchScene # 对应的搜索场景
+        supportedFilters: [SearchFilter]
+        supportLocalSearch: Bool
+    }
+    class IntegrationSearchResult {
+        public let searchResult: SearchResult
+        public let searchMeta: SearchMeta
+        public let contextID: String?
+    }
+
+    SearchCellViewModelFactory o-- SearchCellViewModel : 创建
+    SearchCellViewModelFactory o-- SearchTableViewCellProtocol : 配置
+    SearchCellViewModelFactory o-- SearchFilter : 配置
+    SearchCellViewModelFactory o- SearchSceneSection : 所属场景
+    SearchTableViewCellProtocol o- SearchCellViewModel
+
+    SearchCellViewModel *-- IntegrationSearchResult
+}
+
+package FilterView {
+    class SearchFilterView {
+        单个的过滤选项, 目前业务逻辑是delegate到VC的
+    }
+    SearchFilterView *-- SearchFilter
+    class SearchFilterWrapperView {
+        private var fileterViews: [SearchFilterView] = []
+    }
+    class SearchInChatFilterView {
+        private var fileterViews: [SearchFilterView]
+    }
+    class MessageSearchFilterWrapperView
+    SearchFilterWrapperView *-- "n" SearchFilterView
+    SearchInChatFilterView *-- "n" SearchFilterView
+    SearchFilterWrapperView <|-- MessageSearchFilterWrapperView
+}
+
+annotation "topBar 二级路由" as 二级路由
+class SearchViewController {
+    大搜入口
+    .. 初始化参数 ..
+    searchText
+    [SearchSceneSection]
+    topPriorityScene: SearchSceneSection
+    searchTabName # from source
+    -- 路由 --
+    func topBar(_ topBar: SearchQueryHistoryView, didSelect historyInfo: SearchHistoryInfo) # 顶部二级导航点击
+    private func jumpToSearchResult(with searchCallBack: SearchCallBack, queryParam: SearchParam?) # 子VC跳转实现
+    func didSelectRowAt() -> viewModel.didSelectCell() # 搜索卡片点击跳转
+}
+SearchViewController -> 二级路由
+package "二级搜索" {
+    class SearchResultViewController {
+        点击大搜结果的更多进入
+        .. init param
+        vmFactory: SearchCellViewModelFactory
+        originSearchInfo: (SearchParam?, SearchCallBack),
+        placeholderText: String?,
+        searchHistoryStore: SearchQueryHistoryStore,
+        searchSession: SearchSession,
+        externalID: String?,
+        var didSelectCell: ((SearchCellViewModel, String, Int) -> Void)? //埋点用
+        ..
+        private let dataCenter: SearchResultDataCenter
+        private var showSearchResults: SearchCallBack
+        .. UI ..
+        private let searchNaviBar = SearchNaviBar(style: .back)
+        private var filterView: SearchFilterWrapperView?
+        private let resultView = SearchResultView()
+    }
+    SearchResultViewController *-- SearchResultDataCenter
+    SearchResultViewController *-- SearchFilterWrapperView
+    /' SearchResultViewController *-- SearchResultView '/
+
+    class MessageResultViewController {
+        消息二级搜索页
+        ..
+        var currentFilters: [SearchFilter] # 在子VC中环境共享
+        private let searchAPI: SearchAPI
+        private let feedService: FeedSyncDispatchService
+        private lazy var modifierManager: ModifierManager
+        private let searchSession: SearchSession
+        private let searchSetting: SearchSetting
+        private let currentAccount: Account
+        ..UI..
+        private let searchNaviBar = SearchNaviBar(style: .back)
+        private let segment: StandardSegment
+        private let segmentView: SegmentView
+        ..SubVC..
+        private let commonMessageVC: MessageBaseViewController
+        private let urlMessageVC: MessageBaseViewController
+        private let fileVC: MessageBaseViewController
+        --
+        func setCurrentFilters(_ filters: [SearchFilter], needSyncToModifier: Bool, needClearSearchField: Bool = false) # 设置过滤器
+    }
+    class MessageBaseViewController {
+        消息二级搜索单页
+        ..
+        private let messageSubSourceType: SearchHistoryMessageSubSource.TypeEnum
+        private let dataCenter: SearchResultDataCenter
+        private let searchHistoryStore: SearchQueryHistoryStore
+        private let searchSession: SearchSession
+        let vmFactory: SearchCellViewModelFactory
+        private let viewModelContext: SearchViewModelContext
+        private var currentFilters: [SearchFilter] { return resultVC.currentFilters }
+        private var currentModifiers: [ModifierAttributedValue] { return resultVC.currentModifiers }
+        private var resultVC: MessageResultViewController { return (parent as? MessageResultViewController)! }
+
+        private lazy var filterView: MessageSearchFilterWrapperView
+        private let resultView = SearchResultView()
+
+        var didSelectCell: ((SearchCellViewModel, String, Int) -> Void)? //埋点用
+    }
+    MessageResultViewController *-- "n" MessageBaseViewController
+    MessageBaseViewController *-- SearchResultDataCenter
+    MessageBaseViewController *-- MessageSearchFilterWrapperView
+    MessageResultViewController *- ModifierManager
+
+
+    package SearchInChat {
+        class SearchInChatContainerViewController {
+            Chat内搜索进入
+            ..
+            private let chatId: String
+            private let isMeetingChat: Bool
+
+            private let searchCache: SearchCache
+            private let searchAPI: SearchAPI
+            private let chatAPI: ChatAPI
+            private let router: SearchInChatRouter
+
+            private let enableSlide: Bool
+            private let enableMindnote: Bool
+            private let searchItemTypes: [SearchInChatType]
+            private let searchSession = SearchSession()
+
+            private let segmentedDataSource = JXSegmentedTitleDataSource()
+            private let segmentedView = JXSegmentedView()
+            private lazy var listContainerView: JXSegmentedListContainerView
+            .. SubVC ..
+            private lazy var searchMessageViewController: SearchInChatViewController
+            private lazy var searchDocViewController: SearchInChatViewController
+            private lazy var searchWikiViewController: SearchInChatViewController
+            private lazy var searchFileViewController: SearchInChatViewController
+            private lazy var searchImageViewController: SearchImageInChatViewController
+            private lazy var searchUrlViewController: SearchInChatViewController
+
+        }
+        class SearchInChatViewController {
+            Chat内单类搜索
+            ..
+            private let config: SearchInChatVCConifg
+            private let viewModel: SearchInChatViewModel
+
+            private let chatID: String
+            private let searchSession: SearchSession
+            private let router: SearchInChatRouter
+            private let enableSlide: Bool
+            private let enableMindnote: Bool
+
+            private let searchWrapper = SearchUITextFieldWrapperView()
+            private let filterView: SearchInChatFilterView
+            private let resultView = SearchResultView(tableStyle: .plain)
+            private let placeHolderView: SearhInChatEmptyDataView
+            private let emptyDataView: SearhInChatEmptyDataView = SearhInChatEmptyDataView(frame: .zero)
+        }
+        class SearchImageInChatViewController {
+            Chat内图片搜索
+            没依赖SearchAPI ?
+            ..
+            private let router: SearchInChatRouter
+            private let chatId: String
+            private let isMeetingChat: Bool
+
+            private lazy var imageCollectionView: UICollectionView
+            private var initialEmptyDataView: SearhInChatEmptyDataView
+            private let viewModel: SearchImageInChatViewModel
+        }
+        SearchInChatContainerViewController *-- "n" SearchInChatViewController
+        SearchInChatContainerViewController *-- SearchImageInChatViewController
+        SearchInChatContainerViewController *--- SearchCache
+        SearchInChatViewController ..> SearchInChatVCConifg
+        SearchInChatViewController ..> SearchAPI
+        SearchInChatViewController ..> ChatAPI
+        SearchInChatViewController *-- SearchInChatFilterView
+        SearchImageInChatViewController ..> ChatAPI
+    }
+
+    class DocsSearchViewController {
+        Docs搜索入口
+    }
+    class WikiSearchViewController {
+        Wiki搜索入口
+    }
+
+    class Calendar.SearchViewController {
+        日历二级搜索页
+    }
+    package SearchExternal {
+        class SearchExternalContainerViewController {
+            外部搜索, 由二级导航More进入
+            ..
+            private var placeHolderView: ExternalSearchPlaceholderView? # 多于一个VC时显示默认占位图
+            private let externalSearches: [ExternalSearch]
+            private let searchSession: SearchSession
+            ..UI..
+            private let searchNaviBar = SearchNaviBar(style: .back)
+            private let segment: StandardSegment
+            private let segmentView: SegmentView
+            ..SubVC..
+            private var allExternal: SearchExternalViewController?
+            private var exteranclVCs: [ExternalBaseViewController]
+        }
+        class SearchExternalViewController {
+            外部聚合搜索, 对应All Segment
+            ..
+            private let vmFactory = ExternalSearchViewModelFactory()
+            private let externalSearches: [ExternalSearch]
+            private let searchAPI: SearchAPI
+            private let historyStore: SearchQueryHistoryStore
+            private let searchSession: SearchSession
+
+            private let resultView = SearchResultView()
+        }
+        /' SearchExternalViewController ..> SearchAPI '/
+        class ExternalBaseViewController {
+            单个外部搜索，对应具体的Segment
+            ..
+            private let externalSearch: ExternalSearch
+            private let dataCenter: SearchResultDataCenter
+            private let searchHistoryStore: SearchQueryHistoryStore
+            private let searchSession: SearchSession
+            private let vmFactory = ExternalSearchViewModelFactory()
+
+            private let resultView = SearchResultView()
+        }
+        SearchExternalContainerViewController *-- SearchExternalViewController : ALL
+        SearchExternalContainerViewController *-- "n" ExternalBaseViewController
+        /' SearchExternalViewController ..> SearchAPI '/
+    }
+}
+
+package "其它依赖RustSearchAPI的场景" {
+    class ForwardViewModel {
+        转发分享相关逻辑
+    }
+    ForwardViewModel ..> SearchAPI
+    class ForwardViewController {
+        .. 入口 ..
+        ChatChooseBody. Deadcode?
+        EmotionDetailViewController -> EmotionShareBody
+        EventShareBody
+        ...
+    }
+    class ShareChatViaLinkContainerViewController {
+        分享群进入
+    }
+    ForwardViewController *-- ForwardViewModel
+    ShareChatViaLinkContainerViewController *- ShareGroupCardViewController
+    ShareGroupCardViewController *-- ForwardViewModel
+
+    LarkMail.SearchProvider ..> SearchAPI
+    class 其它依赖RustSearchAPI的controller {
+        EmotionForwardViewController # 表情商店->选择已添加表情->使用表情->选择转发
+        Yellowstone.SearchViewController # https://bytedance.feishu.cn/docs/doccnh8H9LObrKGwXFPtvsFHo5c
+        LarkSpaceKit.SendDocController # 聊天发送文档搜索
+        LarkChat.NewPinListViewController # 聊天Pin列表搜索
+        CustomizeGroupAvatarController # 群头像编辑，入口有FG
+        ContactSearchViewController # 日历搜索部门或者人, 搜索云文档所有者, 消息发送者过滤时进入
+        OnCallViewController # 通讯录或者Appcenter, 选择服务台时进入
+        SearchChatPickerViewController # 搜索时群过滤选项进入
+        SearchUserCalendarViewController # 转让日程时进入
+    }
+    其它依赖RustSearchAPI的controller ..> SearchAPI
+}
+
+package "不依赖RustSearchAPI, 直接使用Chat, ChatterAPI的场景" {
+    AtPickerController : 聊天@选人
+    AtPickerController ..> ChatterAPI : GetMentionChatChattersRequest
+    SearchGroupChatterPicker : 消息页组内搜索发送者进入
+    SearchGroupChatterPicker *- ChatChatterController
+    ChatChatterController ..> ChatterAPI : GetChatChattersRequest
+}
+
+package "路由入口" {
+    class SearchMainHandler {
+        路由处理
+    }
+    class SearchMainBody {
+        Search路由的请求参数
+    }
+    class SearchResultHandler
+    class SearchResultBody
+    class SearchInThreadHandler
+    class SearchInThreadBody {
+        Thread消息页的搜索
+    }
+    class SearchInChatHandler
+    class SearchInChatBody {
+        聊天页搜索
+    }
+    class SearchExternalBody
+    class SearchExternalHandler
+    class DocsSearchControllerBody
+    class DocsSearchViewControllerHandler
+    class CalendarEventSubSearch
+
+    SearchMainBody <.. SearchMainHandler
+    SearchMainHandler --> SearchViewController : 创建
+    SearchResultBody <.. SearchResultHandler
+    SearchResultHandler --> SearchResultViewController : 创建
+
+    SearchInThreadBody <.. SearchInThreadHandler
+    SearchInThreadHandler --> SearchInChatContainerViewController : 创建
+    SearchInChatBody <.. SearchInChatHandler
+    SearchInChatHandler --> SearchInChatContainerViewController : 创建
+    DocsSearchControllerBody <.. DocsSearchViewControllerHandler
+    DocsSearchViewControllerHandler --> DocsSearchViewController : 创建
+    DocsSearchViewControllerHandler --> WikiSearchViewController : 创建
+
+    SearchExternalBody <.. SearchExternalHandler
+    SearchExternalHandler --> SearchExternalContainerViewController : 创建
+
+    CalendarEventSubSearch --> Calendar.SearchViewController : 路由创建
+
+    二级路由 --> DocsSearchControllerBody : doc, wiki
+    二级路由 --> MessageResultViewController : message
+    二级路由 --> SearchExternalBody : 导航more
+    二级路由 --> SearchResultBody : 点击结果更多
+    二级路由 --> SearchResultBody : 导航群组，服务台，应用
+    二级路由 --> CalendarEventSubSearch : calendar
+}
+
+SearchQueryBottomView ..> SearchHistoryInfo
+
+enum SearchDesignatedType {
+    配置大搜顶部二级导航的目标，文案等
+    SearchViewController用来判断跳转
+    NOTE: 现在每个二级页样式实现都不统一
+}
+SearchQueryHistoryTopBar o-- "n" SearchDesignatedType
+
+class SearchSession {
+    封装Session相关的一些数据
+}
+
+' mark: relations'
+
+SearchViewController *-- "n" SearchSceneSection
+SearchViewController *-- SearchDataCenter
+SearchViewController *-- "n" SearchCellViewModelFactory : registerVMFactory()
+SearchViewController *-- ModifierManager
+SearchViewController *-- SearchSession
+
+SearchViewController *-- SearchQueryHistoryView
+SearchViewController *-- SearchResultView
+SearchViewController *-- SearchNaviBar
+
+SearchViewController ..> SearchAPI
+SearchViewController ..> ChatAPI
+SearchDataCenter ..> SearchAPI
+
+ExternalBaseViewController *-- SearchResultDataCenter
+
+
+enum SecondSearchResultState {
+    二级搜索状态
+    ..
+    case loading
+    case result(searchResult: SearchCallBack)
+    case noResult(searchText: String)
+    case fail(reason: String, searchText: String, isLoadMore: Bool)
+}
+
+SearchResultDataCenter ..> SearchAPI
+SearchResultDataCenter *-- SecondSearchResultState
+SearchResultDataCenter ..> SearchFilter
+
+SearchResultView *-- "n" SearchTableViewCellProtocol
+
+class SearchQueryHistoryStore {
+    getSearchHistory()
+    /// 这个是设置Info
+    save(info: SearchHistoryInfo)
+    /// 这个是上报Feedback
+    saveSearch(searchText, ...)
+}
+
+SearchQueryHistoryView *-- SearchQueryHistoryStore
+SearchQueryHistoryStore ..> SearchAPI
+
+MessageResultViewController *-- "n" SearchFilter
+
+@enduml

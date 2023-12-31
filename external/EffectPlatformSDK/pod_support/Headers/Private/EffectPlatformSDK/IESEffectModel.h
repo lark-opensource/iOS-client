@@ -1,0 +1,1 @@
+../../../../EffectPlatformSDK/Core/IESEffectModel.h

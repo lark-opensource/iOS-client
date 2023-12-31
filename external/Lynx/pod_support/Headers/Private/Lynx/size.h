@@ -1,0 +1,1 @@
+../../../../third_party/krypton/canvas/base/size.h

@@ -1,0 +1,1 @@
+../../../../core/templatemodel/NLETemplateEditor.h

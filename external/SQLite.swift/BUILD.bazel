@@ -1,0 +1,1885 @@
+load('@build_bazel_rules_swift//swift:swift.bzl', 'swift_library')
+load('@build_bazel_rules_apple//apple:resources.bzl', 'apple_resource_group')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "SQLite.swift_pod_hdrs",
+  srcs = [
+    ":SQLite.swift_root_pod_hdrs",
+    ":standard_pod_hdrs",
+    ":standard_tests_pod_hdrs",
+    ":standalone_pod_hdrs",
+    ":standalone_tests_pod_hdrs",
+    ":SQLCipher_pod_hdrs",
+    ":SQLCipher_tests_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "SQLite.swift_private_includes",
+  include = [
+    "external/SQLite.swift/pod_support/Headers/Private/SQLite.swift/"
+  ],
+  deps = [],
+  external_name = "SQLite.swift"
+)
+gen_includes(
+  name = "SQLite.swift_public_includes",
+  include = [
+    "external/SQLite.swift/pod_support/Headers/Public/SQLite.swift/"
+  ],
+  deps = [],
+  external_name = "SQLite.swift"
+)
+filegroup(
+  name = "_SQLite.swift_hdrs",
+  srcs = [
+    ":SQLite.swift_root_hdrs",
+    ":standard_hdrs",
+    ":standard_tests_hdrs",
+    ":standalone_hdrs",
+    ":standalone_tests_hdrs",
+    ":SQLCipher_hdrs",
+    ":SQLCipher_tests_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "SQLite.swift_xcode_hmapsource",
+  hdrs = [
+    ":SQLite.swift_root_hdrs",
+    ":standard_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "SQLite.swift_xcode_hmap",
+  dep = ":SQLite.swift_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/SQLite.swift/*-bitsky-generated.modulemap", "pod_support/Headers/Public/SQLite.swift/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "SQLite.swift_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "SQLite.swift",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "SQLite.swift_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":SQLite.swift_xcode_hmap"
+  ],
+  external_name = "SQLite.swift",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SQLite.swift_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SQLite.swift_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SQLite.swift_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SQLite.swift_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "SQLite.swift_module_map",
+  module_map = "pod_support/Headers/Public/SQLite.swift/SQLite.swift-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/SQLite.swift/SQLite.swift-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SQLite.swift_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "SQLite.swift_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":SQLite.swift_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":SQLite.swift_private_includes",
+    ":SQLite.swift_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":SQLite.swift_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DSQLite_swift_POD_VERSION=@\\\"8888_0.13.0\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SQLite.swift",
+  deps = [
+    ":SQLite.swift_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "SQLite.swift_lib",
+  deps = [
+    ":SQLite.swift"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "standard_hdrs",
+  srcs = [
+    "Sources/SQLite/SQLite.h",
+    "Sources/SQLiteObjc/fts3_tokenizer.h",
+    "Sources/SQLiteObjc/include/SQLiteObjc.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "standard_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/SQLite.swift/SQLite.h",
+    "pod_support/Headers/Private/SQLite.swift/SQLiteObjc.h",
+    "pod_support/Headers/Private/SQLite.swift/fts3_tokenizer.h",
+    "pod_support/Headers/Public/SQLite.swift/SQLite.h",
+    "pod_support/Headers/Public/SQLite.swift/SQLiteObjc.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "standard_swift_interface",
+  deps = [
+    ":standard_swift"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "standard_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "standard_module_map",
+  module_map = "pod_support/Headers/Public/SQLite.swift/SQLite.swift_standard-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/SQLite.swift/SQLite.swift_standard-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "standard_swift_srcs",
+  srcs = [
+    "Sources/SQLite/Typed/AggregateFunctions.swift",
+    "Sources/SQLite/Core/Blob.swift",
+    "Sources/SQLite/Typed/Coding.swift",
+    "Sources/SQLite/Typed/Collation.swift",
+    "Sources/SQLite/Core/Connection.swift",
+    "Sources/SQLite/Typed/CoreFunctions.swift",
+    "Sources/SQLite/Typed/CustomFunctions.swift",
+    "Sources/SQLite/Typed/DateAndTimeFunctions.swift",
+    "Sources/SQLite/Core/Errors.swift",
+    "Sources/SQLite/Typed/Expression.swift",
+    "Sources/SQLite/Foundation.swift",
+    "Sources/SQLite/Extensions/FTS4.swift",
+    "Sources/SQLite/Extensions/FTS5.swift",
+    "Sources/SQLite/Helpers.swift",
+    "Sources/SQLite/Typed/Operators.swift",
+    "Sources/SQLite/Typed/Query.swift",
+    "Sources/SQLite/Extensions/RTree.swift",
+    "Sources/SQLite/Typed/Schema.swift",
+    "Sources/SQLite/Typed/Setter.swift",
+    "Sources/SQLite/Core/Statement.swift",
+    "Sources/SQLite/Core/Value.swift"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+swift_library(
+  name = "standard_swift",
+  module_name = "SQLite",
+  srcs = [
+    "standard_swift_srcs"
+  ],
+  deps = [
+    ":SQLite.swift_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_public_interface",
+    ":SQLite.swift_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":standard_module_map",
+    ":standard_objc_interface"
+  ],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ) + [
+    "-DCOCOAPODS",
+    "-suppress-warnings",
+    "-import-underlying-module",
+    "-swift-version",
+    "5",
+    "-Xcc",
+    "-fobjc-weak",
+    "-Xcc",
+    "-stdlib=libc++",
+    "-Xcc",
+    "-DCOCOAPODS=1",
+    "-Xcc",
+    "-fdiagnostics-show-note-include-stack",
+    "-Xcc",
+    "-fno-common",
+    "-Xcc",
+    "-fmessage-length=0",
+    "-Xcc",
+    "-fpascal-strings",
+    "-Xcc",
+    "-fstrict-aliasing",
+    "-Xcc",
+    "-DSQLite_swift_POD_VERSION=@\\\"8888_0.13.0\\\"",
+    "-Xcc",
+    "-I.",
+    "-Xcc",
+    "-Wno-nullability-completeness",
+    "-Xcc",
+    "-Wno-nonnull",
+    "-Xcc",
+    "-Wno-nullability",
+    "-Xcc",
+    "-Wno-incomplete-umbrella"
+  ],
+  generates_header = True,
+  generated_header_name = "SQLite-Swift.h",
+  features = [
+    "swift.no_generated_module_map",
+    "swift.opt_uses_wmo",
+    "swift.opt_uses_osize"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "standard_srcs",
+  srcs = [
+    "Sources/SQLiteObjc/SQLiteObjc.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "standard_oc",
+  enable_modules = 1,
+  srcs = [
+    "standard_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "standard_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_dylibs = [
+    "sqlite3"
+  ],
+  deps = [
+    ":SQLite.swift_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":SQLite.swift_private_includes",
+    ":SQLite.swift_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":standard_swift",
+    ":standard_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DSQLite_swift_POD_VERSION=@\\\"8888_0.13.0\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "standard",
+  deps = [
+    ":standard_oc",
+    ":standard_swift"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "standard_lib",
+  deps = [
+    ":standard"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+apple_resource_group(
+  name = "standard_tests_resource_group",
+  resources = [
+    "Tests/SQLiteTests/fixtures/encrypted-3.x.sqlite",
+    "Tests/SQLiteTests/fixtures/encrypted-4.x.sqlite"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "standard_tests_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "standard_tests_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "standard_tests_swift_interface",
+  deps = [
+    ":standard_tests_swift"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "standard_tests_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "standard_tests_module_map",
+  module_map = "pod_support/Headers/Public/SQLite.swift/SQLite.swift_standard_tests-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/SQLite.swift/SQLite.swift_standard_tests-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "standard_tests_swift_srcs",
+  srcs = [
+    "Tests/SQLiteTests/AggregateFunctionsTests.swift",
+    "Tests/SQLiteTests/BlobTests.swift",
+    "Tests/SQLiteTests/CipherTests.swift",
+    "Tests/SQLiteTests/ConnectionTests.swift",
+    "Tests/SQLiteTests/CoreFunctionsTests.swift",
+    "Tests/SQLiteTests/CustomFunctionsTests.swift",
+    "Tests/SQLiteTests/DateAndTimeFunctionTests.swift",
+    "Tests/SQLiteTests/ExpressionTests.swift",
+    "Tests/SQLiteTests/Fixtures.swift",
+    "Tests/SQLiteTests/FoundationTests.swift",
+    "Tests/SQLiteTests/FTS4Tests.swift",
+    "Tests/SQLiteTests/FTS5Tests.swift",
+    "Tests/SQLiteTests/OperatorsTests.swift",
+    "Tests/SQLiteTests/QueryTests.swift",
+    "Tests/SQLiteTests/RowTests.swift",
+    "Tests/SQLiteTests/RTreeTests.swift",
+    "Tests/SQLiteTests/SchemaTests.swift",
+    "Tests/SQLiteTests/SelectTests.swift",
+    "Tests/SQLiteTests/SetterTests.swift",
+    "Tests/SQLiteTests/StatementTests.swift",
+    "Tests/SQLiteTests/TestHelpers.swift",
+    "Tests/SQLiteTests/ValueTests.swift"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+swift_library(
+  name = "standard_tests_swift",
+  module_name = "SQLite",
+  srcs = [
+    "standard_tests_swift_srcs"
+  ],
+  deps = [
+    ":SQLite.swift_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_public_interface",
+    ":SQLite.swift_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":standard_tests_module_map",
+    ":standard_tests_objc_interface"
+  ],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ) + [
+    "-DCOCOAPODS",
+    "-suppress-warnings",
+    "-import-underlying-module",
+    "-swift-version",
+    "5",
+    "-Xcc",
+    "-fobjc-weak",
+    "-Xcc",
+    "-stdlib=libc++",
+    "-Xcc",
+    "-DCOCOAPODS=1",
+    "-Xcc",
+    "-fdiagnostics-show-note-include-stack",
+    "-Xcc",
+    "-fno-common",
+    "-Xcc",
+    "-fmessage-length=0",
+    "-Xcc",
+    "-fpascal-strings",
+    "-Xcc",
+    "-fstrict-aliasing",
+    "-Xcc",
+    "-DSQLite_swift_POD_VERSION=@\\\"8888_0.13.0\\\"",
+    "-Xcc",
+    "-I.",
+    "-Xcc",
+    "-Wno-nullability-completeness",
+    "-Xcc",
+    "-Wno-nonnull",
+    "-Xcc",
+    "-Wno-nullability",
+    "-Xcc",
+    "-Wno-incomplete-umbrella"
+  ],
+  generates_header = True,
+  generated_header_name = "SQLite-Swift.h",
+  features = [
+    "swift.no_generated_module_map",
+    "swift.opt_uses_wmo",
+    "swift.opt_uses_osize"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "standard_tests_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "standard_tests_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_dylibs = [
+    "sqlite3"
+  ],
+  deps = [
+    ":SQLite.swift_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":SQLite.swift_private_includes",
+    ":SQLite.swift_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":standard_tests_swift",
+    ":standard_tests_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DSQLite_swift_POD_VERSION=@\\\"8888_0.13.0\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":standard_tests_resource_group"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "standard_tests",
+  deps = [
+    ":standard_tests_oc",
+    ":standard_tests_swift"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "standard_tests_lib",
+  deps = [
+    ":standard_tests"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "standalone_hdrs",
+  srcs = [
+    "Sources/SQLite/SQLite.h",
+    "Sources/SQLiteObjc/fts3_tokenizer.h",
+    "Sources/SQLiteObjc/include/SQLiteObjc.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "standalone_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "standalone_swift_interface",
+  deps = [
+    ":standalone_swift"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "standalone_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "standalone_module_map",
+  module_map = "pod_support/Headers/Public/SQLite.swift/SQLite.swift_standalone-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/SQLite.swift/SQLite.swift_standalone-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "standalone_swift_srcs",
+  srcs = [
+    "Sources/SQLite/Typed/AggregateFunctions.swift",
+    "Sources/SQLite/Core/Blob.swift",
+    "Sources/SQLite/Typed/Coding.swift",
+    "Sources/SQLite/Typed/Collation.swift",
+    "Sources/SQLite/Core/Connection.swift",
+    "Sources/SQLite/Typed/CoreFunctions.swift",
+    "Sources/SQLite/Typed/CustomFunctions.swift",
+    "Sources/SQLite/Typed/DateAndTimeFunctions.swift",
+    "Sources/SQLite/Core/Errors.swift",
+    "Sources/SQLite/Typed/Expression.swift",
+    "Sources/SQLite/Foundation.swift",
+    "Sources/SQLite/Extensions/FTS4.swift",
+    "Sources/SQLite/Extensions/FTS5.swift",
+    "Sources/SQLite/Helpers.swift",
+    "Sources/SQLite/Typed/Operators.swift",
+    "Sources/SQLite/Typed/Query.swift",
+    "Sources/SQLite/Extensions/RTree.swift",
+    "Sources/SQLite/Typed/Schema.swift",
+    "Sources/SQLite/Typed/Setter.swift",
+    "Sources/SQLite/Core/Statement.swift",
+    "Sources/SQLite/Core/Value.swift"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+swift_library(
+  name = "standalone_swift",
+  module_name = "SQLite",
+  srcs = [
+    "standalone_swift_srcs"
+  ],
+  deps = [
+    ":SQLite.swift_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_public_interface",
+    ":SQLite.swift_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@sqlite3//:sqlite3_objc_interface",
+    "@sqlite3//:sqlite3_swift_interface",
+    "@sqlite3//:sqlite3_module_map",
+    ":standalone_module_map",
+    ":standalone_objc_interface"
+  ],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ) + [
+    "-DSQLITE_SWIFT_STANDALONE",
+    "-DCOCOAPODS",
+    "-suppress-warnings",
+    "-import-underlying-module",
+    "-swift-version",
+    "5",
+    "-Xcc",
+    "-fobjc-weak",
+    "-Xcc",
+    "-stdlib=libc++",
+    "-Xcc",
+    "-DCOCOAPODS=1",
+    "-Xcc",
+    "-fdiagnostics-show-note-include-stack",
+    "-Xcc",
+    "-fno-common",
+    "-Xcc",
+    "-fmessage-length=0",
+    "-Xcc",
+    "-fpascal-strings",
+    "-Xcc",
+    "-fstrict-aliasing",
+    "-Xcc",
+    "-DSQLite_swift_POD_VERSION=@\\\"8888_0.13.0\\\"",
+    "-Xcc",
+    "-DSQLITE_SWIFT_STANDALONE=1",
+    "-Xcc",
+    "-I.",
+    "-Xcc",
+    "-Wno-nullability-completeness",
+    "-Xcc",
+    "-Wno-nonnull",
+    "-Xcc",
+    "-Wno-nullability",
+    "-Xcc",
+    "-Wno-incomplete-umbrella"
+  ],
+  generates_header = True,
+  generated_header_name = "SQLite-Swift.h",
+  features = [
+    "swift.no_generated_module_map",
+    "swift.opt_uses_wmo",
+    "swift.opt_uses_osize"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "standalone_srcs",
+  srcs = [
+    "Sources/SQLiteObjc/SQLiteObjc.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "standalone_oc",
+  enable_modules = 1,
+  srcs = [
+    "standalone_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "standalone_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":SQLite.swift_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":SQLite.swift_private_includes",
+    ":SQLite.swift_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@sqlite3//:sqlite3_objc_interface",
+    "@sqlite3//:sqlite3_swift_interface",
+    ":standalone_swift",
+    ":standalone_objc_interface",
+    "@sqlite3//:sqlite3_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DSQLite_swift_POD_VERSION=@\\\"8888_0.13.0\\\"",
+    "-DSQLITE_SWIFT_STANDALONE=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "standalone",
+  deps = [
+    ":standalone_oc",
+    ":standalone_swift"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "standalone_lib",
+  deps = [
+    ":standalone"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+apple_resource_group(
+  name = "standalone_tests_resource_group",
+  resources = [
+    "Tests/SQLiteTests/fixtures/encrypted-3.x.sqlite",
+    "Tests/SQLiteTests/fixtures/encrypted-4.x.sqlite"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "standalone_tests_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "standalone_tests_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "standalone_tests_swift_interface",
+  deps = [
+    ":standalone_tests_swift"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "standalone_tests_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "standalone_tests_module_map",
+  module_map = "pod_support/Headers/Public/SQLite.swift/SQLite.swift_standalone_tests-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/SQLite.swift/SQLite.swift_standalone_tests-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "standalone_tests_swift_srcs",
+  srcs = [
+    "Tests/SQLiteTests/AggregateFunctionsTests.swift",
+    "Tests/SQLiteTests/BlobTests.swift",
+    "Tests/SQLiteTests/CipherTests.swift",
+    "Tests/SQLiteTests/ConnectionTests.swift",
+    "Tests/SQLiteTests/CoreFunctionsTests.swift",
+    "Tests/SQLiteTests/CustomFunctionsTests.swift",
+    "Tests/SQLiteTests/DateAndTimeFunctionTests.swift",
+    "Tests/SQLiteTests/ExpressionTests.swift",
+    "Tests/SQLiteTests/Fixtures.swift",
+    "Tests/SQLiteTests/FoundationTests.swift",
+    "Tests/SQLiteTests/FTS4Tests.swift",
+    "Tests/SQLiteTests/FTS5Tests.swift",
+    "Tests/SQLiteTests/OperatorsTests.swift",
+    "Tests/SQLiteTests/QueryTests.swift",
+    "Tests/SQLiteTests/RowTests.swift",
+    "Tests/SQLiteTests/RTreeTests.swift",
+    "Tests/SQLiteTests/SchemaTests.swift",
+    "Tests/SQLiteTests/SelectTests.swift",
+    "Tests/SQLiteTests/SetterTests.swift",
+    "Tests/SQLiteTests/StatementTests.swift",
+    "Tests/SQLiteTests/TestHelpers.swift",
+    "Tests/SQLiteTests/ValueTests.swift"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+swift_library(
+  name = "standalone_tests_swift",
+  module_name = "SQLite",
+  srcs = [
+    "standalone_tests_swift_srcs"
+  ],
+  deps = [
+    ":SQLite.swift_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_public_interface",
+    ":SQLite.swift_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@sqlite3//:sqlite3_objc_interface",
+    "@sqlite3//:sqlite3_swift_interface",
+    "@sqlite3//:sqlite3_module_map",
+    ":standalone_tests_module_map",
+    ":standalone_tests_objc_interface"
+  ],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ) + [
+    "-DSQLITE_SWIFT_STANDALONE",
+    "-DCOCOAPODS",
+    "-suppress-warnings",
+    "-import-underlying-module",
+    "-swift-version",
+    "5",
+    "-Xcc",
+    "-fobjc-weak",
+    "-Xcc",
+    "-stdlib=libc++",
+    "-Xcc",
+    "-DCOCOAPODS=1",
+    "-Xcc",
+    "-fdiagnostics-show-note-include-stack",
+    "-Xcc",
+    "-fno-common",
+    "-Xcc",
+    "-fmessage-length=0",
+    "-Xcc",
+    "-fpascal-strings",
+    "-Xcc",
+    "-fstrict-aliasing",
+    "-Xcc",
+    "-DSQLite_swift_POD_VERSION=@\\\"8888_0.13.0\\\"",
+    "-Xcc",
+    "-DSQLITE_SWIFT_STANDALONE=1",
+    "-Xcc",
+    "-I.",
+    "-Xcc",
+    "-Wno-nullability-completeness",
+    "-Xcc",
+    "-Wno-nonnull",
+    "-Xcc",
+    "-Wno-nullability",
+    "-Xcc",
+    "-Wno-incomplete-umbrella"
+  ],
+  generates_header = True,
+  generated_header_name = "SQLite-Swift.h",
+  features = [
+    "swift.no_generated_module_map",
+    "swift.opt_uses_wmo",
+    "swift.opt_uses_osize"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "standalone_tests_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "standalone_tests_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":SQLite.swift_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":SQLite.swift_private_includes",
+    ":SQLite.swift_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@sqlite3//:sqlite3_objc_interface",
+    "@sqlite3//:sqlite3_swift_interface",
+    ":standalone_tests_swift",
+    ":standalone_tests_objc_interface",
+    "@sqlite3//:sqlite3_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DSQLite_swift_POD_VERSION=@\\\"8888_0.13.0\\\"",
+    "-DSQLITE_SWIFT_STANDALONE=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":standalone_tests_resource_group"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "standalone_tests",
+  deps = [
+    ":standalone_tests_oc",
+    ":standalone_tests_swift"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "standalone_tests_lib",
+  deps = [
+    ":standalone_tests"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SQLCipher_hdrs",
+  srcs = [
+    "Sources/SQLite/SQLite.h",
+    "Sources/SQLiteObjc/fts3_tokenizer.h",
+    "Sources/SQLiteObjc/include/SQLiteObjc.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SQLCipher_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SQLCipher_swift_interface",
+  deps = [
+    ":SQLCipher_swift"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SQLCipher_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "SQLCipher_module_map",
+  module_map = "pod_support/Headers/Public/SQLite.swift/SQLite.swift_SQLCipher-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/SQLite.swift/SQLite.swift_SQLCipher-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SQLCipher_swift_srcs",
+  srcs = [
+    "Sources/SQLite/Typed/AggregateFunctions.swift",
+    "Sources/SQLite/Core/Blob.swift",
+    "Sources/SQLite/Extensions/Cipher.swift",
+    "Sources/SQLite/Typed/Coding.swift",
+    "Sources/SQLite/Typed/Collation.swift",
+    "Sources/SQLite/Core/Connection.swift",
+    "Sources/SQLite/Typed/CoreFunctions.swift",
+    "Sources/SQLite/Typed/CustomFunctions.swift",
+    "Sources/SQLite/Typed/DateAndTimeFunctions.swift",
+    "Sources/SQLite/Core/Errors.swift",
+    "Sources/SQLite/Typed/Expression.swift",
+    "Sources/SQLite/Foundation.swift",
+    "Sources/SQLite/Extensions/FTS4.swift",
+    "Sources/SQLite/Extensions/FTS5.swift",
+    "Sources/SQLite/Helpers.swift",
+    "Sources/SQLite/Typed/Operators.swift",
+    "Sources/SQLite/Typed/Query.swift",
+    "Sources/SQLite/Extensions/RTree.swift",
+    "Sources/SQLite/Typed/Schema.swift",
+    "Sources/SQLite/Typed/Setter.swift",
+    "Sources/SQLite/Core/Statement.swift",
+    "Sources/SQLite/Core/Value.swift"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+swift_library(
+  name = "SQLCipher_swift",
+  module_name = "SQLite",
+  srcs = [
+    "SQLCipher_swift_srcs"
+  ],
+  deps = [
+    ":SQLite.swift_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_public_interface",
+    ":SQLite.swift_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@SQLCipher//:SQLCipher_objc_interface",
+    "@SQLCipher//:SQLCipher_swift_interface",
+    "@SQLCipher//:SQLCipher_module_map",
+    ":SQLCipher_module_map",
+    ":SQLCipher_objc_interface"
+  ],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ) + [
+    "-DSQLITE_SWIFT_SQLCIPHER",
+    "-DCOCOAPODS",
+    "-suppress-warnings",
+    "-import-underlying-module",
+    "-swift-version",
+    "5",
+    "-Xcc",
+    "-fobjc-weak",
+    "-Xcc",
+    "-stdlib=libc++",
+    "-Xcc",
+    "-DCOCOAPODS=1",
+    "-Xcc",
+    "-fdiagnostics-show-note-include-stack",
+    "-Xcc",
+    "-fno-common",
+    "-Xcc",
+    "-fmessage-length=0",
+    "-Xcc",
+    "-fpascal-strings",
+    "-Xcc",
+    "-fstrict-aliasing",
+    "-Xcc",
+    "-DSQLite_swift_POD_VERSION=@\\\"8888_0.13.0\\\"",
+    "-Xcc",
+    "-DSQLITE_HAS_CODEC=1",
+    "-Xcc",
+    "-DSQLITE_SWIFT_SQLCIPHER=1",
+    "-Xcc",
+    "-I.",
+    "-Xcc",
+    "-Wno-nullability-completeness",
+    "-Xcc",
+    "-Wno-nonnull",
+    "-Xcc",
+    "-Wno-nullability",
+    "-Xcc",
+    "-Wno-incomplete-umbrella"
+  ],
+  generates_header = True,
+  generated_header_name = "SQLite-Swift.h",
+  features = [
+    "swift.no_generated_module_map",
+    "swift.opt_uses_wmo",
+    "swift.opt_uses_osize"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SQLCipher_srcs",
+  srcs = [
+    "Sources/SQLiteObjc/SQLiteObjc.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SQLCipher_oc",
+  enable_modules = 1,
+  srcs = [
+    "SQLCipher_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "SQLCipher_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":SQLite.swift_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":SQLite.swift_private_includes",
+    ":SQLite.swift_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@SQLCipher//:SQLCipher_objc_interface",
+    "@SQLCipher//:SQLCipher_swift_interface",
+    ":SQLCipher_swift",
+    ":SQLCipher_objc_interface",
+    "@SQLCipher//:SQLCipher_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DSQLite_swift_POD_VERSION=@\\\"8888_0.13.0\\\"",
+    "-DSQLITE_HAS_CODEC=1",
+    "-DSQLITE_SWIFT_SQLCIPHER=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SQLCipher",
+  deps = [
+    ":SQLCipher_oc",
+    ":SQLCipher_swift"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "SQLCipher_lib",
+  deps = [
+    ":SQLCipher"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+apple_resource_group(
+  name = "SQLCipher_tests_resource_group",
+  resources = [
+    "Tests/SQLiteTests/fixtures/encrypted-3.x.sqlite",
+    "Tests/SQLiteTests/fixtures/encrypted-4.x.sqlite"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SQLCipher_tests_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SQLCipher_tests_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SQLCipher_tests_swift_interface",
+  deps = [
+    ":SQLCipher_tests_swift"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SQLCipher_tests_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "SQLCipher_tests_module_map",
+  module_map = "pod_support/Headers/Public/SQLite.swift/SQLite.swift_SQLCipher_tests-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/SQLite.swift/SQLite.swift_SQLCipher_tests-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SQLCipher_tests_swift_srcs",
+  srcs = [
+    "Tests/SQLiteTests/AggregateFunctionsTests.swift",
+    "Tests/SQLiteTests/BlobTests.swift",
+    "Tests/SQLiteTests/CipherTests.swift",
+    "Tests/SQLiteTests/ConnectionTests.swift",
+    "Tests/SQLiteTests/CoreFunctionsTests.swift",
+    "Tests/SQLiteTests/CustomFunctionsTests.swift",
+    "Tests/SQLiteTests/DateAndTimeFunctionTests.swift",
+    "Tests/SQLiteTests/ExpressionTests.swift",
+    "Tests/SQLiteTests/Fixtures.swift",
+    "Tests/SQLiteTests/FoundationTests.swift",
+    "Tests/SQLiteTests/FTS4Tests.swift",
+    "Tests/SQLiteTests/FTS5Tests.swift",
+    "Tests/SQLiteTests/OperatorsTests.swift",
+    "Tests/SQLiteTests/QueryTests.swift",
+    "Tests/SQLiteTests/RowTests.swift",
+    "Tests/SQLiteTests/RTreeTests.swift",
+    "Tests/SQLiteTests/SchemaTests.swift",
+    "Tests/SQLiteTests/SelectTests.swift",
+    "Tests/SQLiteTests/SetterTests.swift",
+    "Tests/SQLiteTests/StatementTests.swift",
+    "Tests/SQLiteTests/TestHelpers.swift",
+    "Tests/SQLiteTests/ValueTests.swift"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+swift_library(
+  name = "SQLCipher_tests_swift",
+  module_name = "SQLite",
+  srcs = [
+    "SQLCipher_tests_swift_srcs"
+  ],
+  deps = [
+    ":SQLite.swift_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_public_interface",
+    ":SQLite.swift_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@SQLCipher//:SQLCipher_objc_interface",
+    "@SQLCipher//:SQLCipher_swift_interface",
+    "@SQLCipher//:SQLCipher_module_map",
+    ":SQLCipher_tests_module_map",
+    ":SQLCipher_tests_objc_interface"
+  ],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ) + [
+    "-DSQLITE_SWIFT_SQLCIPHER",
+    "-DCOCOAPODS",
+    "-suppress-warnings",
+    "-import-underlying-module",
+    "-swift-version",
+    "5",
+    "-Xcc",
+    "-fobjc-weak",
+    "-Xcc",
+    "-stdlib=libc++",
+    "-Xcc",
+    "-DCOCOAPODS=1",
+    "-Xcc",
+    "-fdiagnostics-show-note-include-stack",
+    "-Xcc",
+    "-fno-common",
+    "-Xcc",
+    "-fmessage-length=0",
+    "-Xcc",
+    "-fpascal-strings",
+    "-Xcc",
+    "-fstrict-aliasing",
+    "-Xcc",
+    "-DSQLite_swift_POD_VERSION=@\\\"8888_0.13.0\\\"",
+    "-Xcc",
+    "-DSQLITE_HAS_CODEC=1",
+    "-Xcc",
+    "-DSQLITE_SWIFT_SQLCIPHER=1",
+    "-Xcc",
+    "-I.",
+    "-Xcc",
+    "-Wno-nullability-completeness",
+    "-Xcc",
+    "-Wno-nonnull",
+    "-Xcc",
+    "-Wno-nullability",
+    "-Xcc",
+    "-Wno-incomplete-umbrella"
+  ],
+  generates_header = True,
+  generated_header_name = "SQLite-Swift.h",
+  features = [
+    "swift.no_generated_module_map",
+    "swift.opt_uses_wmo",
+    "swift.opt_uses_osize"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SQLCipher_tests_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "SQLCipher_tests_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":SQLite.swift_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":SQLite.swift_private_includes",
+    ":SQLite.swift_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@SQLCipher//:SQLCipher_objc_interface",
+    "@SQLCipher//:SQLCipher_swift_interface",
+    ":SQLCipher_tests_swift",
+    ":SQLCipher_tests_objc_interface",
+    "@SQLCipher//:SQLCipher_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DSQLite_swift_POD_VERSION=@\\\"8888_0.13.0\\\"",
+    "-DSQLITE_HAS_CODEC=1",
+    "-DSQLITE_SWIFT_SQLCIPHER=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":SQLCipher_tests_resource_group"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SQLCipher_tests",
+  deps = [
+    ":SQLCipher_tests_oc",
+    ":SQLCipher_tests_swift"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "SQLCipher_tests_lib",
+  deps = [
+    ":SQLCipher_tests"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_SQLite.swift_module_map",
+  module_map = "@SQLite.swift//:pod_support/Headers/Public/SQLite.swift/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@SQLite.swift//:pod_support/Headers/Public/SQLite.swift/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_SQLite.swift_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@SQLite.swift//:SQLite.swift_objc_interface", "@SQLite.swift//:standard_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_SQLite.swift",
+  target_name = "Lark",
+  module_name = "SQLite",
+  hdrs = ["@SQLite.swift//:SQLite.swift_root_pod_hdrs", "@SQLite.swift//:standard_pod_hdrs"],
+  srcs = ["@SQLite.swift//:standard_srcs", "@SQLite.swift//:standard_swift_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DSQLite_swift_POD_VERSION=@\\\"8888_0.13.0\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "SQLite_swift_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "SQLite_swift_cxxopts", []),
+  swift_copts = select({
+      "//conditions:default": [],
+      ":release": []
+    }) + [
+    "-DCOCOAPODS",
+    "-suppress-warnings",
+    "-import-underlying-module",
+    "-swift-version",
+    "5",
+    "-Xcc",
+    "-fobjc-weak",
+    "-Xcc",
+    "-stdlib=libc++",
+    "-Xcc",
+    "-DCOCOAPODS=1",
+    "-Xcc",
+    "-fdiagnostics-show-note-include-stack",
+    "-Xcc",
+    "-fno-common",
+    "-Xcc",
+    "-fmessage-length=0",
+    "-Xcc",
+    "-fpascal-strings",
+    "-Xcc",
+    "-fstrict-aliasing",
+    "-Xcc",
+    "-DSQLite_swift_POD_VERSION=@\\\"8888_0.13.0\\\"",
+    "-Xcc",
+    "-Wno-nullability-completeness",
+    "-Xcc",
+    "-Wno-nonnull",
+    "-Xcc",
+    "-Wno-nullability",
+    "-Xcc",
+    "-Wno-incomplete-umbrella",
+    ] + getattr(defs_external_swift_library, "common_copts", []) 
+      + getattr(defs_external_swift_library, "SQLite_swift_copts", []),
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = ["sqlite3"],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "SQLite_swift_features", []),
+  swift_features = ["swift.no_generated_module_map", "swift.opt_uses_wmo", "swift.opt_uses_osize"] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "SQLite_swift_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "SQLite_swift_dynamic", False),
+  tags = getattr(defs_external_objc_library, "SQLite_swift_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("SQLite_swift", {}),
+  visibility = ["//visibility:public"],
+)

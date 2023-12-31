@@ -1,0 +1,21 @@
+# coding: utf-8
+require 'yaml'
+
+# build = ENV["build"]
+
+task :default do
+  puts string("开始初始化 Rake，安装 fd......", Color::Yellow)
+  system("brew install fd || echo '\033[32m已经安装 fd\033[0m'")
+  puts "\n" + string("安装 python3 中......", Color::Yellow)
+  system("brew install python3 || echo '\033[32m已经安装 python3\033[0m'")
+  puts "\n" + string("安装 optimus_ios 中......", Color::Yellow)
+  system("gem install optimus_ios")
+  puts "\n" + string("bundle update 中......", Color::Yellow)
+  system("bundle update")
+  puts "\n" + string("Rake 初始化完成！", Color::Green)
+end
+
+# 更新国际化文案
+task :i18n do
+  system("bundle exec optimus_ios module i18n -n LarkAIInfra || exit 1")
+end

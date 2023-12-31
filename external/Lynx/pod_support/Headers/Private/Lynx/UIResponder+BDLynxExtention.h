@@ -1,0 +1,1 @@
+../../../../Darwin/iOS/BDLynx/BDLynx/Classes/Core/Utils/UIResponder+BDLynxExtention.h

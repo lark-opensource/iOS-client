@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_effect_algorithm_audio_onset_api.h

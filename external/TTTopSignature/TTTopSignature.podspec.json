@@ -1,0 +1,55 @@
+{
+  "requires_arc": true,
+  "_bytebus_platform": {
+    "repo_id": "1021",
+    "app_id": "9999"
+  },
+  "build_type": "system",
+  "preserve_paths": [
+    "**/*.bwp"
+  ],
+  "description": "framework_description",
+  "license": {
+    "type": "MIT"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/9999/TTTopSignature/0.0.22.1-binary/TTTopSignature.framework.tar.xz"
+  },
+  "prepare_command": "curl https://ios.bytedance.net/wlapi/tosDownload/iosbinary/platform/master/awesomecommand_xz.sh | bash ;",
+  "source_files": [
+    "TTTopSignature",
+    "TTTopSignature/**/*.{h,m}"
+  ],
+  "ios": {
+    "frameworks": [
+      "UIKit",
+      "Foundation",
+      "JavaScriptCore"
+    ],
+    "vendored_libraries": "ios-arch-iphone/*_TTTopSignature_*awesome_*.a"
+  },
+  "summary": "framework_summary",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "TTTopSignature_POD_VERSION=@\\\"9999_0.0.22\\\""
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "version": "0.0.22.1-binary",
+  "build_file_count": 5,
+  "authors": {
+    "huangqing": "huangqing.yangtze@bytedance.com"
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "TTTopSignature_POD_VERSION=@\\\"9999_0.0.22\\\""
+  },
+  "source_code": {
+    "commit": "ff8866f89cd69b7ffed9b5d2d647d6826c5a884d",
+    "git": "git@code.byted.org:videoarch/top_sdk_ios.git"
+  },
+  "homepage": "https://code.byted.org/videoarch/top_sdk_ios",
+  "repoId": "1021",
+  "name": "TTTopSignature"
+}

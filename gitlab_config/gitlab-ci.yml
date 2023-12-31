@@ -1,0 +1,100 @@
+stages:
+  - verify_master
+  - LBCheck
+  - build
+
+##################
+# common
+##################
+
+.job_template: &job_template
+  variables:
+    GIT_STRATEGY: fetch
+    GIT_CLEAN_FLAGS: -f
+  only:
+    - triggers
+    - web
+
+##################
+# build
+##################
+
+# set env
+variables:
+  LANG: en_US.UTF-8
+  LANGUAGE: en_US.UTF-8
+  LC_ALL: en_US.UTF-8
+
+before_script:
+  - ruby -v
+  - env #输出当前环境变量
+
+LBCheck:
+  <<: *job_template
+  stage : LBCheck
+  tags:
+    - mac-lark-ios
+  only:
+    variables:
+      - $CUSTOM_CI_COMMIT_TARGET_REF_NAME =~ /release/.*/
+  script:
+    - python3 ./gitlab_config/checkLB.py
+
+
+# 用以验证master分支
+build_verify_for_master:
+  <<: *job_template
+  stage : verify_master
+  tags:
+    - lark-ios-mini
+  only:
+    variables:
+      - $CUSTOM_CI_COMMIT_TARGET_REF_NAME =~ /master/
+  script:
+    - "[[ $CI_BUILD_REF_NAME =~ ^release/.* ]] && exit 0 || echo '只有release分支才能合入master分支';exit -1"
+
+
+# 用以验证develop分支
+build_verify_for_develop_branch:
+  <<: *job_template
+  stage : build
+  tags:
+    - mac-lark-ios
+  only:
+    variables:
+      - $CUSTOM_CI_COMMIT_TARGET_REF_NAME =~ /develop/
+  script:
+    - git branch -D ${CUSTOM_CI_COMMIT_TARGET_REF_NAME} || echo "分支本地不存在"
+    - git checkout ${CUSTOM_CI_COMMIT_TARGET_REF_NAME}
+    - git merge --no-ff ${CI_COMMIT_SHA} -m "temp merge"
+    - git log -n 2 --first-parent
+    # 编译验证
+    - rm -rf Logs/
+    - bundle install
+    - export GYM_BUILDLOG_PATH=Logs/gym
+    - export DEVELOPER_DIR="$(path_for_version_string 12.x)"
+    - export USE_SWIFT_BINARY=true
+    - "[[ -z `git diff HEAD~1 --name-status|grep -v .podspec$` ]] && exit 0 || bundle exec fastlane ios LarkCI"
+
+
+# 用以验证feature以外分支
+build_verify_except_develop_branch:
+  <<: *job_template
+  stage : build
+  tags:
+    - lark-ios-mini
+  except:
+    variables:
+      - $CUSTOM_CI_COMMIT_TARGET_REF_NAME =~ /develop/
+  script:
+    - git branch -D ${CUSTOM_CI_COMMIT_TARGET_REF_NAME} || echo "分支本地不存在"
+    - git checkout ${CUSTOM_CI_COMMIT_TARGET_REF_NAME}
+    - git merge --no-ff ${CI_COMMIT_SHA} -m "temp merge"
+    - git log -n 2 --first-parent
+
+    # 编译验证
+    - rm -rf Logs/
+    - bundle install
+    - export GYM_BUILDLOG_PATH=Logs/gym
+    - export DEVELOPER_DIR="$(path_for_version_string 12.x)"
+    - "[[ -z `git diff HEAD~1 --name-status|grep -v .podspec$` ]] && exit 0 || bundle exec fastlane ios LarkCI"

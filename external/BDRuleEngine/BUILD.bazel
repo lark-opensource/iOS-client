@@ -1,0 +1,1599 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "BDRuleEngine_pod_hdrs",
+  srcs = [
+    ":BDRuleEngine_root_pod_hdrs",
+    ":Core_pod_hdrs",
+    ":Expression_pod_hdrs",
+    ":Fast_pod_hdrs",
+    ":Service_pod_hdrs",
+    ":Privacy_pod_hdrs",
+    ":Debug_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "BDRuleEngine_private_includes",
+  include = [
+    "external/BDRuleEngine/pod_support/Headers/Private/BDRuleEngine/"
+  ],
+  deps = [],
+  external_name = "BDRuleEngine"
+)
+gen_includes(
+  name = "BDRuleEngine_public_includes",
+  include = [
+    "external/BDRuleEngine/pod_support/Headers/Public/BDRuleEngine/"
+  ],
+  deps = [],
+  external_name = "BDRuleEngine"
+)
+filegroup(
+  name = "_BDRuleEngine_hdrs",
+  srcs = [
+    ":BDRuleEngine_root_hdrs",
+    ":Core_hdrs",
+    ":Expression_hdrs",
+    ":Fast_hdrs",
+    ":Service_hdrs",
+    ":Privacy_hdrs",
+    ":Debug_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "BDRuleEngine_xcode_hmapsource",
+  hdrs = [
+    ":BDRuleEngine_root_hdrs",
+    ":Core_hdrs",
+    ":Debug_hdrs",
+    ":Expression_hdrs",
+    ":Fast_hdrs",
+    ":Privacy_hdrs",
+    ":Service_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "BDRuleEngine_xcode_hmap",
+  dep = ":BDRuleEngine_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/BDRuleEngine/*-bitsky-generated.modulemap", "pod_support/Headers/Public/BDRuleEngine/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "BDRuleEngine_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "BDRuleEngine",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "BDRuleEngine_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":BDRuleEngine_xcode_hmap"
+  ],
+  external_name = "BDRuleEngine",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDRuleEngine_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDRuleEngine_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDRuleEngine_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDRuleEngine_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "BDRuleEngine_module_map",
+  module_map = "pod_support/Headers/Public/BDRuleEngine/BDRuleEngine-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDRuleEngine/BDRuleEngine-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDRuleEngine_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "BDRuleEngine_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDRuleEngine_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDRuleEngine_private_includes",
+    ":BDRuleEngine_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":BDRuleEngine_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDRuleEngine_POD_VERSION=@\\\"9999_3.3.2.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDRuleEngine",
+  deps = [
+    ":BDRuleEngine_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "BDRuleEngine_lib",
+  deps = [
+    ":BDRuleEngine"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [
+    "BDRuleEngine/Classes/Private/ParameterCenter/Builder/BDRuleParameterBuilder.h",
+    "BDRuleEngine/Classes/Private/ParameterCenter/Registry/BDRuleParameterRegistry.h",
+    "BDRuleEngine/Classes/Private/RuleExecutor/Executor/BDRuleExecutor.h",
+    "BDRuleEngine/Classes/Private/RuleExecutor/Executor/BDRuleQuickExecutor.h",
+    "BDRuleEngine/Classes/Private/RuleExecutor/Executor/BDRuleUnitExecutor.h",
+    "BDRuleEngine/Classes/Private/RuleExecutor/Model/BDRuleGroupModel.h",
+    "BDRuleEngine/Classes/Private/RuleExecutor/ParameterFetcher/BDRuleParameterFetcher.h",
+    "BDRuleEngine/Classes/Private/RuleExecutor/Precache/BDRuleModel+Precache.h",
+    "BDRuleEngine/Classes/Private/StrategyCenter/Constant/BDStrategyCenterConstant.h",
+    "BDRuleEngine/Classes/Private/StrategyCenter/Provider/BDStrategyProviderManager.h",
+    "BDRuleEngine/Classes/Private/StrategyCenter/Provider/BDStrategyUpdateProtocol.h",
+    "BDRuleEngine/Classes/Private/StrategyCenter/Store/BDStrategyRuleStore.h",
+    "BDRuleEngine/Classes/Private/StrategyCenter/Store/BDStrategySelectCacheManager.h",
+    "BDRuleEngine/Classes/Private/StrategyCenter/Store/BDStrategyStore.h",
+    "BDRuleEngine/Classes/Private/Util/BDStrategyCenterUtil.h",
+    "BDRuleEngine/Classes/Private/Util/NSDictionary+BDRESafe.h",
+    "BDRuleEngine/Classes/Public/Core/Constant/BDRuleEngineConstant.h",
+    "BDRuleEngine/Classes/Public/Core/Constant/BDRuleEngineErrorConstant.h",
+    "BDRuleEngine/Classes/Public/Core/Constant/BDRuleParameterDefine.h",
+    "BDRuleEngine/Classes/Public/Core/ParameterCenter/BDRuleParameterBuilderModel.h",
+    "BDRuleEngine/Classes/Public/Core/ParameterCenter/BDRuleParameterBuilderProtocol.h",
+    "BDRuleEngine/Classes/Public/Core/ParameterCenter/BDRuleParameterService.h",
+    "BDRuleEngine/Classes/Public/Core/StrategyCenter/BDRuleEngineDelegate.h",
+    "BDRuleEngine/Classes/Public/Core/StrategyCenter/BDRuleResultModel.h",
+    "BDRuleEngine/Classes/Public/Core/StrategyCenter/BDStrategyCenter.h",
+    "BDRuleEngine/Classes/Public/Core/StrategyCenter/BDStrategyProvider.h",
+    "BDRuleEngine/Classes/Public/Core/StrategyCenter/BDStrategyResultModel.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineConstant.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineDelegate.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineErrorConstant.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleExecutor.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleGroupModel.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleModel+Precache.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleParameterBuilder.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleParameterBuilderModel.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleParameterBuilderProtocol.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleParameterDefine.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleParameterFetcher.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleParameterRegistry.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleParameterService.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleQuickExecutor.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleResultModel.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleUnitExecutor.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDStrategyCenter.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDStrategyCenterConstant.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDStrategyCenterUtil.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDStrategyProvider.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDStrategyProviderManager.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDStrategyResultModel.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDStrategyRuleStore.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDStrategySelectCacheManager.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDStrategyStore.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDStrategyUpdateProtocol.h",
+    "pod_support/Headers/Private/BDRuleEngine/NSDictionary+BDRESafe.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineConstant.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineDelegate.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineErrorConstant.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleParameterBuilderModel.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleParameterBuilderProtocol.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleParameterDefine.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleParameterService.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleResultModel.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDStrategyCenter.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDStrategyProvider.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDStrategyResultModel.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/BDRuleEngine/BDRuleEngine_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDRuleEngine/BDRuleEngine_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_srcs",
+  srcs = [
+    "BDRuleEngine/Classes/Public/Core/Constant/BDRuleEngineConstant.m",
+    "BDRuleEngine/Classes/Public/Core/Constant/BDRuleEngineErrorConstant.m",
+    "BDRuleEngine/Classes/Private/RuleExecutor/Executor/BDRuleExecutor.m",
+    "BDRuleEngine/Classes/Private/RuleExecutor/Model/BDRuleGroupModel.m",
+    "BDRuleEngine/Classes/Private/RuleExecutor/Precache/BDRuleModel+Precache.m",
+    "BDRuleEngine/Classes/Private/ParameterCenter/Builder/BDRuleParameterBuilder.m",
+    "BDRuleEngine/Classes/Public/Core/ParameterCenter/BDRuleParameterBuilderModel.m",
+    "BDRuleEngine/Classes/Private/RuleExecutor/ParameterFetcher/BDRuleParameterFetcher.m",
+    "BDRuleEngine/Classes/Private/ParameterCenter/Registry/BDRuleParameterRegistry.m",
+    "BDRuleEngine/Classes/Public/Core/ParameterCenter/BDRuleParameterService.m",
+    "BDRuleEngine/Classes/Private/RuleExecutor/Executor/BDRuleQuickExecutor.m",
+    "BDRuleEngine/Classes/Public/Core/StrategyCenter/BDRuleResultModel.m",
+    "BDRuleEngine/Classes/Private/RuleExecutor/Executor/BDRuleUnitExecutor.m",
+    "BDRuleEngine/Classes/Public/Core/StrategyCenter/BDStrategyCenter.m",
+    "BDRuleEngine/Classes/Private/StrategyCenter/Constant/BDStrategyCenterConstant.m",
+    "BDRuleEngine/Classes/Private/Util/BDStrategyCenterUtil.m",
+    "BDRuleEngine/Classes/Private/StrategyCenter/Provider/BDStrategyProviderManager.m",
+    "BDRuleEngine/Classes/Public/Core/StrategyCenter/BDStrategyResultModel.m",
+    "BDRuleEngine/Classes/Private/StrategyCenter/Store/BDStrategyRuleStore.m",
+    "BDRuleEngine/Classes/Private/StrategyCenter/Store/BDStrategySelectCacheManager.m",
+    "BDRuleEngine/Classes/Private/StrategyCenter/Store/BDStrategyStore.m",
+    "BDRuleEngine/Classes/Private/Util/NSDictionary+BDRESafe.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [
+    "Core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDRuleEngine_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDRuleEngine_private_includes",
+    ":BDRuleEngine_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ByteDanceKit//:Foundation_objc_interface",
+    "@ByteDanceKit//:Foundation_swift_interface",
+    ":Core_objc_interface",
+    "@ByteDanceKit//:Foundation_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDRuleEngine_POD_VERSION=@\\\"9999_3.3.2.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Expression_hdrs",
+  srcs = [
+    "BDRuleEngine/Classes/Private/Expression/BDREExprCacheManager.h",
+    "BDRuleEngine/Classes/Private/Expression/BDREExprEval.h",
+    "BDRuleEngine/Classes/Private/Expression/BDREInstructionCacheManager.h",
+    "BDRuleEngine/Classes/Private/Expression/Command/BDRECommand.h",
+    "BDRuleEngine/Classes/Private/Expression/Command/BDREFunctionCommand.h",
+    "BDRuleEngine/Classes/Private/Expression/Command/BDREIdentifierCommand.h",
+    "BDRuleEngine/Classes/Private/Expression/Command/BDREOperatorCommand.h",
+    "BDRuleEngine/Classes/Private/Expression/Command/BDREValueCommand.h",
+    "BDRuleEngine/Classes/Private/Expression/Instruction/BDREInstruction.h",
+    "BDRuleEngine/Classes/Private/Expression/Parser/BDREExprGrammer.h",
+    "BDRuleEngine/Classes/Private/Expression/Parser/BDREExprParser.h",
+    "BDRuleEngine/Classes/Private/Expression/Parser/BDREFuncManager.h",
+    "BDRuleEngine/Classes/Private/Expression/Parser/BDREIdentifierUtil.h",
+    "BDRuleEngine/Classes/Private/Expression/Parser/BDREOperatorManager.h",
+    "BDRuleEngine/Classes/Private/Expression/Parser/BDREWordParser.h",
+    "BDRuleEngine/Classes/Private/Expression/Parser/Node/BDREBaseNode.h",
+    "BDRuleEngine/Classes/Private/Expression/Parser/Node/BDREConstNode.h",
+    "BDRuleEngine/Classes/Private/Expression/Parser/Node/BDREFuncNode.h",
+    "BDRuleEngine/Classes/Private/Expression/Parser/Node/BDREIdentifierNode.h",
+    "BDRuleEngine/Classes/Private/Expression/Parser/Node/BDRENull.h",
+    "BDRuleEngine/Classes/Private/Expression/Parser/Node/BDREOperatorNode.h",
+    "BDRuleEngine/Classes/Private/Expression/Parser/Node/BDRESplitNode.h",
+    "BDRuleEngine/Classes/Public/Expression/BDREExprConst.h",
+    "BDRuleEngine/Classes/Public/Expression/BDREExprEnv.h",
+    "BDRuleEngine/Classes/Public/Expression/BDREExprRunner.h",
+    "BDRuleEngine/Classes/Public/Expression/BDREFunc.h",
+    "BDRuleEngine/Classes/Public/Expression/BDREOperator.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Expression_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDRuleEngine/BDREBaseNode.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRECommand.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREConstNode.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREExprCacheManager.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREExprConst.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREExprEnv.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREExprEval.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREExprGrammer.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREExprParser.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREExprRunner.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREFunc.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREFuncManager.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREFuncNode.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREFunctionCommand.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREIdentifierCommand.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREIdentifierNode.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREIdentifierUtil.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREInstruction.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREInstructionCacheManager.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRENull.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREOperator.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREOperatorCommand.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREOperatorManager.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREOperatorNode.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRESplitNode.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREValueCommand.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREWordParser.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDREExprConst.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDREExprEnv.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDREExprRunner.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDREFunc.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDREOperator.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Expression_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Expression_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Expression_module_map",
+  module_map = "pod_support/Headers/Public/BDRuleEngine/BDRuleEngine_Expression-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDRuleEngine/BDRuleEngine_Expression-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Expression_srcs",
+  srcs = [
+    "BDRuleEngine/Classes/Private/Expression/Parser/Node/BDREBaseNode.m",
+    "BDRuleEngine/Classes/Private/Expression/Command/BDRECommand.m",
+    "BDRuleEngine/Classes/Private/Expression/Parser/Node/BDREConstNode.m",
+    "BDRuleEngine/Classes/Private/Expression/BDREExprCacheManager.m",
+    "BDRuleEngine/Classes/Public/Expression/BDREExprConst.m",
+    "BDRuleEngine/Classes/Public/Expression/BDREExprEnv.m",
+    "BDRuleEngine/Classes/Private/Expression/BDREExprEval.m",
+    "BDRuleEngine/Classes/Private/Expression/Parser/BDREExprGrammer.m",
+    "BDRuleEngine/Classes/Private/Expression/Parser/BDREExprParser.m",
+    "BDRuleEngine/Classes/Public/Expression/BDREExprRunner.m",
+    "BDRuleEngine/Classes/Public/Expression/BDREFunc.m",
+    "BDRuleEngine/Classes/Private/Expression/Parser/BDREFuncManager.m",
+    "BDRuleEngine/Classes/Private/Expression/Parser/Node/BDREFuncNode.m",
+    "BDRuleEngine/Classes/Private/Expression/Command/BDREFunctionCommand.m",
+    "BDRuleEngine/Classes/Private/Expression/Command/BDREIdentifierCommand.m",
+    "BDRuleEngine/Classes/Private/Expression/Parser/Node/BDREIdentifierNode.m",
+    "BDRuleEngine/Classes/Private/Expression/Parser/BDREIdentifierUtil.m",
+    "BDRuleEngine/Classes/Private/Expression/Instruction/BDREInstruction.m",
+    "BDRuleEngine/Classes/Private/Expression/BDREInstructionCacheManager.m",
+    "BDRuleEngine/Classes/Private/Expression/Parser/Node/BDRENull.m",
+    "BDRuleEngine/Classes/Public/Expression/BDREOperator.m",
+    "BDRuleEngine/Classes/Private/Expression/Command/BDREOperatorCommand.m",
+    "BDRuleEngine/Classes/Private/Expression/Parser/BDREOperatorManager.m",
+    "BDRuleEngine/Classes/Private/Expression/Parser/Node/BDREOperatorNode.m",
+    "BDRuleEngine/Classes/Private/Expression/Parser/Node/BDRESplitNode.m",
+    "BDRuleEngine/Classes/Private/Expression/Command/BDREValueCommand.m",
+    "BDRuleEngine/Classes/Private/Expression/Parser/BDREWordParser.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Expression_oc",
+  enable_modules = 1,
+  srcs = [
+    "Expression_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Expression_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDRuleEngine_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDRuleEngine_private_includes",
+    ":BDRuleEngine_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Expression_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDRuleEngine_POD_VERSION=@\\\"9999_3.3.2.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Expression",
+  deps = [
+    ":Expression_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Expression_lib",
+  deps = [
+    ":Expression"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Fast_hdrs",
+  srcs = [
+    "BDRuleEngine/Classes/Private/Fast/Graph/BDREDiGraph.h",
+    "BDRuleEngine/Classes/Private/Fast/Graph/BDREDiGraphBuilder.h",
+    "BDRuleEngine/Classes/Private/Fast/Graph/Builder/BDREGraphNodeBuilder.h",
+    "BDRuleEngine/Classes/Private/Fast/Graph/Builder/BDREGraphNodeBuilderFactory.h",
+    "BDRuleEngine/Classes/Private/Fast/Graph/Node/BDREAndGraphNode.h",
+    "BDRuleEngine/Classes/Private/Fast/Graph/Node/BDREConstGraphNode.h",
+    "BDRuleEngine/Classes/Private/Fast/Graph/Node/BDREEntryGraphNode.h",
+    "BDRuleEngine/Classes/Private/Fast/Graph/Node/BDREGraphNode.h",
+    "BDRuleEngine/Classes/Private/Fast/Graph/Node/BDREOutGraphNode.h",
+    "BDRuleEngine/Classes/Private/Fast/Graph/Node/BDREStrategyGraphNode.h",
+    "BDRuleEngine/Classes/Private/Fast/Graph/Node/BDREStringCmpGraphNode.h",
+    "BDRuleEngine/Classes/Private/Fast/Traversal/BDREGraphFootPrint.h",
+    "BDRuleEngine/Classes/Private/Fast/Traversal/BDRENodeFootPrint.h",
+    "BDRuleEngine/Classes/Private/Fast/Tree/BDRECommandTreeBuildUtil.h",
+    "BDRuleEngine/Classes/Private/Fast/Tree/BDRETreeNode.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Fast_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDRuleEngine/BDREAndGraphNode.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRECommandTreeBuildUtil.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREConstGraphNode.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREDiGraph.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREDiGraphBuilder.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREEntryGraphNode.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREGraphFootPrint.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREGraphNode.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREGraphNodeBuilder.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREGraphNodeBuilderFactory.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRENodeFootPrint.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREOutGraphNode.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREStrategyGraphNode.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREStringCmpGraphNode.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRETreeNode.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDREAndGraphNode.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRECommandTreeBuildUtil.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDREConstGraphNode.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDREDiGraph.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDREDiGraphBuilder.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDREEntryGraphNode.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDREGraphFootPrint.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDREGraphNode.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDREGraphNodeBuilder.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDREGraphNodeBuilderFactory.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRENodeFootPrint.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDREOutGraphNode.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDREStrategyGraphNode.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDREStringCmpGraphNode.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRETreeNode.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Fast_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Fast_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Fast_module_map",
+  module_map = "pod_support/Headers/Public/BDRuleEngine/BDRuleEngine_Fast-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDRuleEngine/BDRuleEngine_Fast-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Fast_srcs",
+  srcs = [
+    "BDRuleEngine/Classes/Private/Fast/Graph/Node/BDREAndGraphNode.m",
+    "BDRuleEngine/Classes/Private/Fast/Tree/BDRECommandTreeBuildUtil.m",
+    "BDRuleEngine/Classes/Private/Fast/Graph/Node/BDREConstGraphNode.m",
+    "BDRuleEngine/Classes/Private/Fast/Graph/BDREDiGraph.m",
+    "BDRuleEngine/Classes/Private/Fast/Graph/BDREDiGraphBuilder.m",
+    "BDRuleEngine/Classes/Private/Fast/Graph/Node/BDREEntryGraphNode.m",
+    "BDRuleEngine/Classes/Private/Fast/Traversal/BDREGraphFootPrint.m",
+    "BDRuleEngine/Classes/Private/Fast/Graph/Node/BDREGraphNode.m",
+    "BDRuleEngine/Classes/Private/Fast/Graph/Builder/BDREGraphNodeBuilder.m",
+    "BDRuleEngine/Classes/Private/Fast/Graph/Builder/BDREGraphNodeBuilderFactory.m",
+    "BDRuleEngine/Classes/Private/Fast/Traversal/BDRENodeFootPrint.m",
+    "BDRuleEngine/Classes/Private/Fast/Graph/Node/BDREOutGraphNode.m",
+    "BDRuleEngine/Classes/Private/Fast/Graph/Node/BDREStrategyGraphNode.m",
+    "BDRuleEngine/Classes/Private/Fast/Graph/Node/BDREStringCmpGraphNode.m",
+    "BDRuleEngine/Classes/Private/Fast/Tree/BDRETreeNode.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Fast_oc",
+  enable_modules = 1,
+  srcs = [
+    "Fast_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Fast_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDRuleEngine_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDRuleEngine_private_includes",
+    ":BDRuleEngine_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ByteDanceKit//:Foundation_objc_interface",
+    "@ByteDanceKit//:Foundation_swift_interface",
+    ":Fast_objc_interface",
+    "@ByteDanceKit//:Foundation_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDRuleEngine_POD_VERSION=@\\\"9999_3.3.2.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Fast",
+  deps = [
+    ":Fast_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Fast_lib",
+  deps = [
+    ":Fast"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Service_hdrs",
+  srcs = [
+    "BDRuleEngine/Classes/Private/Services/BDRuleEngineDelegateCenter.h",
+    "BDRuleEngine/Classes/Private/Services/BDRuleEngineKVStore.h",
+    "BDRuleEngine/Classes/Private/Services/BDRuleEngineLogger.h",
+    "BDRuleEngine/Classes/Private/Services/BDRuleEngineReporter.h",
+    "BDRuleEngine/Classes/Private/Services/BDRuleEngineSettings.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Service_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineDelegateCenter.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineKVStore.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineLogger.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineReporter.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineSettings.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineDelegateCenter.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineKVStore.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineLogger.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineReporter.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineSettings.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Service_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Service_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Service_module_map",
+  module_map = "pod_support/Headers/Public/BDRuleEngine/BDRuleEngine_Service-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDRuleEngine/BDRuleEngine_Service-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Service_srcs",
+  srcs = [
+    "BDRuleEngine/Classes/Private/Services/BDRuleEngineDelegateCenter.m",
+    "BDRuleEngine/Classes/Private/Services/BDRuleEngineKVStore.m",
+    "BDRuleEngine/Classes/Private/Services/BDRuleEngineLogger.m",
+    "BDRuleEngine/Classes/Private/Services/BDRuleEngineReporter.m",
+    "BDRuleEngine/Classes/Private/Services/BDRuleEngineSettings.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Service_oc",
+  enable_modules = 1,
+  srcs = [
+    "Service_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Service_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDRuleEngine_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDRuleEngine_private_includes",
+    ":BDRuleEngine_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@PNSServiceKit//:PNSServiceKit_objc_interface",
+    "@PNSServiceKit//:Protocol_objc_interface",
+    "@PNSServiceKit//:PNSServiceKit_swift_interface",
+    "@PNSServiceKit//:Protocol_swift_interface",
+    ":Service_objc_interface",
+    "@PNSServiceKit//:PNSServiceKit_module_map",
+    "@PNSServiceKit//:Protocol_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDRuleEngine_POD_VERSION=@\\\"9999_3.3.2.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Service",
+  deps = [
+    ":Service_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Service_lib",
+  deps = [
+    ":Service"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Privacy_hdrs",
+  srcs = [
+    "BDRuleEngine/Classes/Private/Privacy/BDREPrivacyCommon.h",
+    "BDRuleEngine/Classes/Public/Privacy/BDREPrivacyCenter.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Privacy_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDRuleEngine/BDREPrivacyCenter.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDREPrivacyCommon.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDREPrivacyCenter.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Privacy_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Privacy_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Privacy_module_map",
+  module_map = "pod_support/Headers/Public/BDRuleEngine/BDRuleEngine_Privacy-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDRuleEngine/BDRuleEngine_Privacy-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Privacy_srcs",
+  srcs = [
+    "BDRuleEngine/Classes/Public/Privacy/BDREPrivacyCenter.m",
+    "BDRuleEngine/Classes/Private/Privacy/BDREPrivacyCommon.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Privacy_oc",
+  enable_modules = 1,
+  srcs = [
+    "Privacy_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Privacy_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDRuleEngine_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDRuleEngine_private_includes",
+    ":BDRuleEngine_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Privacy_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDRuleEngine_POD_VERSION=@\\\"9999_3.3.2.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Privacy",
+  deps = [
+    ":Privacy_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Privacy_lib",
+  deps = [
+    ":Privacy"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Debug_hdrs",
+  srcs = [
+    "BDRuleEngine/Classes/Debug/BDRuleEngineDebugEntryViewController.h",
+    "BDRuleEngine/Classes/Debug/Cell/BDRLBaseCell.h",
+    "BDRuleEngine/Classes/Debug/Cell/BDRLButtonCell.h",
+    "BDRuleEngine/Classes/Debug/Cell/BDRLInputCell.h",
+    "BDRuleEngine/Classes/Debug/Cell/BDRLMoreCell.h",
+    "BDRuleEngine/Classes/Debug/Cell/BDRLParameterCell.h",
+    "BDRuleEngine/Classes/Debug/Cell/BDRLStrategyButtonCell.h",
+    "BDRuleEngine/Classes/Debug/Cell/BDRLSwitchCell.h",
+    "BDRuleEngine/Classes/Debug/Cell/BDRLTextCell.h",
+    "BDRuleEngine/Classes/Debug/Constant/BDRuleEngineDebugConstant.h",
+    "BDRuleEngine/Classes/Debug/Model/BDRLProviderListViewModel.h",
+    "BDRuleEngine/Classes/Debug/Model/BDRLRawJsonViewModel.h",
+    "BDRuleEngine/Classes/Debug/Model/BDRLSceneListViewModel.h",
+    "BDRuleEngine/Classes/Debug/Model/BDRLStrategyDetailViewModel.h",
+    "BDRuleEngine/Classes/Debug/Model/BDRLStrategyListViewModel.h",
+    "BDRuleEngine/Classes/Debug/Model/BDRLStrategyViewModel.h",
+    "BDRuleEngine/Classes/Debug/Model/BDRLToolItem.h",
+    "BDRuleEngine/Classes/Debug/Model/BDRuleEngineMockConfigStore.h",
+    "BDRuleEngine/Classes/Debug/Model/BDRuleEngineMockParametersStore.h",
+    "BDRuleEngine/Classes/Debug/Model/BDRuleEngineSettings+Mock.h",
+    "BDRuleEngine/Classes/Debug/Model/BDRuleParameterBuilderModel+Mock.h",
+    "BDRuleEngine/Classes/Debug/Model/BDStrategyCenter+Debug.h",
+    "BDRuleEngine/Classes/Debug/Util/BDRuleEngineDebugUtil.h",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugConfigViewController.h",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugExecuteViewController.h",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugParameterRegisterViewController.h",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugParameterViewController.h",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugProviderListViewController.h",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugRawJsonViewController.h",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugRunnerViewController.h",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugSceneListViewController.h",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugStrategyDetailViewController.h",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugStrategyListViewController.h",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugStrategyToolViewController.h",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugStrategyViewController.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Debug_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDRuleEngine/BDRLBaseCell.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRLButtonCell.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRLInputCell.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRLMoreCell.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRLParameterCell.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRLProviderListViewModel.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRLRawJsonViewModel.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRLSceneListViewModel.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRLStrategyButtonCell.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRLStrategyDetailViewModel.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRLStrategyListViewModel.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRLStrategyViewModel.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRLSwitchCell.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRLTextCell.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRLToolItem.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineDebugConfigViewController.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineDebugConstant.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineDebugEntryViewController.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineDebugExecuteViewController.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineDebugParameterRegisterViewController.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineDebugParameterViewController.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineDebugProviderListViewController.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineDebugRawJsonViewController.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineDebugRunnerViewController.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineDebugSceneListViewController.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineDebugStrategyDetailViewController.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineDebugStrategyListViewController.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineDebugStrategyToolViewController.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineDebugStrategyViewController.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineDebugUtil.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineMockConfigStore.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineMockParametersStore.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleEngineSettings+Mock.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDRuleParameterBuilderModel+Mock.h",
+    "pod_support/Headers/Private/BDRuleEngine/BDStrategyCenter+Debug.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRLBaseCell.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRLButtonCell.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRLInputCell.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRLMoreCell.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRLParameterCell.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRLProviderListViewModel.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRLRawJsonViewModel.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRLSceneListViewModel.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRLStrategyButtonCell.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRLStrategyDetailViewModel.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRLStrategyListViewModel.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRLStrategyViewModel.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRLSwitchCell.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRLTextCell.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRLToolItem.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineDebugConfigViewController.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineDebugConstant.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineDebugEntryViewController.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineDebugExecuteViewController.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineDebugParameterRegisterViewController.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineDebugParameterViewController.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineDebugProviderListViewController.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineDebugRawJsonViewController.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineDebugRunnerViewController.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineDebugSceneListViewController.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineDebugStrategyDetailViewController.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineDebugStrategyListViewController.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineDebugStrategyToolViewController.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineDebugStrategyViewController.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineDebugUtil.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineMockConfigStore.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineMockParametersStore.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleEngineSettings+Mock.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDRuleParameterBuilderModel+Mock.h",
+    "pod_support/Headers/Public/BDRuleEngine/BDStrategyCenter+Debug.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Debug_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Debug_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Debug_module_map",
+  module_map = "pod_support/Headers/Public/BDRuleEngine/BDRuleEngine_Debug-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDRuleEngine/BDRuleEngine_Debug-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Debug_srcs",
+  srcs = [
+    "BDRuleEngine/Classes/Debug/Cell/BDRLBaseCell.m",
+    "BDRuleEngine/Classes/Debug/Cell/BDRLButtonCell.m",
+    "BDRuleEngine/Classes/Debug/Cell/BDRLInputCell.m",
+    "BDRuleEngine/Classes/Debug/Cell/BDRLMoreCell.m",
+    "BDRuleEngine/Classes/Debug/Cell/BDRLParameterCell.m",
+    "BDRuleEngine/Classes/Debug/Model/BDRLProviderListViewModel.m",
+    "BDRuleEngine/Classes/Debug/Model/BDRLRawJsonViewModel.m",
+    "BDRuleEngine/Classes/Debug/Model/BDRLSceneListViewModel.m",
+    "BDRuleEngine/Classes/Debug/Cell/BDRLStrategyButtonCell.m",
+    "BDRuleEngine/Classes/Debug/Model/BDRLStrategyDetailViewModel.m",
+    "BDRuleEngine/Classes/Debug/Model/BDRLStrategyListViewModel.m",
+    "BDRuleEngine/Classes/Debug/Model/BDRLStrategyViewModel.m",
+    "BDRuleEngine/Classes/Debug/Cell/BDRLSwitchCell.m",
+    "BDRuleEngine/Classes/Debug/Cell/BDRLTextCell.m",
+    "BDRuleEngine/Classes/Debug/Model/BDRLToolItem.m",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugConfigViewController.m",
+    "BDRuleEngine/Classes/Debug/Constant/BDRuleEngineDebugConstant.m",
+    "BDRuleEngine/Classes/Debug/BDRuleEngineDebugEntryViewController.m",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugExecuteViewController.m",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugParameterRegisterViewController.m",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugParameterViewController.m",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugProviderListViewController.m",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugRawJsonViewController.m",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugRunnerViewController.m",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugSceneListViewController.m",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugStrategyDetailViewController.m",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugStrategyListViewController.m",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugStrategyToolViewController.m",
+    "BDRuleEngine/Classes/Debug/ViewController/BDRuleEngineDebugStrategyViewController.m",
+    "BDRuleEngine/Classes/Debug/Util/BDRuleEngineDebugUtil.m",
+    "BDRuleEngine/Classes/Debug/Model/BDRuleEngineMockConfigStore.m",
+    "BDRuleEngine/Classes/Debug/Model/BDRuleEngineMockParametersStore.m",
+    "BDRuleEngine/Classes/Debug/Model/BDRuleEngineSettings+Mock.m",
+    "BDRuleEngine/Classes/Debug/Model/BDRuleParameterBuilderModel+Mock.m",
+    "BDRuleEngine/Classes/Debug/Model/BDStrategyCenter+Debug.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Debug_oc",
+  enable_modules = 1,
+  srcs = [
+    "Debug_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Debug_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BDRuleEngine_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDRuleEngine_private_includes",
+    ":BDRuleEngine_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ByteDanceKit//:Foundation_objc_interface",
+    "@ByteDanceKit//:Foundation_swift_interface",
+    ":Debug_objc_interface",
+    "@ByteDanceKit//:Foundation_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDRuleEngine_POD_VERSION=@\\\"9999_3.3.2.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Debug",
+  deps = [
+    ":Debug_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Debug_lib",
+  deps = [
+    ":Debug"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_BDRuleEngine_module_map",
+  module_map = "@BDRuleEngine//:pod_support/Headers/Public/BDRuleEngine/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@BDRuleEngine//:pod_support/Headers/Public/BDRuleEngine/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_BDRuleEngine_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@BDRuleEngine//:BDRuleEngine_objc_interface", "@BDRuleEngine//:Core_objc_interface", "@BDRuleEngine//:Debug_objc_interface", "@BDRuleEngine//:Expression_objc_interface", "@BDRuleEngine//:Fast_objc_interface", "@BDRuleEngine//:Privacy_objc_interface", "@BDRuleEngine//:Service_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_BDRuleEngine",
+  target_name = "Lark",
+  module_name = "BDRuleEngine",
+  hdrs = ["@BDRuleEngine//:BDRuleEngine_root_pod_hdrs", "@BDRuleEngine//:Core_pod_hdrs", "@BDRuleEngine//:Debug_pod_hdrs", "@BDRuleEngine//:Expression_pod_hdrs", "@BDRuleEngine//:Fast_pod_hdrs", "@BDRuleEngine//:Privacy_pod_hdrs", "@BDRuleEngine//:Service_pod_hdrs"],
+  srcs = ["@BDRuleEngine//:Core_srcs", "@BDRuleEngine//:Debug_srcs", "@BDRuleEngine//:Expression_srcs", "@BDRuleEngine//:Fast_srcs", "@BDRuleEngine//:Privacy_srcs", "@BDRuleEngine//:Service_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["ByteDanceKit", "PNSServiceKit"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDRuleEngine_POD_VERSION=@\\\"9999_3.3.2.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "BDRuleEngine_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "BDRuleEngine_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "BDRuleEngine_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "BDRuleEngine_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "BDRuleEngine_dynamic", False),
+  tags = getattr(defs_external_objc_library, "BDRuleEngine_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("BDRuleEngine", {}),
+  visibility = ["//visibility:public"],
+)

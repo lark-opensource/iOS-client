@@ -1,0 +1,1 @@
+../../../../Darwin/iOS/BDXElement/BDXElement/Classes/Swiper/BDXLynxSwiperCollectionView.h

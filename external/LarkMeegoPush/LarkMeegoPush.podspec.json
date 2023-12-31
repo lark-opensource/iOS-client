@@ -1,0 +1,78 @@
+{
+  "name": "LarkMeegoPush",
+  "version": "7.5.0.1",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://bits.bytedance.net/bytebus/components/components/detail/32486?appId=137801",
+  "authors": {
+    "bijinglong": "bijinglong@bytedance.com"
+  },
+  "platforms": {
+    "ios": "11.0"
+  },
+  "swift_versions": "5.0",
+  "license": "MIT",
+  "source": {
+    "http": "http://tosv.byted.org/obj/iosbinary/archive_source/137801/LarkMeegoPush/7.5.0.1/LarkMeegoPush.zip"
+  },
+  "default_subspecs": [
+    "Facade",
+    "Core"
+  ],
+  "extra": {
+    "git_url": "Required."
+  },
+  "subspecs": [
+    {
+      "name": "Core",
+      "frameworks": "Foundation",
+      "source_files": "src/Core/**/*",
+      "dependencies": {
+        "LarkLocalizations": [],
+        "LarkMeegoLogger": [],
+        "LKCommonsTracker": [],
+        "SwiftProtobuf": [],
+        "ThreadSafeDataStructure": [],
+        "LarkMeegoNetClient": [],
+        "LarkContainer": []
+      }
+    },
+    {
+      "name": "Facade",
+      "source_files": "src/Facade/**/*",
+      "dependencies": {
+        "LarkMeegoPush/Core": []
+      }
+    },
+    {
+      "name": "DisableLarkMeegoPush",
+      "dependencies": {
+        "LarkMeegoPush/Core": [],
+        "LarkMeegoPush/Facade": []
+      },
+      "pod_target_xcconfig": {
+        "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "DISABLE_LARK_MEEGO_PUSH"
+      }
+    }
+  ],
+  "swift_version": "5.0",
+  "commit": "1c7765ded4f33af184143b0344e7b43c0151e7fb\n",
+  "source_code": {
+    "git": "git@code.byted.org:lark/LarkMeego.git",
+    "commit": "1c7765ded4f33af184143b0344e7b43c0151e7fb"
+  },
+  "_bytebus_platform": {
+    "repo_id": "32486",
+    "app_id": "137801",
+    "is_swift": "1"
+  },
+  "repoId": "32486",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "LarkMeegoPush_POD_VERSION=@\\\"137801_7.5.0.1\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "LarkMeegoPush_POD_VERSION=@\\\"137801_7.5.0.1\\\""
+  }
+}

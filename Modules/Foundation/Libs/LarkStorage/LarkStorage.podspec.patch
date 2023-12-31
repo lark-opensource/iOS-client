@@ -1,0 +1,21 @@
+eval_tonic 'lark-unit-test-template-0.0.1'
+
+debug_cocoapods do
+  plugin 'cocoapods-monitor'
+
+  ruby_code "custom ruby code", <<-'CUSTOM_RUBY_CODE'
+    lark_use_common_binary_config(strategy: :pb) do
+      %w[
+        LarkStorage
+        LarkStorageAssembly
+      ].each { |v| source v }
+    end
+  CUSTOM_RUBY_CODE
+end
+
+debug_dependency 'BootManager'
+debug_dependency 'AppContainer'
+debug_dependency 'LarkAssembler'
+debug_dependency 'LarkContainer'
+debug_dependency 'LKLoadable'
+debug_dependency 'LarkNavigation'

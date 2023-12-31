@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/Common/Interface/CommonProtocol/Privacy/ACCPublishPrivacySecurityManagerProtocol.h

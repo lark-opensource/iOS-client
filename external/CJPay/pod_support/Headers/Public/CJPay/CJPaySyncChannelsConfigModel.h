@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayKit/Base/ConfigModel/CJPaySyncChannelsConfigModel.h

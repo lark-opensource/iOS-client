@@ -1,0 +1,1 @@
+../../../../BDMemoryMatrix/Classes/Memory/MemoryAdapter/Private/MMMemoryAdapter+Private.h

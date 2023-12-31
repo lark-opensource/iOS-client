@@ -1,0 +1,1 @@
+../../../../TTNetworkDownloader/Classes/TTDownload/Api/TTDownloadMetaData.h

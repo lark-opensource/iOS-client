@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_ae_brick_api.h

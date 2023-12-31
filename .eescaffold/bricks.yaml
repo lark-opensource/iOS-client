@@ -1,0 +1,57 @@
+#
+#
+#   ______ ______ _____        __
+#  |  ____|  ____|_   _|      / _|
+#  | |__  | |__    | |  _ __ | |_ _ __ __ _
+#  |  __| |  __|   | | | '_ \|  _| '__/ _` |
+#  | |____| |____ _| |_| | | | | | | | (_| |
+#  |______|______|_____|_| |_|_| |_|  \__,_|
+#
+#   Toolchains For EE iOS
+#   Bricks 系统配置文件
+#   系统根据该配置文件确定需要进行的CI行为
+#
+# 如需接入单测, 请联系 chenwenjun.cn@bytedance.com
+# 如需添加 build_verify 或者 run_swift_lint 也请联系 chenwenjun.cn@bytedance.com 一起看看
+
+lanes:
+  modules:
+    default: []
+
+    #### Modules/Foundation ####
+    LarkStorage:
+      - 'ci_unit_test'
+    LarkStorageCore:
+      - 'ci_unit_test'
+    EENavigator:
+      - 'ci_unit_test'
+    SuiteCodable:
+      - 'ci_unit_test'
+    EEAtomic:
+      - 'ci_unit_test'
+    # LKRichView: 有问题 case 未解决，暂不开启
+    #   - 'ci_unit_test'
+    # AsyncComponent: 有问题 case 未解决，暂不开启
+    #  - 'ci_unit_test'
+    # EETroubleKiller:
+    #   - 'ci_unit_test'
+    EEImageMagick:
+      - 'ci_unit_test'
+    FlowChart:
+      - 'ci_unit_test'
+    LarkFoundation:
+      - 'ci_unit_test'
+    LarkResource:
+      - 'ci_unit_test'
+    # Logger: 有 build 问题，暂不开启
+    #  - 'ci_unit_test'
+
+    #### Modules/Infra ####
+    LarkIMMention:
+      - 'ci_unit_test'
+    LarkModel:
+      - 'ci_unit_test'
+    LarkListItem:
+      - 'ci_unit_test'
+  apps:
+    default: []

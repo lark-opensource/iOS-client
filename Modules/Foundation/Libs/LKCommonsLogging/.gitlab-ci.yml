@@ -1,0 +1,34 @@
+# This file is a template, and might need editing before it works on your project.
+# Lifted from: https://about.gitlab.com/2016/03/10/setting-up-gitlab-ci-for-ios-projects/
+# This file assumes an own GitLab CI runner, setup on an OS X system.
+stages:
+  - build
+  - deploy
+
+lint:
+  stage: build
+  script:
+    - export LANG=en_US.UTF-8
+    - pod lib lint --sources=byted-pods_specs,master --allow-warnings --verbose
+  tags:
+    - ldq
+
+publish:
+  stage: deploy
+  script:
+    - pod repo push byted-pods_specs --allow-warnings
+  only:
+    - tags
+  tags:
+    - ldq
+
+pages:
+  stage: deploy
+  script:
+    - jazzy -o public
+  artifacts:
+    paths:
+    - public
+    expire_in: 1h
+  tags:
+    - ldq

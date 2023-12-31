@@ -1,0 +1,209 @@
+{
+  "name": "CreationKitComponents",
+  "version": "19.9.5-alpha.19-larktest.1.binary",
+  "summary": "biz",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://code.byted.org/ugc/CreationKitComponents",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "杨莹": "yangying.iris@bytedance.com"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/aweme-rock/rock_binary/privatethird_binary_repo/CreationKitComponents/19.9.5-alpha.19-larktest.1.binary/1654701767/CreationKitComponents.tar.xz"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "preserve_paths": [
+    "rock_document/**/*.{h,m,mm,cpp,hpp,swift}",
+    "rock_document/rock-document-files.txt"
+  ],
+  "source_code": {
+    "git": "git@code.byted.org:ugc/CreationKitComponents.git",
+    "commit": "4a921b03bc276dac90e724b213cbe8468e028cc5"
+  },
+  "binary_type": "rock",
+  "package_env": {
+    "id": null,
+    "xcode": "Xcode 13.0\nBuild version 13A233\n"
+  },
+  "subspecs": [
+    {
+      "name": "Recorder",
+      "subspecs": [
+        {
+          "name": "Filter",
+          "subspecs": [
+            {
+              "name": "Core",
+              "source_files": "Recorder/Filter/Core/**/*.{h,m,mm,c}",
+              "frameworks": "Foundation",
+              "dependencies": {
+                "CreationKitArch": [
+
+                ],
+                "CreationKitInfra": [
+
+                ],
+                "CreativeKit": [
+
+                ],
+                "EffectPlatformSDK/ModelDistribute": [
+
+                ],
+                "Mantle": [
+
+                ],
+                "Masonry": [
+
+                ],
+                "ReactiveObjC": [
+
+                ],
+                "CreationKitComponents/Recorder/Filter/Dependencies": [
+
+                ]
+              },
+              "vendored_libraries": [
+                "Recorder/Filter/Core/**/*.o"
+              ],
+              "exclude_files": [
+
+              ],
+              "ios": {
+                "vendored_libraries": [
+                  "Recorder/Filter/Core/**/*.o",
+                  "libCreationKitComponents-c0e6046.a"
+                ]
+              }
+            },
+            {
+              "name": "Dependencies",
+              "source_files": "Recorder/Filter/Dependencies/**/*.{h,m,mm,c}",
+              "frameworks": "Foundation",
+              "dependencies": {
+                "CreationKitArch": [
+
+                ],
+                "CreationKitComponents/Recorder/Filter/Service": [
+
+                ]
+              },
+              "vendored_libraries": [
+                "Recorder/Filter/Dependencies/**/*.o"
+              ],
+              "exclude_files": [
+
+              ]
+            },
+            {
+              "name": "Service",
+              "source_files": "Recorder/Filter/Service/**/*.{h,m,mm,c}",
+              "frameworks": "Foundation",
+              "dependencies": {
+                "CreationKitArch": [
+
+                ]
+              },
+              "vendored_libraries": [
+                "Recorder/Filter/Service/**/*.o"
+              ],
+              "exclude_files": [
+
+              ]
+            }
+          ]
+        },
+        {
+          "name": "BeautyPanelComponent",
+          "subspecs": [
+            {
+              "name": "Core",
+              "source_files": "Recorder/BeautyPanelComponent/Core/**/*.{h,m,mm,c}",
+              "frameworks": "Foundation",
+              "dependencies": {
+                "CreationKitArch": [
+
+                ],
+                "CreationKitInfra": [
+
+                ],
+                "CreativeKit": [
+
+                ],
+                "CreationKitBeauty": [
+
+                ],
+                "Mantle": [
+
+                ],
+                "Masonry": [
+
+                ],
+                "ReactiveObjC": [
+
+                ],
+                "CreationKitComponents/Recorder/BeautyPanelComponent/Dependencies": [
+
+                ]
+              },
+              "vendored_libraries": [
+                "Recorder/BeautyPanelComponent/Core/**/*.o"
+              ],
+              "exclude_files": [
+
+              ],
+              "ios": {
+                "vendored_libraries": [
+                  "Recorder/BeautyPanelComponent/Core/**/*.o",
+                  "libCreationKitComponents-a66206a.a"
+                ]
+              }
+            },
+            {
+              "name": "Dependencies",
+              "source_files": "Recorder/BeautyPanelComponent/Dependencies/**/*.{h,m,mm,c}",
+              "frameworks": "Foundation",
+              "dependencies": {
+                "CreationKitArch": [
+
+                ],
+                "CreationKitComponents/Recorder/BeautyPanelComponent/Service": [
+
+                ]
+              },
+              "vendored_libraries": [
+                "Recorder/BeautyPanelComponent/Dependencies/**/*.o"
+              ],
+              "exclude_files": [
+
+              ]
+            },
+            {
+              "name": "Service",
+              "source_files": "Recorder/BeautyPanelComponent/Service/**/*.{h,m,mm,c}",
+              "frameworks": "Foundation",
+              "dependencies": {
+                "CreationKitArch": [
+
+                ],
+                "CreationKitBeauty": [
+
+                ]
+              },
+              "vendored_libraries": [
+                "Recorder/BeautyPanelComponent/Service/**/*.o"
+              ],
+              "exclude_files": [
+
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+type: pipeline
+
+jobs:
+  check_offline_resources_slim:
+    display_name: 检查前端资源包是否为完整包
+    type: exec
+    env:
+      type: freestyle
+      name: bits_ios
+    failed_approvers:
+      - lijuyou@bytedance.com
+    settings:
+      os_type: 1
+      required_resource: 1
+      queue_id: 4
+      image_ref: "iOS:2.3"
+    only:
+      branches:
+        - develop
+        - release/*
+
+    script:
+      - export current_eesz_is_slim_str=`cat Libs/SKResource/Resources/eesz-zip/current_revision | grep is_slim`
+      - "if [[ ${current_eesz_is_slim_str: -1} -ne 1 ]]; then exit 1; fi"
+
+  alert_not_slim:
+    display_name: 在群里警告出现完整包
+    type: exec
+    env:
+      type: freestyle
+      name: bits_ios
+    depends_on:
+      - check_offline_resources_slim
+    if: depends_on.build.status == "failed"
+    failed_approvers:
+      - huangzhikai.hzk@bytedance.com
+    allow_failed: true
+    settings:
+      os_type: 1
+      required_resource: 1
+      queue_id: 4
+      image_ref: "iOS:2.3"
+    script:
+      - python3 ./Scripts/alert_resource_not_slim_lark_notification.py
+
+  run_unit_test:
+    display_name: 新单元测试
+    type: service
+    service_name: build
+    allow_failed: false
+    failed_approvers:
+      - zenghao.howie@bytedance.com
+      - lijuyou@bytedance.com
+      - yinyuan.0@bytedance.com
+      - huangzhikai.hzk@bytedance.com
+    settings:
+      template_config_id: 23184
+
+  check_offline_resources_release_version:
+    display_name: 检查前端资源包分支和客户端分支是否一样
+    type: exec
+    env:
+      type: freestyle
+      name: bits_ios
+    failed_approvers:
+      - lijuyou@bytedance.com
+    settings:
+      os_type: 1
+      required_resource: 1
+      queue_id: 4
+      image_ref: "iOS:2.3"
+    script:
+      - python3 ./Scripts/check_offline_resources_release_version.py
+
+  check_full_pkg_release:
+    display_name: 检查前端资源包对应的完整包是否已发布
+    type: exec
+    env:
+      type: freestyle
+      name: bits_ios
+    failed_approvers:
+      - huangzhikai.hzk@bytedance.com
+      - lijuyou@bytedance.com
+      - zenghao.howie@bytedance.com
+    settings:
+      os_type: 1
+      required_resource: 1
+      queue_id: 4
+      image_ref: "iOS:2.3"
+    only:
+      branches:
+        - develop
+        - release/*
+    script:
+      - pip3 install GitPython
+      - python3 ./Scripts/check_full_pkg_release.py

@@ -1,0 +1,1 @@
+../../../../CreativeKitSticker/Classes/Common/ACCStickerSDKExcludeSelfView.h

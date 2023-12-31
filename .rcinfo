@@ -1,0 +1,32 @@
+---
+cache_addresses:
+- http://build-larkmobile-boe.bytedance.net/cache
+primary_repo: git@code.byted.org:lark/iOS-client.git
+primary_branch: develop
+mode: consumer
+final_target: Lark
+custom_rewrite_envs:
+- PODS_TARGET_SRCROOT
+- XCRC_COOCAPODS_ROOT
+cache_commit_history: 20
+custom_asset_url: http://tosv.byted.org/obj/ee-infra-ios/xcrc/112/package.zip
+irrelevant_dependencies_paths:
+- "\\.modulemap$"
+- "\\-Swift\\.h$"
+- "\\/RustPB\\.swiftmodule"
+- "\\/ServerPB\\.swiftmodule"
+- "\\-umbrella\\.h$"
+- externalDependency\/RustPB$
+- externalDependency\/LarkSQLCipher$
+- externalDependency\/RustSDK$
+- externalDependency\/RustSimpleLogSDK$
+custom_fingerprint_envs: []
+schema_version: 112-lark.5.1
+lldb_init_file_path: LLDBInitFile
+ignore_external_subspec_change: false
+xccc_file: ".rc/xccc"
+remote_commit_file: ".rc/arc.rc"
+prettify_meta_files: false
+disable_certificate_verification: false
+swift_version_file: ".rc/swift_version.rc"
+podfile_lock_file: Podfile.lock

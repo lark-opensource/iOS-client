@@ -1,0 +1,1247 @@
+#!/usr/bin/env ruby
+# coding: utf-8
+
+# frozen_string_literal: true
+
+# Customise this file, documentation can be found here:
+# https://github.com/fastlane/fastlane/tree/master/fastlane/docs
+# All available actions: https://docs.fastlane.tools/actions
+# can also be listed using the `fastlane actions` command
+
+# Change the syntax highlighting to Ruby
+# All lines starting with a # are ignored when running `fastlane`
+
+# If you want to automatically update fastlane if a new version is available:
+# update_fastlane
+
+# This is the minimum version number required.
+# Update this, if you use features of a newer version
+require_relative 'lib'
+require_relative 'remove_unused_pb_common'
+require_relative '../bin/lib/lark-project/lib/lark/project/environment'
+require_relative '../bin/lib/lark-project/lib/lark/project/toolchain_manager'
+
+# 推荐使用这个缩写来获取环境相关配置
+$lark_env ||= Lark::Project::Environment.instance
+
+# require_relative '../bin/ruby_script/lark_thin'
+
+fastlane_version '2.108.0'
+
+default_platform :ios
+
+# 并发时xcodebuild极容易超时，设置一个长一点的超时，增加稳定性
+ENV['FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT'] ||= '60'
+
+platform :ios do
+  before_all do |lane|
+    lanes_to_skip = %i[execute_cocoapods KA_DEBUG UPDATE_SETTING]
+    try_switch_xcode_version nil unless lanes_to_skip.include?(lane)
+  end
+
+  # replace URL Schemes
+  def fetch_and_replace_url_and_links(options, lark_setting_path)
+    config = JSON.parse(File.read(lark_setting_path))["client_build_deeplink_config"]
+    schema_config = config.find_all { |data| data["schema"] != 'https' }
+    universal_link_config = config.find_all { |data| data["schema"] == 'https' }
+
+    schema_list = schema_config.map { |data| data["schema"] }.uniq
+    universal_link_list = universal_link_config.map { |data| data["host"] }.uniq
+    default_schema = schema_config.find { |data| data["isDefault"] == true }["schema"]
+    default_universal_link = universal_link_config.find { |data| data["isDefault"] == true }["host"]
+
+    scheme = options[:scheme]
+    scheme ||= 'Lark'
+
+    update_plist(
+      plist_path: get_info_plist_path(scheme: scheme),
+      block: proc do |plist|
+        urlScheme = plist["CFBundleURLTypes"].find { |scheme| scheme["CFBundleURLName"] == "com.bytedance.ee.inhouse.larkone" }
+        urlScheme["CFBundleURLSchemes"] = [default_schema] + schema_list.find_all { |schema| schema != default_schema }
+
+        plist["AppLink"]["Domains"] = universal_link_list
+      end)
+
+    update_plist(
+      plist_path: File.expand_path('../Lark/Supporting Files/Lark.entitlements'),
+      block: proc do |plist|
+        plist["com.apple.developer.associated-domains"] = universal_link_list.map { |link| "applinks:" + link }
+      end)
+
+    update_plist(
+      plist_path: get_info_plist_path(scheme: 'ShareExtension'),
+      block: proc do |plist|
+        plist["HOST_SCHEME"] = default_schema
+      end)
+  end
+
+  # update webcredentials
+  def append_webcredentials(options, lark_setting_path)
+    webcredential_list = JSON.parse(File.read(lark_setting_path))["client_build_webcredential_domains"]
+    update_plist(
+      plist_path: File.expand_path('../Lark/Supporting Files/Lark.entitlements'),
+      block: proc do |plist|
+        if webcredential_list.is_a? Array
+          plist["com.apple.developer.associated-domains"] += webcredential_list.map { |link| "webcredentials:" + link }
+        end
+      end)
+  end
+
+  # consume the build_channel, so only execute once
+  def consume_build_channel(options, lang_str)
+    if (build_channel = options.delete(:build_channel))
+      app_name_config = {
+        'international' => {
+          'base' => 'Lark'
+        },
+        'dev-oversea' => {
+          'base' => 'Lark'
+        },
+        'inhouse-oversea' => {
+          'base' => 'Lark Inhouse'
+        },
+        'inhouse' => {
+          'base' => 'Feishu Inhouse',
+          'zh-Hans' => '飞书内测',
+          'zh-HK' => '飛書內測',
+          'zh-Hant-TW' => '飛書內測',
+        },
+        'internal' => {
+          'base' => 'Feishu',
+          'zh-Hans' => '飞书',
+          'zh-HK' => '飛書',
+          'zh-Hant-TW' => '飛書'
+        }
+      }
+
+      # { lang => app name }
+      if config = app_name_config[build_channel]
+        # fill langs into replace config
+        Dir.glob('../Lark/*.lproj') do |p|
+          lang_code = File.basename(p, '.*')
+          config[lang_code] ||= config['base'] if lang_code != 'Base'
+        end
+
+        # 默认的飞书，Feishu名字，改为适配的名字
+        replace = config.map { |k, v| [k, { (k == 'zh-Hans' ? '飞书' : ((k == 'zh-Hant-TW' || k == 'zh-HK') ? '飛書' : 'Feishu')) => v }] }.to_h
+        patch = { 'CFBundleDisplayName' => config }
+        patch['SUPPORTED_LANGUAGES'] = lang_str.split(',').map { |v| v.tr('-', '_') }
+        patch_info_plist(patch, replace)
+      end
+
+      scheme = options[:scheme]
+      scheme ||= 'Lark'
+
+      plistPath = get_info_plist_path(scheme: scheme)
+
+      # 写入默认的unit和geo
+      update_plist(
+      plist_path: plistPath,
+      block: proc do |plist|
+        plist['DEFAULT_UNIT'] = $lark_env.is_oversea ? 'eu_ea' : 'eu_nc'
+        plist['DEFAULT_GEO'] = $lark_env.is_oversea ? 'us' : 'cn'
+        plist['DEFAULT_BRAND'] = $lark_env.is_oversea ? 'lark' : 'feishu'
+        plist['ALCHEMY_PROJECT_ID'] = $lark_env.alchemy_project_id
+      end)
+
+      # if build_channel.to_s.start_with?("internal")
+      if $lark_env.is_ka?
+        # KA版本不开启 CallKit 功能
+        background_modes_config = get_info_plist_value(path: plistPath, key: 'UIBackgroundModes')
+        background_modes_config.delete('voip')
+        set_info_plist_value(path: plistPath, key: 'UIBackgroundModes', value: background_modes_config)
+        sh '/usr/libexec/PlistBuddy -c "Print :UIBackgroundModes" ../Lark/Info.plist'
+      end
+
+      if $lark_env.appstore? && !$lark_env.is_ka?
+        patch_multiple_camera(options)
+      end
+
+      if $lark_env.is_ka? && fetch_multiple_camera
+        patch_multiple_camera(options)
+      end
+
+      if !$lark_env.is_ka?
+        patch_memory_virtual(options)
+      end      
+
+      if $lark_env.is_ka? || $lark_env.is_oversea
+        # NOTE: KA & oversea 去掉后台定位相关权限
+        patch = Apple::InfoPlistPatch.new('../Lark/Info.plist')
+        %w[NSLocationAlwaysAndWhenInUseUsageDescription].each do |key|
+          patch.info.delete(key)
+          patch.each_i18n do |i18n|
+            i18n.delete(key)
+          end
+        end
+        if (v = patch.info['UIBackgroundModes']).is_a? Array
+          v.delete('location')
+        end
+        patch.save
+      end
+
+      if ENV['USE_KA_CERT'].to_s == 'true'
+        sh 'cd .. && ./BuildScript/XcodeEdit ./ BuildScript/config.json ${KA_TYPE}'
+      elsif ENV['USE_OLD_INHOUSE_CERT'].to_s == 'true'
+        # TODO(chenwenjun.cn): remove this condition and delete BuildScript/config_old_inhouse.json
+        #   and delete mobileprovision based on old inhouse cert
+        sh "cd .. && ./BuildScript/XcodeEdit ./ BuildScript/config_old_inhouse.json #{build_channel}"
+      else
+        sh "cd .. && ./BuildScript/XcodeEdit ./ BuildScript/config.json #{build_channel}"
+      end
+    end
+  end
+
+  def patch_multiple_camera(options)
+    # 开启 com.apple.developer.avfoundation.multitasking-camera-access 权限
+    patch = Apple::InfoPlistPatch.new('../Lark/Supporting Files/Lark.entitlements')
+    patch.info['com.apple.developer.avfoundation.multitasking-camera-access'] = true
+    patch.save
+
+    # 同步 info.plist
+    scheme = options[:scheme]
+    scheme ||= 'Lark'
+
+    plistPath = get_info_plist_path(scheme: scheme)
+    set_info_plist_value(path: plistPath, key: 'HAS_MULTITASKING_CAMERA_ACCESS', value: true)
+  end
+
+  def patch_memory_virtual(options)
+    # 开启 com.apple.developer.kernel.increased-memory-limit 权限
+    # 开启 com.apple.developer.kernel.extended-virtual-addressing 权限
+    patch = Apple::InfoPlistPatch.new('../Lark/Supporting Files/Lark.entitlements')
+    patch.info['com.apple.developer.kernel.increased-memory-limit'] = true
+    patch.info['com.apple.developer.kernel.extended-virtual-addressing'] = true
+    patch.save
+  end
+
+  def replace_build_number(build_number)
+    `cd ..; xcrun agvtool new-version #{build_number}`
+
+    schemes = `cd ..; xcrun xcodebuild -list | grep "Schemes:" -A100 | tail -n +2` # 获取 Schemes
+      .split("\n") # 分割成独立的 scheme
+      .reject { |scheme| scheme.include?('UITests') } # 删除 UITests 的scheme
+      .map(&:strip) # 删除左右两端的空白符
+    puts "schemes: #{schemes}"
+
+    schemes.each { |scheme|
+      increment_build_number_in_plist(
+        scheme: scheme,
+        build_number: build_number
+      )
+    }
+  end
+
+  desc '编译 Lark 包'
+  lane :Lark do |options|
+    custom_version_number
+    # 打包install前清掉Pods目录，防止缓存被修改引起干扰
+    # 包括Pods/LarkAppResources目录等
+    sh <<~SHELL
+      cd ..
+      if [[ -e Pods ]]; then
+          mv Pods PodsToRemove # 原子性的删除，防止一些并发写入导致删除失败
+      fi
+      rm -rf Gecko/ PodsToRemove/ "#{options[:output_directory]}"
+    SHELL
+    ENV['SHOULD_COMPRESS_I18n'] ||= '1'
+    ENV['SHOULD_STRIP_LANG'] ||= '1'
+    ENV['LARK_PACKAGE_BUILD'] ||= '1'
+    
+    scheme = options[:scheme]
+    scheme ||= 'Lark'
+    version = get_version_number_from_plist(scheme: scheme)
+
+    if ENV['appsize_package_type'].nil?
+      fetch_setting options, version
+    end
+    updateTokenConfig
+
+    lang_str = fetch_i18n_settings
+    multiple_camera_access = fetch_multiple_camera
+    puts "拉取到多语言配置为 #{lang_str}"
+    puts "是否patch multiple_camera权限声明：#{multiple_camera_access}"
+    if lang_str == nil || lang_str.length == 0
+      abort("没有拉取到多语言配置")
+    end
+    ENV['STRIP_LANG_List'] ||= lang_str
+    # should patch before i18n patch
+    build_channel = options[:build_channel] || "inhouse"
+    consume_build_channel(options, lang_str)
+
+    FileUtils.mkdir_p options[:output_directory]
+
+    replace_build_number options[:build_number]
+
+    build = get_build_number_from_plist(scheme: scheme)
+
+    # 将正常图标替换为带'内测'字样的图标
+    # 这个要在 custom_block 之前，以避免影响KA的资源构建
+    export_method = options[:export_method]
+    export_method ||= 'enterprise'
+    if export_method == 'enterprise'
+      if ENV['USE_OLD_INHOUSE_CERT'].to_s == 'true'
+        # TODO(chenwenjun.cn): remove this condition and delete old app icon
+        sh 'rsync -a --del ../ReplaceResources/Inhouse/AppIcon.appiconset.old/ ../Lark/ShareAssets.xcassets/AppIcon.appiconset/'
+      else
+        sh 'rsync -a --del ../ReplaceResources/Inhouse/AppIcon.appiconset/ ../Lark/ShareAssets.xcassets/AppIcon.appiconset/'
+      end
+    end
+
+    # ka配置拉取
+    custom_block = options[:CUSTOM_BLOCK]
+    custom_block&.call options
+
+    # 读取app scheme并替换
+    lark_setting_dir = '../Modules/Infra/Libs/LarkSetting/Resources/'
+    lark_setting_path = lark_setting_dir + 'lark_settings'
+    fetch_and_replace_url_and_links(options, lark_setting_path)
+
+    # 在entitlements.associated-domains中更新webcredentials部分(读取larkSettings)
+    # 因为applinks的配置会先将工程里的associated-domains覆盖，这里追加webcredentials的部分
+    append_webcredentials(options, lark_setting_path)
+
+    # write build commit hash to info.plist
+    sh '
+      /usr/libexec/PlistBuddy -c "Delete build_commit_hash" ../Lark/Info.plist || echo "Not found."
+      build_commit_hash=$(echo $(git -C ../ log -3 --pretty=format:"%h"))
+      /usr/libexec/PlistBuddy -c "Add build_commit_hash string $build_commit_hash" ../Lark/Info.plist || \
+      echo "Set commit hash failed."
+    '
+    # write DOWNLOAD_CHANNEL to info.plist
+    if ENV['DOWNLOAD_CHANNEL']
+      sh '
+        /usr/libexec/PlistBuddy -c "Delete DOWNLOAD_CHANNEL" ../Lark/Info.plist || echo "DOWNLOAD_CHANNEL not found"
+        /usr/libexec/PlistBuddy -c "Add DOWNLOAD_CHANNEL string $DOWNLOAD_CHANNEL" ../Lark/Info.plist || echo "Set DOWNLOAD_CHANNEL failed"
+      '
+    end
+
+    if $lark_env.offline_coverage_enable
+      repocommitid = ENV['WORKFLOW_REPO_COMMIT'][0, 8]
+      sh '
+        /usr/libexec/PlistBuddy -c "Delete build_brach" ../Lark/Info.plist || echo "Not found."
+        build_branch=$(git symbolic-ref --short -q HEAD)
+        /usr/libexec/PlistBuddy -c "Add build_branch string $build_branch" ../Lark/Info.plist || \
+        echo "Set commit hash failed."
+        /usr/libexec/PlistBuddy -c "Delete build_repo_commit_hash" ../Lark/Info.plist || echo "Not found."
+      '
+      sh "/usr/libexec/PlistBuddy -c 'Add build_repo_commit_hash string #{repocommitid}' ../Lark/Info.plist || echo 'Not found.'"
+    end
+
+    configuration = options[:configuration]
+    configuration ||= 'Release'
+
+    sdk = options[:sdk]
+    sdk ||= 'iphoneos'
+
+    if ENV["RUNTIME_TYPE"] != "release" && (ENV["REMOTE_CACHE_ENABLE"] || "false") == "true"
+      ENV['REMOTE_CACHE_CONFIGURATION'] = configuration
+      ENV['REMOTE_CACHE_PLATFORM'] = sdk
+      ENV['REMOTE_CACHE_ENABLE'] = "true"
+      ENV['Lark_BUILD_PACKAGE'] = "true"
+    else 
+      ENV['REMOTE_CACHE_ENABLE'] = "false"
+    end
+
+    # 删除企业签内置资源
+    plistPath = get_info_plist_path(scheme: scheme)
+    channel_name = get_info_plist_value(path: plistPath, key: 'CHANNEL_NAME')
+    if $lark_env.is_ka? && channel_name == 'Enterprise'
+      sh '
+        if [ -e ../Modules/OpenPlatform/TTMicroApp/Timor/Resources/BuildinResources.bundle ]; then
+          echo "存在BuildinResources.bundle文件，交付包为企业证书，删除文件"
+          rm -r ../Modules/OpenPlatform/TTMicroApp/Timor/Resources/BuildinResources.bundle
+        fi
+        if [ -e ../Lark/Resources/openplatformODR ]; then
+          echo "存在openplatformODR文件，交付包为企业证书，删除文件"
+          ruby ../bin/ruby_script/odr_edit.rb
+        fi
+      '
+    else
+      if ENV['INSERT_ODR_PACKAGE'] == 'false'
+        puts "CI关闭ODR下载与插入相关配置，如有测试需求请在MR中打开开关重新打包。"
+      else
+        #如果不需要删除内置资源，则更新为最新的内置资源
+        Dir.chdir('..') do
+          raise "fetch odr resources failed" if !system("bundle exec rake fetch_odr_resources")
+        end
+      end
+    end
+
+    if $lark_env.is_oversea
+      sh 'ruby ../bin/ruby_script/change_lark_plist.rb'
+    end
+    
+    execute_cocoapods
+
+    if File.exists?("../XCRC/xcprepare")
+      puts `cd ..;./XCRC/xcprepare stats --reset`
+      `rm -rf ~/Library/Caches/XCRemoteCache/`
+    end
+
+    # ka 资源替换
+    if $lark_env.is_ka?
+      sh 'ruby ../bin/ka_resource_replace/replace_zeus_resources.rb'
+      sh '../bin/ka_resource_replace/ka_post_pod_install.sh'
+    end
+
+    # png图片压缩
+    compress_png
+
+    derived_data_path = options[:derived_data_path]
+    derived_data_path ||= 'derived_data'
+
+    #自定义构建方式: 'generic/platform=iOS 或 Simulator'
+    destination = 'generic/platform=iOS'
+
+    # 模拟器打包情况下，需要跳过一些打包选项，用这个统一控制
+    skip_for_simulator = false
+    if sdk == 'iphonesimulator'
+      skip_for_simulator = true
+      destination = 'generic/platform=iOS Simulator'
+    end
+
+    if (ENV['REMOTE_CACHE_ENABLE'] || "false ") != "true"
+      # 删除无用pb message（文档：https://bytedance.feishu.cn/wiki/wikcnSevDX5Izu7OSlfmAmVxrle）
+      remove_unused_pb(options)
+    end
+    
+    # 打印下当前的环境变量
+    puts "before xcodebuild ENV: \n#{ENV.to_hash.to_json}"
+
+
+    iCloud_container_environment = options[:iCloud_container_environment]
+    iCloud_container_environment ||= 'Production'
+
+    export_options = { iCloudContainerEnvironment: iCloud_container_environment }
+    odr_id = rand(1...100000)
+    odr_tos_dir = "lark-ios/odr/#{odr_id}/"
+    odr_asset_packets_url = "https://tosv.byted.org/obj/ee-infra-ios/#{odr_tos_dir}"
+
+    should_embed_odr_host_on_server = false
+    if $lark_env.testable      
+      project = Xcodeproj::Project.open("../Lark.xcodeproj")
+      target = project.targets.find { |target| target.name == "Lark" }      
+      for file in target.resources_build_phase.files        
+        if file.settings != nil and file.settings["ASSET_TAGS"] != nil 
+          puts "Found ODR Asset Tags: #{file.settings["ASSET_TAGS"]}"
+          should_embed_odr_host_on_server = true
+          break
+        end
+      end 
+      if should_embed_odr_host_on_server
+        target.build_configurations.each do |config|        
+          config.build_settings['ASSET_PACK_MANIFEST_URL_PREFIX'] = odr_asset_packets_url
+        end         
+        puts "ODR resource url: #{odr_asset_packets_url}"
+        export_options[:embedOnDemandResourcesAssetPacksInBundle] = false
+        export_options[:onDemandResourcesAssetPacksBaseURL] = odr_asset_packets_url      
+      end
+      project.save()
+    end
+
+    if ENV['BAZEL_ENABLE'] == "true"
+      bazel_sdk = (sdk == "iphonesimulator") ? "simulator" : "os"
+      sh <<~BAZEL_SHELL
+        set -ex
+        cd ..
+        bash bitsky.sh --bundle --install --build --skip_install --configuration "#{configuration}" --sdk "#{bazel_sdk}"  --build_type "#{build_channel}"        
+        file=$(find "$BIT_WORKSPACE_DIR/products" -name "*.ipa" -type f | head -n 1)
+        if [ -n "$file" ]; then
+            new_name="#{scheme}_#{version}_#{build}.ipa"
+            mv "$file" "$BIT_WORKSPACE_DIR/products/$new_name"
+            echo "ipa重命名为: $new_name"
+        else
+            echo "未找到ipa文件"
+        fi        
+      BAZEL_SHELL
+    else
+      gym(
+        scheme: scheme,
+        clean: true,
+        silent: true,
+        sdk: sdk,
+        skip_archive: skip_for_simulator,
+        skip_codesigning: false,
+        configuration: configuration,
+        export_method: export_method,
+        export_options: export_options,
+        output_directory: options[:output_directory],
+        destination: destination,
+        derived_data_path: derived_data_path,
+        output_name: "#{scheme}_#{version}_#{build}",
+        include_symbols: export_method.to_s == 'app-store' && !$lark_env.is_ka?,
+        xcargs: "LD_MAP_FILE_PATH='#{options[:output_directory]}/lark_link_map.txt'",
+        result_bundle: (!ENV['RESULT_DATA_PATH'].nil? and !ENV['RESULT_DATA_PATH'].empty?),
+        result_bundle_path: ENV['RESULT_DATA_PATH']
+      )
+    end
+
+    # 打印下当前的环境变量
+    puts "after xcodebuild ENV: \n#{ENV.to_hash.to_json}"
+    
+    if File.exists?("../XCRC/xcprepare")
+      puts `cd ..;./XCRC/xcprepare stats`
+    end
+    
+    uploadODRAssetPacksToTos odr_tos_dir, options[:output_directory] if should_embed_odr_host_on_server
+    uploadCodeCoveragePodJson
+    #存在编译问题，暂时关闭
+    # upload_appsize
+    offlineCodeCoverageCommit
+    version_workspace = ENV['BIT_WORKSPACE_DIR']
+    sh "python3 ../bin/monorepo_fixVersion.py  --Dir #{version_workspace}"
+  end
+
+  lane :revert_remove_unused_pb do |options|
+    _revert_remove_unused_pb(options)
+  end
+
+  lane :remove_unused_pb do |options|
+    # 删除无用pb message（文档：https://bytedance.feishu.cn/wiki/wikcnSevDX5Izu7OSlfmAmVxrle）
+    _remove_unused_pb(options)
+  end
+
+  lane :compress_png do
+    sh "
+    ../bin/CompressPNG/CompressPNG -p ../ -c ../bin/compress_png \
+    -i contact_member_invite_gradient_background_light.png \
+    -i contact_member_invite_gradient_background_dark.png
+    " unless ENV['SKIP_COMPRESS_PNG'] == 'true'
+  end
+
+  # 更新LarkSensitivityControl内置tokenConfig数据
+  lane :updateTokenConfig do
+    sh "../Modules/Security/LarkSensitivityControl/updateTokenConfig.sh"
+  end
+
+  def fetch_setting(options, version)
+    # 拉取Setting配置
+    default_unit = ENV['DEFAULT_UNIT'].nil? ? ($lark_env.is_oversea ? 'eu_ea' : 'eu_nc') : ENV['DEFAULT_UNIT']
+    brand = $lark_env.is_oversea ? 'lark' : 'feishu'
+    lark_setting_dir = '../Modules/Infra/Libs/LarkSetting/Resources/'
+    lark_setting_path = lark_setting_dir + 'lark_settings'
+    deploy_env = 'release'
+    gen_setting_cmd = "python3 ../bin/gen_static_lark_settings.py -o iphone -v #{version} -p #{lark_setting_dir}"
+
+    if $lark_env.is_ka?
+      gen_setting_cmd += " -m #{ENV['DEPLOY_MODEO']} -c #{ENV['KA_TYPE']}"
+    end
+    
+    if $lark_env.testable
+      unit = ($lark_env.is_oversea ? '\'eu_ea|eu_nc' : '\'eu_nc|eu_ea') + '|boecn|boeva|larksgaws|larkjpaws\''
+      brand = $lark_env.is_oversea ? '\'lark|feishu\'' : '\'feishu|lark\''
+      deploy_env = '\'release|pre_release|staging\''
+      gen_setting_cmd += " -b #{brand} -e #{deploy_env} -u #{unit} || echo \"skip setting fail when package is not for alpha\""
+
+      # alpha包拉取setting结果不阻塞
+      begin
+        Timeout.timeout(300) { Process.wait(Process.spawn(gen_setting_cmd)) }
+      rescue
+        p 'skip setting timeout when package is not for app store'
+      end
+    else
+      File.delete(lark_setting_path)
+      sh gen_setting_cmd + " -i true -b #{brand} -e #{deploy_env} -u #{default_unit}"
+      if !File.exist?(lark_setting_path)
+        raise "should exist lark_settings file"
+      end
+    end
+
+    # 读取并重新写入 lark_setting， 将其压缩成单行，节约空间
+    File.write(lark_setting_path, JSON.dump(JSON.parse(File.read(lark_setting_path))))
+  end
+
+  desc '更新lark_setting'
+  lane :UPDATE_SETTING do |_options|
+    version = get_version_number_from_plist(scheme: 'Lark')
+    sh "python3 ../bin/gen_static_lark_settings.py -o iphone -v #{version} -p ../Modules/Infra/Libs/LarkSetting/Resources/ -b 'feishu|lark' -e 'release|pre_release|staging' -u 'eu_nc|eu_ea|boecn|boeva|larksgaws|larkjpaws'"
+  end
+
+  def fetch_i18n_settings
+    lark_setting_dir = '../Modules/Infra/Libs/LarkSetting/Resources/'
+    lark_setting_path = lark_setting_dir + 'lark_settings'
+    json = File.read(lark_setting_path)
+    obj = JSON.parse(json)
+    lang_str = obj["client_build_language_config"]["client_build_language_list"]
+    return lang_str
+  end
+
+  def fetch_multiple_camera
+    lark_setting_dir = '../Modules/Infra/Libs/LarkSetting/Resources/'
+    lark_setting_path = lark_setting_dir + 'lark_settings'
+    json = File.read(lark_setting_path)
+    obj = JSON.parse(json)
+    return false unless obj["multitasking_camera"] && obj["multitasking_camera"]["ios_multitasking_camera"]
+
+    multiple_camera = obj["multitasking_camera"]["ios_multitasking_camera"]
+    if multiple_camera.to_s == "true"
+      return true
+    else
+      return false
+    end
+  end
+
+  def numeric?(string)
+    # `!!` converts parsed number to `true`
+    !!Kernel.Float(string)
+  rescue TypeError, ArgumentError
+    false
+  end
+
+  def is_safe_version_number(version)
+    numbers = version.split('.')
+    return false unless numbers.size == 3
+
+    numbers = numbers.reject { |item| numeric?(item) }
+
+    return numbers.empty?
+  end
+
+  def custom_version_number
+    custom_version_number = ENV['CUSTOM_VERSION_NUMBER_STRING_VALUE']
+
+    puts "* * * * * * * * * * * custom_version_number: #{custom_version_number}"
+
+    if custom_version_number && !custom_version_number.empty?
+      if is_safe_version_number(custom_version_number)
+        # specify specific version number (optional, omitting it increments patch version number)
+        increment_version_number(version_number: custom_version_number)
+        puts "* * * * * * * * * * * change version to: #{custom_version_number}"
+      else
+        raise "* * * * * * * * * * * New version error: #{custom_version_number}"
+      end
+    end
+  end
+
+  private_lane :try_switch_xcode_version do |_options|
+      __xcode_version_config = ENV['XCODE_VERSION']
+
+      if ENV['RUNNING_BITS'] || $lark_env.local?
+        # DEVELOPER_DIR 和 local 不需要修改
+        puts 'pass'
+      elsif __xcode_version_config.nil? || __xcode_version_config.empty? || __xcode_version_config == 'default'
+        ENV['DEVELOPER_DIR'] = "/Applications/Xcode_14.1.app/Contents/Developer"
+      else
+        ENV['DEVELOPER_DIR'] = "/Applications/Xcode_#{__xcode_version_config}.app/Contents/Developer"
+      end
+
+      puts "* * * * * * * * '#{ENV['DEVELOPER_DIR']}'"
+  end
+
+  lane :LarkPseudoI8n do |options|
+    ENV['PSEUDO'] = '1'
+    Lark(options)
+  ensure
+    # pseudo modify Pods sandbox, will not redownload. so clean it when exit to avoid cache issue
+    sh 'cd .. && rm -rf Pods'
+  end
+
+  desc '编译 Lark Debug 包'
+  lane :LarkDebug do |options|
+    options[:build_channel] = 'inhouse'
+    options[:configuration] = 'Debug'
+    Lark(options)
+  end
+
+  # ---------- App Store Start ---------- #
+
+  desc 'Lane for app store'
+  lane :for_store do |options|
+    options[:export_method] = 'app-store'
+
+    Lark(options)
+    begin
+      upload_symbols(options)
+    rescue
+      # 如果上传符号文件失败的话不影响打包任务的继续
+      puts 'upload_symbols failed, but continue.'
+    end
+  end
+
+  desc '编译Lark包, 并上传到ITC'
+  lane :international do |options|
+    options[:build_channel] ||= 'international'
+    ENV['LARK_BUILD_TYPE'] ||= 'international'
+
+    for_store options
+  end
+
+  desc '编译飞书包, 并上传到ITC'
+  lane :domestic do |options|
+    options[:build_channel] ||= 'internal'
+    ENV['LARK_BUILD_TYPE'] ||= 'internal'
+
+    for_store options
+  end
+
+  # ---------- App Store end ---------- #
+
+  def patch_for_ka(options)  
+    ### prepare ka
+    config = JSON.parse(File.read('../bin/ka_resource_replace/output/config.json'))   
+    # additional default value    
+    info = config['info']  
+    ENV['DEFAULT_UNIT'] = info['DEFAULT_UNIT'] 
+
+    # patch DEPLOY_MODEO for ka   
+    mode = ENV['DEPLOY_MODEO']    
+    info['KA_DEPLOY_MODEO'] = mode.to_s if mode.nil? == false && mode.to_s.empty? == false     
+    patch_info_plist(info, config.dig('replace', 'info'))
+    sh 'ruby ../bin/ruby_script/dynamic_ka_pods.rb' 
+  end
+
+  def patch_for_ka2(options, ignore_swift_failed)
+    # call new swift script to generate config.json from new build platform data source.
+    call_swift_command = 'xcrun --sdk macosx swift -target $(uname -m)-macosx$(sw_vers -ProductVersion) ../bin/ka_resource_replace/ENV/src/main.swift'
+
+    ka_channel = options[:ka]
+    if ENV['KA_CHANNEL'].nil?
+      call_swift_command = "export KA_CHANNEL=#{ka_channel} && echo 使用自定义KA配置 && #{call_swift_command}"
+    end
+
+    if ignore_swift_failed
+      call_swift_command += ' || exit 0' # 避免在Debug阶段被fastlane日志覆盖了swift的输出
+    end
+
+    sh call_swift_command
+
+    if ka_channel && ka_channel.start_with?('_')
+      return; # "_" 代表自定义指令，绕开下面的操作
+    end
+
+    ### prepare ka
+    config = JSON.parse(File.read('../bin/ka_resource_replace/output/config.json'))
+    # additional default value
+    info = config['info']
+    mode = info['DEPLOY_MODEO']
+    if mode == nil
+      mode == info['DEPLOY_MODE']
+    end
+    if mode == nil
+      raise "DEPLOY_MODE should not be nil."
+    end
+
+    info['KA_DEPLOY_MODEO'] = mode
+    info['KA_DEPLOY_MODE'] = mode
+    # dig: 取config:replace:info的值，遇到空自动返回
+    patch_info_plist(info, config.dig('replace', 'info'))
+  end
+
+  desc '编译 KA 包, KA相关的配置也在这里面, 该lane会由`hooks/appcenter_build.sh`调用'
+  lane :KA do |options|
+    custom_block = ->(options) { patch_for_ka(options) }
+    custom_block = ->(options) { patch_for_ka2(options, false) } if ENV['EXPORT_API_VERSION'] == '2'
+    options[:CUSTOM_BLOCK] = custom_block
+
+    LarkAppCenter options
+  end
+
+  desc '自动配置KA的DEBUG环境，调用方式： bundle exec fastlane ios KA_DEBUG ka:xxx'
+  lane :KA_DEBUG do |options|
+    ENV['BUILD_PRODUCT_TYPE'] = 'KA'
+
+    patch_for_ka2(options, true)
+  end
+
+  # patch info.plist value
+  # @param patch [Hash] overwritable k-v pair, value can be string or hash{lang => value}, and base will overwrite info.plist
+  #     patch for 'CFBundleURLTypes' will replace old value by key: 'CFBundleURLName', then append new value if there no key 'CFBundleURLName'
+  # @param replace [Hash] {lang => [(from, to)] } i18n keyword replace
+  def patch_info_plist(patch, replace)
+    # NOTE: if add new extension, should change here and prepare script
+    Dir.chdir('..') do
+      # 这部分需要检查是否重复并独立处理
+      url_types = patch.delete 'CFBundleURLTypes'
+
+      Apple::InfoPlistPatch.new('Lark/Info.plist').write patch, replace, url_types
+
+      # KA小组件里面文案不替换，只patch
+      if $lark_env.is_ka?
+        replace = nil
+      end
+
+      ['ShareExtension/Info.plist', 'BroadcastUploadExtension/Info.plist',
+       'IntentsExtension/Info.plist'].each do |info_path|
+        Apple::InfoPlistPatch.new(info_path).write patch, replace, nil
+      end
+
+      patch.delete('CFBundleDisplayName') # only write to base and ShareExtension
+
+      ['NotificationServiceExtension/Info.plist', 'SmartWidget/Info.plist', 'NotificationContentExtension/Info.plist', 'LarkAppIntents/Info.plist'].each do |info_path|
+        Apple::InfoPlistPatch.new(info_path).write patch, replace, nil
+      end
+    end
+  end
+
+  desc '上传ipa到ASan测试'
+  def upload_ipa_to_asan(ipa_url, options)
+    puts 'begin upload ipa to asan'
+    scheme = options[:scheme]
+    scheme ||= 'Lark'
+    plistPath = get_info_plist_path(scheme: scheme)
+    appID = get_info_plist_value(path: plistPath, key: 'AppId')
+
+    uploadIpaUrl = 'https://cloudapi.bytedance.net/faas/services/tte9ls/invoke/startService'
+    sh "curl -H 'Content-Type: application/json' -d '{\"commit_id\": \"xxxxxx\", \"sanitizer\": \"asan\", \"app_id\": \"#{appID}\", \"app_url\": \"#{ipa_url}\"}' #{uploadIpaUrl} "
+  end
+
+  def get_lint_file_paths
+    # find all changed files
+    change_file_list = `git diff --name-only --diff-filter=ACMRTX HEAD~1..HEAD`.split("\n")
+
+    # get excluded config
+    excluded = YAML.safe_load(File.open('../.swiftlint.yml'))['excluded'].map(&:to_s)
+
+    # filter all swift file
+    swift_file_list = change_file_list.find_all { |name|
+      name.end_with?('.swift') && !(excluded.any? { |e| name.start_with?(e) })
+    }
+
+    return [swift_file_list, change_file_list, excluded]
+  end
+
+  def get_swift_lint_executable_path
+    fastlane_path = File.dirname(File.expand_path(__FILE__))
+    # Pods 下的 SwiftLint 文件路径
+    executable_path = File.join(File.dirname(fastlane_path), 'Pods/SwiftLint/swiftlint')
+
+    # 有则说明命中了缓存，直接返回
+    if File.exist?(executable_path)
+    else
+      # 没有则去TOS下载可执行文件。
+      executable_zip_path = "#{fastlane_path}/swiftlint.zip"
+      executable_path = "#{fastlane_path}/swiftlint"
+      executable_zip_url = 'http://tosv.byted.org/obj/ee-infra-ios/swiftlint_0.40.3.zip'
+      sh "curl #{executable_zip_url} --output #{executable_zip_path}; unzip -o #{executable_zip_path}"
+
+    end
+    return executable_path
+  end
+
+  # 执行 swift lint
+  def run_swift_lint
+    swift_file_list, change_file_list, excluded = get_lint_file_paths
+
+    executable_path = get_swift_lint_executable_path.to_s
+
+    if File.exist?(executable_path) && !swift_file_list.empty?
+      swiftlint(
+        config_file: '.swiftlint.yml',
+        strict: true,
+        files: swift_file_list,
+        executable: executable_path
+      )
+    else
+      puts "Skip swiftlint, File list:\n#{change_file_list.join("\n")}\n\nIgnore config:\n #{excluded.join("\n")}"
+      return false
+    end
+
+    return true
+  end
+
+  desc '增量编译 Lark Debug 包，反馈编译结果'
+  lane :LarkCI do |options|
+    options[:iCloud_container_environment] = 'Development'
+
+    # 执行SwiftLint并记录结果
+    has_lint = run_swift_lint
+
+    ENV['CHECK_ARCH_DEPS'] ||= '1' # 启用架构依赖检测, 包含pod新增准入功能
+    # run pod install before swiftlint to download swiftlint executable.
+
+    execute_cocoapods incremental: true
+    # 如果第一次执行失败（不是lint失败，而是调用Lint失败）则再次执行
+    run_swift_lint unless has_lint
+
+    # auto check archs of binary files, this should run after `pod install`
+    sh "
+    ../bin/CheckArchs/CheckArchs \
+    -i ../Pods \
+    -a arm64 \
+    -l libeffect-sdk.a,i18n-client,swiftlint
+    "
+
+    # 多仓集成有问题，暂时注释
+    # 验证appsize
+    sh 'pip3 install -r ../bin/verifyAppSize/requirements.txt'
+    sh 'python3 ../bin/verifyAppSize/check_size_quota.py --dir ../'
+
+    # 打印下当前的环境变量
+    puts "before build ENV: \n#{ENV.to_hash.to_json}"
+
+    if !$lark_env.is_ka?
+      require 'rake'
+      load '../Rakefile'
+      Dir.chdir ".." do
+        Rake::Task['check_if_pod'].invoke #检查所有pod都必须在if_pod.rb中明确版本
+      end
+    end
+
+    if ENV['BAZEL_ENABLE'] != "true" #xcodebuild 构建逻辑
+      ideBuildingContinueBuildingAfterErrors = "NO"
+      if ENV['IDEBuildingContinueBuildingAfterErrors'] == "YES"
+        ideBuildingContinueBuildingAfterErrors = "YES"
+      end
+      sh <<~XCODE_BUILD_SHELL
+        set -x
+        set +e
+        cd ..
+        LOG_DIR="${GYM_BUILDLOG_PATH:-Logs}"
+        LOG_PATH="$LOG_DIR"/xcodebuild.log
+        echo "xcodebuild log output to $LOG_PATH"
+        mkdir -p "$LOG_DIR"
+        "$DEVELOPER_DIR/usr/bin/"xcodebuild \
+          -workspace Lark.xcworkspace \
+          -derivedDataPath "$DERIVED_DATA_PATH" \
+          -resultBundlePath "$RESULT_DATA_PATH" \
+          -scheme Lark \
+          -configuration Debug \
+          -sdk iphonesimulator \
+          -IDEBuildingContinueBuildingAfterErrors="$ideBuildingContinueBuildingAfterErrors" \
+          -arch arm64 \
+          clean build \
+        | tee "$LOG_PATH" \
+        | xcpretty && exit ${PIPESTATUS[0]}
+      XCODE_BUILD_SHELL
+    else
+      static_check = ENV["STATIC_CHECK"] || "false"
+      sh <<~BAZEL_SHELL
+        set -x
+        set +e
+        cd ..
+        LOG_DIR="${GYM_BUILDLOG_PATH:-Logs}"
+        LOG_PATH="$LOG_DIR"/bazelbuild.log
+        echo "bazelbuild log output to $LOG_PATH"
+        mkdir -p "$LOG_DIR"
+        bash bitsky.sh --bundle --install --build --skip_install --configuration Debug --sdk simulator | tee "$LOG_PATH" && exit ${PIPESTATUS[0]}
+
+        if [[ "#{static_check}" == "true" ]]; then
+          bash bitsky.sh --c --c_output_file temp_compile_commands.json
+          python3 scripts/process_compile_commands.py \
+          -repo_dir "$PWD" \
+          -compile_commands_file "$PWD"/temp_compile_commands.json \
+          -target_branch origin/$WORKFLOW_REPO_TARGET_BRANCH \
+          -source_branch origin/$WORKFLOW_REPO_BRANCH \
+          -output "$PWD"/compile_commands.json \
+          -test_command "false"
+        fi
+      BAZEL_SHELL
+    end
+
+    # 打印下当前的环境变量
+    puts "after build ENV: \n#{ENV.to_hash.to_json}"    
+  end
+
+  desc '编译 Lark AppCenter包'
+  lane :LarkAppCenter do |options|
+    Lark(options)
+
+    begin
+      upload_symbols(options)
+    rescue
+      # 如果上传符号文件失败的话不影响打包任务的继续
+      puts 'upload_symbols failed, but continue.'
+    end
+  end
+
+  desc '上传 DSYM zip 包'
+  def upload_symbols(options)
+    dsym_path = sh "find #{options[:output_directory]} -iname \"*dsym*.zip\" | head -1"
+    options[:dsym_path] = dsym_path.strip
+    upload_sym options
+  end
+
+  desc '上传 DSYM zip 包'
+  lane :upload_sym do |options|
+    dsym_path = options.delete(:dsym_path)
+    raise unless dsym_path
+
+    upload_symbols_to_slardar(dsym_path, options)
+  end
+
+  desc '上传 DSYM zip 包到 slardar'
+  def upload_symbols_to_slardar(dsym_path, options)
+    puts 'begin upload dsym to slardar'
+
+    scheme = options[:scheme]
+    scheme ||= 'Lark'
+
+    plistPath = get_info_plist_path(scheme: scheme)
+    appID = get_info_plist_value(path: plistPath, key: 'AppId')
+
+    version = get_info_plist_value(path: plistPath, key: 'CFBundleShortVersionString')
+    littleVersion = get_info_plist_value(path: plistPath, key: 'CFBundleVersion')
+
+    versionUpdate_url = "https://cloudapi.bytedance.net/faas/services/tt4446x260a16e6e03/invoke/ObserveVersionUpdate\?aid\=#{appID}\&os\=iOS\&version\=#{version}\&littleVersion\=#{littleVersion}"
+    sh "curl \"#{versionUpdate_url}\" "
+
+    slardar_url = 'http://symbolicate.byted.org/slardar_ios_upload'
+    # 如果是海外版需要更改域名
+    slardar_url = 'http://symbolicateus.byted.org/slardar_ios_upload' if appID.to_s == '1664'
+    sh "curl #{slardar_url} -F \"file=@#{dsym_path}\"  -F \"aid=#{appID}\" -H \"Content-Type: multipart/form-data\" -w %{http_code} -v"
+  end
+
+  ####################### 包大小相关 start #######################
+
+  def upload_appsize
+    # 覆盖率包不进行上报
+    return if $lark_env.offline_coverage_enable
+    puts '上传PK150....'
+    version = get_version_number_from_plist(scheme: 'Lark')
+    build = get_build_number_from_plist(scheme: 'Lark')
+    jobId = (ENV['TASK_ID'] || '').to_s
+    mr_id_str = ''
+    if ENV['CUSTOM_CI_MR_ID']
+      mr_id = ENV['CUSTOM_CI_MR_ID'].to_s
+      mr_id_str = "--mrId #{mr_id}"
+    end
+    uploadType = 'MR包大小'
+    puts ENV['build_appsize_base']
+    uploadType = 'MR基准包大小' if ENV['build_appsize_base']
+    commit_id_str = %x(git -C ../ log -10 --pretty=format:"%H")
+    commit_id_arr = commit_id_str.split("\n")
+    last_mr_id_str = ''
+    commit_id_arr.each do |commit_id|
+      message = %x(git log --pretty=format:"%b" #{commit_id} -1)
+      message_arr = message.split('https://bits.bytedance.net/bytebus/devops/code/detail/')
+      next unless message_arr.size > 1
+      last_mr_id = message_arr[1]
+      last_mr_id_str = "--lastMrId #{last_mr_id}"
+      break
+    end
+
+    ipa_url = "https://voffline.byted.org/download/tos/schedule/iOSPackageBackUp/#{jobId}/Lark_#{version}_#{build}.ipa"
+    commit_id = %x(git -C ../ log -1 --pretty=format:"%H")
+    sh "python3 ../bin/verifyAppSize/upload_pk150.py --ipaUrl #{ipa_url} --commitId #{commit_id} --uploadType #{uploadType} #{mr_id_str}  #{last_mr_id_str}"
+    puts '上传PK150结束'
+  end
+
+  ####################### 包大小相关 start #######################
+
+  ####################### 代码覆盖率相关 start ########################
+
+  def offlineCodeCoverageCommit
+    return unless $lark_env.offline_coverage_enable
+    puts '线下覆盖率逻辑上报'
+    if ENV.key?('CUSTOM_CI_MR_DEPENDENCIES')
+      puts 'fixVersion'
+      offline_workspace = ENV['BIT_WORKSPACE_DIR']
+      mr_modelDic = JSON.parse(ENV['CUSTOM_CI_MR_DEPENDENCIES'])
+      puts mr_modelDic
+      mr_modelDic.each do |k, v|
+        next unless v.key?('git')
+        model_git = v['git']
+        model_commit = v['commit']
+        sh "python3 ../bin/coverage/fixVersion.py  --workspace_dir #{offline_workspace}  --mr_name #{k} --mr_git #{model_git} --mr_commit_id #{model_commit}"
+      end
+    end
+
+    # plistPath = get_info_plist_path(scheme: 'Lark')
+    # appID = get_info_plist_value(path: plistPath, key: 'AppId')
+    # # commit_id = %x( git -C ../ log -1 --pretty=format:"%h")
+    # build_branch = ENV['MAIN_GIT_BRANCH']
+    # version = get_version_number_from_plist(scheme: 'Lark')
+    # build = get_build_number_from_plist(scheme: 'Lark')
+    # jobId = ENV['TASK_ID'].to_s
+    # package_url = "https://voffline.byted.org/download/tos/schedule/iOSPackageBackUp/#{jobId}/Lark_#{version}_#{build}.ipa"
+    # mapping_url = "https://voffline.byted.org/download/tos/schedule/iOSPackageBackUp/#{jobId}/version.json"
+    # generate_post_data = {}
+    # generate_post_data['os_type'] = 'iOS'
+    # generate_post_data['app_id'] = appID
+    # generate_post_data['project_id'] = '132571'
+    # generate_post_data['build_branch'] = build_branch
+    # generate_post_data['build_commit'] = ENV['WORKFLOW_REPO_COMMIT'][0, 8]
+    # generate_post_data['tos_package_url'] = package_url
+    # generate_post_data['tos_sourcefile_map_url'] = mapping_url
+    # generate_post_data_json = generate_post_data.to_json
+    # puts '开始上传包信息和源码映射文件到覆盖率服务端'
+    # puts generate_post_data_json
+
+    # sh "curl -H 'Content-type: application/json' -X POST -d '#{generate_post_data_json}' 'https://code-coverage.bytedance.net/api/v1/full/report/server/app_build_compilation_product' "
+  end
+
+  def getAppId
+    scheme = options[:scheme]
+    scheme ||= 'Lark'
+    plistPath = get_info_plist_path(scheme: scheme)
+    appID = get_info_plist_value(path: plistPath, key: 'AppId')
+    return appID
+  end
+
+  def uploadCodeCoverageZipData(gitlab_id, commit_id, pod_version, pod_name)
+    puts "上传覆盖率模块信息#{pod_name}...."
+
+    # 压缩bdid和bdno，该文件放在工程根目录的coverageIndex目录下
+    # gitlab_id 拿不到
+    # commit_id 是主工程的，还是组件的，需要跑git 命令，
+    # sdk_update_version_code 是什么
+    sh 'pwd'
+    unless File.exist?("../Pods/#{pod_name}/coverageIndex")
+      puts 'Error 覆盖率文件没有生成'
+      return
+    end
+    sh "cd ../Pods/#{pod_name}/coverageIndex && zip -r bdid.zip ./*bdid && zip -r bdno.zip ./*bdno"
+    bdidZipPath = "../Pods/#{pod_name}/coverageIndex/bdid.zip"
+    bdnoZipPath = "../Pods/#{pod_name}/coverageIndex/bdno.zip"
+    plistPath = get_info_plist_path(scheme: 'Lark')
+    appID = get_info_plist_value(path: plistPath, key: 'AppId')
+    if File.exist?(bdidZipPath)
+      # 发送bdid
+      sh "curl --location --request POST 'http://symbolicate.byted.org/sdk_code_mapping_upload?app_id=#{appID}&sdk_project_id=#{gitlab_id}&sdk_commit_id=#{commit_id}&os=iOS&sdk_update_version_code=#{pod_version}&sdk_name=#{pod_name}' --header 'Content-Type: multipart/form-data' --form 'file=@#{bdidZipPath}'"
+    else
+      puts "模块覆盖率文件#{bdidZipPath}没有生成"
+    end
+    # 发送bdno
+    if File.exist?(bdnoZipPath)
+      cmd = "curl --location --request POST 'http://code-coverage.bytedance.net/api/v1/online/upload_bdno_file' -v --header 'Content-Type: multipart/form-data' --form 'sdk_id=#{gitlab_id}' --form 'sdk_commit=#{commit_id}' --form 'bdzip=@#{bdnoZipPath}'"
+      sh cmd
+    else
+      puts "模块覆盖率文件#{bdnoZipPath}没有生成"
+    end
+  end
+
+  def uploadODRAssetPacksToTos(tosdir, outputDir)
+    if Dir.exist? "#{outputDir}/OnDemandResources"
+      Dir.chdir("#{outputDir}/OnDemandResources") do
+        if !File.exist?('toscli')
+          `curl http://tosv.byted.org/obj/tos-team/toscli/toscli-darwin -o toscli && chmod a+x toscli`
+        end
+        Dir.each_child(Dir.pwd)  do |file_name|
+          if file_name != 'toscli'
+            tos_file = tosdir + file_name
+            command = "./toscli -accessKey Y6KCSEZ49IVH1ES8QR8W -bucket ee-infra-ios -endpoint tos-cn-north.byted.org put -name #{tosdir}#{file_name} #{file_name}"
+            puts command
+            `#{command}`
+          end
+        end
+      end
+    else
+      puts "No ODR asset packs"
+    end    
+  end
+
+  def uploadCodeCoveragePodJson
+    # 生成json
+    puts '上传覆盖率文件...'
+    unless $lark_env.code_coverage_enable
+      puts '覆盖率逻辑已关闭'
+      return
+    end
+    plistPath = get_info_plist_path(scheme: 'Lark')
+    appID = get_info_plist_value(path: plistPath, key: 'AppId')
+    version = get_info_plist_value(path: plistPath, key: 'CFBundleShortVersionString')
+    build = get_build_number_from_plist(scheme: 'Lark')
+    file = File.join('./', 'pod.json')
+    unless File.exist?(file)
+      f = File.new(file, 'w+')
+      # 137801  bits的项目id
+      moduleInfoUrl = "https://bits.bytedance.net/openapi/v1/component/app_over_view?app_id=137801&version=#{version}"
+      moduleInfoUrlResp = Net::HTTP.get_response(URI.parse(moduleInfoUrl))
+      moduleInfos = JSON.parse(moduleInfoUrlResp.body)
+      if moduleInfos['code'] != 200
+        puts "获取模块信息失败#{moduleInfoUrl}"
+        return
+      end
+      coveragePodJson = {}
+      moduleInfos['data']['components'].each do |moduleInfo|
+        overview_info = moduleInfo['overview_info']
+        component = moduleInfo['component']
+        component_history = moduleInfo['component_history']
+        next unless Lark::Project::ToolChainConfig.coverage_list.include? overview_info['name']
+        moduleInfoJson = {}
+        moduleInfoJson['git'] = component['gitUrl']
+        moduleInfoJson['commit'] = component_history['commitId']
+        moduleInfoJson['repoId'] = component['gitlabID'].to_s
+        moduleInfoJson['version'] = overview_info['version'] + '-onlineStub'
+        coveragePodJson[overview_info['name']] = moduleInfoJson
+        uploadCodeCoverageZipData(component['gitlabID'], moduleInfoJson['commit'], moduleInfoJson['version'],
+                                  overview_info['name'])
+      end
+      puts "覆盖率整体信息#{coveragePodJson}"
+      coveragePodStr = JSON.generate(coveragePodJson)
+      f.puts(coveragePodStr)
+      f.close
+    end
+    # 上传配置文件到tos
+    podJsonName = "Lark_#{version}_#{build}.json"
+    sh "sh ./tos_uploader.sh #{podJsonName} ./pod.json"
+    gitlab_id = '132571'
+    commit_id = %x(git -C ../ log -1 --pretty=format:"%H")
+    # 上报json
+    cmd = "curl --location --request POST 'http://symbolicate.byted.org/code_mapping_register?app_id=#{appID}&update_version_code=#{build}&app_project_id=#{gitlab_id}&app_commit_id=#{commit_id}&os=iOS&sdk_info_url=http://tosv.byted.org/obj/lark-ios/#{podJsonName}' -v"
+    sh cmd
+    puts '上传覆盖率文件结束'
+  end
+
+  desc '编译 代码行数统计 包'
+  lane :LarkCountCodeLines do |_options|
+    sh 'rm -rf ../Pods'
+    execute_cocoapods
+  end
+
+  ####################### 代码覆盖率相关 end ########################
+
+  desc 'Execute Cocoapods'
+  lane :execute_cocoapods do |options|
+    pod_options = options.delete(:incremental) ? '' : '--clean-install'
+    pod_options += ' --verbose' if $lark_env.verbose?
+
+    #国内打包
+    ENV["BAZEL_ENABLE"] = ENV["BITS_BAZEL_ENABLE"] unless (ENV["BITS_BAZEL_ENABLE"] || "").empty? #BITS_BAZEL_ENABLE来自Bits MR手动打包，优先级最高    
+    if (ENV["BAZEL_ENABLE"] || "") == "auto"
+			if File.exist? "../bitsky_plugin/bazelrc/coverage.bazelrc"
+        ENV['BAZEL_ENABLE'] = "true"                
+      else
+        ENV['BAZEL_ENABLE'] = "false"              
+      end
+		end
+    
+    if ENV['BAZEL_ENABLE'] == "true" #bazel构建，加速下载，不开启二进制以及 remote cache
+      ENV['REMOTE_CACHE_ENABLE'] = "false"
+      ENV['USE_SWIFT_BINARY'] = "false"
+      ENV['SHOULD_COMPRESS_I18n'] = '0' #TODO: supeng，bazel暂时不支持i8n压缩
+      puts "Using Bazel build system"
+    else       
+      puts "Using Xcode build system"
+    end
+
+    begin
+      # eesc 0.1.130 deals some compatible issue, so may not need to full install
+      # when dev pod add international resources, generate new i18n auto.bundle, cache has problem
+      # The release package is still --clean-installl, since it is fully compiled.
+      sh "cd ..; bundle exec pod install #{pod_options}"
+    rescue
+      puts 'Execute Pod Repo Update!'
+      sh "cd ..; bundle exec pod update LarkSQLCipher #{pod_options}"
+    end
+  end
+
+  # You can define as many lanes as you want
+
+  after_all do |lane|
+    # This block is called, only if the executed lane was successful
+
+    # slack(
+    #   message: "Successfully deployed new App Update."
+    # )
+  end
+
+  error do |lane, exception|
+    # slack(
+    #   message: exception.message,
+    #   success: false
+    # )
+  end
+
+  def __c_log(string)
+    # puts "* * * * * * * * #{string} * * * * * * * *"
+  end
+end
+
+
+# More information about multiple platforms in fastlane: https://github.com/fastlane/fastlane/blob/master/fastlane/docs/Platforms.md
+# All available actions: https://docs.fastlane.tools/actions
+
+# fastlane reports which actions are used. No personal data is recorded.
+# Learn more at https://github.com/fastlane/fastlane#metrics

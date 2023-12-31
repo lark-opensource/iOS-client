@@ -1,0 +1,918 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "TTMLeaksFinder_pod_hdrs",
+  srcs = [
+    ":TTMLeaksFinder_root_pod_hdrs",
+    ":LeaksTracker_pod_hdrs",
+    ":Core_pod_hdrs",
+    ":UseCount_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "TTMLeaksFinder_private_includes",
+  include = [
+    "external/TTMLeaksFinder/pod_support/Headers/Private/TTMLeaksFinder/"
+  ],
+  deps = [],
+  external_name = "TTMLeaksFinder"
+)
+gen_includes(
+  name = "TTMLeaksFinder_public_includes",
+  include = [
+    "external/TTMLeaksFinder/pod_support/Headers/Public/TTMLeaksFinder/"
+  ],
+  deps = [],
+  external_name = "TTMLeaksFinder"
+)
+filegroup(
+  name = "_TTMLeaksFinder_hdrs",
+  srcs = [
+    ":TTMLeaksFinder_root_hdrs",
+    ":LeaksTracker_hdrs",
+    ":Core_hdrs",
+    ":UseCount_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "TTMLeaksFinder_xcode_hmapsource",
+  hdrs = [
+    ":TTMLeaksFinder_root_hdrs",
+    ":Core_hdrs",
+    ":LeaksTracker_hdrs",
+    ":UseCount_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "TTMLeaksFinder_xcode_hmap",
+  dep = ":TTMLeaksFinder_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/TTMLeaksFinder/*-bitsky-generated.modulemap", "pod_support/Headers/Public/TTMLeaksFinder/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "TTMLeaksFinder_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "TTMLeaksFinder",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "TTMLeaksFinder_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":TTMLeaksFinder_xcode_hmap"
+  ],
+  external_name = "TTMLeaksFinder",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTMLeaksFinder_root_hdrs",
+  srcs = [
+    "MLeaksFinder/Classes/Core/TTMLeaksConfig.h",
+    "MLeaksFinder/Classes/Core/TTMLeaksFinder.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTMLeaksFinder_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Public/TTMLeaksFinder/TTMLeaksConfig.h",
+    "pod_support/Headers/Public/TTMLeaksFinder/TTMLeaksFinder.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTMLeaksFinder_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTMLeaksFinder_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TTMLeaksFinder_module_map",
+  module_map = "pod_support/Headers/Public/TTMLeaksFinder/TTMLeaksFinder-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTMLeaksFinder/TTMLeaksFinder-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTMLeaksFinder_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "TTMLeaksFinder_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTMLeaksFinder_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTMLeaksFinder_private_includes",
+    ":TTMLeaksFinder_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":TTMLeaksFinder_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTMLeaksFinder_POD_VERSION=@\\\"13_2.1.9-alpha.10-swift\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTMLeaksFinder",
+  deps = [
+    ":TTMLeaksFinder_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TTMLeaksFinder_lib",
+  deps = [
+    ":TTMLeaksFinder"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "LeaksTracker_hdrs",
+  srcs = [
+    "MLeaksFinder/Classes/LeaksTracker/TTHMDLeaksFinderConfig.h",
+    "MLeaksFinder/Classes/LeaksTracker/TTHMDLeaksFinderDetector.h",
+    "MLeaksFinder/Classes/LeaksTracker/TTHMDLeaksFinderRecord.h",
+    "MLeaksFinder/Classes/LeaksTracker/TTHMDLeaskFinderTracker.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "LeaksTracker_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTMLeaksFinder/TTHMDLeaksFinderConfig.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/TTHMDLeaksFinderDetector.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/TTHMDLeaksFinderRecord.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/TTHMDLeaskFinderTracker.h",
+    "pod_support/Headers/Public/TTMLeaksFinder/TTHMDLeaksFinderConfig.h",
+    "pod_support/Headers/Public/TTMLeaksFinder/TTHMDLeaksFinderDetector.h",
+    "pod_support/Headers/Public/TTMLeaksFinder/TTHMDLeaksFinderRecord.h",
+    "pod_support/Headers/Public/TTMLeaksFinder/TTHMDLeaskFinderTracker.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "LeaksTracker_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "LeaksTracker_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "LeaksTracker_module_map",
+  module_map = "pod_support/Headers/Public/TTMLeaksFinder/TTMLeaksFinder_LeaksTracker-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTMLeaksFinder/TTMLeaksFinder_LeaksTracker-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "LeaksTracker_srcs",
+  srcs = [
+    "MLeaksFinder/Classes/LeaksTracker/TTHMDLeaksFinderConfig.m",
+    "MLeaksFinder/Classes/LeaksTracker/TTHMDLeaksFinderDetector.m",
+    "MLeaksFinder/Classes/LeaksTracker/TTHMDLeaksFinderRecord.m",
+    "MLeaksFinder/Classes/LeaksTracker/TTHMDLeaskFinderTracker.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "LeaksTracker_oc",
+  enable_modules = 1,
+  srcs = [
+    "LeaksTracker_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "LeaksTracker_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTMLeaksFinder_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTMLeaksFinder_private_includes",
+    ":TTMLeaksFinder_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@Heimdallr//:Core_objc_interface",
+    "@Heimdallr//:TTMonitor_objc_interface",
+    "@Heimdallr//:UserException_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    "@Heimdallr//:Core_swift_interface",
+    "@Heimdallr//:TTMonitor_swift_interface",
+    "@Heimdallr//:UserException_swift_interface",
+    ":LeaksTracker_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map",
+    "@Heimdallr//:Core_module_map",
+    "@Heimdallr//:TTMonitor_module_map",
+    "@Heimdallr//:UserException_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTMLeaksFinder_POD_VERSION=@\\\"13_2.1.9-alpha.10-swift\\\"",
+    "-DMLeaksTracker=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "LeaksTracker",
+  deps = [
+    ":LeaksTracker_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "LeaksTracker_lib",
+  deps = [
+    ":LeaksTracker"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [
+    "MLeaksFinder/Classes/Core/Context/TTMLBlockNodeInterpreter.h",
+    "MLeaksFinder/Classes/Core/Context/TTMLLeakContext.h",
+    "MLeaksFinder/Classes/Core/Context/TTMLLeakCycle.h",
+    "MLeaksFinder/Classes/Core/FBObjectiveCGraphElement+ML.h",
+    "MLeaksFinder/Classes/Core/MLCycleKeyClassDetector.h",
+    "MLeaksFinder/Classes/Core/Operations/TTMLBuildRetainTreeOperation.h",
+    "MLeaksFinder/Classes/Core/Operations/TTMLDetectRetainCycleOperation.h",
+    "MLeaksFinder/Classes/Core/Operations/TTMLDetectSurviveObjectsOperation.h",
+    "MLeaksFinder/Classes/Core/Operations/TTMLOperationManager.h",
+    "MLeaksFinder/Classes/Core/TTMLFHeapEnumerator.h",
+    "MLeaksFinder/Classes/Core/TTMLFMemoryDump.h",
+    "MLeaksFinder/Classes/Core/TTMLNodeEnumerator.h",
+    "MLeaksFinder/Classes/Core/TTMLeakedObjectProxy.h",
+    "MLeaksFinder/Classes/Core/TTMLeaksConfig.h",
+    "MLeaksFinder/Classes/Core/TTMLeaksFinder.h",
+    "MLeaksFinder/Classes/Core/TTMLeaksFinderJSONRequestSerializer.h",
+    "MLeaksFinder/Classes/Core/TTMLeaksSizeCalculator.h",
+    "MLeaksFinder/Classes/Core/UIApplication+TTMemoryLeak.h",
+    "MLeaksFinder/Classes/Core/UINavigationController+TTMemoryLeak.h",
+    "MLeaksFinder/Classes/Core/UITouch+TTMemoryLeak.h",
+    "MLeaksFinder/Classes/Core/UIViewController+TTMemoryLeak.h",
+    "MLeaksFinder/Classes/Core/Util/TTMLCommon.h",
+    "MLeaksFinder/Classes/Core/Util/TTMLUtils.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTMLeaksFinder/FBObjectiveCGraphElement+ML.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/MLCycleKeyClassDetector.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/TTMLBlockNodeInterpreter.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/TTMLBuildRetainTreeOperation.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/TTMLCommon.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/TTMLDetectRetainCycleOperation.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/TTMLDetectSurviveObjectsOperation.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/TTMLFHeapEnumerator.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/TTMLFMemoryDump.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/TTMLLeakContext.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/TTMLLeakCycle.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/TTMLNodeEnumerator.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/TTMLOperationManager.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/TTMLUtils.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/TTMLeakedObjectProxy.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/TTMLeaksConfig.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/TTMLeaksFinder.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/TTMLeaksFinderJSONRequestSerializer.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/TTMLeaksSizeCalculator.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/UIApplication+TTMemoryLeak.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/UINavigationController+TTMemoryLeak.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/UITouch+TTMemoryLeak.h",
+    "pod_support/Headers/Private/TTMLeaksFinder/UIViewController+TTMemoryLeak.h",
+    "pod_support/Headers/Public/TTMLeaksFinder/TTMLLeakCycle.h",
+    "pod_support/Headers/Public/TTMLeaksFinder/TTMLeaksConfig.h",
+    "pod_support/Headers/Public/TTMLeaksFinder/TTMLeaksFinder.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/TTMLeaksFinder/TTMLeaksFinder_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTMLeaksFinder/TTMLeaksFinder_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_srcs",
+  srcs = [
+    "MLeaksFinder/Classes/Core/FBObjectiveCGraphElement+ML.m",
+    "MLeaksFinder/Classes/Core/MLCycleKeyClassDetector.m",
+    "MLeaksFinder/Classes/Core/Context/TTMLBlockNodeInterpreter.m",
+    "MLeaksFinder/Classes/Core/Operations/TTMLBuildRetainTreeOperation.m",
+    "MLeaksFinder/Classes/Core/Operations/TTMLDetectRetainCycleOperation.m",
+    "MLeaksFinder/Classes/Core/Operations/TTMLDetectSurviveObjectsOperation.m",
+    "MLeaksFinder/Classes/Core/TTMLeakedObjectProxy.m",
+    "MLeaksFinder/Classes/Core/TTMLeaksConfig.m",
+    "MLeaksFinder/Classes/Core/TTMLeaksFinder.mm",
+    "MLeaksFinder/Classes/Core/TTMLeaksFinderJSONRequestSerializer.m",
+    "MLeaksFinder/Classes/Core/TTMLeaksSizeCalculator.m",
+    "MLeaksFinder/Classes/Core/TTMLFHeapEnumerator.m",
+    "MLeaksFinder/Classes/Core/TTMLFMemoryDump.m",
+    "MLeaksFinder/Classes/Core/Context/TTMLLeakContext.m",
+    "MLeaksFinder/Classes/Core/Context/TTMLLeakCycle.m",
+    "MLeaksFinder/Classes/Core/TTMLNodeEnumerator.m",
+    "MLeaksFinder/Classes/Core/Operations/TTMLOperationManager.m",
+    "MLeaksFinder/Classes/Core/Util/TTMLUtils.m",
+    "MLeaksFinder/Classes/Core/UIApplication+TTMemoryLeak.m",
+    "MLeaksFinder/Classes/Core/UINavigationController+TTMemoryLeak.m",
+    "MLeaksFinder/Classes/Core/UITouch+TTMemoryLeak.m",
+    "MLeaksFinder/Classes/Core/UIViewController+TTMemoryLeak.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [
+    "Core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTMLeaksFinder_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTMLeaksFinder_private_includes",
+    ":TTMLeaksFinder_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@FBRetainCycleDetector//:FBRetainCycleDetector_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@FBRetainCycleDetector//:FBRetainCycleDetector_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":Core_objc_interface",
+    "@FBRetainCycleDetector//:FBRetainCycleDetector_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTMLeaksFinder_POD_VERSION=@\\\"13_2.1.9-alpha.10-swift\\\"",
+    "-DMLeaksFinder=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "UseCount_hdrs",
+  srcs = [
+    "MLeaksFinder/Classes/UseCount/NSObject+TTUseCount.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "UseCount_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTMLeaksFinder/NSObject+TTUseCount.h",
+    "pod_support/Headers/Public/TTMLeaksFinder/NSObject+TTUseCount.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "UseCount_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "UseCount_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "UseCount_module_map",
+  module_map = "pod_support/Headers/Public/TTMLeaksFinder/TTMLeaksFinder_UseCount-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTMLeaksFinder/TTMLeaksFinder_UseCount-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "UseCount_srcs",
+  srcs = [
+    "MLeaksFinder/Classes/UseCount/NSObject+TTUseCount.mm"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "UseCount_oc",
+  enable_modules = 1,
+  srcs = [
+    "UseCount_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "UseCount_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTMLeaksFinder_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTMLeaksFinder_private_includes",
+    ":TTMLeaksFinder_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":UseCount_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTMLeaksFinder_POD_VERSION=@\\\"13_2.1.9-alpha.10-swift\\\"",
+    "-DMLeaksMonitor=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "UseCount",
+  deps = [
+    ":UseCount_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "UseCount_lib",
+  deps = [
+    ":UseCount"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_TTMLeaksFinder_module_map",
+  module_map = "@TTMLeaksFinder//:pod_support/Headers/Public/TTMLeaksFinder/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@TTMLeaksFinder//:pod_support/Headers/Public/TTMLeaksFinder/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_TTMLeaksFinder_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@TTMLeaksFinder//:Core_objc_interface", "@TTMLeaksFinder//:LeaksTracker_objc_interface", "@TTMLeaksFinder//:TTMLeaksFinder_objc_interface", "@TTMLeaksFinder//:UseCount_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_TTMLeaksFinder",
+  target_name = "Lark",
+  module_name = "TTMLeaksFinder",
+  hdrs = ["@TTMLeaksFinder//:Core_pod_hdrs", "@TTMLeaksFinder//:LeaksTracker_pod_hdrs", "@TTMLeaksFinder//:TTMLeaksFinder_root_pod_hdrs", "@TTMLeaksFinder//:UseCount_pod_hdrs"],
+  srcs = ["@TTMLeaksFinder//:Core_srcs", "@TTMLeaksFinder//:LeaksTracker_srcs", "@TTMLeaksFinder//:UseCount_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["FBRetainCycleDetector", "TTNetworkManager", "BDAlogProtocol", "ByteDanceKit", "Heimdallr"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTTMLeaksFinder_POD_VERSION=@\\\"13_2.1.9-alpha.10-swift\\\"",
+    "-DMLeaksFinder=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-DMLeaksTracker=1",
+    "-DMLeaksMonitor=1",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "TTMLeaksFinder_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "TTMLeaksFinder_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "TTMLeaksFinder_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "TTMLeaksFinder_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "TTMLeaksFinder_dynamic", False),
+  tags = getattr(defs_external_objc_library, "TTMLeaksFinder_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("TTMLeaksFinder", {}),
+  visibility = ["//visibility:public"],
+)

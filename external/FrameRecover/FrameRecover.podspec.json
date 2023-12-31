@@ -1,0 +1,109 @@
+{
+  "_bytebus_platform": {
+    "repo_id": "25419",
+    "app_id": "34338756"
+  },
+  "prepare_command": "curl https://ios.bytedance.net/wlapi/tosDownload/iosbinary/platform/master/awesomecommand_xz.sh | bash ;",
+  "preserve_paths": [
+    "**/*.bwp"
+  ],
+  "default_subspecs": [
+    "Recover",
+    "Log"
+  ],
+  "description": "framework_description",
+  "license": {
+    "type": "MIT"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "FrameRecover_POD_VERSION=@\\\"34338756_1.28.0\\\""
+  },
+  "ios": {
+    "frameworks": [
+      "UIKit",
+      "Foundation",
+      "JavaScriptCore"
+    ]
+  },
+  "summary": "framework_summary",
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/34338756/FrameRecover/1.28.0.1-binary/FrameRecover.framework.tar.xz"
+  },
+  "version": "1.28.0.1-binary",
+  "build_file_count": 62,
+  "authors": {
+    "sunrunwang": "sunrunwang.mail@bytedance.com"
+  },
+  "pod_target_xcconfig": {
+    "OTHER_CPLUSPLUSFLAGS": "-fno-c++-static-destructors",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS[config=Release]": "$(inherited) NDEBUG=1",
+    "GCC_PREPROCESSOR_DEFINITIONS": "FrameRecover_POD_VERSION=@\\\"34338756_1.28.0\\\"",
+    "DEFINES_MODULE": "YES"
+  },
+  "source_code": {
+    "commit": "8231333fc567b687630fc82e6ce3338c75a508b5",
+    "git": "git@code.byted.org:iOS_Library/FrameRecover.git"
+  },
+  "homepage": "https://code.byted.org/iOS_Library/FrameRecover",
+  "repoId": "25419",
+  "subspecs": [
+    {
+      "public_header_files": "Recover/public/**/*.h",
+      "private_header_files": "Recover/private/**/*.h",
+      "name": "Recover",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Recover_*awesome_*.a"
+      },
+      "libraries": [
+        "c++",
+        "c++abi"
+      ],
+      "requires_arc": true,
+      "dependencies": {
+        "ByteDanceKit": []
+      },
+      "source_files": "Recover/**/*.{h,c,m,mm,cpp,hpp,s}"
+    },
+    {
+      "public_header_files": "Log/public/**/*.h",
+      "private_header_files": "Log/private/**/*.h",
+      "name": "Log",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Log_*awesome_*.a"
+      },
+      "requires_arc": true,
+      "dependencies": {
+        "FrameRecover/Recover": [],
+        "BDAlogProtocol": [
+          ">= 0.1.7"
+        ]
+      },
+      "source_files": "Log/**/*.{h,c,m,mm,cpp,hpp,s}"
+    },
+    {
+      "public_header_files": "Debug/public/**/*.h",
+      "private_header_files": "Debug/private/**/*.h",
+      "name": "Debug",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Debug_*awesome_*.a"
+      },
+      "requires_arc": true,
+      "source_files": "Debug/**/*.{h,c,m,mm,cpp,hpp,s}"
+    }
+  ],
+  "name": "FrameRecover"
+}

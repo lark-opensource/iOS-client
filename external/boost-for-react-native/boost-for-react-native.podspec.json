@@ -1,0 +1,36 @@
+{
+    "name": "boost-for-react-native",
+    "version": "1.63.0",
+    "license":
+    {
+        "type": "Boost Software License",
+        "file": "LICENSE_1_0.txt"
+    },
+    "homepage": "http://www.boost.org",
+    "summary": "framework_summary",
+    "authors": "Rene Rivera",
+    "platforms":
+    {
+        "ios": "8.0",
+        "tvos": "9.2"
+    },
+    "requires_arc": false,
+    "module_name": "boost",
+    "header_dir": "boost",
+    "preserve_paths": ["boost", "**/*.bwp"],
+    "description": "framework_description",
+    "user_target_xcconfig":
+    {
+        "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES"
+        
+    },
+    "pod_target_xcconfig":
+    {
+        "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES"
+    },
+    "source":
+    {
+        "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/source/8888/boost-for-react-native/boost-for-react-native.framework.zip"
+    },
+    "prepare_command": "curl -o awesomecommand.sh https://code.byted.org/wusizhen.arch/script/raw/master/forsource.sh;bash awesomecommand.sh cf63e083 false echo suc"
+}

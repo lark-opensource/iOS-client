@@ -1,0 +1,966 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "mobilecv2_pod_hdrs",
+  srcs = [
+    ":mobilecv2_root_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "mobilecv2_private_includes",
+  include = [
+    "external/mobilecv2/pod_support/Headers/Private/mobilecv2/"
+  ],
+  deps = [],
+  external_name = "mobilecv2"
+)
+gen_includes(
+  name = "mobilecv2_public_includes",
+  include = [
+    "external/mobilecv2/pod_support/Headers/Public/mobilecv2/"
+  ],
+  deps = [],
+  external_name = "mobilecv2"
+)
+filegroup(
+  name = "_mobilecv2_hdrs",
+  srcs = [
+    ":mobilecv2_root_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "mobilecv2_xcode_hmapsource",
+  hdrs = [
+    ":_mobilecv2_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "mobilecv2_xcode_hmap",
+  dep = ":mobilecv2_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/mobilecv2/*-bitsky-generated.modulemap", "pod_support/Headers/Public/mobilecv2/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "mobilecv2_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios/libmobilecv2.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "mobilecv2_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "mobilecv2",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "mobilecv2_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":mobilecv2_xcode_hmap"
+  ],
+  external_name = "mobilecv2",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mobilecv2_root_hdrs",
+  srcs = [
+    "ios/include/mobilecv2/calib3d.hpp",
+    "ios/include/mobilecv2/calib3d/calib3d.hpp",
+    "ios/include/mobilecv2/calib3d/calib3d_c.h",
+    "ios/include/mobilecv2/core.hpp",
+    "ios/include/mobilecv2/core/affine.hpp",
+    "ios/include/mobilecv2/core/base.hpp",
+    "ios/include/mobilecv2/core/bufferpool.hpp",
+    "ios/include/mobilecv2/core/core.hpp",
+    "ios/include/mobilecv2/core/core_c.h",
+    "ios/include/mobilecv2/core/cvdef.h",
+    "ios/include/mobilecv2/core/cvstd.hpp",
+    "ios/include/mobilecv2/core/cvstd.inl.hpp",
+    "ios/include/mobilecv2/core/directx.hpp",
+    "ios/include/mobilecv2/core/eigen.hpp",
+    "ios/include/mobilecv2/core/fast_math.hpp",
+    "ios/include/mobilecv2/core/hal/hal.hpp",
+    "ios/include/mobilecv2/core/hal/interface.h",
+    "ios/include/mobilecv2/core/hal/intrin.hpp",
+    "ios/include/mobilecv2/core/hal/intrin_cpp.hpp",
+    "ios/include/mobilecv2/core/hal/intrin_neon.hpp",
+    "ios/include/mobilecv2/core/hal/intrin_sse.hpp",
+    "ios/include/mobilecv2/core/hal_avx/hal.hpp",
+    "ios/include/mobilecv2/core/hal_avx/interface.h",
+    "ios/include/mobilecv2/core/hal_avx/intrin.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_avx.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_avx512.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_cpp.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_forward.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_msa.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_neon.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_rvv.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_rvv071.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_sse.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_sse_em.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_vsx.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_wasm.hpp",
+    "ios/include/mobilecv2/core/hal_avx/msa_macros.h",
+    "ios/include/mobilecv2/core/hal_avx/simd_utils.impl.hpp",
+    "ios/include/mobilecv2/core/ippasync.hpp",
+    "ios/include/mobilecv2/core/mat.hpp",
+    "ios/include/mobilecv2/core/mat.inl.hpp",
+    "ios/include/mobilecv2/core/matx.hpp",
+    "ios/include/mobilecv2/core/neon_utils.hpp",
+    "ios/include/mobilecv2/core/ocl.hpp",
+    "ios/include/mobilecv2/core/ocl_genbase.hpp",
+    "ios/include/mobilecv2/core/opencl/ocl_defs.hpp",
+    "ios/include/mobilecv2/core/opengl.hpp",
+    "ios/include/mobilecv2/core/operations.hpp",
+    "ios/include/mobilecv2/core/optim.hpp",
+    "ios/include/mobilecv2/core/ovx.hpp",
+    "ios/include/mobilecv2/core/persistence.hpp",
+    "ios/include/mobilecv2/core/private.hpp",
+    "ios/include/mobilecv2/core/ptr.inl.hpp",
+    "ios/include/mobilecv2/core/saturate.hpp",
+    "ios/include/mobilecv2/core/sse_utils.hpp",
+    "ios/include/mobilecv2/core/traits.hpp",
+    "ios/include/mobilecv2/core/types.hpp",
+    "ios/include/mobilecv2/core/types_c.h",
+    "ios/include/mobilecv2/core/utility.hpp",
+    "ios/include/mobilecv2/core/utils/instrumentation.hpp",
+    "ios/include/mobilecv2/core/utils/tls.hpp",
+    "ios/include/mobilecv2/core/va_intel.hpp",
+    "ios/include/mobilecv2/core/version.hpp",
+    "ios/include/mobilecv2/core/wimage.hpp",
+    "ios/include/mobilecv2/cvconfig.h",
+    "ios/include/mobilecv2/datacvt.hpp",
+    "ios/include/mobilecv2/features2d.hpp",
+    "ios/include/mobilecv2/features2d/features2d.hpp",
+    "ios/include/mobilecv2/flann.hpp",
+    "ios/include/mobilecv2/flann/all_indices.h",
+    "ios/include/mobilecv2/flann/allocator.h",
+    "ios/include/mobilecv2/flann/any.h",
+    "ios/include/mobilecv2/flann/autotuned_index.h",
+    "ios/include/mobilecv2/flann/composite_index.h",
+    "ios/include/mobilecv2/flann/config.h",
+    "ios/include/mobilecv2/flann/defines.h",
+    "ios/include/mobilecv2/flann/dist.h",
+    "ios/include/mobilecv2/flann/dummy.h",
+    "ios/include/mobilecv2/flann/dynamic_bitset.h",
+    "ios/include/mobilecv2/flann/flann.hpp",
+    "ios/include/mobilecv2/flann/flann_base.hpp",
+    "ios/include/mobilecv2/flann/general.h",
+    "ios/include/mobilecv2/flann/ground_truth.h",
+    "ios/include/mobilecv2/flann/hdf5.h",
+    "ios/include/mobilecv2/flann/heap.h",
+    "ios/include/mobilecv2/flann/hierarchical_clustering_index.h",
+    "ios/include/mobilecv2/flann/index_testing.h",
+    "ios/include/mobilecv2/flann/kdtree_index.h",
+    "ios/include/mobilecv2/flann/kdtree_single_index.h",
+    "ios/include/mobilecv2/flann/kmeans_index.h",
+    "ios/include/mobilecv2/flann/linear_index.h",
+    "ios/include/mobilecv2/flann/logger.h",
+    "ios/include/mobilecv2/flann/lsh_index.h",
+    "ios/include/mobilecv2/flann/lsh_table.h",
+    "ios/include/mobilecv2/flann/matrix.h",
+    "ios/include/mobilecv2/flann/miniflann.hpp",
+    "ios/include/mobilecv2/flann/nn_index.h",
+    "ios/include/mobilecv2/flann/object_factory.h",
+    "ios/include/mobilecv2/flann/params.h",
+    "ios/include/mobilecv2/flann/random.h",
+    "ios/include/mobilecv2/flann/result_set.h",
+    "ios/include/mobilecv2/flann/sampling.h",
+    "ios/include/mobilecv2/flann/saving.h",
+    "ios/include/mobilecv2/flann/simplex_downhill.h",
+    "ios/include/mobilecv2/flann/timer.h",
+    "ios/include/mobilecv2/imgcodecs.hpp",
+    "ios/include/mobilecv2/imgcodecs/imgcodecs.hpp",
+    "ios/include/mobilecv2/imgcodecs/imgcodecs_c.h",
+    "ios/include/mobilecv2/imgproc.hpp",
+    "ios/include/mobilecv2/imgproc/detail/distortion_model.hpp",
+    "ios/include/mobilecv2/imgproc/hal/hal.hpp",
+    "ios/include/mobilecv2/imgproc/hal/interface.h",
+    "ios/include/mobilecv2/imgproc/imgproc.hpp",
+    "ios/include/mobilecv2/imgproc/imgproc_c.h",
+    "ios/include/mobilecv2/imgproc/types_c.h",
+    "ios/include/mobilecv2/mobilecv2.hpp",
+    "ios/include/mobilecv2/mobilecv_modules.hpp",
+    "ios/include/mobilecv2/optflow.hpp",
+    "ios/include/mobilecv2/optflow/motempl.hpp",
+    "ios/include/mobilecv2/optflow/pcaflow.hpp",
+    "ios/include/mobilecv2/optflow/sparse_matching_gpc.hpp",
+    "ios/include/mobilecv2/photo.hpp",
+    "ios/include/mobilecv2/photo/photo.hpp",
+    "ios/include/mobilecv2/photo/photo_c.h",
+    "ios/include/mobilecv2/video.hpp",
+    "ios/include/mobilecv2/video/background_segm.hpp",
+    "ios/include/mobilecv2/video/tracking.hpp",
+    "ios/include/mobilecv2/video/tracking_c.h",
+    "ios/include/mobilecv2/video/video.hpp",
+    "ios/include/mobilecv2/xfeatures2d.hpp",
+    "ios/include/mobilecv2/xfeatures2d/nonfree.hpp",
+    "ios/include/mobilecv2/ximgproc.hpp",
+    "ios/include/mobilecv2/ximgproc/edge_filter.hpp",
+    "ios/include/mobilecv2/yuv_cvt.hpp"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mobilecv2_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/mobilecv2/calib3d.hpp",
+    "pod_support/Headers/Private/mobilecv2/calib3d/calib3d.hpp",
+    "pod_support/Headers/Private/mobilecv2/calib3d/calib3d_c.h",
+    "pod_support/Headers/Private/mobilecv2/core.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/affine.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/base.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/bufferpool.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/core.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/core_c.h",
+    "pod_support/Headers/Private/mobilecv2/core/cvdef.h",
+    "pod_support/Headers/Private/mobilecv2/core/cvstd.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/cvstd.inl.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/directx.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/eigen.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/fast_math.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/hal/hal.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/hal/interface.h",
+    "pod_support/Headers/Private/mobilecv2/core/hal/intrin.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/hal/intrin_cpp.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/hal/intrin_neon.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/hal/intrin_sse.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/hal_avx/hal.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/hal_avx/interface.h",
+    "pod_support/Headers/Private/mobilecv2/core/hal_avx/intrin.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/hal_avx/intrin_avx.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/hal_avx/intrin_avx512.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/hal_avx/intrin_cpp.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/hal_avx/intrin_forward.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/hal_avx/intrin_msa.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/hal_avx/intrin_neon.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/hal_avx/intrin_rvv.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/hal_avx/intrin_rvv071.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/hal_avx/intrin_sse.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/hal_avx/intrin_sse_em.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/hal_avx/intrin_vsx.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/hal_avx/intrin_wasm.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/hal_avx/msa_macros.h",
+    "pod_support/Headers/Private/mobilecv2/core/hal_avx/simd_utils.impl.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/ippasync.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/mat.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/mat.inl.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/matx.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/neon_utils.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/ocl.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/ocl_genbase.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/opencl/ocl_defs.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/opengl.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/operations.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/optim.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/ovx.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/persistence.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/private.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/ptr.inl.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/saturate.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/sse_utils.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/traits.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/types.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/types_c.h",
+    "pod_support/Headers/Private/mobilecv2/core/utility.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/utils/instrumentation.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/utils/tls.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/va_intel.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/version.hpp",
+    "pod_support/Headers/Private/mobilecv2/core/wimage.hpp",
+    "pod_support/Headers/Private/mobilecv2/cvconfig.h",
+    "pod_support/Headers/Private/mobilecv2/datacvt.hpp",
+    "pod_support/Headers/Private/mobilecv2/features2d.hpp",
+    "pod_support/Headers/Private/mobilecv2/features2d/features2d.hpp",
+    "pod_support/Headers/Private/mobilecv2/flann.hpp",
+    "pod_support/Headers/Private/mobilecv2/flann/all_indices.h",
+    "pod_support/Headers/Private/mobilecv2/flann/allocator.h",
+    "pod_support/Headers/Private/mobilecv2/flann/any.h",
+    "pod_support/Headers/Private/mobilecv2/flann/autotuned_index.h",
+    "pod_support/Headers/Private/mobilecv2/flann/composite_index.h",
+    "pod_support/Headers/Private/mobilecv2/flann/config.h",
+    "pod_support/Headers/Private/mobilecv2/flann/defines.h",
+    "pod_support/Headers/Private/mobilecv2/flann/dist.h",
+    "pod_support/Headers/Private/mobilecv2/flann/dummy.h",
+    "pod_support/Headers/Private/mobilecv2/flann/dynamic_bitset.h",
+    "pod_support/Headers/Private/mobilecv2/flann/flann.hpp",
+    "pod_support/Headers/Private/mobilecv2/flann/flann_base.hpp",
+    "pod_support/Headers/Private/mobilecv2/flann/general.h",
+    "pod_support/Headers/Private/mobilecv2/flann/ground_truth.h",
+    "pod_support/Headers/Private/mobilecv2/flann/hdf5.h",
+    "pod_support/Headers/Private/mobilecv2/flann/heap.h",
+    "pod_support/Headers/Private/mobilecv2/flann/hierarchical_clustering_index.h",
+    "pod_support/Headers/Private/mobilecv2/flann/index_testing.h",
+    "pod_support/Headers/Private/mobilecv2/flann/kdtree_index.h",
+    "pod_support/Headers/Private/mobilecv2/flann/kdtree_single_index.h",
+    "pod_support/Headers/Private/mobilecv2/flann/kmeans_index.h",
+    "pod_support/Headers/Private/mobilecv2/flann/linear_index.h",
+    "pod_support/Headers/Private/mobilecv2/flann/logger.h",
+    "pod_support/Headers/Private/mobilecv2/flann/lsh_index.h",
+    "pod_support/Headers/Private/mobilecv2/flann/lsh_table.h",
+    "pod_support/Headers/Private/mobilecv2/flann/matrix.h",
+    "pod_support/Headers/Private/mobilecv2/flann/miniflann.hpp",
+    "pod_support/Headers/Private/mobilecv2/flann/nn_index.h",
+    "pod_support/Headers/Private/mobilecv2/flann/object_factory.h",
+    "pod_support/Headers/Private/mobilecv2/flann/params.h",
+    "pod_support/Headers/Private/mobilecv2/flann/random.h",
+    "pod_support/Headers/Private/mobilecv2/flann/result_set.h",
+    "pod_support/Headers/Private/mobilecv2/flann/sampling.h",
+    "pod_support/Headers/Private/mobilecv2/flann/saving.h",
+    "pod_support/Headers/Private/mobilecv2/flann/simplex_downhill.h",
+    "pod_support/Headers/Private/mobilecv2/flann/timer.h",
+    "pod_support/Headers/Private/mobilecv2/imgcodecs.hpp",
+    "pod_support/Headers/Private/mobilecv2/imgcodecs/imgcodecs.hpp",
+    "pod_support/Headers/Private/mobilecv2/imgcodecs/imgcodecs_c.h",
+    "pod_support/Headers/Private/mobilecv2/imgproc.hpp",
+    "pod_support/Headers/Private/mobilecv2/imgproc/detail/distortion_model.hpp",
+    "pod_support/Headers/Private/mobilecv2/imgproc/hal/hal.hpp",
+    "pod_support/Headers/Private/mobilecv2/imgproc/hal/interface.h",
+    "pod_support/Headers/Private/mobilecv2/imgproc/imgproc.hpp",
+    "pod_support/Headers/Private/mobilecv2/imgproc/imgproc_c.h",
+    "pod_support/Headers/Private/mobilecv2/imgproc/types_c.h",
+    "pod_support/Headers/Private/mobilecv2/mobilecv2.hpp",
+    "pod_support/Headers/Private/mobilecv2/mobilecv_modules.hpp",
+    "pod_support/Headers/Private/mobilecv2/optflow.hpp",
+    "pod_support/Headers/Private/mobilecv2/optflow/motempl.hpp",
+    "pod_support/Headers/Private/mobilecv2/optflow/pcaflow.hpp",
+    "pod_support/Headers/Private/mobilecv2/optflow/sparse_matching_gpc.hpp",
+    "pod_support/Headers/Private/mobilecv2/photo.hpp",
+    "pod_support/Headers/Private/mobilecv2/photo/photo.hpp",
+    "pod_support/Headers/Private/mobilecv2/photo/photo_c.h",
+    "pod_support/Headers/Private/mobilecv2/video.hpp",
+    "pod_support/Headers/Private/mobilecv2/video/background_segm.hpp",
+    "pod_support/Headers/Private/mobilecv2/video/tracking.hpp",
+    "pod_support/Headers/Private/mobilecv2/video/tracking_c.h",
+    "pod_support/Headers/Private/mobilecv2/video/video.hpp",
+    "pod_support/Headers/Private/mobilecv2/xfeatures2d.hpp",
+    "pod_support/Headers/Private/mobilecv2/xfeatures2d/nonfree.hpp",
+    "pod_support/Headers/Private/mobilecv2/ximgproc.hpp",
+    "pod_support/Headers/Private/mobilecv2/ximgproc/edge_filter.hpp",
+    "pod_support/Headers/Private/mobilecv2/yuv_cvt.hpp",
+    "pod_support/Headers/Public/mobilecv2/calib3d.hpp",
+    "pod_support/Headers/Public/mobilecv2/calib3d/calib3d.hpp",
+    "pod_support/Headers/Public/mobilecv2/calib3d/calib3d_c.h",
+    "pod_support/Headers/Public/mobilecv2/core.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/affine.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/base.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/bufferpool.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/core.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/core_c.h",
+    "pod_support/Headers/Public/mobilecv2/core/cvdef.h",
+    "pod_support/Headers/Public/mobilecv2/core/cvstd.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/cvstd.inl.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/directx.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/eigen.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/fast_math.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/hal/hal.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/hal/interface.h",
+    "pod_support/Headers/Public/mobilecv2/core/hal/intrin.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/hal/intrin_cpp.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/hal/intrin_neon.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/hal/intrin_sse.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/hal_avx/hal.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/hal_avx/interface.h",
+    "pod_support/Headers/Public/mobilecv2/core/hal_avx/intrin.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/hal_avx/intrin_avx.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/hal_avx/intrin_avx512.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/hal_avx/intrin_cpp.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/hal_avx/intrin_forward.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/hal_avx/intrin_msa.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/hal_avx/intrin_neon.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/hal_avx/intrin_rvv.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/hal_avx/intrin_rvv071.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/hal_avx/intrin_sse.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/hal_avx/intrin_sse_em.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/hal_avx/intrin_vsx.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/hal_avx/intrin_wasm.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/hal_avx/msa_macros.h",
+    "pod_support/Headers/Public/mobilecv2/core/hal_avx/simd_utils.impl.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/ippasync.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/mat.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/mat.inl.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/matx.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/neon_utils.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/ocl.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/ocl_genbase.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/opencl/ocl_defs.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/opengl.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/operations.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/optim.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/ovx.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/persistence.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/private.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/ptr.inl.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/saturate.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/sse_utils.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/traits.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/types.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/types_c.h",
+    "pod_support/Headers/Public/mobilecv2/core/utility.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/utils/instrumentation.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/utils/tls.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/va_intel.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/version.hpp",
+    "pod_support/Headers/Public/mobilecv2/core/wimage.hpp",
+    "pod_support/Headers/Public/mobilecv2/cvconfig.h",
+    "pod_support/Headers/Public/mobilecv2/datacvt.hpp",
+    "pod_support/Headers/Public/mobilecv2/features2d.hpp",
+    "pod_support/Headers/Public/mobilecv2/features2d/features2d.hpp",
+    "pod_support/Headers/Public/mobilecv2/flann.hpp",
+    "pod_support/Headers/Public/mobilecv2/flann/all_indices.h",
+    "pod_support/Headers/Public/mobilecv2/flann/allocator.h",
+    "pod_support/Headers/Public/mobilecv2/flann/any.h",
+    "pod_support/Headers/Public/mobilecv2/flann/autotuned_index.h",
+    "pod_support/Headers/Public/mobilecv2/flann/composite_index.h",
+    "pod_support/Headers/Public/mobilecv2/flann/config.h",
+    "pod_support/Headers/Public/mobilecv2/flann/defines.h",
+    "pod_support/Headers/Public/mobilecv2/flann/dist.h",
+    "pod_support/Headers/Public/mobilecv2/flann/dummy.h",
+    "pod_support/Headers/Public/mobilecv2/flann/dynamic_bitset.h",
+    "pod_support/Headers/Public/mobilecv2/flann/flann.hpp",
+    "pod_support/Headers/Public/mobilecv2/flann/flann_base.hpp",
+    "pod_support/Headers/Public/mobilecv2/flann/general.h",
+    "pod_support/Headers/Public/mobilecv2/flann/ground_truth.h",
+    "pod_support/Headers/Public/mobilecv2/flann/hdf5.h",
+    "pod_support/Headers/Public/mobilecv2/flann/heap.h",
+    "pod_support/Headers/Public/mobilecv2/flann/hierarchical_clustering_index.h",
+    "pod_support/Headers/Public/mobilecv2/flann/index_testing.h",
+    "pod_support/Headers/Public/mobilecv2/flann/kdtree_index.h",
+    "pod_support/Headers/Public/mobilecv2/flann/kdtree_single_index.h",
+    "pod_support/Headers/Public/mobilecv2/flann/kmeans_index.h",
+    "pod_support/Headers/Public/mobilecv2/flann/linear_index.h",
+    "pod_support/Headers/Public/mobilecv2/flann/logger.h",
+    "pod_support/Headers/Public/mobilecv2/flann/lsh_index.h",
+    "pod_support/Headers/Public/mobilecv2/flann/lsh_table.h",
+    "pod_support/Headers/Public/mobilecv2/flann/matrix.h",
+    "pod_support/Headers/Public/mobilecv2/flann/miniflann.hpp",
+    "pod_support/Headers/Public/mobilecv2/flann/nn_index.h",
+    "pod_support/Headers/Public/mobilecv2/flann/object_factory.h",
+    "pod_support/Headers/Public/mobilecv2/flann/params.h",
+    "pod_support/Headers/Public/mobilecv2/flann/random.h",
+    "pod_support/Headers/Public/mobilecv2/flann/result_set.h",
+    "pod_support/Headers/Public/mobilecv2/flann/sampling.h",
+    "pod_support/Headers/Public/mobilecv2/flann/saving.h",
+    "pod_support/Headers/Public/mobilecv2/flann/simplex_downhill.h",
+    "pod_support/Headers/Public/mobilecv2/flann/timer.h",
+    "pod_support/Headers/Public/mobilecv2/imgcodecs.hpp",
+    "pod_support/Headers/Public/mobilecv2/imgcodecs/imgcodecs.hpp",
+    "pod_support/Headers/Public/mobilecv2/imgcodecs/imgcodecs_c.h",
+    "pod_support/Headers/Public/mobilecv2/imgproc.hpp",
+    "pod_support/Headers/Public/mobilecv2/imgproc/detail/distortion_model.hpp",
+    "pod_support/Headers/Public/mobilecv2/imgproc/hal/hal.hpp",
+    "pod_support/Headers/Public/mobilecv2/imgproc/hal/interface.h",
+    "pod_support/Headers/Public/mobilecv2/imgproc/imgproc.hpp",
+    "pod_support/Headers/Public/mobilecv2/imgproc/imgproc_c.h",
+    "pod_support/Headers/Public/mobilecv2/imgproc/types_c.h",
+    "pod_support/Headers/Public/mobilecv2/mobilecv2.hpp",
+    "pod_support/Headers/Public/mobilecv2/mobilecv_modules.hpp",
+    "pod_support/Headers/Public/mobilecv2/optflow.hpp",
+    "pod_support/Headers/Public/mobilecv2/optflow/motempl.hpp",
+    "pod_support/Headers/Public/mobilecv2/optflow/pcaflow.hpp",
+    "pod_support/Headers/Public/mobilecv2/optflow/sparse_matching_gpc.hpp",
+    "pod_support/Headers/Public/mobilecv2/photo.hpp",
+    "pod_support/Headers/Public/mobilecv2/photo/photo.hpp",
+    "pod_support/Headers/Public/mobilecv2/photo/photo_c.h",
+    "pod_support/Headers/Public/mobilecv2/video.hpp",
+    "pod_support/Headers/Public/mobilecv2/video/background_segm.hpp",
+    "pod_support/Headers/Public/mobilecv2/video/tracking.hpp",
+    "pod_support/Headers/Public/mobilecv2/video/tracking_c.h",
+    "pod_support/Headers/Public/mobilecv2/video/video.hpp",
+    "pod_support/Headers/Public/mobilecv2/xfeatures2d.hpp",
+    "pod_support/Headers/Public/mobilecv2/xfeatures2d/nonfree.hpp",
+    "pod_support/Headers/Public/mobilecv2/ximgproc.hpp",
+    "pod_support/Headers/Public/mobilecv2/ximgproc/edge_filter.hpp",
+    "pod_support/Headers/Public/mobilecv2/yuv_cvt.hpp"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mobilecv2_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mobilecv2_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mobilecv2_module_map",
+  module_map = "pod_support/Headers/Public/mobilecv2/mobilecv2-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/mobilecv2/mobilecv2-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mobilecv2_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "mobilecv2_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Accelerate",
+    "AssetsLibrary"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":mobilecv2_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":mobilecv2_private_includes",
+    ":mobilecv2_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":mobilecv2_VendoredLibraries",
+    ":mobilecv2_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dmobilecv2_POD_VERSION=@\\\"9999_1.8.28\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mobilecv2",
+  deps = [
+    ":mobilecv2_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mobilecv2_lib",
+  deps = [
+    ":mobilecv2"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_mobilecv2_module_map",
+  module_map = "@mobilecv2//:pod_support/Headers/Public/mobilecv2/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@mobilecv2//:pod_support/Headers/Public/mobilecv2/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_mobilecv2_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@mobilecv2//:mobilecv2_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_library")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_library(
+  name = "Lark_mobilecv2",
+  target_name = "Lark",
+  module_name = "mobilecv2",
+  hdrs = ["@mobilecv2//:mobilecv2_root_pod_hdrs"],
+  srcs = [],
+  non_arc_srcs = [],
+  deps = ["@mobilecv2//:mobilecv2_VendoredLibraries"],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dmobilecv2_POD_VERSION=@\\\"9999_1.8.28\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "mobilecv2_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "mobilecv2_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["Accelerate", "AssetsLibrary"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = ["c++"],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "mobilecv2_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "mobilecv2_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "mobilecv2_dynamic", False),
+  tags = getattr(defs_external_objc_library, "mobilecv2_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  header_mappings = {
+    "*": "*",
+    "ios/include/mobilecv2/calib3d.hpp": "calib3d.hpp",
+    "ios/include/mobilecv2/calib3d/calib3d.hpp": "calib3d/calib3d.hpp",
+    "ios/include/mobilecv2/calib3d/calib3d_c.h": "calib3d/calib3d_c.h",
+    "ios/include/mobilecv2/core.hpp": "core.hpp",
+    "ios/include/mobilecv2/core/affine.hpp": "core/affine.hpp",
+    "ios/include/mobilecv2/core/base.hpp": "core/base.hpp",
+    "ios/include/mobilecv2/core/bufferpool.hpp": "core/bufferpool.hpp",
+    "ios/include/mobilecv2/core/core.hpp": "core/core.hpp",
+    "ios/include/mobilecv2/core/core_c.h": "core/core_c.h",
+    "ios/include/mobilecv2/core/cvdef.h": "core/cvdef.h",
+    "ios/include/mobilecv2/core/cvstd.hpp": "core/cvstd.hpp",
+    "ios/include/mobilecv2/core/cvstd.inl.hpp": "core/cvstd.inl.hpp",
+    "ios/include/mobilecv2/core/directx.hpp": "core/directx.hpp",
+    "ios/include/mobilecv2/core/eigen.hpp": "core/eigen.hpp",
+    "ios/include/mobilecv2/core/fast_math.hpp": "core/fast_math.hpp",
+    "ios/include/mobilecv2/core/hal/hal.hpp": "core/hal/hal.hpp",
+    "ios/include/mobilecv2/core/hal/interface.h": "core/hal/interface.h",
+    "ios/include/mobilecv2/core/hal/intrin.hpp": "core/hal/intrin.hpp",
+    "ios/include/mobilecv2/core/hal/intrin_cpp.hpp": "core/hal/intrin_cpp.hpp",
+    "ios/include/mobilecv2/core/hal/intrin_neon.hpp": "core/hal/intrin_neon.hpp",
+    "ios/include/mobilecv2/core/hal/intrin_sse.hpp": "core/hal/intrin_sse.hpp",
+    "ios/include/mobilecv2/core/hal_avx/hal.hpp": "core/hal_avx/hal.hpp",
+    "ios/include/mobilecv2/core/hal_avx/interface.h": "core/hal_avx/interface.h",
+    "ios/include/mobilecv2/core/hal_avx/intrin.hpp": "core/hal_avx/intrin.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_avx.hpp": "core/hal_avx/intrin_avx.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_avx512.hpp": "core/hal_avx/intrin_avx512.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_cpp.hpp": "core/hal_avx/intrin_cpp.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_forward.hpp": "core/hal_avx/intrin_forward.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_msa.hpp": "core/hal_avx/intrin_msa.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_neon.hpp": "core/hal_avx/intrin_neon.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_rvv.hpp": "core/hal_avx/intrin_rvv.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_rvv071.hpp": "core/hal_avx/intrin_rvv071.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_sse.hpp": "core/hal_avx/intrin_sse.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_sse_em.hpp": "core/hal_avx/intrin_sse_em.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_vsx.hpp": "core/hal_avx/intrin_vsx.hpp",
+    "ios/include/mobilecv2/core/hal_avx/intrin_wasm.hpp": "core/hal_avx/intrin_wasm.hpp",
+    "ios/include/mobilecv2/core/hal_avx/msa_macros.h": "core/hal_avx/msa_macros.h",
+    "ios/include/mobilecv2/core/hal_avx/simd_utils.impl.hpp": "core/hal_avx/simd_utils.impl.hpp",
+    "ios/include/mobilecv2/core/ippasync.hpp": "core/ippasync.hpp",
+    "ios/include/mobilecv2/core/mat.hpp": "core/mat.hpp",
+    "ios/include/mobilecv2/core/mat.inl.hpp": "core/mat.inl.hpp",
+    "ios/include/mobilecv2/core/matx.hpp": "core/matx.hpp",
+    "ios/include/mobilecv2/core/neon_utils.hpp": "core/neon_utils.hpp",
+    "ios/include/mobilecv2/core/ocl.hpp": "core/ocl.hpp",
+    "ios/include/mobilecv2/core/ocl_genbase.hpp": "core/ocl_genbase.hpp",
+    "ios/include/mobilecv2/core/opencl/ocl_defs.hpp": "core/opencl/ocl_defs.hpp",
+    "ios/include/mobilecv2/core/opengl.hpp": "core/opengl.hpp",
+    "ios/include/mobilecv2/core/operations.hpp": "core/operations.hpp",
+    "ios/include/mobilecv2/core/optim.hpp": "core/optim.hpp",
+    "ios/include/mobilecv2/core/ovx.hpp": "core/ovx.hpp",
+    "ios/include/mobilecv2/core/persistence.hpp": "core/persistence.hpp",
+    "ios/include/mobilecv2/core/private.hpp": "core/private.hpp",
+    "ios/include/mobilecv2/core/ptr.inl.hpp": "core/ptr.inl.hpp",
+    "ios/include/mobilecv2/core/saturate.hpp": "core/saturate.hpp",
+    "ios/include/mobilecv2/core/sse_utils.hpp": "core/sse_utils.hpp",
+    "ios/include/mobilecv2/core/traits.hpp": "core/traits.hpp",
+    "ios/include/mobilecv2/core/types.hpp": "core/types.hpp",
+    "ios/include/mobilecv2/core/types_c.h": "core/types_c.h",
+    "ios/include/mobilecv2/core/utility.hpp": "core/utility.hpp",
+    "ios/include/mobilecv2/core/utils/instrumentation.hpp": "core/utils/instrumentation.hpp",
+    "ios/include/mobilecv2/core/utils/tls.hpp": "core/utils/tls.hpp",
+    "ios/include/mobilecv2/core/va_intel.hpp": "core/va_intel.hpp",
+    "ios/include/mobilecv2/core/version.hpp": "core/version.hpp",
+    "ios/include/mobilecv2/core/wimage.hpp": "core/wimage.hpp",
+    "ios/include/mobilecv2/cvconfig.h": "cvconfig.h",
+    "ios/include/mobilecv2/datacvt.hpp": "datacvt.hpp",
+    "ios/include/mobilecv2/features2d.hpp": "features2d.hpp",
+    "ios/include/mobilecv2/features2d/features2d.hpp": "features2d/features2d.hpp",
+    "ios/include/mobilecv2/flann.hpp": "flann.hpp",
+    "ios/include/mobilecv2/flann/all_indices.h": "flann/all_indices.h",
+    "ios/include/mobilecv2/flann/allocator.h": "flann/allocator.h",
+    "ios/include/mobilecv2/flann/any.h": "flann/any.h",
+    "ios/include/mobilecv2/flann/autotuned_index.h": "flann/autotuned_index.h",
+    "ios/include/mobilecv2/flann/composite_index.h": "flann/composite_index.h",
+    "ios/include/mobilecv2/flann/config.h": "flann/config.h",
+    "ios/include/mobilecv2/flann/defines.h": "flann/defines.h",
+    "ios/include/mobilecv2/flann/dist.h": "flann/dist.h",
+    "ios/include/mobilecv2/flann/dummy.h": "flann/dummy.h",
+    "ios/include/mobilecv2/flann/dynamic_bitset.h": "flann/dynamic_bitset.h",
+    "ios/include/mobilecv2/flann/flann.hpp": "flann/flann.hpp",
+    "ios/include/mobilecv2/flann/flann_base.hpp": "flann/flann_base.hpp",
+    "ios/include/mobilecv2/flann/general.h": "flann/general.h",
+    "ios/include/mobilecv2/flann/ground_truth.h": "flann/ground_truth.h",
+    "ios/include/mobilecv2/flann/hdf5.h": "flann/hdf5.h",
+    "ios/include/mobilecv2/flann/heap.h": "flann/heap.h",
+    "ios/include/mobilecv2/flann/hierarchical_clustering_index.h": "flann/hierarchical_clustering_index.h",
+    "ios/include/mobilecv2/flann/index_testing.h": "flann/index_testing.h",
+    "ios/include/mobilecv2/flann/kdtree_index.h": "flann/kdtree_index.h",
+    "ios/include/mobilecv2/flann/kdtree_single_index.h": "flann/kdtree_single_index.h",
+    "ios/include/mobilecv2/flann/kmeans_index.h": "flann/kmeans_index.h",
+    "ios/include/mobilecv2/flann/linear_index.h": "flann/linear_index.h",
+    "ios/include/mobilecv2/flann/logger.h": "flann/logger.h",
+    "ios/include/mobilecv2/flann/lsh_index.h": "flann/lsh_index.h",
+    "ios/include/mobilecv2/flann/lsh_table.h": "flann/lsh_table.h",
+    "ios/include/mobilecv2/flann/matrix.h": "flann/matrix.h",
+    "ios/include/mobilecv2/flann/miniflann.hpp": "flann/miniflann.hpp",
+    "ios/include/mobilecv2/flann/nn_index.h": "flann/nn_index.h",
+    "ios/include/mobilecv2/flann/object_factory.h": "flann/object_factory.h",
+    "ios/include/mobilecv2/flann/params.h": "flann/params.h",
+    "ios/include/mobilecv2/flann/random.h": "flann/random.h",
+    "ios/include/mobilecv2/flann/result_set.h": "flann/result_set.h",
+    "ios/include/mobilecv2/flann/sampling.h": "flann/sampling.h",
+    "ios/include/mobilecv2/flann/saving.h": "flann/saving.h",
+    "ios/include/mobilecv2/flann/simplex_downhill.h": "flann/simplex_downhill.h",
+    "ios/include/mobilecv2/flann/timer.h": "flann/timer.h",
+    "ios/include/mobilecv2/imgcodecs.hpp": "imgcodecs.hpp",
+    "ios/include/mobilecv2/imgcodecs/imgcodecs.hpp": "imgcodecs/imgcodecs.hpp",
+    "ios/include/mobilecv2/imgcodecs/imgcodecs_c.h": "imgcodecs/imgcodecs_c.h",
+    "ios/include/mobilecv2/imgproc.hpp": "imgproc.hpp",
+    "ios/include/mobilecv2/imgproc/detail/distortion_model.hpp": "imgproc/detail/distortion_model.hpp",
+    "ios/include/mobilecv2/imgproc/hal/hal.hpp": "imgproc/hal/hal.hpp",
+    "ios/include/mobilecv2/imgproc/hal/interface.h": "imgproc/hal/interface.h",
+    "ios/include/mobilecv2/imgproc/imgproc.hpp": "imgproc/imgproc.hpp",
+    "ios/include/mobilecv2/imgproc/imgproc_c.h": "imgproc/imgproc_c.h",
+    "ios/include/mobilecv2/imgproc/types_c.h": "imgproc/types_c.h",
+    "ios/include/mobilecv2/mobilecv2.hpp": "mobilecv2.hpp",
+    "ios/include/mobilecv2/mobilecv_modules.hpp": "mobilecv_modules.hpp",
+    "ios/include/mobilecv2/optflow.hpp": "optflow.hpp",
+    "ios/include/mobilecv2/optflow/motempl.hpp": "optflow/motempl.hpp",
+    "ios/include/mobilecv2/optflow/pcaflow.hpp": "optflow/pcaflow.hpp",
+    "ios/include/mobilecv2/optflow/sparse_matching_gpc.hpp": "optflow/sparse_matching_gpc.hpp",
+    "ios/include/mobilecv2/photo.hpp": "photo.hpp",
+    "ios/include/mobilecv2/photo/photo.hpp": "photo/photo.hpp",
+    "ios/include/mobilecv2/photo/photo_c.h": "photo/photo_c.h",
+    "ios/include/mobilecv2/video.hpp": "video.hpp",
+    "ios/include/mobilecv2/video/background_segm.hpp": "video/background_segm.hpp",
+    "ios/include/mobilecv2/video/tracking.hpp": "video/tracking.hpp",
+    "ios/include/mobilecv2/video/tracking_c.h": "video/tracking_c.h",
+    "ios/include/mobilecv2/video/video.hpp": "video/video.hpp",
+    "ios/include/mobilecv2/xfeatures2d.hpp": "xfeatures2d.hpp",
+    "ios/include/mobilecv2/xfeatures2d/nonfree.hpp": "xfeatures2d/nonfree.hpp",
+    "ios/include/mobilecv2/ximgproc.hpp": "ximgproc.hpp",
+    "ios/include/mobilecv2/ximgproc/edge_filter.hpp": "ximgproc/edge_filter.hpp",
+    "ios/include/mobilecv2/yuv_cvt.hpp": "yuv_cvt.hpp",
+  },
+  xcconfig_by_build_setting = defs_xcconfigs.get("mobilecv2", {}),
+  visibility = ["//visibility:public"],
+)

@@ -1,0 +1,3141 @@
+load('@build_bazel_rules_apple//apple:resources.bzl', 'apple_resource_bundle', 'gen_bundle_plist')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "byted_cert_pod_hdrs",
+  srcs = [
+    ":byted_cert_root_pod_hdrs",
+    ":lightcore_pod_hdrs",
+    ":aliyun_pod_hdrs",
+    ":core_pod_hdrs",
+    ":download_pod_hdrs",
+    ":offline_pod_hdrs",
+    ":reflection_pod_hdrs",
+    ":jsbridge_pod_hdrs",
+    ":bridgecore_pod_hdrs",
+    ":crypto_pod_hdrs",
+    ":bpea_pod_hdrs",
+    ":mask_pod_hdrs",
+    ":risk_pod_hdrs",
+    ":nfc_pod_hdrs",
+    ":xbridge_pod_hdrs",
+    ":metasec_pod_hdrs",
+    ":debug_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "byted_cert_private_includes",
+  include = [
+    "external/byted_cert/pod_support/Headers/Private/byted_cert/"
+  ],
+  deps = [],
+  external_name = "byted_cert"
+)
+gen_includes(
+  name = "byted_cert_public_includes",
+  include = [
+    "external/byted_cert/pod_support/Headers/Public/byted_cert/"
+  ],
+  deps = [],
+  external_name = "byted_cert"
+)
+filegroup(
+  name = "_byted_cert_hdrs",
+  srcs = [
+    ":byted_cert_root_hdrs",
+    ":lightcore_hdrs",
+    ":aliyun_hdrs",
+    ":core_hdrs",
+    ":download_hdrs",
+    ":offline_hdrs",
+    ":reflection_hdrs",
+    ":jsbridge_hdrs",
+    ":bridgecore_hdrs",
+    ":crypto_hdrs",
+    ":bpea_hdrs",
+    ":mask_hdrs",
+    ":risk_hdrs",
+    ":nfc_hdrs",
+    ":xbridge_hdrs",
+    ":metasec_hdrs",
+    ":debug_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "byted_cert_xcode_hmapsource",
+  hdrs = [
+    ":byted_cert_root_hdrs",
+    ":aliyun_hdrs",
+    ":bridgecore_hdrs",
+    ":core_hdrs",
+    ":crypto_hdrs",
+    ":download_hdrs",
+    ":lightcore_hdrs",
+    ":offline_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "byted_cert_xcode_hmap",
+  dep = ":byted_cert_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/byted_cert/*-bitsky-generated.modulemap", "pod_support/Headers/Public/byted_cert/*-bitsky-generated-umbrella.h"]))
+gen_bundle_plist(
+  name = "GEN_byted_cert_Plist",
+  bundle_name = "byted_cert",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "4.10.2",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "byted_cert_lightcore_byted_cert",
+  bundle_name = "byted_cert",
+  infoplists = [
+    ":GEN_byted_cert_Plist"
+  ],
+  resources = glob(
+    [
+      "byted_cert/Classes/Core/Private/VideoRecord/Resources/Images.xcassets/**",
+      "byted_cert/Resources/UI.xcassets/**",
+      "byted_cert/Resources/JsUI.xcassets/**"
+    ]
+  ) + [
+    "byted_cert/Resources/BytedCertLocalizationZh.strings",
+    "byted_cert/Resources/BytedCertLocalizationEn.strings",
+    "byted_cert/Resources/BytedCertLocalizationJa.strings"
+  ],
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "byted_cert_offline_VendoredLibraries",
+  archives = [
+    "byted_cert/Classes/Offline/Private/libs/face/libtt_face.a",
+    "byted_cert/Classes/Offline/Private/libs/faceverify/libtt_faceverify.a",
+    "byted_cert/Classes/Offline/Private/libs/still_liveness/libtt_still_liveness.a"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "byted_cert_reflection_VendoredLibraries",
+  archives = [
+    "byted_cert/Classes/Reflection/Private/libs/reflection_liveness/libtt_reflection_liveness.a"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "byted_cert_nfc_VendoredLibraries",
+  archives = [
+    "byted_cert/Classes/NFC/libs/libJLReader.a"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "byted_cert_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "byted_cert",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "byted_cert_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":byted_cert_xcode_hmap"
+  ],
+  external_name = "byted_cert",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "byted_cert_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "byted_cert_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "byted_cert_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "byted_cert_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "byted_cert_module_map",
+  module_map = "pod_support/Headers/Public/byted_cert/byted_cert-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/byted_cert/byted_cert-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "byted_cert_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "byted_cert_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "CoreFoundation",
+    "SystemConfiguration",
+    "Photos",
+    "GLKit",
+    "CoreNFC"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":byted_cert_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":byted_cert_private_includes",
+    ":byted_cert_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":byted_cert_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dbyted_cert_POD_VERSION=@\\\"9999_4.10.2-alpha.36\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "byted_cert",
+  deps = [
+    ":byted_cert_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "byted_cert_lib",
+  deps = [
+    ":byted_cert"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "lightcore_hdrs",
+  srcs = [
+    "byted_cert/Classes/Core/BytedCert.h",
+    "byted_cert/Classes/Core/BytedCertDefine.h",
+    "byted_cert/Classes/Core/BytedCertError.h",
+    "byted_cert/Classes/Core/BytedCertInterface.h",
+    "byted_cert/Classes/Core/BytedCertMacros.h",
+    "byted_cert/Classes/Core/BytedCertManager+OCR.h",
+    "byted_cert/Classes/Core/BytedCertManager+VideoRecord.h",
+    "byted_cert/Classes/Core/BytedCertManager.h",
+    "byted_cert/Classes/Core/BytedCertParameter.h",
+    "byted_cert/Classes/Core/BytedCertUIConfig.h",
+    "byted_cert/Classes/Core/BytedCertVideoRecordParameter.h",
+    "byted_cert/Classes/Core/Desperated/BytedCertUserInfo.h",
+    "byted_cert/Classes/Core/Desperated/BytedCertWrapper.h",
+    "byted_cert/Classes/Core/Network/BytedCertNetInfo.h",
+    "byted_cert/Classes/Core/Network/BytedCertNetResponse.h",
+    "byted_cert/Classes/Core/Private/Additions/AVCaptureDevice+BDCTAdditions.h",
+    "byted_cert/Classes/Core/Private/Additions/AVCaptureSession+BDCTAdditions.h",
+    "byted_cert/Classes/Core/Private/Additions/BDCTAdditions.h",
+    "byted_cert/Classes/Core/Private/Additions/NSBundle+BDCTAdditions.h",
+    "byted_cert/Classes/Core/Private/Additions/NSData+BDCTAdditions.h",
+    "byted_cert/Classes/Core/Private/Additions/UIApplication+BDCTAdditions.h",
+    "byted_cert/Classes/Core/Private/Additions/UIDevice+BDCTAdditions.h",
+    "byted_cert/Classes/Core/Private/Additions/UIImage+BDCTAdditions.h",
+    "byted_cert/Classes/Core/Private/Additions/UIViewController+BDCTAdditions.h",
+    "byted_cert/Classes/Core/Private/Audio/BDCTAudioPlayer.h",
+    "byted_cert/Classes/Core/Private/BDCTEventTracker+FaceVerificationFlow.h",
+    "byted_cert/Classes/Core/Private/BDCTEventTracker.h",
+    "byted_cert/Classes/Core/Private/BDCTFaceQualityDetectFlow.h",
+    "byted_cert/Classes/Core/Private/BDCTFaceVerificationFlow+Download.h",
+    "byted_cert/Classes/Core/Private/BDCTFaceVerificationFlow+Tracker.h",
+    "byted_cert/Classes/Core/Private/BDCTFaceVerificationFlow.h",
+    "byted_cert/Classes/Core/Private/BDCTFlow.h",
+    "byted_cert/Classes/Core/Private/BDCTFlowContext.h",
+    "byted_cert/Classes/Core/Private/BDCTLocalization.h",
+    "byted_cert/Classes/Core/Private/BDCTLog.h",
+    "byted_cert/Classes/Core/Private/BDCTStringConst.h",
+    "byted_cert/Classes/Core/Private/Beauty/NewEffectPreview.h",
+    "byted_cert/Classes/Core/Private/Beauty/opengl_offscreen_render.h",
+    "byted_cert/Classes/Core/Private/BytedCertInterface+Logger.h",
+    "byted_cert/Classes/Core/Private/BytedCertManager+Private.h",
+    "byted_cert/Classes/Core/Private/Camera/BDCTImageManager.h",
+    "byted_cert/Classes/Core/Private/Camera/BDCTTakeOCRPhotoViewController.h",
+    "byted_cert/Classes/Core/Private/Camera/BDCTTakePhotoBaseViewController.h",
+    "byted_cert/Classes/Core/Private/Camera/BDCTTakePhotoViewController.h",
+    "byted_cert/Classes/Core/Private/Camera/BDCTVideoRecorder.h",
+    "byted_cert/Classes/Core/Private/FaceLiveness/ActionLivenessTC.h",
+    "byted_cert/Classes/Core/Private/FaceLiveness/BDCTCaptureRenderView.h",
+    "byted_cert/Classes/Core/Private/FaceLiveness/BDCTEventTracker+ActionLiveness.h",
+    "byted_cert/Classes/Core/Private/FaceLiveness/BDCTEventTracker+VideoLiveness.h",
+    "byted_cert/Classes/Core/Private/FaceLiveness/BDCTStillLivenessTC.h",
+    "byted_cert/Classes/Core/Private/FaceLiveness/FaceLiveModule.h",
+    "byted_cert/Classes/Core/Private/FaceLiveness/FaceLiveUtils.h",
+    "byted_cert/Classes/Core/Private/FaceLiveness/FaceLiveViewController+Audio.h",
+    "byted_cert/Classes/Core/Private/FaceLiveness/FaceLiveViewController+Camera.h",
+    "byted_cert/Classes/Core/Private/FaceLiveness/FaceLiveViewController+Layout.h",
+    "byted_cert/Classes/Core/Private/FaceLiveness/FaceLiveViewController+VideoLiveness.h",
+    "byted_cert/Classes/Core/Private/FaceLiveness/FaceLiveViewController.h",
+    "byted_cert/Classes/Core/Private/FaceLiveness/LivenessTaskController.h",
+    "byted_cert/Classes/Core/Private/FaceLiveness/VideoLivenessTC.h",
+    "byted_cert/Classes/Core/Private/Network/BDCTAPIService.h",
+    "byted_cert/Classes/Core/Private/Network/BDCTNetworkManager.h",
+    "byted_cert/Classes/Core/Private/UI/BDCTAlignLabel.h",
+    "byted_cert/Classes/Core/Private/UI/BDCTBaseCameraViewController.h",
+    "byted_cert/Classes/Core/Private/UI/BDCTBiggerButton.h",
+    "byted_cert/Classes/Core/Private/UI/BDCTDisablePanGestureViewController.h",
+    "byted_cert/Classes/Core/Private/UI/BDCTIndicatorView.h",
+    "byted_cert/Classes/Core/Private/UI/BDCTInsetImageView.h",
+    "byted_cert/Classes/Core/Private/UI/BDCTWaitingView.h",
+    "byted_cert/Classes/Core/Private/VideoRecord/BDCTAdditions+VideoRecord.h",
+    "byted_cert/Classes/Core/Private/VideoRecord/BDCTEventTracker+VideoRecord.h",
+    "byted_cert/Classes/Core/Private/VideoRecord/BDCTVideoRecordController.h",
+    "byted_cert/Classes/Core/Private/VideoRecord/BDCTVideoRecordPreviewViewController+Layout.h",
+    "byted_cert/Classes/Core/Private/VideoRecord/BDCTVideoRecordPreviewViewController.h",
+    "byted_cert/Classes/Core/Private/VideoRecord/BDCTVideoRecordViewController+Camera.h",
+    "byted_cert/Classes/Core/Private/VideoRecord/BDCTVideoRecordViewController+Layout.h",
+    "byted_cert/Classes/Core/Private/VideoRecord/BDCTVideoRecordViewController.h",
+    "byted_cert/Classes/Core/Private/VideoRecord/BDCTVideoView.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "lightcore_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/byted_cert/AVCaptureDevice+BDCTAdditions.h",
+    "pod_support/Headers/Private/byted_cert/AVCaptureSession+BDCTAdditions.h",
+    "pod_support/Headers/Private/byted_cert/ActionLivenessTC.h",
+    "pod_support/Headers/Private/byted_cert/BDCTAPIService.h",
+    "pod_support/Headers/Private/byted_cert/BDCTAdditions+VideoRecord.h",
+    "pod_support/Headers/Private/byted_cert/BDCTAdditions.h",
+    "pod_support/Headers/Private/byted_cert/BDCTAlignLabel.h",
+    "pod_support/Headers/Private/byted_cert/BDCTAudioPlayer.h",
+    "pod_support/Headers/Private/byted_cert/BDCTBaseCameraViewController.h",
+    "pod_support/Headers/Private/byted_cert/BDCTBiggerButton.h",
+    "pod_support/Headers/Private/byted_cert/BDCTCaptureRenderView.h",
+    "pod_support/Headers/Private/byted_cert/BDCTDisablePanGestureViewController.h",
+    "pod_support/Headers/Private/byted_cert/BDCTEventTracker+ActionLiveness.h",
+    "pod_support/Headers/Private/byted_cert/BDCTEventTracker+FaceVerificationFlow.h",
+    "pod_support/Headers/Private/byted_cert/BDCTEventTracker+VideoLiveness.h",
+    "pod_support/Headers/Private/byted_cert/BDCTEventTracker+VideoRecord.h",
+    "pod_support/Headers/Private/byted_cert/BDCTEventTracker.h",
+    "pod_support/Headers/Private/byted_cert/BDCTFaceQualityDetectFlow.h",
+    "pod_support/Headers/Private/byted_cert/BDCTFaceVerificationFlow+Download.h",
+    "pod_support/Headers/Private/byted_cert/BDCTFaceVerificationFlow+Tracker.h",
+    "pod_support/Headers/Private/byted_cert/BDCTFaceVerificationFlow.h",
+    "pod_support/Headers/Private/byted_cert/BDCTFlow.h",
+    "pod_support/Headers/Private/byted_cert/BDCTFlowContext.h",
+    "pod_support/Headers/Private/byted_cert/BDCTImageManager.h",
+    "pod_support/Headers/Private/byted_cert/BDCTIndicatorView.h",
+    "pod_support/Headers/Private/byted_cert/BDCTInsetImageView.h",
+    "pod_support/Headers/Private/byted_cert/BDCTLocalization.h",
+    "pod_support/Headers/Private/byted_cert/BDCTLog.h",
+    "pod_support/Headers/Private/byted_cert/BDCTNetworkManager.h",
+    "pod_support/Headers/Private/byted_cert/BDCTStillLivenessTC.h",
+    "pod_support/Headers/Private/byted_cert/BDCTStringConst.h",
+    "pod_support/Headers/Private/byted_cert/BDCTTakeOCRPhotoViewController.h",
+    "pod_support/Headers/Private/byted_cert/BDCTTakePhotoBaseViewController.h",
+    "pod_support/Headers/Private/byted_cert/BDCTTakePhotoViewController.h",
+    "pod_support/Headers/Private/byted_cert/BDCTVideoRecordController.h",
+    "pod_support/Headers/Private/byted_cert/BDCTVideoRecordPreviewViewController+Layout.h",
+    "pod_support/Headers/Private/byted_cert/BDCTVideoRecordPreviewViewController.h",
+    "pod_support/Headers/Private/byted_cert/BDCTVideoRecordViewController+Camera.h",
+    "pod_support/Headers/Private/byted_cert/BDCTVideoRecordViewController+Layout.h",
+    "pod_support/Headers/Private/byted_cert/BDCTVideoRecordViewController.h",
+    "pod_support/Headers/Private/byted_cert/BDCTVideoRecorder.h",
+    "pod_support/Headers/Private/byted_cert/BDCTVideoView.h",
+    "pod_support/Headers/Private/byted_cert/BDCTWaitingView.h",
+    "pod_support/Headers/Private/byted_cert/BytedCert.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertDefine.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertError.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertInterface+Logger.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertInterface.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertMacros.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertManager+OCR.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertManager+Private.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertManager+VideoRecord.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertManager.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertNetInfo.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertNetResponse.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertParameter.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertUIConfig.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertUserInfo.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertVideoRecordParameter.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertWrapper.h",
+    "pod_support/Headers/Private/byted_cert/FaceLiveModule.h",
+    "pod_support/Headers/Private/byted_cert/FaceLiveUtils.h",
+    "pod_support/Headers/Private/byted_cert/FaceLiveViewController+Audio.h",
+    "pod_support/Headers/Private/byted_cert/FaceLiveViewController+Camera.h",
+    "pod_support/Headers/Private/byted_cert/FaceLiveViewController+Layout.h",
+    "pod_support/Headers/Private/byted_cert/FaceLiveViewController+VideoLiveness.h",
+    "pod_support/Headers/Private/byted_cert/FaceLiveViewController.h",
+    "pod_support/Headers/Private/byted_cert/LivenessTaskController.h",
+    "pod_support/Headers/Private/byted_cert/NSBundle+BDCTAdditions.h",
+    "pod_support/Headers/Private/byted_cert/NSData+BDCTAdditions.h",
+    "pod_support/Headers/Private/byted_cert/NewEffectPreview.h",
+    "pod_support/Headers/Private/byted_cert/UIApplication+BDCTAdditions.h",
+    "pod_support/Headers/Private/byted_cert/UIDevice+BDCTAdditions.h",
+    "pod_support/Headers/Private/byted_cert/UIImage+BDCTAdditions.h",
+    "pod_support/Headers/Private/byted_cert/UIViewController+BDCTAdditions.h",
+    "pod_support/Headers/Private/byted_cert/VideoLivenessTC.h",
+    "pod_support/Headers/Private/byted_cert/opengl_offscreen_render.h",
+    "pod_support/Headers/Public/byted_cert/BytedCert.h",
+    "pod_support/Headers/Public/byted_cert/BytedCertDefine.h",
+    "pod_support/Headers/Public/byted_cert/BytedCertError.h",
+    "pod_support/Headers/Public/byted_cert/BytedCertInterface.h",
+    "pod_support/Headers/Public/byted_cert/BytedCertMacros.h",
+    "pod_support/Headers/Public/byted_cert/BytedCertManager+OCR.h",
+    "pod_support/Headers/Public/byted_cert/BytedCertManager+VideoRecord.h",
+    "pod_support/Headers/Public/byted_cert/BytedCertManager.h",
+    "pod_support/Headers/Public/byted_cert/BytedCertNetInfo.h",
+    "pod_support/Headers/Public/byted_cert/BytedCertNetResponse.h",
+    "pod_support/Headers/Public/byted_cert/BytedCertParameter.h",
+    "pod_support/Headers/Public/byted_cert/BytedCertUIConfig.h",
+    "pod_support/Headers/Public/byted_cert/BytedCertUserInfo.h",
+    "pod_support/Headers/Public/byted_cert/BytedCertVideoRecordParameter.h",
+    "pod_support/Headers/Public/byted_cert/BytedCertWrapper.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "lightcore_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "lightcore_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "lightcore_module_map",
+  module_map = "pod_support/Headers/Public/byted_cert/byted_cert_lightcore-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/byted_cert/byted_cert_lightcore-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "lightcore_srcs",
+  srcs = [
+    "byted_cert/Classes/Core/Private/FaceLiveness/ActionLivenessTC.mm",
+    "byted_cert/Classes/Core/Private/Additions/AVCaptureDevice+BDCTAdditions.m",
+    "byted_cert/Classes/Core/Private/Additions/AVCaptureSession+BDCTAdditions.m",
+    "byted_cert/Classes/Core/Private/VideoRecord/BDCTAdditions+VideoRecord.m",
+    "byted_cert/Classes/Core/Private/Additions/BDCTAdditions.m",
+    "byted_cert/Classes/Core/Private/UI/BDCTAlignLabel.m",
+    "byted_cert/Classes/Core/Private/Network/BDCTAPIService.m",
+    "byted_cert/Classes/Core/Private/Audio/BDCTAudioPlayer.m",
+    "byted_cert/Classes/Core/Private/UI/BDCTBaseCameraViewController.m",
+    "byted_cert/Classes/Core/Private/UI/BDCTBiggerButton.m",
+    "byted_cert/Classes/Core/Private/FaceLiveness/BDCTCaptureRenderView.m",
+    "byted_cert/Classes/Core/Private/UI/BDCTDisablePanGestureViewController.m",
+    "byted_cert/Classes/Core/Private/FaceLiveness/BDCTEventTracker+ActionLiveness.m",
+    "byted_cert/Classes/Core/Private/BDCTEventTracker+FaceVerificationFlow.m",
+    "byted_cert/Classes/Core/Private/FaceLiveness/BDCTEventTracker+VideoLiveness.m",
+    "byted_cert/Classes/Core/Private/VideoRecord/BDCTEventTracker+VideoRecord.m",
+    "byted_cert/Classes/Core/Private/BDCTEventTracker.m",
+    "byted_cert/Classes/Core/Private/BDCTFaceQualityDetectFlow.m",
+    "byted_cert/Classes/Core/Private/BDCTFaceVerificationFlow+Download.m",
+    "byted_cert/Classes/Core/Private/BDCTFaceVerificationFlow+Tracker.m",
+    "byted_cert/Classes/Core/Private/BDCTFaceVerificationFlow.m",
+    "byted_cert/Classes/Core/Private/BDCTFlow.m",
+    "byted_cert/Classes/Core/Private/BDCTFlowContext.m",
+    "byted_cert/Classes/Core/Private/Camera/BDCTImageManager.m",
+    "byted_cert/Classes/Core/Private/UI/BDCTIndicatorView.m",
+    "byted_cert/Classes/Core/Private/UI/BDCTInsetImageView.m",
+    "byted_cert/Classes/Core/Private/BDCTLocalization.m",
+    "byted_cert/Classes/Core/Private/Network/BDCTNetworkManager.m",
+    "byted_cert/Classes/Core/Private/FaceLiveness/BDCTStillLivenessTC.m",
+    "byted_cert/Classes/Core/Private/BDCTStringConst.m",
+    "byted_cert/Classes/Core/Private/Camera/BDCTTakeOCRPhotoViewController.m",
+    "byted_cert/Classes/Core/Private/Camera/BDCTTakePhotoBaseViewController.m",
+    "byted_cert/Classes/Core/Private/Camera/BDCTTakePhotoViewController.m",
+    "byted_cert/Classes/Core/Private/VideoRecord/BDCTVideoRecordController.m",
+    "byted_cert/Classes/Core/Private/Camera/BDCTVideoRecorder.m",
+    "byted_cert/Classes/Core/Private/VideoRecord/BDCTVideoRecordPreviewViewController+Layout.m",
+    "byted_cert/Classes/Core/Private/VideoRecord/BDCTVideoRecordPreviewViewController.m",
+    "byted_cert/Classes/Core/Private/VideoRecord/BDCTVideoRecordViewController+Camera.m",
+    "byted_cert/Classes/Core/Private/VideoRecord/BDCTVideoRecordViewController+Layout.m",
+    "byted_cert/Classes/Core/Private/VideoRecord/BDCTVideoRecordViewController.m",
+    "byted_cert/Classes/Core/Private/VideoRecord/BDCTVideoView.m",
+    "byted_cert/Classes/Core/Private/UI/BDCTWaitingView.m",
+    "byted_cert/Classes/Core/BytedCertDefine.m",
+    "byted_cert/Classes/Core/BytedCertError.m",
+    "byted_cert/Classes/Core/Private/BytedCertInterface+Logger.m",
+    "byted_cert/Classes/Core/BytedCertInterface.m",
+    "byted_cert/Classes/Core/BytedCertManager+OCR.m",
+    "byted_cert/Classes/Core/Private/BytedCertManager+Private.m",
+    "byted_cert/Classes/Core/BytedCertManager+VideoRecord.m",
+    "byted_cert/Classes/Core/BytedCertManager.m",
+    "byted_cert/Classes/Core/Network/BytedCertNetInfo.m",
+    "byted_cert/Classes/Core/Network/BytedCertNetResponse.m",
+    "byted_cert/Classes/Core/BytedCertParameter.m",
+    "byted_cert/Classes/Core/BytedCertUIConfig.m",
+    "byted_cert/Classes/Core/Desperated/BytedCertUserInfo.m",
+    "byted_cert/Classes/Core/BytedCertVideoRecordParameter.m",
+    "byted_cert/Classes/Core/Desperated/BytedCertWrapper.m",
+    "byted_cert/Classes/Core/Private/FaceLiveness/FaceLiveModule.mm",
+    "byted_cert/Classes/Core/Private/FaceLiveness/FaceLiveUtils.mm",
+    "byted_cert/Classes/Core/Private/FaceLiveness/FaceLiveViewController+Audio.m",
+    "byted_cert/Classes/Core/Private/FaceLiveness/FaceLiveViewController+Camera.m",
+    "byted_cert/Classes/Core/Private/FaceLiveness/FaceLiveViewController+Layout.m",
+    "byted_cert/Classes/Core/Private/FaceLiveness/FaceLiveViewController+VideoLiveness.m",
+    "byted_cert/Classes/Core/Private/FaceLiveness/FaceLiveViewController.mm",
+    "byted_cert/Classes/Core/Private/FaceLiveness/LivenessTaskController.mm",
+    "byted_cert/Classes/Core/Private/Beauty/NewEffectPreview.mm",
+    "byted_cert/Classes/Core/Private/Additions/NSBundle+BDCTAdditions.m",
+    "byted_cert/Classes/Core/Private/Additions/NSData+BDCTAdditions.m",
+    "byted_cert/Classes/Core/Private/Beauty/opengl_offscreen_render.mm",
+    "byted_cert/Classes/Core/Private/Additions/UIApplication+BDCTAdditions.m",
+    "byted_cert/Classes/Core/Private/Additions/UIDevice+BDCTAdditions.m",
+    "byted_cert/Classes/Core/Private/Additions/UIImage+BDCTAdditions.m",
+    "byted_cert/Classes/Core/Private/Additions/UIViewController+BDCTAdditions.m",
+    "byted_cert/Classes/Core/Private/FaceLiveness/VideoLivenessTC.mm"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "lightcore_oc",
+  enable_modules = 1,
+  srcs = [
+    "lightcore_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "lightcore_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "CoreFoundation",
+    "SystemConfiguration",
+    "Photos",
+    "GLKit",
+    "CoreNFC"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":byted_cert_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":byted_cert_private_includes",
+    ":byted_cert_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDAssert//:BDAssert_objc_interface",
+    "@BDModel//:BDModel_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@ByteDanceKit//:Foundation_objc_interface",
+    "@ByteDanceKit//:UIKit_objc_interface",
+    "@Masonry//:Masonry_objc_interface",
+    "@smash//:action_liveness_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDAssert//:BDAssert_swift_interface",
+    "@BDModel//:BDModel_swift_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    "@ByteDanceKit//:Foundation_swift_interface",
+    "@ByteDanceKit//:UIKit_swift_interface",
+    "@Masonry//:Masonry_swift_interface",
+    "@smash//:action_liveness_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":lightcore_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDAssert//:BDAssert_module_map",
+    "@BDModel//:BDModel_module_map",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map",
+    "@ByteDanceKit//:Foundation_module_map",
+    "@ByteDanceKit//:UIKit_module_map",
+    "@Masonry//:Masonry_module_map",
+    "@smash//:action_liveness_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dbyted_cert_POD_VERSION=@\\\"9999_4.10.2-alpha.36\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":byted_cert_lightcore_byted_cert"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "lightcore",
+  deps = [
+    ":lightcore_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "lightcore_lib",
+  deps = [
+    ":lightcore"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "aliyun_hdrs",
+  srcs = [
+    "byted_cert/Classes/Aliyun/Private/BDCTFaceVerificationFlow+Aliyun.h",
+    "byted_cert/Classes/Aliyun/Private/BytedCertManager+AliyunPrivate.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "aliyun_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/byted_cert/BDCTFaceVerificationFlow+Aliyun.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertManager+AliyunPrivate.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "aliyun_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "aliyun_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "aliyun_module_map",
+  module_map = "pod_support/Headers/Public/byted_cert/byted_cert_aliyun-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/byted_cert/byted_cert_aliyun-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "aliyun_srcs",
+  srcs = [
+    "byted_cert/Classes/Aliyun/Private/BDCTFaceVerificationFlow+Aliyun.m",
+    "byted_cert/Classes/Aliyun/Private/BytedCertManager+AliyunPrivate.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "aliyun_oc",
+  enable_modules = 1,
+  srcs = [
+    "aliyun_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "aliyun_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "CoreFoundation",
+    "SystemConfiguration",
+    "Photos",
+    "GLKit",
+    "CoreNFC"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":byted_cert_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":byted_cert_private_includes",
+    ":byted_cert_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@AliyunFaceSDK//:AliyunFaceSDK_objc_interface",
+    "@AliyunFaceSDK//:AliyunFaceSDK_swift_interface",
+    ":aliyun_objc_interface",
+    "@AliyunFaceSDK//:AliyunFaceSDK_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dbyted_cert_POD_VERSION=@\\\"9999_4.10.2-alpha.36\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "aliyun",
+  deps = [
+    ":aliyun_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "aliyun_lib",
+  deps = [
+    ":aliyun"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "core_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "core_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "core_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "core_module_map",
+  module_map = "pod_support/Headers/Public/byted_cert/byted_cert_core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/byted_cert/byted_cert_core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "core_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "CoreFoundation",
+    "SystemConfiguration",
+    "Photos",
+    "GLKit",
+    "CoreNFC"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":byted_cert_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":byted_cert_private_includes",
+    ":byted_cert_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":core_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dbyted_cert_POD_VERSION=@\\\"9999_4.10.2-alpha.36\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "core",
+  deps = [
+    ":core_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "core_lib",
+  deps = [
+    ":core"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "download_hdrs",
+  srcs = [
+    "byted_cert/Classes/Download/BytedCertWrapper+Download.h",
+    "byted_cert/Classes/Download/Private/BDCTEventTracker+Offline.h",
+    "byted_cert/Classes/Download/Private/BytedCertManager+DownloadPrivate.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "download_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/byted_cert/BDCTEventTracker+Offline.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertManager+DownloadPrivate.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertWrapper+Download.h",
+    "pod_support/Headers/Public/byted_cert/BytedCertWrapper+Download.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "download_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "download_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "download_module_map",
+  module_map = "pod_support/Headers/Public/byted_cert/byted_cert_download-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/byted_cert/byted_cert_download-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "download_srcs",
+  srcs = [
+    "byted_cert/Classes/Download/Private/BDCTEventTracker+Offline.m",
+    "byted_cert/Classes/Download/Private/BytedCertManager+DownloadPrivate.m",
+    "byted_cert/Classes/Download/BytedCertWrapper+Download.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "download_oc",
+  enable_modules = 1,
+  srcs = [
+    "download_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "download_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "CoreFoundation",
+    "SystemConfiguration",
+    "Photos",
+    "GLKit",
+    "CoreNFC"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":byted_cert_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":byted_cert_private_includes",
+    ":byted_cert_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@IESGeckoKit//:IESGeckoKit_objc_interface",
+    "@IESGeckoKit//:IESGeckoKit_swift_interface",
+    ":download_objc_interface",
+    "@IESGeckoKit//:IESGeckoKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dbyted_cert_POD_VERSION=@\\\"9999_4.10.2-alpha.36\\\"",
+    "-DBD_CERT_ENABLE_DOWNLOAD=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "download",
+  deps = [
+    ":download_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "download_lib",
+  deps = [
+    ":download"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "offline_hdrs",
+  srcs = [
+    "byted_cert/Classes/Offline/BytedCertManager+Offline.h",
+    "byted_cert/Classes/Offline/BytedCertWrapper+Offline.h",
+    "byted_cert/Classes/Offline/Private/BDCTOfflineFaceVerificationFlow.h",
+    "byted_cert/Classes/Offline/Private/BytedCertManager+OfflinePrivate.h",
+    "byted_cert/Classes/Offline/Private/FaceVerifyModule.h",
+    "byted_cert/Classes/Offline/Private/StillLivenessModule.h",
+    "byted_cert/Classes/Offline/Private/libs/face/inc/FaceSDK_API.h",
+    "byted_cert/Classes/Offline/Private/libs/face/inc/Face_Model.h",
+    "byted_cert/Classes/Offline/Private/libs/face/inc/FsNew_API.h",
+    "byted_cert/Classes/Offline/Private/libs/face/inc/FsNew_Model.h",
+    "byted_cert/Classes/Offline/Private/libs/faceverify/inc/FaceVerifySDK_API.h",
+    "byted_cert/Classes/Offline/Private/libs/faceverify/inc/FaceVerify_Model.h",
+    "byted_cert/Classes/Offline/Private/libs/still_liveness/inc/StillLiveness_API.h",
+    "byted_cert/Classes/Offline/Private/libs/still_liveness/inc/StillLiveness_Model.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "offline_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/byted_cert/BDCTOfflineFaceVerificationFlow.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertManager+Offline.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertManager+OfflinePrivate.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertWrapper+Offline.h",
+    "pod_support/Headers/Private/byted_cert/FaceSDK_API.h",
+    "pod_support/Headers/Private/byted_cert/FaceVerifyModule.h",
+    "pod_support/Headers/Private/byted_cert/FaceVerifySDK_API.h",
+    "pod_support/Headers/Private/byted_cert/FaceVerify_Model.h",
+    "pod_support/Headers/Private/byted_cert/Face_Model.h",
+    "pod_support/Headers/Private/byted_cert/FsNew_API.h",
+    "pod_support/Headers/Private/byted_cert/FsNew_Model.h",
+    "pod_support/Headers/Private/byted_cert/StillLivenessModule.h",
+    "pod_support/Headers/Private/byted_cert/StillLiveness_API.h",
+    "pod_support/Headers/Private/byted_cert/StillLiveness_Model.h",
+    "pod_support/Headers/Public/byted_cert/BytedCertManager+Offline.h",
+    "pod_support/Headers/Public/byted_cert/BytedCertWrapper+Offline.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "offline_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "offline_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "offline_module_map",
+  module_map = "pod_support/Headers/Public/byted_cert/byted_cert_offline-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/byted_cert/byted_cert_offline-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "offline_srcs",
+  srcs = [
+    "byted_cert/Classes/Offline/Private/BDCTOfflineFaceVerificationFlow.m",
+    "byted_cert/Classes/Offline/BytedCertManager+Offline.m",
+    "byted_cert/Classes/Offline/Private/BytedCertManager+OfflinePrivate.m",
+    "byted_cert/Classes/Offline/BytedCertWrapper+Offline.m",
+    "byted_cert/Classes/Offline/Private/FaceVerifyModule.mm",
+    "byted_cert/Classes/Offline/Private/StillLivenessModule.mm"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "offline_oc",
+  enable_modules = 1,
+  srcs = [
+    "offline_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "offline_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "CoreFoundation",
+    "SystemConfiguration",
+    "Photos",
+    "GLKit",
+    "CoreNFC"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":byted_cert_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":byted_cert_private_includes",
+    ":byted_cert_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":byted_cert_offline_VendoredLibraries",
+    ":offline_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dbyted_cert_POD_VERSION=@\\\"9999_4.10.2-alpha.36\\\"",
+    "-DBD_CERT_ENABLE_LOCAL_VERIFY=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "offline",
+  deps = [
+    ":offline_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "offline_lib",
+  deps = [
+    ":offline"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "reflection_hdrs",
+  srcs = [
+    "byted_cert/Classes/Reflection/Private/BDCTEventTracker+ReflectionLiveness.h",
+    "byted_cert/Classes/Reflection/Private/BytedCertWrapper+ReflectionLiveness.h",
+    "byted_cert/Classes/Reflection/Private/ReflectionLivenessModule.h",
+    "byted_cert/Classes/Reflection/Private/ReflectionLivenessTC.h",
+    "byted_cert/Classes/Reflection/Private/libs/reflection_liveness/inc/ReflectionLiveness_API.h",
+    "byted_cert/Classes/Reflection/Private/libs/reflection_liveness/inc/ReflectionLiveness_Model.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "reflection_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "reflection_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "reflection_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "reflection_module_map",
+  module_map = "pod_support/Headers/Public/byted_cert/byted_cert_reflection-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/byted_cert/byted_cert_reflection-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "reflection_srcs",
+  srcs = [
+    "byted_cert/Classes/Reflection/Private/BDCTEventTracker+ReflectionLiveness.m",
+    "byted_cert/Classes/Reflection/Private/BytedCertWrapper+ReflectionLiveness.m",
+    "byted_cert/Classes/Reflection/Private/ReflectionLivenessModule.mm",
+    "byted_cert/Classes/Reflection/Private/ReflectionLivenessTC.mm"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "reflection_oc",
+  enable_modules = 1,
+  srcs = [
+    "reflection_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "reflection_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "CoreFoundation",
+    "SystemConfiguration",
+    "Photos",
+    "GLKit",
+    "CoreNFC"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":byted_cert_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":byted_cert_private_includes",
+    ":byted_cert_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":byted_cert_reflection_VendoredLibraries",
+    ":reflection_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dbyted_cert_POD_VERSION=@\\\"9999_4.10.2-alpha.36\\\"",
+    "-DBD_CERT_ENABLE_REFLECTION_LIVENESS=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "reflection",
+  deps = [
+    ":reflection_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "reflection_lib",
+  deps = [
+    ":reflection"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "jsbridge_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "jsbridge_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "jsbridge_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "jsbridge_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "jsbridge_module_map",
+  module_map = "pod_support/Headers/Public/byted_cert/byted_cert_jsbridge-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/byted_cert/byted_cert_jsbridge-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "jsbridge_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "jsbridge_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "CoreFoundation",
+    "SystemConfiguration",
+    "Photos",
+    "GLKit",
+    "CoreNFC"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":byted_cert_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":byted_cert_private_includes",
+    ":byted_cert_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTBridgeUnify//:TTBridgeAuthManager_objc_interface",
+    "@TTBridgeUnify//:TTBridgeAuthManager_swift_interface",
+    ":jsbridge_objc_interface",
+    "@TTBridgeUnify//:TTBridgeAuthManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dbyted_cert_POD_VERSION=@\\\"9999_4.10.2-alpha.36\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "jsbridge",
+  deps = [
+    ":jsbridge_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "jsbridge_lib",
+  deps = [
+    ":jsbridge"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "bridgecore_hdrs",
+  srcs = [
+    "byted_cert/Classes/BridgeHandler/BDCTWebView.h",
+    "byted_cert/Classes/BridgeHandler/Desperated/BytedCertTTJSBridgeHandler.h",
+    "byted_cert/Classes/BridgeHandler/Private/BDCTCertificationFlow.h",
+    "byted_cert/Classes/BridgeHandler/Private/BDCTCommonPiperHandler.h",
+    "byted_cert/Classes/BridgeHandler/Private/BDCTCorePiperHandler+EventLog.h",
+    "byted_cert/Classes/BridgeHandler/Private/BDCTCorePiperHandler+LivenessDetect.h",
+    "byted_cert/Classes/BridgeHandler/Private/BDCTCorePiperHandler+Network.h",
+    "byted_cert/Classes/BridgeHandler/Private/BDCTCorePiperHandler+OCR.h",
+    "byted_cert/Classes/BridgeHandler/Private/BDCTCorePiperHandler+VideoRecord.h",
+    "byted_cert/Classes/BridgeHandler/Private/BDCTCorePiperHandler+ViewUtils.h",
+    "byted_cert/Classes/BridgeHandler/Private/BDCTCorePiperHandler.h",
+    "byted_cert/Classes/BridgeHandler/Private/BDCTPiperHandlerProtocol.h",
+    "byted_cert/Classes/BridgeHandler/Private/BDCTWebViewController.h",
+    "byted_cert/Classes/BridgeHandler/Private/BytedCertManager+Piper.h",
+    "byted_cert/Classes/BridgeHandler/Private/BytedCertWebView+Private.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "bridgecore_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/byted_cert/BDCTCertificationFlow.h",
+    "pod_support/Headers/Private/byted_cert/BDCTCommonPiperHandler.h",
+    "pod_support/Headers/Private/byted_cert/BDCTCorePiperHandler+EventLog.h",
+    "pod_support/Headers/Private/byted_cert/BDCTCorePiperHandler+LivenessDetect.h",
+    "pod_support/Headers/Private/byted_cert/BDCTCorePiperHandler+Network.h",
+    "pod_support/Headers/Private/byted_cert/BDCTCorePiperHandler+OCR.h",
+    "pod_support/Headers/Private/byted_cert/BDCTCorePiperHandler+VideoRecord.h",
+    "pod_support/Headers/Private/byted_cert/BDCTCorePiperHandler+ViewUtils.h",
+    "pod_support/Headers/Private/byted_cert/BDCTCorePiperHandler.h",
+    "pod_support/Headers/Private/byted_cert/BDCTPiperHandlerProtocol.h",
+    "pod_support/Headers/Private/byted_cert/BDCTWebView.h",
+    "pod_support/Headers/Private/byted_cert/BDCTWebViewController.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertManager+Piper.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertTTJSBridgeHandler.h",
+    "pod_support/Headers/Private/byted_cert/BytedCertWebView+Private.h",
+    "pod_support/Headers/Public/byted_cert/BDCTWebView.h",
+    "pod_support/Headers/Public/byted_cert/BytedCertTTJSBridgeHandler.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "bridgecore_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "bridgecore_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "bridgecore_module_map",
+  module_map = "pod_support/Headers/Public/byted_cert/byted_cert_bridgecore-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/byted_cert/byted_cert_bridgecore-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "bridgecore_srcs",
+  srcs = [
+    "byted_cert/Classes/BridgeHandler/Private/BDCTCertificationFlow.m",
+    "byted_cert/Classes/BridgeHandler/Private/BDCTCommonPiperHandler.m",
+    "byted_cert/Classes/BridgeHandler/Private/BDCTCorePiperHandler+EventLog.m",
+    "byted_cert/Classes/BridgeHandler/Private/BDCTCorePiperHandler+LivenessDetect.m",
+    "byted_cert/Classes/BridgeHandler/Private/BDCTCorePiperHandler+Network.m",
+    "byted_cert/Classes/BridgeHandler/Private/BDCTCorePiperHandler+OCR.m",
+    "byted_cert/Classes/BridgeHandler/Private/BDCTCorePiperHandler+VideoRecord.m",
+    "byted_cert/Classes/BridgeHandler/Private/BDCTCorePiperHandler+ViewUtils.m",
+    "byted_cert/Classes/BridgeHandler/Private/BDCTCorePiperHandler.m",
+    "byted_cert/Classes/BridgeHandler/BDCTWebView.m",
+    "byted_cert/Classes/BridgeHandler/Private/BDCTWebViewController.m",
+    "byted_cert/Classes/BridgeHandler/Private/BytedCertManager+Piper.m",
+    "byted_cert/Classes/BridgeHandler/Desperated/BytedCertTTJSBridgeHandler.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "bridgecore_oc",
+  enable_modules = 1,
+  srcs = [
+    "bridgecore_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "bridgecore_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "CoreFoundation",
+    "SystemConfiguration",
+    "Photos",
+    "GLKit",
+    "CoreNFC"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":byted_cert_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":byted_cert_private_includes",
+    ":byted_cert_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTBridgeUnify//:TTBridge_objc_interface",
+    "@TTBridgeUnify//:TTBridgeAuthManager_Core_objc_interface",
+    "@TTBridgeUnify//:TTBridgeNameDefines_objc_interface",
+    "@TTBridgeUnify//:UnifiedWebView_objc_interface",
+    "@TTBridgeUnify//:WebView_objc_interface",
+    "@TTBridgeUnify//:TTBridge_swift_interface",
+    "@TTBridgeUnify//:TTBridgeAuthManager_Core_swift_interface",
+    "@TTBridgeUnify//:TTBridgeNameDefines_swift_interface",
+    "@TTBridgeUnify//:UnifiedWebView_swift_interface",
+    "@TTBridgeUnify//:WebView_swift_interface",
+    ":bridgecore_objc_interface",
+    "@TTBridgeUnify//:TTBridge_module_map",
+    "@TTBridgeUnify//:TTBridgeAuthManager_Core_module_map",
+    "@TTBridgeUnify//:TTBridgeNameDefines_module_map",
+    "@TTBridgeUnify//:UnifiedWebView_module_map",
+    "@TTBridgeUnify//:WebView_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dbyted_cert_POD_VERSION=@\\\"9999_4.10.2-alpha.36\\\"",
+    "-DBD_CERT_USE_TT_JSB=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "bridgecore",
+  deps = [
+    ":bridgecore_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "bridgecore_lib",
+  deps = [
+    ":bridgecore"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "crypto_hdrs",
+  srcs = [
+    "byted_cert/Classes/Crypto/Private/NSString+BDCTCrypto.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "crypto_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/byted_cert/NSString+BDCTCrypto.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "crypto_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "crypto_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "crypto_module_map",
+  module_map = "pod_support/Headers/Public/byted_cert/byted_cert_crypto-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/byted_cert/byted_cert_crypto-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "crypto_srcs",
+  srcs = [
+    "byted_cert/Classes/Crypto/Private/NSString+BDCTCrypto.mm"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "crypto_oc",
+  enable_modules = 1,
+  srcs = [
+    "crypto_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "crypto_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "CoreFoundation",
+    "SystemConfiguration",
+    "Photos",
+    "GLKit",
+    "CoreNFC"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":byted_cert_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":byted_cert_private_includes",
+    ":byted_cert_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@arkcrypto-minigame-iOS//:arkcrypto-minigame-iOS_objc_interface",
+    "@arkcrypto-minigame-iOS//:arkcrypto-minigame-iOS_swift_interface",
+    ":crypto_objc_interface",
+    "@arkcrypto-minigame-iOS//:arkcrypto-minigame-iOS_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dbyted_cert_POD_VERSION=@\\\"9999_4.10.2-alpha.36\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "crypto",
+  deps = [
+    ":crypto_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "crypto_lib",
+  deps = [
+    ":crypto"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "bpea_hdrs",
+  srcs = [
+    "byted_cert/Classes/BPEA/Private/BDCTPrivacyEmbeddedArchitectureAdditions.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "bpea_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "bpea_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "bpea_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "bpea_module_map",
+  module_map = "pod_support/Headers/Public/byted_cert/byted_cert_bpea-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/byted_cert/byted_cert_bpea-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "bpea_srcs",
+  srcs = [
+    "byted_cert/Classes/BPEA/Private/BDCTPrivacyEmbeddedArchitectureAdditions.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "bpea_oc",
+  enable_modules = 1,
+  srcs = [
+    "bpea_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "bpea_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "CoreFoundation",
+    "SystemConfiguration",
+    "Photos",
+    "GLKit",
+    "CoreNFC"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":byted_cert_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":byted_cert_private_includes",
+    ":byted_cert_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDPolicyKit//:Cert_objc_interface",
+    "@BDPolicyKit//:PolicyEntry_AlbumPrivacy_objc_interface",
+    "@BDPolicyKit//:PolicyEntry_AppJump_objc_interface",
+    "@BDPolicyKit//:PolicyEntry_Camera_objc_interface",
+    "@BDPolicyKit//:PolicyEntry_Microphone_objc_interface",
+    "@BDPolicyKit//:Cert_swift_interface",
+    "@BDPolicyKit//:PolicyEntry_AlbumPrivacy_swift_interface",
+    "@BDPolicyKit//:PolicyEntry_AppJump_swift_interface",
+    "@BDPolicyKit//:PolicyEntry_Camera_swift_interface",
+    "@BDPolicyKit//:PolicyEntry_Microphone_swift_interface",
+    ":bpea_objc_interface",
+    "@BDPolicyKit//:Cert_module_map",
+    "@BDPolicyKit//:PolicyEntry_AlbumPrivacy_module_map",
+    "@BDPolicyKit//:PolicyEntry_AppJump_module_map",
+    "@BDPolicyKit//:PolicyEntry_Camera_module_map",
+    "@BDPolicyKit//:PolicyEntry_Microphone_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dbyted_cert_POD_VERSION=@\\\"9999_4.10.2-alpha.36\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "bpea",
+  deps = [
+    ":bpea_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "bpea_lib",
+  deps = [
+    ":bpea"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mask_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mask_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mask_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mask_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mask_module_map",
+  module_map = "pod_support/Headers/Public/byted_cert/byted_cert_mask-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/byted_cert/byted_cert_mask-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mask_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "mask_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "CoreFoundation",
+    "SystemConfiguration",
+    "Photos",
+    "GLKit",
+    "CoreNFC"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":byted_cert_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":byted_cert_private_includes",
+    ":byted_cert_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@smash//:action_liveness_objc_interface",
+    "@smash//:action_liveness_swift_interface",
+    ":mask_objc_interface",
+    "@smash//:action_liveness_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dbyted_cert_POD_VERSION=@\\\"9999_4.10.2-alpha.36\\\"",
+    "-DBD_CERT_ENABLE_MASK_LIVENESS=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mask",
+  deps = [
+    ":mask_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mask_lib",
+  deps = [
+    ":mask"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "risk_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "risk_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "risk_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "risk_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "risk_module_map",
+  module_map = "pod_support/Headers/Public/byted_cert/byted_cert_risk-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/byted_cert/byted_cert_risk-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "risk_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "risk_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "CoreFoundation",
+    "SystemConfiguration",
+    "Photos",
+    "GLKit",
+    "CoreNFC"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":byted_cert_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":byted_cert_private_includes",
+    ":byted_cert_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@smash//:action_liveness_objc_interface",
+    "@smash//:action_liveness_swift_interface",
+    ":risk_objc_interface",
+    "@smash//:action_liveness_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dbyted_cert_POD_VERSION=@\\\"9999_4.10.2-alpha.36\\\"",
+    "-DBD_CERT_ENABLE_RISK_LABEL_LIVENESS=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "risk",
+  deps = [
+    ":risk_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "risk_lib",
+  deps = [
+    ":risk"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "nfc_hdrs",
+  srcs = [
+    "byted_cert/Classes/NFC/BytedCertNFCReader.h",
+    "byted_cert/Classes/NFC/Private/BDCTCorePiperHandler+NFC.h",
+    "byted_cert/Classes/NFC/Private/JLNFCMessageModel.h",
+    "byted_cert/Classes/NFC/Private/JLReader.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "nfc_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "nfc_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "nfc_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "nfc_module_map",
+  module_map = "pod_support/Headers/Public/byted_cert/byted_cert_nfc-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/byted_cert/byted_cert_nfc-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "nfc_srcs",
+  srcs = [
+    "byted_cert/Classes/NFC/Private/BDCTCorePiperHandler+NFC.m",
+    "byted_cert/Classes/NFC/BytedCertNFCReader.mm"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "nfc_oc",
+  enable_modules = 1,
+  srcs = [
+    "nfc_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "nfc_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "CoreFoundation",
+    "SystemConfiguration",
+    "Photos",
+    "GLKit",
+    "CoreNFC"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":byted_cert_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":byted_cert_private_includes",
+    ":byted_cert_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":byted_cert_nfc_VendoredLibraries",
+    ":nfc_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dbyted_cert_POD_VERSION=@\\\"9999_4.10.2-alpha.36\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "nfc",
+  deps = [
+    ":nfc_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "nfc_lib",
+  deps = [
+    ":nfc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "xbridge_hdrs",
+  srcs = [
+    "byted_cert/Classes/XBridge/Private/OpenByteCert/BDXBridgeCertOpenByteCertMethod.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "xbridge_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "xbridge_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "xbridge_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "xbridge_module_map",
+  module_map = "pod_support/Headers/Public/byted_cert/byted_cert_xbridge-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/byted_cert/byted_cert_xbridge-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "xbridge_srcs",
+  srcs = [
+    "byted_cert/Classes/XBridge/Private/OpenByteCert/BDXBridgeCertOpenByteCertMethod+BDXBridgeIMP.m",
+    "byted_cert/Classes/XBridge/Private/OpenByteCert/BDXBridgeCertOpenByteCertMethod.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "xbridge_oc",
+  enable_modules = 1,
+  srcs = [
+    "xbridge_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "xbridge_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "CoreFoundation",
+    "SystemConfiguration",
+    "Photos",
+    "GLKit",
+    "CoreNFC"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":byted_cert_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":byted_cert_private_includes",
+    ":byted_cert_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDXBridgeKit//:Core_objc_interface",
+    "@BDXBridgeKit//:Core_swift_interface",
+    ":xbridge_objc_interface",
+    "@BDXBridgeKit//:Core_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dbyted_cert_POD_VERSION=@\\\"9999_4.10.2-alpha.36\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "xbridge",
+  deps = [
+    ":xbridge_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "xbridge_lib",
+  deps = [
+    ":xbridge"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "metasec_hdrs",
+  srcs = [
+    "byted_cert/Classes/MetaSec/Private/BytedCertManager+MetaSec.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "metasec_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "metasec_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "metasec_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "metasec_module_map",
+  module_map = "pod_support/Headers/Public/byted_cert/byted_cert_metasec-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/byted_cert/byted_cert_metasec-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "metasec_srcs",
+  srcs = [
+    "byted_cert/Classes/MetaSec/Private/BytedCertManager+MetaSec.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "metasec_oc",
+  enable_modules = 1,
+  srcs = [
+    "metasec_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "metasec_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "CoreFoundation",
+    "SystemConfiguration",
+    "Photos",
+    "GLKit",
+    "CoreNFC"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":byted_cert_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":byted_cert_private_includes",
+    ":byted_cert_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@MetaSecML//:MetaSecML_objc_interface",
+    "@MetaSecML//:MetaSecML_swift_interface",
+    ":metasec_objc_interface",
+    "@MetaSecML//:MetaSecML_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dbyted_cert_POD_VERSION=@\\\"9999_4.10.2-alpha.36\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "metasec",
+  deps = [
+    ":metasec_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "metasec_lib",
+  deps = [
+    ":metasec"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "debug_hdrs",
+  srcs = [
+    "byted_cert/Classes/Debug/BDCTDebugManager.h",
+    "byted_cert/Classes/Debug/FaceLiveDebugViewController.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "debug_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "debug_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "debug_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "debug_module_map",
+  module_map = "pod_support/Headers/Public/byted_cert/byted_cert_debug-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/byted_cert/byted_cert_debug-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "debug_srcs",
+  srcs = [
+    "byted_cert/Classes/Debug/BDCTDebugManager.mm",
+    "byted_cert/Classes/Debug/FaceLiveDebugViewController.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "debug_oc",
+  enable_modules = 1,
+  srcs = [
+    "debug_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "debug_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "CoreFoundation",
+    "SystemConfiguration",
+    "Photos",
+    "GLKit",
+    "CoreNFC"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":byted_cert_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":byted_cert_private_includes",
+    ":byted_cert_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":debug_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dbyted_cert_POD_VERSION=@\\\"9999_4.10.2-alpha.36\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "debug",
+  deps = [
+    ":debug_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "debug_lib",
+  deps = [
+    ":debug"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_byted_cert_module_map",
+  module_map = "@byted_cert//:pod_support/Headers/Public/byted_cert/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@byted_cert//:pod_support/Headers/Public/byted_cert/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_byted_cert_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@byted_cert//:aliyun_objc_interface", "@byted_cert//:bridgecore_objc_interface", "@byted_cert//:core_objc_interface", "@byted_cert//:crypto_objc_interface", "@byted_cert//:download_objc_interface", "@byted_cert//:lightcore_objc_interface", "@byted_cert//:offline_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_byted_cert",
+  target_name = "Lark",
+  module_name = "byted_cert",
+  hdrs = ["@byted_cert//:aliyun_pod_hdrs", "@byted_cert//:bridgecore_pod_hdrs", "@byted_cert//:core_pod_hdrs", "@byted_cert//:crypto_pod_hdrs", "@byted_cert//:download_pod_hdrs", "@byted_cert//:lightcore_pod_hdrs", "@byted_cert//:offline_pod_hdrs"],
+  srcs = ["@byted_cert//:aliyun_srcs", "@byted_cert//:bridgecore_srcs", "@byted_cert//:crypto_srcs", "@byted_cert//:download_srcs", "@byted_cert//:lightcore_srcs", "@byted_cert//:offline_srcs"],
+  non_arc_srcs = [],
+  deps = ["@byted_cert//:byted_cert_offline_VendoredLibraries"],
+  pod_deps = ["AliyunFaceSDK", "TTBridgeUnify", "arkcrypto-minigame-iOS", "IESGeckoKit", "BDAlogProtocol", "BDAssert", "BDModel", "BDTrackerProtocol", "ByteDanceKit", "Masonry", "smash", "TTNetworkManager"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dbyted_cert_POD_VERSION=@\\\"9999_4.10.2-alpha.36\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-DBD_CERT_USE_TT_JSB=1",
+    "-DBD_CERT_ENABLE_DOWNLOAD=1",
+    "-DBD_CERT_ENABLE_LOCAL_VERIFY=1",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "byted_cert_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "byted_cert_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["UIKit", "CoreFoundation", "SystemConfiguration", "Photos", "GLKit", "CoreNFC"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = ["stdc++"],
+  data = ["@byted_cert//:byted_cert_lightcore_byted_cert"],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "byted_cert_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "byted_cert_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "byted_cert_dynamic", False),
+  tags = getattr(defs_external_objc_library, "byted_cert_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("byted_cert", {}),
+  visibility = ["//visibility:public"],
+)

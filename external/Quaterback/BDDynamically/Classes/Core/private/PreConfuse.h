@@ -1,0 +1,75 @@
+//
+//  PreConfuse.hhh
+//  BUPT
+//
+//  Created by senmiao .
+//  Copyright (c) 2016 BUPT. All rights reserved.
+        //
+
+#if BDAweme
+#define startEngine bd_preferredContentSizeDidChangeForChildContentContainer
+#define runBrady bd_systemLayoutFittingSizeDidChangeForChildContentContainer
+#define closeBrady bd_sizeForChildContentContainer
+#define loadDYCModule bd_viewWillTransitionToSize
+#define errorBlock bd_willTransitionToTraitCollection
+#define LLIEngineDidCollectLogging bd_loadView
+#define LLIEngineRunWithException bd_loadViewIfNeeded
+#define LLIEngineDidFinishLoadBitcode bd_viewWillUnload
+#define moduleName bd_viewDidUnload
+#define moduleVersion bd_viewDidLoad
+#define duration bd_performSegueWithIdentifier
+//#define loadAndReturnError t78b0f0758b8466b8e8a6d2133a7911c0
+//#define unload t3148c1152fb3f360ac22e3c775270258
+#define unloadAndRemove bd_prepareForSegue
+#define operatingStatus bd_ttcanPerformUnwindSegueAction
+#define create bd_allowedChildViewControllersForUnwindingFromSource
+#define decryptedDataAtPath bd_childViewControllerContainingSegueSource
+#define addModule bd_viewControllerForUnwindSegueAction
+#define addModules bd_unwindForSegue
+#define addFailedModule bd_viewWillAppear
+#define addLoadedModule bd_viewDidAppear
+#define removeModule bd_viewWillDisappear
+#define removeModuleForName bd_viewDidDisappear
+#define saveToFile bd_viewWillLayoutSubviews
+#define needsUpdateCompareToObject bd_viewDidLayoutSubviews
+#define containsAvailableUrl bd_didReceiveMemoryWarning
+#define startDownloadUrl bd_presentViewController
+#define recordError bd_dismissViewControllerAnimated
+#define forDownloadUrl bd_presentModalViewController
+#define isHigherToObject bd_dismissModalViewControllerAnimated
+#define retryWhenLargerThan bd_setNeedsStatusBarAppearanceUpdate
+#define appendPartWithFileURL bd_targetViewControllerForAction
+#define appendPartWithInputStream bd_showViewController
+#define appendPartWithFileData bd_showDetailViewController
+#define appendPartWithFormData bd_setNeedsUserInterfaceAppearanceUpdate
+#define appendPartWithFormJSONObject bd_attemptRotationToDeviceOrientation
+#define appendPartWithHeaders bd_bdtextxxx
+#define throttleBandwidthWithPacketSize bd_willRotateToInterfaceOrientation
+//#define read t3f6270aec020a72197b4285c41b0485b
+#define setInitialAndFinalBoundaries bd_didRotateFromInterfaceOrientation
+#define appendHTTPBodyPart bd_willAnimateRotationToInterfaceOrientation
+#define getBuffer bd_willAnimateFirstHalfOfRotationToInterfaceOrientation
+#define propertyForKey bd_didAnimateFirstHalfOfRotationToInterfaceOrientation
+#define setProperty bd_willAnimateSecondHalfOfRotationFromInterfaceOrientation
+//#define scheduleInRunLoop t271decd1c782f881bca1b44979da345d
+#define removeFromRunLoop bd_addChildViewController
+#define _scheduleInCFRunLoop bd_removeFromParentViewController
+#define _unscheduleFromCFRunLoop bd_transitionFromViewController
+#define _setCFClientFlags bd_beginAppearanceTransition
+//#define readData t7fce346b76893d9a4208c964658ba48d
+#define URLSession bd_setOverrideTraitCollection
+//#define cancel t586bad362020bf2055009294d6d420b6
+#define addModuleTask bd_automaticallyForwardAppearanceAndRotationMethodsToChildViewControllers
+#define forModuleModel bd_shouldAutomaticallyForwardRotationMethods
+#define cancelTaskForModuleModel bd_willMoveToParentViewController
+#define applicationWillEnterForeground bd_didMoveToParentViewController
+#define UnzipOpenFile bd_encodeRestorableStateWithCoder
+#define UnzipFileTo bd_decodeRestorableStateWithCoder
+#define overWrite bd_applicationFinishedRestoringState
+#define Password bd_viewLayoutMarginsDidChange
+#define bddyc_containsString bd_viewSafeAreaInsetsDidChange
+
+#else
+
+
+#endif

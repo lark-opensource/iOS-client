@@ -1,0 +1,449 @@
+
+# run cmd:
+#   BUILD_PRODUCT_TYPE=MIN EEScaffold module develop -n LarkAccount --force
+# will build with MIN version
+require 'fileutils'
+
+def account_subspecs
+  working_path = Dir.pwd + '/Bizs/LarkAccount/app/'
+  boot_path_use = working_path + 'BootConfigs_use.plist'
+  boot_path_skip = working_path + 'BootConfigs_skip.plist'
+  boot_path = working_path + 'app/resources/BootConfigs.plist'
+
+  build_product_type = ENV['BUILD_PRODUCT_TYPE']
+  puts "env BUILD_PRODUCT_TYPE = #{build_product_type}".red
+  if build_product_type == 'MIN'
+    puts 'enable min dependency version'.red
+    FileUtils.cp(boot_path_use, boot_path)
+    {subspecs: ['Core', 'Debug']}
+  elsif build_product_type == 'SIMPLE'
+    puts 'enable simple mode BootManager will not work'
+    FileUtils.cp(boot_path_skip, boot_path)
+    {subspecs: ['Core', 'LarkExtension', 'Authorization', 'Debug', 'NativePlugin', 'NativeCaptcha']}
+  elsif build_product_type == 'KA'
+    FileUtils.cp(boot_path_use, boot_path)
+    {subspecs: ['Core', 'LarkExtension', 'Authorization', 'Chatter', 'RustPlugin', 'NativePlugin', 'KA', 'IDP', 'Debug', 'OneKeyLogin']}
+  elsif build_product_type == 'LARK'
+    puts 'use Lark version'.green
+    FileUtils.cp(boot_path_use, boot_path)
+    {subspecs: ['Core', 'LarkExtension’, 'Authorization', 'Chatter',  'AppsFlyerFramework', 'IDP', 'Debug']}
+  elsif build_product_type == 'FEISHU'
+    puts 'use Feishu version'.green
+    FileUtils.cp(boot_path_use, boot_path)
+    {subspecs: ['Core', 'LarkExtension’, 'OneKeyLogin', 'Chatter',  'Authorization', 'IDP', 'Debug']}
+  elsif build_product_type == 'NO_RUST'
+    puts 'use no rust version'.green
+    FileUtils.cp(boot_path_use, boot_path)
+    {subspecs: ['Core', 'Authorization', 'OneKeyLogin', 'IDP', 'Debug', 'NativePlugin', 'NativeCaptcha']}
+  else
+    puts 'use full build version'.green
+    FileUtils.cp(boot_path_use, boot_path)
+    {subspecs: ['Core', 'LarkExtension’, 'Authorization', 'Chatter',  'OneKeyLogin', 'AppsFlyerFramework', 'IDP', 'Debug', 'RustPlugin', 'NativePlugin', 'NativeCaptcha', 'BootManager']}
+  end
+end
+
+debug_dependency 'LarkAccount', **account_subspecs, :integration => :local
+debug_dependency 'LarkAccountInterface', :subspec => ['Core'], :integration => :local
+debug_dependency 'Reveal-SDK', '26', :configurations => ['Debug']
+debug_dependency 'AppsFlyerFramework', '5.0.0'
+debug_dependency 'LarkRustClientAssembly', :integration => :local
+debug_dependency 'SuiteAppConfig', :integration => :local, :subspecs => ["Core", "Assembly"]
+
+if ENV['BYTED_CERT'] == '1'
+  debug_dependency 'LarkBytedCert', :integration => :local
+  debug_dependency 'BDSword', '1.0.0.1-binary'
+  debug_dependency "byted_cert", "4.1.1.8-bugfix", :subspecs => ['jsbridge', 'offline', 'download'], :source => 'git@code.byted.org:ee/pods_specs.git'
+end
+
+# 生成依赖描述
+# run cmd
+#  rake podspec_patch[LarkAccount]
+# 指定ios-client目录详见 Rakefile
+
+#START_PODSPEC_GENERATE
+
+debug_dependency 'Alamofire', '4.7.3', :source => 'git@code.byted.org:iOS_Library/publicthird_source_repo.git'
+debug_dependency 'AppAuth', '1.4.0', :source => 'git@code.byted.org:ee/pods_specs.git', :subspecs => ["Core", "ExternalUserAgent"]
+debug_dependency 'AppContainer', '0.23.9', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'AppReciableSDK', '0.1.9', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'AudioSessionScenario', '0.6.15', :source => 'git@code.byted.org:ee/pods_specs.git', :subspecs => ["Core", "Debug"]
+debug_dependency 'BDAlogProtocol', '1.2.2', :source => 'git@code.byted.org:iOS_Library/privatethird_source_repo.git'
+debug_dependency 'BDDataDecorator', '2.0.1.1-binary', :source => 'git@code.byted.org:iOS_Library/privatethird_binary_repo.git', :subspecs => ["Data", "AES"]
+debug_dependency 'BDDataDecoratorTob', '1.0.0', :source => 'git@code.byted.org:iOS_Library/privatethird_source_repo.git', :subspecs => ["Data"]
+debug_dependency 'BDUGAccountOnekeyLogin', '1.2.0', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'BDUGContainer', '1.1.2', :source => 'git@code.byted.org:iOS_Library/privatethird_source_repo.git'
+debug_dependency 'BDUGMonitorInterface', '1.2.2', :source => 'git@code.byted.org:iOS_Library/privatethird_source_repo.git'
+debug_dependency 'BDUGTrackerInterface', '1.2.0', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'BDUGUnionSDK', '0.1.2', :source => 'git@code.byted.org:iOS_Library/privatethird_source_repo.git'
+debug_dependency 'BootManager', '0.13.8', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'CryptoSwift', '1.1.3', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'DateToolsSwift', '5.0.0', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'EAccountApiSDK', '1.4.0-alpha.0', :source => 'git@code.byted.org:iOS_Library/privatethird_source_repo.git'
+debug_dependency 'EEAtomic', '0.1.4', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'EEImageService', '0.23.9', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git', :subspecs => ["Core"]
+debug_dependency 'EENavigator', '0.10.32', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'EENotification', '0.14.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'EEPodInfoDebugger', '0.0.3', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'EETroubleKiller', '1.2.6', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'EditTextView', '0.20.3', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'FLEX', '3.1.2', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'FMDB', '2.7.7', :source => 'git@code.byted.org:iOS_Library/privatethird_source_repo.git', :subspecs => ["standard"]
+debug_dependency 'GTMAppAuth', '1.1.0', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'GTMSessionFetcher', '1.5.0', :source => 'git@code.byted.org:ee/pods_specs.git', :subspecs => ["Core", "Full"]
+debug_dependency 'GoogleSignIn', '5.0.2', :source => 'git@code.byted.org:iOS_Library/publicthird_source_repo.git'
+debug_dependency 'HTTProtocol', '0.1.6', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'Heimdallr', '0.7.23-rc.6', :source => 'git@code.byted.org:iOS_Library/privatethird_source_repo.git', :subspecs => ["Core", "CrashDetector", "Monitors", "TTMonitor", "DeviceInfo", "HMDOOMCrash", "HMDAlogProtocol", "HMDConfig", "HMDSession", "HMDStore", "Network", "Upload", "Utility", "Mach", "CrashCapture", "Log", "Runloop", "HMDStart", "OpenTracing", "HMDWatchDog", "UITracker", "UserException", "ALog", "BootingProtect", "HMDLaunchTracing", "HMDANR", "HMDOOM", "HMDCoreDump", "HMDDomestic", "MemoryGraph", "Protect", "UIFrozen", "WatchdogProtect", "Zombie"]
+debug_dependency 'Homeric', '0.2.701', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'KeychainAccess', '3.1.2', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'Kingfisher', '5.3.1-lark.21', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'KingfisherWebP', '0.6.0-lark.0', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LKCommonsLogging', '0.4.10', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LKCommonsTracker', '0.4.11', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LKMetric', '0.20.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LKTracing', '0.19.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkActionSheet', '0.22.2', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkActivityIndicatorView', '1.21.1', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkAlertController', '0.11.2', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkAppConfig', '3.42.0', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkAppLinkSDK', '3.44.0.99', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkAppLog', '3.41.3', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkAssetsBrowser', '0.3.8', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkBadge', '0.20.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkButton', '0.1.7', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkCache', '1.13.1', :source => 'git@code.byted.org:ee/pods_specs.git', :subspecs => ["Core", "CryptoRustImpl"]
+debug_dependency 'LarkCamera', '0.14.2', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkCombine', '0.0.7', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkCompatible', '0.1.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkContainer', '1.4.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkDebug', '3.41.4', :source => 'git@code.byted.org:ee/pods_specs.git', :subspecs => ["core", "Flex"]
+debug_dependency 'LarkDebugExtensionPoint', '3.38.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkEmotion', '0.22.6', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkEnv', '3.41.4', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkExtensions', '0.22.3', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkFeatureGating', '3.43.6', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkFeatureSwitch', '3.40.4', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkFileKit', '0.6.4', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkFoundation', '1.7.0', :source => 'git@code.byted.org:ee/pods_specs.git', :subspecs => ["Date", "Encryption", "Error", "Extensions", "File", "FuncContext", "JumpApplication", "ProepertyWrapper", "Resource", "URL", "Utils"]
+debug_dependency 'LarkImageEditor', '0.2.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkInteraction', '0.18.5', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkKAFeatureSwitch', '3.41.6', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkKeyCommandKit', '0.21.2', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkKeyboardKit', '0.8.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkLocalizations', '1.15.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkModel', '100.13.15', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkMonitor', '1.18.3', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'ECOProbe', '0.1.1-alpha.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkOpenTrace', '1.2.5', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkPerf', '3.41.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkReleaseConfig', '0.12.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkRustClient', '3.42.5', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git', :subspecs => ["Interface", "Client"]
+debug_dependency 'LarkRustHTTP', '0.12.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkScene', '0.22.1', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkSceneManager', '0.1.7', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'LarkSettingsBundle', '3.38.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkShareToken', '0.12.1', :source => 'git@code.byted.org:ee/pods_specs.git', :subspecs => ["base"]
+debug_dependency 'LarkSplitViewController', '0.15.8', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkTimeFormatUtils', '1.1.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkTraitCollection', '0.3.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LarkUIKit', '1.34.18', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git', :subspecs => ["Base", "Common", "LoadPlaceholder", "NaviProtocol", "BaseComponent", "Checkbox", "ConfirmContainer", "FloatWindow", "LanguageSelector", "MobileCodeSelect", "NaviBar", "OtherDependency", "Others", "Resources", "Switch", "TextField", "Utils"]
+debug_dependency 'Logger', '1.4.12', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'OpenCombine', '10.11.5', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'OpenCombineDispatch', '10.11.3', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'OpenCombineFoundation', '10.11.3', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'QRCode', '100.13.13', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+debug_dependency 'RangersAppLog', '5.6.4', :source => 'git@code.byted.org:iOS_Library/privatethird_source_repo.git', :subspecs => ["Core", "ET", "Filter"]
+debug_dependency 'ReachabilitySwift', '4.3.0', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'RichLabel', '0.22.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'RoundedHUD', '1.21.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'RunloopTools', '0.1.0', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'RustPB', '3.45.0-alpha.147-alpha', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'RxCocoa', '5.1.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'RxRelay', '5.1.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'RxSwift', '5.1.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'ServerPB', '1.0.509', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'SnapKit', '5.0.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'SuiteCodable', '0.1.4', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'SwiftProtobuf', '1.7.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'SwiftyJSON', '4.1.0', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'Swinject', '10.13.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'TTMacroManager', '1.0.3', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'TTReachability', '1.8.2', :source => 'git@code.byted.org:iOS_Library/privatethird_source_repo.git'
+debug_dependency 'TYRZApiSDK', '1.2.2-rc.1.1.binary', :source => 'git@code.byted.org:iOS_Library/privatethird_binary_repo.git'
+debug_dependency 'ThreadSafeDataStructure', '0.18.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'YYCache', '4.11.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'ZeroTrust', '0.4.2', :source => 'git@code.byted.org:iOS_Library/lark_source_repo.git', :subspecs => ["Base", "Common"]
+debug_dependency 'bytenn-ios', '2.7.2', :source => 'git@code.byted.org:iOS_Library/privatethird_source_repo.git'
+debug_dependency 'espresso', '2.6.6.1-binary', :source => 'git@code.byted.org:iOS_Library/privatethird_binary_repo.git'
+debug_dependency 'libwebp', '0.6.1.1-binary', :source => 'git@code.byted.org:iOS_Library/publicthird_binary_repo.git', :subspecs => ["core", "dec", "demux", "dsp", "enc", "mux", "utils", "webp"]
+debug_dependency 'lottie-ios', '2.6.5', :source => 'git@code.byted.org:iOS_Library/privatethird_source_repo.git'
+debug_dependency 'mobilecv2', '1.7.4.1-binary', :source => 'git@code.byted.org:iOS_Library/privatethird_binary_repo.git'
+debug_dependency 'smash', '4.8.4.1-binary', :source => 'git@code.byted.org:iOS_Library/privatethird_binary_repo.git', :subspecs => ["action_liveness", "qrcode", "package", "private_utils", "utils"]
+debug_dependency 'EEKeyValue', '0.2.6', :subspecs => ['Core', 'UserDefaults', 'UserSpace']
+
+#END_PODSPEC_GENERATE
+
+require_relative './Bizs/LarkAccount/lark_binary.rb'
+debug_cocoapods do
+  ruby_code "do binary patch", <<-'CUSTOM_PATCH'
+  begin
+    require_relative '../../Bizs/LarkAccount/lark_binary.rb'
+    puts 'Load ../../Bizs/LarkAccount/lark_binary.rb success'.green
+  rescue LoadError
+    puts 'Load ../../Bizs/LarkAccount/lark_binary.rb fail'.red
+  end
+  patch do
+    if EEScaffold::Swift.version == "5.3.2"
+      use_binary_repo 'git@code.byted.org:lark/binary_v532.git'
+    else
+      use_binary_repo 'git@code.byted.org:ee/pods_specs.git'
+    end
+    # 在 './bin/ruby_script/lark_binary.rb' 中查看修改二进制的开启列表
+    # 你也可以在本地创建 Podfile.path（请勿提交该文件！） 固定配置某些库为源码或者二进制
+  
+    binary_list = LarkBinary::List.oc_list
+
+    if ["5.3", "5.3.2"].include? EEScaffold::Swift.version.to_s
+      puts "启用二进制".green
+      binary_list += LarkBinary::List.binary_list
+    else
+      puts "\033[33m你的swift版本是 #{EEScaffold::Swift.version}, 与当前部分二进制版本不兼容，已经自动切换为源码\033[0m"
+    end
+    # binary_list = %W[RustPB ServerPB SwiftProtobuf] # 打开这行可以切换到仅PB使用二进制，需要重新执行 `pod install`
+    binary_list.each { |name| 
+      puts name.red
+      binary name 
+    } # 注释掉这行关闭二进制，需要重新执行 `pod install`
+  
+    # 这里插入 source 'NAME' 可以将某个库单独切换成源码，需要重新执行 `pod install`
+
+    unless ENV['CACHE_BINARY'] == '1'
+      # 默认使用Debug编译，支持assert, patch只显式指定为binary
+      [
+        'LarkRustClient',
+      ].each { |v| source v }
+    end
+  end
+  CUSTOM_PATCH
+
+  pre_install "patch build settings", <<-'PRE_INSTALL'
+  use_whold_module = false
+  # fix: add search path for these cross module include headers
+  should_fix_include_headers = {
+    'TTVideoEditor' => ['KVOController', 'Heimdallr'],
+    'TTVideoEngine' => ['TTPlayerSDK', 'TTVideoSetting'],
+    'TTVideoLive' => true,
+    'ConfigCenter' => ['FMDB'],
+    'AFgzipRequestSerializer' => ['AFNetworking', 'Godzippa'],
+    'Heimdallr' => ['BDAlogProtocol', 'TTMacroManager', 'BDALog', 'SSZipArchive'],
+    'BDAlogProtocol' => ['BDALog'],
+    'TTMicroApp' => true,
+    'CJPay' => true,
+    'CJComponents' => true,
+    'SAMKeychain' => true,
+    'LarkFinance' => true,
+    'LarkMessenger' => true,
+    'EEMicroAppSDK' => true, # 直接头文件和模块混用，需要改代码, 光改搜索路径还不行
+    'JsSDK' => true, # 依赖了EEMicroAppSDK
+    'LarkMicroApp' => true,
+    # indirect dependency
+    'TTNetworkManager' => ['AFNetworking', 'Godzippa'],
+    'LarkOpenPlatform' => true,
+    'TTBaseLib' => ['OpenUDID'],
+    'QRCode' => ['smash'],
+    'byted_cert' => true,
+    'Lynx' => true,
+    'LarkSnsShare' => ['BDUGShare'],
+    'LarkAccount' => true,
+    'IESGeckoKitDebug' => ['IESGeckoKit']
+  }
+
+  fix_modular_include = Set[
+    'TTNetworkManager',
+    'EEMicroAppSDK',
+    'JsSDK',
+    'LarkMicroApp',
+    'Lynx',
+    'LarkOpenPlatform',
+    'WeiboSDK',
+    'WechatSDK',
+    'TencentQQSDK',
+    'BDUGShare',
+    'LarkContact',
+    'BDABTestSDK',
+    'LarkFinance',
+    'CJPay',
+    'CJComponents',
+    'SAMKeychain',
+    'TTVideoEditor',
+    'QRCode',
+    'byted_cert',
+    'LarkSnsShare',
+    'LarkAccount',
+    'LarkMessenger',
+    'IESGeckoKitDebug',
+    'LarkBytedCert'
+  ]
+
+  tobsdk_flags = Set[
+    'TTInstallService',
+    'TTTracker',
+    'LarkTracker'
+  ]
+  mail_target = Set[
+    'MailSDK'
+  ]
+
+  # @type [Hash{String => Pod::PodTarget}]
+  pod_targets_by_name = installer.pod_targets.group_by(&:pod_name)
+  header_search_paths_of_pods = lambda do |pod_target|
+    return unless config = should_fix_include_headers[pod_target.name]
+    # use true to represent all dependency
+    included_targets = case config
+                       when true then pod_target.recursive_dependent_targets
+                       when Hash then
+                         pod_targets_by_name.values_at(*config[:recursive]).compact.flatten(1)
+                           .flat_map {|pt| [pt] + pt.recursive_dependent_targets}
+                           .uniq
+                       when Array then
+                         pod_targets_by_name.values_at(*config).compact.flatten(1)
+                       else
+                         raise "unsupported"
+                       end
+    return nil if included_targets.empty?
+
+    # 1.9 BuildSettings 按config区分，先兼容一下
+    if Gem::Version.new(Pod::VERSION) < Gem::Version.new('1.9')
+      pt_build_settings = lambda do |pod_target|
+        pod_target.build_settings
+      end
+    else
+      pt_build_settings = lambda do |pod_target|
+        pod_target.build_settings[:release]
+      end
+    end
+
+    headers = []
+    # @param pt [Pod::PodTarget]
+    included_targets.each do |pt|
+      if pt.requires_frameworks? && pt.should_build?
+        headers.push pt_build_settings[pt].framework_header_search_path
+      else
+        # the above code use direct include header, not <module/header.h>
+        headers.push "${PODS_ROOT}/Headers/Public"
+        headers.push "${PODS_ROOT}/Headers/Public/#{pt.pod_name}"
+        # append vendored frameworks header
+        headers.concat(pt_build_settings[pt].file_accessors.flat_map(&:vendored_frameworks).map { |f|
+          File.join '${PODS_ROOT}', f.relative_path_from(pt.sandbox.root), "Headers"
+        })
+      end
+    end
+    headers.uniq
+  end
+
+  # lint: if generate multiple scoped pod_target, downstream pod don't know choose which
+  duplicate_pod_targets = pod_targets_by_name.values.select { |a| a.length > 1 }
+  duplicate_pod_targets.each do |a|
+    Pod::UI.warn "Duplicate Pod target with different subspecs, defined in:"
+    a.each do |pod_target|
+      Pod::UI.warn "  - #{pod_target.name}(#{pod_target.specs.map(&:name).join(", ")}) contained in: #{pod_target.target_definitions.map(&:name).join(', ')}"
+    end
+  end
+  raise "Currently Not Support Duplicate Pod Targets" unless duplicate_pod_targets.empty?
+
+  if ENV['BUILD_PRODUCT_TYPE'] == 'SIMPLE'
+  # 添加 SIMPLE 宏
+    first_target = installer.pod_targets[0]
+    attributes_hash = first_target.root_spec.attributes_hash
+    user_target_xcconfig = (attributes_hash['user_target_xcconfig'] ||= {})
+    user_target_xcconfig['GCC_PREPROCESSOR_DEFINITIONS'] ||= ''
+    user_target_xcconfig['GCC_PREPROCESSOR_DEFINITIONS'] += ' SIMPLE=1'
+    user_target_xcconfig['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] ||= '$(inherited)'
+    user_target_xcconfig['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] += ' SIMPLE'
+  end
+
+  installer.pod_targets.each do |pod_target|
+    attributes_hash = pod_target.root_spec.attributes_hash
+    pod_target_xcconfig = (attributes_hash['pod_target_xcconfig'] ||= {})
+
+    pod_target_xcconfig['SWIFT_VERSION'] = '5.1'
+    pod_target_xcconfig['IPHONEOS_DEPLOYMENT_TARGET'] = '11.0'
+    pod_target_xcconfig['WARNING_CFLAGS'] ||= []
+    pod_target_xcconfig['WARNING_CFLAGS'] += ['-Wno-nullability-completeness', '-Wno-nonnull']
+    pod_target_xcconfig['CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED'] = 'NO'
+    pod_target_xcconfig['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
+    pod_target_xcconfig['GCC_PREPROCESSOR_DEFINITIONS'] ||= ''
+    pod_target_xcconfig['GCC_PREPROCESSOR_DEFINITIONS'] += ' ALPHA=1'
+    pod_target_xcconfig['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] ||= '$(inherited)'
+    pod_target_xcconfig['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] += ' ALPHA'
+
+    if ENV['BUILD_PRODUCT_TYPE'] == 'SIMPLE'
+      # 添加 SIMPLE 宏
+        pod_target_xcconfig['GCC_PREPROCESSOR_DEFINITIONS'] ||= ''
+        pod_target_xcconfig['GCC_PREPROCESSOR_DEFINITIONS'] += ' SIMPLE=1'
+        pod_target_xcconfig['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] ||= '$(inherited)'
+        pod_target_xcconfig['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] += ' SIMPLE'
+    end
+
+    if use_whold_module == true
+      pod_target_xcconfig['SWIFT_WHOLE_MODULE_OPTIMIZATION'] = "YES"
+    end
+
+    # 调试LarkDemo需要打开注释
+    # pod_target_xcconfig['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
+
+    if headers = header_search_paths_of_pods[pod_target]
+      pod_target_xcconfig['SYSTEM_HEADER_SEARCH_PATHS'] = headers.join(' ')
+    end
+    if fix_modular_include.include? pod_target.name
+      pod_target_xcconfig['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = "YES"
+      pod_target_xcconfig['OTHER_SWIFT_FLAGS'] ||= ''
+      pod_target_xcconfig['OTHER_SWIFT_FLAGS'] += ' -Xcc -Wno-error=non-modular-include-in-framework-module'
+    end
+    if tobsdk_flags.include? pod_target.name
+      pod_target_xcconfig['GCC_PREPROCESSOR_DEFINITIONS'] ||= ''
+      pod_target_xcconfig['GCC_PREPROCESSOR_DEFINITIONS'] += ' TOBSDK=1'
+    end
+    if pod_target.name == 'IESGeckoKit'
+      pod_target_xcconfig['GCC_PREPROCESSOR_DEFINITIONS'] ||= '$(inherited)'
+      pod_target_xcconfig['GCC_PREPROCESSOR_DEFINITIONS'] += ' GURD_DEBUG_ENABLED=1'
+    end
+  end
+  PRE_INSTALL
+
+  post_install "post patch build settings", <<-'POST_INSTALL'
+  installer.generated_projects.each do |project|
+    project.build_configurations.each do |config|
+      config.build_settings['SWIFT_VERSION'] = '5.1'
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '11.0'
+      config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
+    end
+    project.targets.each do |target|
+      target.build_configurations.each do |config|
+        
+        config.build_settings.delete 'SWIFT_VERSION'
+        config.build_settings.delete 'IPHONEOS_DEPLOYMENT_TARGET'
+        config.build_settings.delete 'EXCLUDED_ARCHS'
+        config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = "YES"
+        # config.build_settings['OTHER_SWIFT_FLAGS'] ||= ''
+        # config.build_settings['OTHER_SWIFT_FLAGS'] += ' -Xcc -Wno-error=non-modular-include-in-framework-module'
+      end
+    end
+  end
+  POST_INSTALL
+end
+
+# https://bytedance.feishu.cn/docs/doccn1s2myse9iowwFdHJC47xqb
+debug_fastlane do
+lane :verify_all, <<-'LANE'
+    # build SaaS
+    build_verify
+    # podfile中添加KA subspec依赖
+    sh %{sed -i '' -Ee "/eepod [\\"']LarkAccount\\/C/a\\\\\n  \\\\  eepod 'LarkAccount/KA'" ../Podfile}
+    # assert Podfile 添加KA 成功
+    sh %{if grep -q "LarkAccount/KA" ../Podfile; then echo "Verify KA"; else echo "error: repalce Podfile to KA fail, please check fastlane in .patch file"; exit 1; fi}
+    sh %{pod install}
+    # build KA
+    build_verify
+LANE
+end
+

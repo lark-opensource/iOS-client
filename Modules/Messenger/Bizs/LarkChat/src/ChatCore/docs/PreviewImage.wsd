@@ -1,0 +1,38 @@
+@startuml PreviewImage
+
+interface PreviewImagesAbilityHandler {
+    var scene: PreviewImagesScene { get }
+    var resolver: Resolver { get }
+    var supportAbilities: [PreviewImagesAbilities] { get }
+    func jumpToChat(by assetKey: String)
+    func loadMoreOldImages(completion: @escaping ([LKDisplayAsset], Bool) -> Void)
+    func loadMoreNewImages(completion: @escaping ([LKDisplayAsset], Bool) -> Void)
+}
+
+interface PreviewImagesAbilityHandlerFactory {
+    func create(assets: [LKDisplayAsset], scene: PreviewImagesScene, resolver: Resolver) -> PreviewImagesAbilityHandler
+}
+
+class PreviewImagesAbilityForSearchInChatHandlerFactory {
+}
+
+class PreviewImagesAbilityForChatHandlerFactory {
+}
+
+class PreviewImagesAbilityForChat {
+}
+
+class PreviewImagesAbilityForSearchInChat {
+}
+
+class PreviewImagesRequestHandler {
+}
+
+PreviewImagesAbilityForChat  ..|> PreviewImagesAbilityHandler
+PreviewImagesAbilityForSearchInChat ..|> PreviewImagesAbilityHandler
+PreviewImagesAbilityForChatHandlerFactory ..|> PreviewImagesAbilityHandlerFactory
+PreviewImagesAbilityForSearchInChatHandlerFactory ..|> PreviewImagesAbilityHandlerFactory
+PreviewImagesAbilityForChatHandlerFactory "1" --> "1" PreviewImagesAbilityForChat: create
+PreviewImagesAbilityForSearchInChatHandlerFactory "1" --> "1" PreviewImagesAbilityForSearchInChat: create
+PreviewImagesAbilityHandlerFactory "n" --* "1" PreviewImagesRequestHandler
+@enduml

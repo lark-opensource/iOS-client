@@ -1,0 +1,50 @@
+{
+  "name": "TTNetworkDownloader",
+  "version": "1.1.39",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://toutiao.com",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "TTNet": "dongyangfan@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:TTIOS/tt_pods_downloader.git",
+    "commit": "eaddbd9f5373468481405c3b9bb0d869d0bfb9da"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "requires_arc": true,
+  "static_framework": true,
+  "source_files": "TTNetworkDownloader/Classes/**/*",
+  "public_header_files": "Pod/Classes/**/*.{h}",
+  "pod_target_xcconfig": {
+    "LIBRARY_SEARCH_PATHS": "${PODS_ROOT}/TTNetworkManager/Pod/Classes/TTNetworkBase/Chromium/libs",
+    "USER_HEADER_SEARCH_PATHS": "${PODS_ROOT}/TTNetworkManager/Pod/Classes/TTNetworkBase/Chromium/includes",
+    "GCC_ENABLE_CPP_RTTI": "NO",
+    "GCC_PREPROCESSOR_DEFINITIONS": "NDEBUG=1 GOOGLE_PROTOBUF_NO_RTTI TTNetworkDownloader_POD_VERSION=@\\\"9999_1.1.39\\\"",
+    "HEADER_SEARCH_PATHS": "${PODS_ROOT}/TTNetworkManager/Pod/Classes/TTNetworkBase/Chromium/includes/third_party/boringssl/src/include ${PODS_ROOT}/TTNetworkManager/Pod/Classes/TTNetworkBase/Chromium/includes/third_party/protobuf/src",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES"
+  },
+  "dependencies": {
+    "TTNetworkManager": [
+      ">= 4.0.10"
+    ],
+    "JSONModel": [
+      ">= 1.8.0"
+    ],
+    "TTReachability": []
+  },
+  "_bytebus_platform": {
+    "repo_id": "4405",
+    "app_id": "9999"
+  },
+  "repoId": "4405",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "TTNetworkDownloader_POD_VERSION=@\\\"9999_1.1.39\\\""
+  }
+}

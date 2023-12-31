@@ -1,0 +1,1451 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "BDMemoryMatrix_pod_hdrs",
+  srcs = [
+    ":BDMemoryMatrix_root_pod_hdrs",
+    ":HMDTracker_pod_hdrs",
+    ":Memory_pod_hdrs",
+    ":Memory_Model_pod_hdrs",
+    ":Memory_Logic_pod_hdrs",
+    ":Memory_Object_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "BDMemoryMatrix_private_includes",
+  include = [
+    "external/BDMemoryMatrix/pod_support/Headers/Private/BDMemoryMatrix/"
+  ],
+  deps = [],
+  external_name = "BDMemoryMatrix"
+)
+gen_includes(
+  name = "BDMemoryMatrix_public_includes",
+  include = [
+    "external/BDMemoryMatrix/pod_support/Headers/Public/BDMemoryMatrix/"
+  ],
+  deps = [],
+  external_name = "BDMemoryMatrix"
+)
+filegroup(
+  name = "_BDMemoryMatrix_hdrs",
+  srcs = [
+    ":BDMemoryMatrix_root_hdrs",
+    ":HMDTracker_hdrs",
+    ":Memory_hdrs",
+    ":Memory_Model_hdrs",
+    ":Memory_Logic_hdrs",
+    ":Memory_Object_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "BDMemoryMatrix_xcode_hmapsource",
+  hdrs = [
+    ":BDMemoryMatrix_root_hdrs",
+    ":HMDTracker_hdrs",
+    ":Memory_hdrs",
+    ":Memory_Logic_hdrs",
+    ":Memory_Model_hdrs",
+    ":Memory_Object_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "BDMemoryMatrix_xcode_hmap",
+  dep = ":BDMemoryMatrix_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/BDMemoryMatrix/*-bitsky-generated.modulemap", "pod_support/Headers/Public/BDMemoryMatrix/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "BDMemoryMatrix_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "BDMemoryMatrix",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "BDMemoryMatrix_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":BDMemoryMatrix_xcode_hmap"
+  ],
+  external_name = "BDMemoryMatrix",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDMemoryMatrix_root_private_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDMemoryMatrix_root_public_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDMemoryMatrix_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDMemoryMatrix_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDMemoryMatrix_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDMemoryMatrix_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "BDMemoryMatrix_module_map",
+  module_map = "pod_support/Headers/Public/BDMemoryMatrix/BDMemoryMatrix-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDMemoryMatrix/BDMemoryMatrix-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDMemoryMatrix_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "BDMemoryMatrix_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_dylibs = [
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":BDMemoryMatrix_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDMemoryMatrix_private_includes",
+    ":BDMemoryMatrix_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":BDMemoryMatrix_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDMemoryMatrix_POD_VERSION=@\\\"9999_0.0.21-rc.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-fno-c++-static-destructors",
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDMemoryMatrix",
+  deps = [
+    ":BDMemoryMatrix_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "BDMemoryMatrix_lib",
+  deps = [
+    ":BDMemoryMatrix"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "HMDTracker_private_hdrs",
+  srcs = [
+    "BDMemoryMatrix/Classes/HMDTracker/Private/HMDMatrixConfig.h",
+    "BDMemoryMatrix/Classes/HMDTracker/Private/HMDMatrixMonitor+Uploader.h",
+    "BDMemoryMatrix/Classes/HMDTracker/Private/HMDMatrixMonitor.h",
+    "BDMemoryMatrix/Classes/HMDTracker/Private/HMDMemoryGraphMatrixBridge.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "HMDTracker_public_hdrs",
+  srcs = [
+    "BDMemoryMatrix/Classes/HMDTracker/Public/HMDCustomAlog.h",
+    "BDMemoryMatrix/Classes/HMDTracker/Public/HMDCustomReport.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "HMDTracker_hdrs",
+  srcs = [
+    "BDMemoryMatrix/Classes/HMDTracker/Private/HMDMatrixConfig.h",
+    "BDMemoryMatrix/Classes/HMDTracker/Private/HMDMatrixMonitor+Uploader.h",
+    "BDMemoryMatrix/Classes/HMDTracker/Private/HMDMatrixMonitor.h",
+    "BDMemoryMatrix/Classes/HMDTracker/Private/HMDMemoryGraphMatrixBridge.h",
+    "BDMemoryMatrix/Classes/HMDTracker/Public/HMDCustomAlog.h",
+    "BDMemoryMatrix/Classes/HMDTracker/Public/HMDCustomReport.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "HMDTracker_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDMemoryMatrix/HMDCustomAlog.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/HMDCustomReport.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/HMDMatrixConfig.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/HMDMatrixMonitor+Uploader.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/HMDMatrixMonitor.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/HMDMemoryGraphMatrixBridge.h",
+    "pod_support/Headers/Public/BDMemoryMatrix/HMDCustomAlog.h",
+    "pod_support/Headers/Public/BDMemoryMatrix/HMDCustomReport.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "HMDTracker_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "HMDTracker_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "HMDTracker_module_map",
+  module_map = "pod_support/Headers/Public/BDMemoryMatrix/BDMemoryMatrix_HMDTracker-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDMemoryMatrix/BDMemoryMatrix_HMDTracker-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "HMDTracker_srcs",
+  srcs = [
+    "BDMemoryMatrix/Classes/HMDTracker/Public/HMDCustomReport.mm",
+    "BDMemoryMatrix/Classes/HMDTracker/Private/HMDMatrixConfig.m",
+    "BDMemoryMatrix/Classes/HMDTracker/Private/HMDMatrixMonitor+Uploader.mm",
+    "BDMemoryMatrix/Classes/HMDTracker/Private/HMDMatrixMonitor.m",
+    "BDMemoryMatrix/Classes/HMDTracker/Private/HMDMemoryGraphMatrixBridge.mm"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "HMDTracker_oc",
+  enable_modules = 1,
+  srcs = [
+    "HMDTracker_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "HMDTracker_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_dylibs = [
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":BDMemoryMatrix_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDMemoryMatrix_private_includes",
+    ":BDMemoryMatrix_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@Heimdallr//:ALog_objc_interface",
+    "@Heimdallr//:Core_objc_interface",
+    "@Heimdallr//:CrashDetector_objc_interface",
+    "@Heimdallr//:HMDAPPExitReason_objc_interface",
+    "@Heimdallr//:Mach_objc_interface",
+    "@Heimdallr//:UITracker_objc_interface",
+    "@SSZipArchive//:SSZipArchive_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@Heimdallr//:ALog_swift_interface",
+    "@Heimdallr//:Core_swift_interface",
+    "@Heimdallr//:CrashDetector_swift_interface",
+    "@Heimdallr//:HMDAPPExitReason_swift_interface",
+    "@Heimdallr//:Mach_swift_interface",
+    "@Heimdallr//:UITracker_swift_interface",
+    "@SSZipArchive//:SSZipArchive_swift_interface",
+    ":HMDTracker_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@Heimdallr//:ALog_module_map",
+    "@Heimdallr//:Core_module_map",
+    "@Heimdallr//:CrashDetector_module_map",
+    "@Heimdallr//:HMDAPPExitReason_module_map",
+    "@Heimdallr//:Mach_module_map",
+    "@Heimdallr//:UITracker_module_map",
+    "@SSZipArchive//:SSZipArchive_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDMemoryMatrix_POD_VERSION=@\\\"9999_0.0.21-rc.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-fno-c++-static-destructors",
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "HMDTracker",
+  deps = [
+    ":HMDTracker_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "HMDTracker_lib",
+  deps = [
+    ":HMDTracker"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Memory_private_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Memory_public_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Memory_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Memory_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Memory_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Memory_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Memory_module_map",
+  module_map = "pod_support/Headers/Public/BDMemoryMatrix/BDMemoryMatrix_Memory-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDMemoryMatrix/BDMemoryMatrix_Memory-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Memory_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Memory_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_dylibs = [
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":BDMemoryMatrix_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDMemoryMatrix_private_includes",
+    ":BDMemoryMatrix_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Memory_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDMemoryMatrix_POD_VERSION=@\\\"9999_0.0.21-rc.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-fno-c++-static-destructors",
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Memory",
+  deps = [
+    ":Memory_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Memory_lib",
+  deps = [
+    ":Memory"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Memory_Model_private_hdrs",
+  srcs = [
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/mrc/MMMatrixBaseModel.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Memory_Model_public_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Memory_Model_hdrs",
+  srcs = [
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/mrc/MMMatrixBaseModel.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Memory_Model_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDMemoryMatrix/MMMatrixBaseModel.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Memory_Model_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Memory_Model_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Memory_Model_module_map",
+  module_map = "pod_support/Headers/Public/BDMemoryMatrix/BDMemoryMatrix_Memory_Model-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDMemoryMatrix/BDMemoryMatrix_Memory_Model-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Memory_Model_non_arc_srcs",
+  srcs = [
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/mrc/MMMatrixBaseModel.mm"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Memory_Model_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [
+    "Memory_Model_non_arc_srcs"
+  ],
+  hdrs = [
+    "Memory_Model_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_dylibs = [
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":BDMemoryMatrix_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDMemoryMatrix_private_includes",
+    ":BDMemoryMatrix_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Memory_Model_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDMemoryMatrix_POD_VERSION=@\\\"9999_0.0.21-rc.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-fno-c++-static-destructors",
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Memory_Model",
+  deps = [
+    ":Memory_Model_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Memory_Model_lib",
+  deps = [
+    ":Memory_Model"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Memory_Logic_private_hdrs",
+  srcs = [
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Config/MMMemoryStatConfig.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Issue/MMMemoryIssue.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Log/MMMemoryLog.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/MMMemoryAdapter.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Private/MMMemoryAdapter+Private.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Record/MMMemoryRecordInfo.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Record/MMMemoryRecordLaunchTime.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Record/MMMemoryRecordManager.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Util/MMMatrixDeviceInfo.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Util/MMMatrixPathUtil.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/allocation_event.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/allocation_event_db.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/memory_logging_event.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/memory_logging_event_buffer.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/memory_logging_event_buffer_list.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/memory_logging_event_buffer_pool.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/memory_logging_event_config.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/nsobject_hook_method.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/object_event_handler.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/allocators.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/document.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/encodedstream.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/encodings.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/error/en.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/error/error.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/filereadstream.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/filewritestream.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/fwd.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/biginteger.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/diyfp.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/dtoa.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/ieee754.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/itoa.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/meta.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/pow10.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/regex.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/stack.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/strfunc.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/strtod.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/swap.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/istreamwrapper.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/memorybuffer.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/memorystream.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/ostreamwrapper.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/pointer.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/prettywriter.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/rapidjson.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/reader.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/schema.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/stream.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/stringbuffer.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/writer.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/StackFrames/bundle_name_helper.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/StackFrames/dyld_image_info.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/StackFrames/stack_frames_db.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/Tree/buffer_source.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/Tree/sb_tree.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/Tree/splay_map.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/Tree/splay_map_ptr.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/Tree/splay_map_simple_key.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/Tree/splay_tree.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/logger_internal.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/logger_timer.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/main_thread_id_util.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/memory_debug.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/memory_logging.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/memory_logging_adapter.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/memory_report_generator.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/memory_stat_err_code.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Memory_Logic_public_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Memory_Logic_hdrs",
+  srcs = [
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Config/MMMemoryStatConfig.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Issue/MMMemoryIssue.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Log/MMMemoryLog.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/MMMemoryAdapter.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Private/MMMemoryAdapter+Private.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Record/MMMemoryRecordInfo.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Record/MMMemoryRecordLaunchTime.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Record/MMMemoryRecordManager.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Util/MMMatrixDeviceInfo.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Util/MMMatrixPathUtil.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/allocation_event.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/allocation_event_db.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/memory_logging_event.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/memory_logging_event_buffer.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/memory_logging_event_buffer_list.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/memory_logging_event_buffer_pool.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/memory_logging_event_config.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/nsobject_hook_method.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/object_event_handler.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/allocators.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/document.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/encodedstream.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/encodings.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/error/en.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/error/error.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/filereadstream.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/filewritestream.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/fwd.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/biginteger.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/diyfp.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/dtoa.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/ieee754.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/itoa.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/meta.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/pow10.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/regex.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/stack.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/strfunc.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/strtod.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/internal/swap.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/istreamwrapper.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/memorybuffer.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/memorystream.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/ostreamwrapper.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/pointer.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/prettywriter.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/rapidjson.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/reader.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/schema.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/stream.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/stringbuffer.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/RapidJson/writer.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/StackFrames/bundle_name_helper.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/StackFrames/dyld_image_info.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/StackFrames/stack_frames_db.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/Tree/buffer_source.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/Tree/sb_tree.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/Tree/splay_map.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/Tree/splay_map_ptr.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/Tree/splay_map_simple_key.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/Tree/splay_tree.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/logger_internal.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/logger_timer.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/main_thread_id_util.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/memory_debug.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/memory_logging.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/memory_logging_adapter.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/memory_report_generator.h",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/memory_stat_err_code.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Memory_Logic_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDMemoryMatrix/MMMatrixDeviceInfo.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/MMMatrixPathUtil.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/MMMemoryAdapter+Private.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/MMMemoryAdapter.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/MMMemoryIssue.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/MMMemoryLog.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/MMMemoryRecordInfo.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/MMMemoryRecordLaunchTime.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/MMMemoryRecordManager.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/MMMemoryStatConfig.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/allocation_event.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/allocation_event_db.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/allocators.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/biginteger.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/buffer_source.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/bundle_name_helper.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/diyfp.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/document.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/dtoa.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/dyld_image_info.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/en.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/encodedstream.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/encodings.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/error.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/filereadstream.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/filewritestream.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/fwd.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/ieee754.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/istreamwrapper.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/itoa.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/logger_internal.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/logger_timer.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/main_thread_id_util.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/memory_debug.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/memory_logging.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/memory_logging_adapter.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/memory_logging_event.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/memory_logging_event_buffer.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/memory_logging_event_buffer_list.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/memory_logging_event_buffer_pool.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/memory_logging_event_config.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/memory_report_generator.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/memory_stat_err_code.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/memorybuffer.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/memorystream.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/meta.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/nsobject_hook_method.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/object_event_handler.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/ostreamwrapper.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/pointer.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/pow10.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/prettywriter.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/rapidjson.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/reader.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/regex.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/sb_tree.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/schema.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/splay_map.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/splay_map_ptr.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/splay_map_simple_key.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/splay_tree.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/stack.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/stack_frames_db.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/stream.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/strfunc.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/stringbuffer.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/strtod.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/swap.h",
+    "pod_support/Headers/Private/BDMemoryMatrix/writer.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Memory_Logic_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Memory_Logic_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Memory_Logic_module_map",
+  module_map = "pod_support/Headers/Public/BDMemoryMatrix/BDMemoryMatrix_Memory_Logic-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDMemoryMatrix/BDMemoryMatrix_Memory_Logic-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Memory_Logic_srcs",
+  srcs = [
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/allocation_event_db.cpp",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/StackFrames/bundle_name_helper.mm",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/StackFrames/dyld_image_info.cpp",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/logger_internal.cpp",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/main_thread_id_util.mm",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/memory_logging.cpp",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/memory_logging_adapter.mm",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/memory_logging_event_buffer.cpp",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/memory_logging_event_buffer_list.cpp",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/memory_logging_event_buffer_pool.cpp",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/memory_logging_event_config.cpp",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/memory_report_generator.cpp",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Util/MMMatrixDeviceInfo.mm",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Util/MMMatrixPathUtil.mm",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/MMMemoryAdapter.mm",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Issue/MMMemoryIssue.m",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Log/MMMemoryLog.mm",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Record/MMMemoryRecordInfo.mm",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Record/MMMemoryRecordLaunchTime.m",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Record/MMMemoryRecordManager.mm",
+    "BDMemoryMatrix/Classes/Memory/MemoryAdapter/Config/MMMemoryStatConfig.m",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/nsobject_hook_method.mm",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/object_event_handler.cpp",
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/StackFrames/stack_frames_db.cpp"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Memory_Logic_oc",
+  enable_modules = 1,
+  srcs = [
+    "Memory_Logic_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Memory_Logic_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_dylibs = [
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":BDMemoryMatrix_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDMemoryMatrix_private_includes",
+    ":BDMemoryMatrix_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Heimdallr//:Mach_objc_interface",
+    "@Heimdallr//:Mach_swift_interface",
+    ":Memory_Logic_objc_interface",
+    "@Heimdallr//:Mach_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDMemoryMatrix_POD_VERSION=@\\\"9999_0.0.21-rc.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-fno-c++-static-destructors",
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Memory_Logic",
+  deps = [
+    ":Memory_Logic_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Memory_Logic_lib",
+  deps = [
+    ":Memory_Logic"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Memory_Object_private_hdrs",
+  srcs = [
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/nsobject_hook.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Memory_Object_public_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Memory_Object_hdrs",
+  srcs = [
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/nsobject_hook.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Memory_Object_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDMemoryMatrix/nsobject_hook.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Memory_Object_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Memory_Object_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Memory_Object_module_map",
+  module_map = "pod_support/Headers/Public/BDMemoryMatrix/BDMemoryMatrix_Memory_Object-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDMemoryMatrix/BDMemoryMatrix_Memory_Object-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Memory_Object_non_arc_srcs",
+  srcs = [
+    "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/nsobject_hook.mm"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Memory_Object_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [
+    "Memory_Object_non_arc_srcs"
+  ],
+  hdrs = [
+    "Memory_Object_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_dylibs = [
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":BDMemoryMatrix_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDMemoryMatrix_private_includes",
+    ":BDMemoryMatrix_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Memory_Object_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDMemoryMatrix_POD_VERSION=@\\\"9999_0.0.21-rc.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-fno-c++-static-destructors",
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Memory_Object",
+  deps = [
+    ":Memory_Object_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Memory_Object_lib",
+  deps = [
+    ":Memory_Object"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Lark_BDMemoryMatrix_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@BDMemoryMatrix//:BDMemoryMatrix_objc_interface", "@BDMemoryMatrix//:HMDTracker_objc_interface", "@BDMemoryMatrix//:Memory_objc_interface", "@BDMemoryMatrix//:Memory_Logic_objc_interface", "@BDMemoryMatrix//:Memory_Model_objc_interface", "@BDMemoryMatrix//:Memory_Object_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_library")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_library(
+  name = "Lark_BDMemoryMatrix",
+  target_name = "Lark",
+  module_name = "BDMemoryMatrix",
+  public_hdrs = ["@BDMemoryMatrix//:BDMemoryMatrix_root_public_hdrs", "@BDMemoryMatrix//:HMDTracker_public_hdrs", "@BDMemoryMatrix//:Memory_public_hdrs", "@BDMemoryMatrix//:Memory_Logic_public_hdrs", "@BDMemoryMatrix//:Memory_Model_public_hdrs", "@BDMemoryMatrix//:Memory_Object_public_hdrs"],
+  private_hdrs = ["@BDMemoryMatrix//:BDMemoryMatrix_root_private_hdrs", "@BDMemoryMatrix//:HMDTracker_private_hdrs", "@BDMemoryMatrix//:Memory_private_hdrs", "@BDMemoryMatrix//:Memory_Logic_private_hdrs", "@BDMemoryMatrix//:Memory_Model_private_hdrs", "@BDMemoryMatrix//:Memory_Object_private_hdrs"],
+  srcs = ["@BDMemoryMatrix//:HMDTracker_srcs", "@BDMemoryMatrix//:Memory_Logic_srcs"],
+  non_arc_srcs = ["@BDMemoryMatrix//:Memory_Model_non_arc_srcs", "@BDMemoryMatrix//:Memory_Object_non_arc_srcs"],
+  deps = [],
+  pod_deps = ["SSZipArchive"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDMemoryMatrix_POD_VERSION=@\\\"9999_0.0.21-rc.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "BDMemoryMatrix_copts", []),
+  cxxopts = ["-fno-c++-static-destructors", "-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "BDMemoryMatrix_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = ["z", "c++"],
+  data = [],
+  features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "BDMemoryMatrix_features", []),
+  cxx_features = [] + getattr(defs_external_objc_library, "common_cxx_features", []) 
+    + getattr(defs_external_objc_library, "BDMemoryMatrix_cpp_features", []),
+  objc_features = [] + getattr(defs_external_objc_library, "common_objc_features", []) 
+    + getattr(defs_external_objc_library, "BDMemoryMatrix_objc_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "BDMemoryMatrix_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "BDMemoryMatrix_dynamic", False),
+  tags = getattr(defs_external_objc_library, "BDMemoryMatrix_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("BDMemoryMatrix", {}),
+  visibility = ["//visibility:public"],
+)

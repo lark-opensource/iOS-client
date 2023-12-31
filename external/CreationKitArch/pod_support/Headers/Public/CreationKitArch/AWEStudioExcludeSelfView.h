@@ -1,0 +1,1 @@
+../../../../CameraArch/Edit/View/AWEStudioExcludeSelfView.h

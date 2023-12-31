@@ -1,0 +1,75 @@
+{
+  "name": "BDJSBridgeAuthManager",
+  "version": "1.4.2",
+  "summary": "framework_summary",
+  "homepage": "https://code.byted.org/TTIOS/BDJSBridgeAuthManager",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "lizhuopeng": "lizhuopeng@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:iOS_Library/BDJSBridgeAuthManager.git",
+    "commit": "7becf22e861447f8ab29e5a28c85c4fffee326bc"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "default_subspecs": [
+    "Core",
+    "CN",
+    "Rename"
+  ],
+  "subspecs": [
+    {
+      "name": "Core",
+      "preserve_paths": "Scripts/fetch_jsb_auth_infos.rb",
+      "source_files": "BDJSBridgeAuthManager/Classes/Core/**/*.{h,m}",
+      "dependencies": {
+        "TTNetworkManager": [],
+        "BDAssert": [],
+        "Godzippa": [],
+        "BDAlogProtocol": [],
+        "Heimdallr/UserException": []
+      }
+    },
+    {
+      "name": "CN",
+      "source_files": "BDJSBridgeAuthManager/Classes/CN/**/*.{h,m}",
+      "dependencies": {
+        "BDJSBridgeAuthManager/Core": []
+      }
+    },
+    {
+      "name": "Debug",
+      "source_files": "BDJSBridgeAuthManager/Classes/Debug/**/*.{h,m}",
+      "dependencies": {
+        "BDJSBridgeAuthManager/Core": [],
+        "TTDebugCore": [],
+        "ByteDanceKit": []
+      }
+    },
+    {
+      "name": "Rename",
+      "dependencies": {
+        "BDJSBridgeAuthManager/Core": []
+      },
+      "source_files": "BDJSBridgeAuthManager/Classes/Rename/**/*.{h,m}"
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "5881",
+    "app_id": "9999"
+  },
+  "repoId": "5881",
+  "description": "framework_description",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDJSBridgeAuthManager_POD_VERSION=@\\\"9999_1.4.2\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDJSBridgeAuthManager_POD_VERSION=@\\\"9999_1.4.2\\\""
+  }
+}

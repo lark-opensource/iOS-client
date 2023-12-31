@@ -1,0 +1,1 @@
+../../../../ADFeelGood/Manager/Model/ADFeelGoodOpenModel.h

@@ -1,0 +1,1 @@
+../../../../BDFlutterPluginManager/Classes/BDBaseFlutterPlugin.h

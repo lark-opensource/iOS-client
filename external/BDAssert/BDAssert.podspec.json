@@ -1,0 +1,67 @@
+{
+    "name": "BDAssert",
+    "version": "2.0.0",
+    "summary": "framework_summary",
+    "homepage": "https://code.byted.org/TTIOS/BDAssert",
+    "license": {
+        "type": "MIT",
+        "file": "LICENSE"
+    },
+    "authors": {
+        "李琢鹏": "lizhuopeng@bytedance.com"
+    },
+    "source": {
+        "git": "git@code.byted.org:TTIOS/BDAssert",
+        "commit": "6d235bf"
+    },
+    "platforms": {
+        "ios": "8.0"
+    },
+    "default_subspecs": "Core",
+    "subspecs": [
+        {
+            "name": "Core",
+            "source_files": "BDAssert/Classes/Core/**/*",
+            "preserve_paths": [
+                "**/*.bwp"
+            ]
+        },
+        {
+            "name": "ALog",
+            "source_files": "BDAssert/Classes/ALogPlugin/**/*",
+            "dependencies": {
+                "BDAssert/Core": [],
+                "BDAlogProtocol": []
+            },
+            "libraries": "c++",
+            "preserve_paths": [
+                "**/*.bwp"
+            ]
+        },
+        {
+            "name": "UserException",
+            "source_files": "BDAssert/Classes/UserException/**/*",
+            "dependencies": {
+                "BDAssert/Core": [],
+                "Heimdallr/UserException": [
+                    "~>0.7.3-rc.6"
+                ]
+            },
+            "preserve_paths": [
+                "**/*.bwp"
+            ]
+        }
+    ],
+    "description": "framework_description",
+    "preserve_paths": [
+        "**/*.bwp"
+    ],
+    "user_target_xcconfig": {
+        "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+        "GCC_PREPROCESSOR_DEFINITIONS": "BDAssert_POD_VERSION=@\\\"13_2.0.0\\\""
+    },
+    "pod_target_xcconfig": {
+        "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+        "GCC_PREPROCESSOR_DEFINITIONS": "BDAssert_POD_VERSION=@\\\"13_2.0.0\\\""
+    }
+}

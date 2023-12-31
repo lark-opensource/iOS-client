@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayAbility/PayWebView/PreFetch/CJPayBridgePlugin_getSettings.h

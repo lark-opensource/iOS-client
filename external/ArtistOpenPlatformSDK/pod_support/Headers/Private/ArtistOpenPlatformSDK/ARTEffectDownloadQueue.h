@@ -1,0 +1,1 @@
+../../../../ArtistOpenPlatformSDK/Classes/Effect/Download/ARTEffectDownloadQueue.h

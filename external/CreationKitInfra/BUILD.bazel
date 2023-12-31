@@ -1,0 +1,843 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "CreationKitInfra_pod_hdrs",
+  srcs = [
+    ":CreationKitInfra_root_pod_hdrs",
+    ":MobileInfra_pod_hdrs",
+    ":Debug_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "CreationKitInfra_private_includes",
+  include = [
+    "external/CreationKitInfra/pod_support/Headers/Private/CreationKitInfra/"
+  ],
+  deps = [],
+  external_name = "CreationKitInfra"
+)
+gen_includes(
+  name = "CreationKitInfra_public_includes",
+  include = [
+    "external/CreationKitInfra/pod_support/Headers/Public/CreationKitInfra/"
+  ],
+  deps = [],
+  external_name = "CreationKitInfra"
+)
+filegroup(
+  name = "_CreationKitInfra_hdrs",
+  srcs = [
+    ":CreationKitInfra_root_hdrs",
+    ":MobileInfra_hdrs",
+    ":Debug_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "CreationKitInfra_xcode_hmapsource",
+  hdrs = [
+    ":CreationKitInfra_root_hdrs",
+    ":MobileInfra_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "CreationKitInfra_xcode_hmap",
+  dep = ":CreationKitInfra_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/CreationKitInfra/*-bitsky-generated.modulemap", "pod_support/Headers/Public/CreationKitInfra/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "CreationKitInfra_MobileInfra_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libCreationKitInfra-a311ed3.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "CreationKitInfra_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "CreationKitInfra",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "CreationKitInfra_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":CreationKitInfra_xcode_hmap"
+  ],
+  external_name = "CreationKitInfra",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CreationKitInfra_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CreationKitInfra_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CreationKitInfra_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CreationKitInfra_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "CreationKitInfra_module_map",
+  module_map = "pod_support/Headers/Public/CreationKitInfra/CreationKitInfra-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreationKitInfra/CreationKitInfra-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CreationKitInfra_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "CreationKitInfra_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreationKitInfra_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreationKitInfra_private_includes",
+    ":CreationKitInfra_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":CreationKitInfra_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CreationKitInfra",
+  deps = [
+    ":CreationKitInfra_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "CreationKitInfra_lib",
+  deps = [
+    ":CreationKitInfra"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "MobileInfra_hdrs",
+  srcs = [
+    "MobileInfra/BaseModel/ACCBaseApiModel.h",
+    "MobileInfra/Define/ACCCommonDefine.h",
+    "MobileInfra/Define/ACCConfigManager.h",
+    "MobileInfra/Define/ACCRecordFilterDefines.h",
+    "MobileInfra/Define/AWEModernStickerDefine.h",
+    "MobileInfra/Effect/IESCategoryModel+AWEAdditions.h",
+    "MobileInfra/Effect/IESEffectModel+AWEExtension.h",
+    "MobileInfra/Foundation/Animation/AWEMediaSmallAnimationProtocol.h",
+    "MobileInfra/Foundation/Category/CALayer+ACCRTL.h",
+    "MobileInfra/Foundation/Category/NSData+ACCAdditions.h",
+    "MobileInfra/Foundation/Category/NSDictionary+ACCAddBaseApiPropertyKey.h",
+    "MobileInfra/Foundation/Category/NSDictionary+ACCAddition.h",
+    "MobileInfra/Foundation/Category/NSString+ACCAdditions.h",
+    "MobileInfra/Foundation/Category/RACSignal+IESAutoResponse.h",
+    "MobileInfra/Foundation/Category/UILabel+ACCAdditions.h",
+    "MobileInfra/Foundation/Category/UIView+ACCMasonry.h",
+    "MobileInfra/Foundation/Category/UIView+ACCRTL.h",
+    "MobileInfra/Foundation/Category/UIView+ACCUIKit.h",
+    "MobileInfra/Foundation/Define/ACCModuleService.h",
+    "MobileInfra/Foundation/Views/ACCLoadMoreFooter.h",
+    "MobileInfra/Foundation/Views/ACCSearchBar.h",
+    "MobileInfra/Foundation/Views/ACCSlidingViewController/ACCSlidingScrollView.h",
+    "MobileInfra/Foundation/Views/ACCSlidingViewController/ACCSlidingTabbarProtocol.h",
+    "MobileInfra/Foundation/Views/ACCSlidingViewController/ACCSlidingTabbarView.h",
+    "MobileInfra/Foundation/Views/ACCSlidingViewController/ACCSlidingViewController.h",
+    "MobileInfra/Foundation/Views/ACCTapticEngineManager.h",
+    "MobileInfra/Foundation/Views/AWECircularProgressView.h",
+    "MobileInfra/Foundation/Views/AWERangeSlider.h",
+    "MobileInfra/Foundation/Views/AWESlider.h",
+    "MobileInfra/Foundation/Views/AWEVideoHintView.h",
+    "MobileInfra/Foundation/Views/UISearchBar+ACCLeftPlaceholder.h",
+    "MobileInfra/Service/Heimdallr/ACCHeimdallrProtocol.h",
+    "MobileInfra/Service/Infra/ACCI18NConfigProtocol.h",
+    "MobileInfra/Service/Infra/ACCLogProtocol.h",
+    "MobileInfra/Service/Infra/ACCRTLProtocol.h",
+    "MobileInfra/Service/UI/ACCAlertProtocol.h",
+    "MobileInfra/Service/UI/ACCLoadingViewProtocol.h",
+    "MobileInfra/Service/UI/ACCToastProtocol.h",
+    "MobileInfra/Util/ACCDeviceAuth.h",
+    "MobileInfra/Util/ACCDeviceInfo.h",
+    "MobileInfra/Util/ACCGroupedPredicate.h",
+    "MobileInfra/Util/ACCLangRegionLisener.h",
+    "MobileInfra/Util/ACCLogHelper.h",
+    "MobileInfra/Util/ACCMakeRect.h",
+    "MobileInfra/Util/ACCMiddlemanProxy.h",
+    "MobileInfra/Util/ACCPathUtils.h",
+    "MobileInfra/Util/ACCRACWrapper.h",
+    "MobileInfra/Util/ACCRecordAuthDefine.h",
+    "MobileInfra/Util/ACCResponder.h",
+    "MobileInfra/Util/ACCTrackerSender.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "MobileInfra_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CreationKitInfra/ACCAlertProtocol.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCBaseApiModel.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCCommonDefine.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCConfigManager.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCDeviceAuth.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCDeviceInfo.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCGroupedPredicate.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCHeimdallrProtocol.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCI18NConfigProtocol.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCLangRegionLisener.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCLoadMoreFooter.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCLoadingViewProtocol.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCLogHelper.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCLogProtocol.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCMakeRect.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCMiddlemanProxy.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCModuleService.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCPathUtils.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCRACWrapper.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCRTLProtocol.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCRecordAuthDefine.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCRecordFilterDefines.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCResponder.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCSearchBar.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCSlidingScrollView.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCSlidingTabbarProtocol.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCSlidingTabbarView.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCSlidingViewController.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCTapticEngineManager.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCToastProtocol.h",
+    "pod_support/Headers/Private/CreationKitInfra/ACCTrackerSender.h",
+    "pod_support/Headers/Private/CreationKitInfra/AWECircularProgressView.h",
+    "pod_support/Headers/Private/CreationKitInfra/AWEMediaSmallAnimationProtocol.h",
+    "pod_support/Headers/Private/CreationKitInfra/AWEModernStickerDefine.h",
+    "pod_support/Headers/Private/CreationKitInfra/AWERangeSlider.h",
+    "pod_support/Headers/Private/CreationKitInfra/AWESlider.h",
+    "pod_support/Headers/Private/CreationKitInfra/AWEVideoHintView.h",
+    "pod_support/Headers/Private/CreationKitInfra/CALayer+ACCRTL.h",
+    "pod_support/Headers/Private/CreationKitInfra/IESCategoryModel+AWEAdditions.h",
+    "pod_support/Headers/Private/CreationKitInfra/IESEffectModel+AWEExtension.h",
+    "pod_support/Headers/Private/CreationKitInfra/NSData+ACCAdditions.h",
+    "pod_support/Headers/Private/CreationKitInfra/NSDictionary+ACCAddBaseApiPropertyKey.h",
+    "pod_support/Headers/Private/CreationKitInfra/NSDictionary+ACCAddition.h",
+    "pod_support/Headers/Private/CreationKitInfra/NSString+ACCAdditions.h",
+    "pod_support/Headers/Private/CreationKitInfra/RACSignal+IESAutoResponse.h",
+    "pod_support/Headers/Private/CreationKitInfra/UILabel+ACCAdditions.h",
+    "pod_support/Headers/Private/CreationKitInfra/UISearchBar+ACCLeftPlaceholder.h",
+    "pod_support/Headers/Private/CreationKitInfra/UIView+ACCMasonry.h",
+    "pod_support/Headers/Private/CreationKitInfra/UIView+ACCRTL.h",
+    "pod_support/Headers/Private/CreationKitInfra/UIView+ACCUIKit.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCAlertProtocol.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCBaseApiModel.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCCommonDefine.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCConfigManager.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCDeviceAuth.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCDeviceInfo.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCGroupedPredicate.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCHeimdallrProtocol.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCI18NConfigProtocol.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCLangRegionLisener.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCLoadMoreFooter.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCLoadingViewProtocol.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCLogHelper.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCLogProtocol.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCMakeRect.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCMiddlemanProxy.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCModuleService.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCPathUtils.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCRACWrapper.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCRTLProtocol.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCRecordAuthDefine.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCRecordFilterDefines.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCResponder.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCSearchBar.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCSlidingScrollView.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCSlidingTabbarProtocol.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCSlidingTabbarView.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCSlidingViewController.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCTapticEngineManager.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCToastProtocol.h",
+    "pod_support/Headers/Public/CreationKitInfra/ACCTrackerSender.h",
+    "pod_support/Headers/Public/CreationKitInfra/AWECircularProgressView.h",
+    "pod_support/Headers/Public/CreationKitInfra/AWEMediaSmallAnimationProtocol.h",
+    "pod_support/Headers/Public/CreationKitInfra/AWEModernStickerDefine.h",
+    "pod_support/Headers/Public/CreationKitInfra/AWERangeSlider.h",
+    "pod_support/Headers/Public/CreationKitInfra/AWESlider.h",
+    "pod_support/Headers/Public/CreationKitInfra/AWEVideoHintView.h",
+    "pod_support/Headers/Public/CreationKitInfra/CALayer+ACCRTL.h",
+    "pod_support/Headers/Public/CreationKitInfra/IESCategoryModel+AWEAdditions.h",
+    "pod_support/Headers/Public/CreationKitInfra/IESEffectModel+AWEExtension.h",
+    "pod_support/Headers/Public/CreationKitInfra/NSData+ACCAdditions.h",
+    "pod_support/Headers/Public/CreationKitInfra/NSDictionary+ACCAddBaseApiPropertyKey.h",
+    "pod_support/Headers/Public/CreationKitInfra/NSDictionary+ACCAddition.h",
+    "pod_support/Headers/Public/CreationKitInfra/NSString+ACCAdditions.h",
+    "pod_support/Headers/Public/CreationKitInfra/RACSignal+IESAutoResponse.h",
+    "pod_support/Headers/Public/CreationKitInfra/UILabel+ACCAdditions.h",
+    "pod_support/Headers/Public/CreationKitInfra/UISearchBar+ACCLeftPlaceholder.h",
+    "pod_support/Headers/Public/CreationKitInfra/UIView+ACCMasonry.h",
+    "pod_support/Headers/Public/CreationKitInfra/UIView+ACCRTL.h",
+    "pod_support/Headers/Public/CreationKitInfra/UIView+ACCUIKit.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "MobileInfra_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "MobileInfra_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "MobileInfra_module_map",
+  module_map = "pod_support/Headers/Public/CreationKitInfra/CreationKitInfra_MobileInfra-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreationKitInfra/CreationKitInfra_MobileInfra-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "MobileInfra_srcs",
+  srcs = [
+    "MobileInfra/Util/ACCDeviceAuth.m",
+    "MobileInfra/Foundation/Views/ACCSlidingViewController/ACCSlidingScrollView.m",
+    "MobileInfra/Effect/IESEffectModel+AWEExtension.m",
+    "rock_dummy/rock_dummy_a311ed3.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "MobileInfra_oc",
+  enable_modules = 1,
+  srcs = [
+    "MobileInfra_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "MobileInfra_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "AVFoundation",
+    "CoreText",
+    "CoreGraphics",
+    "UIKit",
+    "MapKit"
+  ],
+  deps = [
+    ":CreationKitInfra_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreationKitInfra_private_includes",
+    ":CreationKitInfra_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@AWELazyRegister//:AWELazyRegister_objc_interface",
+    "@CreativeKit//:CameraArch_objc_interface",
+    "@CreativeKit//:MobileInfra_objc_interface",
+    "@EffectPlatformSDK//:ModelDistribute_objc_interface",
+    "@KVOController//:KVOController_objc_interface",
+    "@Mantle//:Mantle_objc_interface",
+    "@Masonry//:Masonry_objc_interface",
+    "@MJRefresh//:MJRefresh_objc_interface",
+    "@ReactiveObjC//:ReactiveObjC_objc_interface",
+    "@AWELazyRegister//:AWELazyRegister_swift_interface",
+    "@CreativeKit//:CameraArch_swift_interface",
+    "@CreativeKit//:MobileInfra_swift_interface",
+    "@EffectPlatformSDK//:ModelDistribute_swift_interface",
+    "@KVOController//:KVOController_swift_interface",
+    "@Mantle//:Mantle_swift_interface",
+    "@Masonry//:Masonry_swift_interface",
+    "@MJRefresh//:MJRefresh_swift_interface",
+    "@ReactiveObjC//:ReactiveObjC_swift_interface",
+    ":CreationKitInfra_MobileInfra_VendoredLibraries",
+    ":MobileInfra_objc_interface",
+    "@AWELazyRegister//:AWELazyRegister_module_map",
+    "@CreativeKit//:CameraArch_module_map",
+    "@CreativeKit//:MobileInfra_module_map",
+    "@EffectPlatformSDK//:ModelDistribute_module_map",
+    "@KVOController//:KVOController_module_map",
+    "@Mantle//:Mantle_module_map",
+    "@Masonry//:Masonry_module_map",
+    "@MJRefresh//:MJRefresh_module_map",
+    "@ReactiveObjC//:ReactiveObjC_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "MobileInfra",
+  deps = [
+    ":MobileInfra_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "MobileInfra_lib",
+  deps = [
+    ":MobileInfra"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Debug_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Debug_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Debug_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Debug_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Debug_module_map",
+  module_map = "pod_support/Headers/Public/CreationKitInfra/CreationKitInfra_Debug-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreationKitInfra/CreationKitInfra_Debug-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Debug_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Debug_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreationKitInfra_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreationKitInfra_private_includes",
+    ":CreationKitInfra_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Debug_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-DACC_DEBUG_MODE=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Debug",
+  deps = [
+    ":Debug_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Debug_lib",
+  deps = [
+    ":Debug"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_CreationKitInfra_module_map",
+  module_map = "@CreationKitInfra//:pod_support/Headers/Public/CreationKitInfra/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@CreationKitInfra//:pod_support/Headers/Public/CreationKitInfra/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_CreationKitInfra_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@CreationKitInfra//:CreationKitInfra_objc_interface", "@CreationKitInfra//:MobileInfra_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_CreationKitInfra",
+  target_name = "Lark",
+  module_name = "CreationKitInfra",
+  hdrs = ["@CreationKitInfra//:CreationKitInfra_root_pod_hdrs", "@CreationKitInfra//:MobileInfra_pod_hdrs"],
+  srcs = ["@CreationKitInfra//:MobileInfra_srcs"],
+  non_arc_srcs = [],
+  deps = ["@CreationKitInfra//:CreationKitInfra_MobileInfra_VendoredLibraries"],
+  pod_deps = ["AWELazyRegister", "CreativeKit", "EffectPlatformSDK", "KVOController", "Mantle", "Masonry", "MJRefresh", "ReactiveObjC"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "CreationKitInfra_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "CreationKitInfra_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["Foundation", "AVFoundation", "CoreText", "CoreGraphics", "UIKit", "MapKit"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "CreationKitInfra_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "CreationKitInfra_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "CreationKitInfra_dynamic", False),
+  tags = getattr(defs_external_objc_library, "CreationKitInfra_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("CreationKitInfra", {}),
+  visibility = ["//visibility:public"],
+)

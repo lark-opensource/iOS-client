@@ -1,0 +1,1 @@
+../../../../AWELazyRegister/Classes/Rename/AWELazyRegister_Rename.h

@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme
+   LastUpgradeVersion = "1240"
+   version = "2.0">
+   <BuildAction
+      parallelizeBuildables = "YES"
+      buildImplicitDependencies = "YES">
+      <PreActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "[BD-build-infer]"
+               scriptText = "export BD_ENTRY_SCRIPT=&quot;$0:A&quot;;
+if [ -f ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_sync.sh ];then
+  bash ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_sync.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- || echo &quot;skip&quot;;
+fi;
+[ ! -d ~/Library/Caches/com.bytedance.buildinfra/common ] &amp;&amp; mkdir -p ~/Library/Caches/com.bytedance.buildinfra/common;
+curl -s -S -f https://ios.bytedance.net/wlapi/tosDownload/iosbinary/indexstore/pre_build_hook_async.sh -o ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_async.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- &amp;
+if [ -f ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_async.sh ];then
+  bash ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_async.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- &amp;;
+fi;
+"
+               shellToInvoke = "/bin/zsh">
+            </ActionContent>
+         </ExecutionAction>
+      </PreActions>
+      <PostActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "[BD-build-infer]"
+               scriptText = "export BD_ENTRY_SCRIPT=&quot;$0:A&quot;;
+if [ -f ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_sync.sh ];then
+  bash ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_sync.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- || echo &quot;skip&quot;;
+fi;
+[ ! -d ~/Library/Caches/com.bytedance.buildinfra/common ] &amp;&amp; mkdir -p ~/Library/Caches/com.bytedance.buildinfra/common;
+curl -s -S -f https://ios.bytedance.net/wlapi/tosDownload/iosbinary/indexstore/post_build_hook_async.sh -o ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_async.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- &amp;;
+if [ -f ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_async.sh ];then
+  bash ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_async.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- &amp;;
+fi;
+"
+               shellToInvoke = "/bin/zsh">
+            </ActionContent>
+         </ExecutionAction>
+      </PostActions>
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "607FACCF1AFB9204008FA782"
+               BuildableName = "Ecosystem.app"
+               BlueprintName = "Ecosystem"
+               ReferencedContainer = "container:Ecosystem.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <TestAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "NO"
+      codeCoverageEnabled = "YES">
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "IS_TESTING_OPEN_PLATFORM_SDK"
+            value = "1"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
+      <CodeCoverageTargets>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "D8661B87105D2E64BA3E9189777752A0"
+            BuildableName = "LarkOpenPluginManager.framework"
+            BlueprintName = "LarkOpenPluginManager"
+            ReferencedContainer = "container:Pods/LarkOpenPluginManager.xcodeproj">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "CE727E0EB1E2EFCC09ADFDD0BE9362CA"
+            BuildableName = "LarkOpenAPIModel.framework"
+            BlueprintName = "LarkOpenAPIModel"
+            ReferencedContainer = "container:Pods/LarkOpenAPIModel.xcodeproj">
+         </BuildableReference>
+      </CodeCoverageTargets>
+      <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "3656C39F6B3A46D1F5D7B23BBCEC1D37"
+               BuildableName = "LarkOpenPluginManager-Unit-Tests.xctest"
+               BlueprintName = "LarkOpenPluginManager-Unit-Tests"
+               ReferencedContainer = "container:Pods/LarkOpenPluginManager.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "B2C4ACA8B5B51FB0512F61F12EBB54C5"
+               BuildableName = "LarkOpenAPIModel-Unit-Tests.xctest"
+               BlueprintName = "LarkOpenAPIModel-Unit-Tests"
+               ReferencedContainer = "container:Pods/LarkOpenAPIModel.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "E4B4C1F44600BB25622C616E14159E1B"
+               BuildableName = "TTMicroApp-Unit-Tests.xctest"
+               BlueprintName = "TTMicroApp-Unit-Tests"
+               ReferencedContainer = "container:Pods/TTMicroApp.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "31D1EE43F7E5FCE39DE2A9BE0135ABED"
+               BuildableName = "OPSDK-Unit-Tests.xctest"
+               BlueprintName = "OPSDK-Unit-Tests"
+               ReferencedContainer = "container:Pods/OPSDK.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "DF5D8C151E6F3A74B60DF298947E4F77"
+               BuildableName = "OPGadget-Unit-Tests.xctest"
+               BlueprintName = "OPGadget-Unit-Tests"
+               ReferencedContainer = "container:Pods/OPGadget.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "891A691F40040FA498308647CA6CD12E"
+               BuildableName = "OPPlugin-Unit-Tests.xctest"
+               BlueprintName = "OPPlugin-Unit-Tests"
+               ReferencedContainer = "container:Pods/OPPlugin.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "89DBABB07E1F3F46082ABEBB85C63B4E"
+               BuildableName = "ECOInfra-Unit-Tests.xctest"
+               BlueprintName = "ECOInfra-Unit-Tests"
+               ReferencedContainer = "container:Pods/ECOInfra.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "715C698670E07CE5C1BD9CBE083EE488"
+               BuildableName = "EcosystemWeb-Unit-Tests.xctest"
+               BlueprintName = "EcosystemWeb-Unit-Tests"
+               ReferencedContainer = "container:Pods/EcosystemWeb.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "8DF7A5AAF1B715E618660308A6ABED05"
+               BuildableName = "WebBrowser-Unit-Tests.xctest"
+               BlueprintName = "WebBrowser-Unit-Tests"
+               ReferencedContainer = "container:Pods/WebBrowser.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+      </Testables>
+   </TestAction>
+   <LaunchAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      customLLDBInitFile = "$(SRCROOT)/LLDBInitFile"
+      disableMainThreadChecker = "YES"
+      launchStyle = "0"
+      useCustomWorkingDirectory = "NO"
+      ignoresPersistentStateOnLaunch = "NO"
+      debugDocumentVersioning = "YES"
+      debugXPCServices = "NO"
+      debugServiceExtension = "internal"
+      enableGPUFrameCaptureMode = "3"
+      enableGPUValidationMode = "1"
+      allowLocationSimulation = "YES"
+      GPUProfilerEnabled = "No">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "607FACCF1AFB9204008FA782"
+            BuildableName = "Ecosystem.app"
+            BlueprintName = "Ecosystem"
+            ReferencedContainer = "container:Ecosystem.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </LaunchAction>
+   <ProfileAction
+      buildConfiguration = "Release"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      savedToolIdentifier = ""
+      useCustomWorkingDirectory = "NO"
+      debugDocumentVersioning = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "607FACCF1AFB9204008FA782"
+            BuildableName = "Ecosystem.app"
+            BlueprintName = "Ecosystem"
+            ReferencedContainer = "container:Ecosystem.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </ProfileAction>
+   <AnalyzeAction
+      buildConfiguration = "Debug">
+   </AnalyzeAction>
+   <ArchiveAction
+      buildConfiguration = "Release"
+      customArchiveName = "&#x98de;&#x4e66;&#x751f;&#x6001;&#x7cfb;&#x7edf;"
+      revealArchiveInOrganizer = "YES">
+   </ArchiveAction>
+</Scheme>

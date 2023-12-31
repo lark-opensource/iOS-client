@@ -1,0 +1,1 @@
+../../../../ios/Headers/NLETextTemplateClip+iOS.h

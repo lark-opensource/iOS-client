@@ -1,0 +1,1 @@
+../../../../lensengine/src/cpp/algorithm/LumaDetection/include/LumaDetectionProcess.h

@@ -1,0 +1,1 @@
+../../../../ios/veadapter/VENativeWrapper+Effect.h

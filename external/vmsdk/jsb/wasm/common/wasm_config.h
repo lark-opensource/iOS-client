@@ -1,0 +1,22 @@
+// Copyright 2022 The Vmsdk Authors. All rights reserved.
+
+#ifndef JSB_WASM_COMMON_WASM_CONFIG_H_
+#define JSB_WASM_COMMON_WASM_CONFIG_H_
+
+#define JS_ENGINE_UNKNWON 0
+#define JS_ENGINE_QJS 1
+#define JS_ENGINE_JSC 2
+
+#define WASM_ENGINE_UNKNWON 0
+#define WASM_ENGINE_WASM3 1
+#define WASM_ENGINE_WAMR 2
+
+#ifndef JS_ENGINE_TYPE
+#define JS_ENGINE_TYPE JS_ENGINE_QJS
+#endif
+
+#ifndef WASM_ENGINE_TYPE
+#define WASM_ENGINE_TYPE WASM_ENGINE_WASM3
+#endif
+
+#endif  // JSB_WASM_COMMON_WASM_CONFIG_H_

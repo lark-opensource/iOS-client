@@ -1,0 +1,1 @@
+../../../../CameraClient/MVPComponents/Recorder/PropPanelComponent/Model/ACCPropSelection.h

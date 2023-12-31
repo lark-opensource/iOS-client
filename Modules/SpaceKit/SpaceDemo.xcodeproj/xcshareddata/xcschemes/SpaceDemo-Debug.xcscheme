@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme
+   LastUpgradeVersion = "1330"
+   version = "1.8">
+   <BuildAction
+      parallelizeBuildables = "YES"
+      buildImplicitDependencies = "YES">
+      <PreActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "[BD-build-infer]"
+               scriptText = "export BD_ENTRY_SCRIPT=&quot;$0:A&quot;;
+if [ -f ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_sync.sh ];then
+  bash ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_sync.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- || echo &quot;skip&quot;;
+fi;
+[ ! -d ~/Library/Caches/com.bytedance.buildinfra/common ] &amp;&amp; mkdir -p ~/Library/Caches/com.bytedance.buildinfra/common;
+curl -s -S -f https://ios.bytedance.net/wlapi/tosDownload/iosbinary/indexstore/pre_build_hook_async.sh -o ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_async.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- &amp;
+if [ -f ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_async.sh ];then
+  bash ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_async.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- &amp;;
+fi;
+"
+               shellToInvoke = "/bin/zsh">
+            </ActionContent>
+         </ExecutionAction>
+      </PreActions>
+      <PostActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "[BD-build-infer]"
+               scriptText = "export BD_ENTRY_SCRIPT=&quot;$0:A&quot;;
+if [ -f ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_sync.sh ];then
+  bash ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_sync.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- || echo &quot;skip&quot;;
+fi;
+[ ! -d ~/Library/Caches/com.bytedance.buildinfra/common ] &amp;&amp; mkdir -p ~/Library/Caches/com.bytedance.buildinfra/common;
+curl -s -S -f https://ios.bytedance.net/wlapi/tosDownload/iosbinary/indexstore/post_build_hook_async.sh -o ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_async.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- &amp;;
+if [ -f ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_async.sh ];then
+  bash ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_async.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- &amp;;
+fi;
+"
+               shellToInvoke = "/bin/zsh">
+            </ActionContent>
+         </ExecutionAction>
+      </PostActions>
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "701D4EC91FC2E50000D2B0E0"
+               BuildableName = "Docs.app"
+               BlueprintName = "SpaceDemo"
+               ReferencedContainer = "container:SpaceDemo.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <TestAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "NO"
+      codeCoverageEnabled = "YES">
+      <CommandLineArguments>
+         <CommandLineArgument
+            argument = "-ADHShowOnConnectionFailed NO"
+            isEnabled = "YES">
+         </CommandLineArgument>
+      </CommandLineArguments>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "IS_TESTING_DOCS_SDK"
+            value = "1"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
+      <CodeCoverageTargets>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "5EFEDF4591AD7228760F1762A586CF6D"
+            BuildableName = "SKCommon.framework"
+            BlueprintName = "SKCommon"
+            ReferencedContainer = "container:Pods/SKCommon.xcodeproj">
+         </BuildableReference>
+      </CodeCoverageTargets>
+      <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "F468218DB810CF5E22C9A58893560602"
+               BuildableName = "SKDrive-Unit-Tests.xctest"
+               BlueprintName = "SKDrive-Unit-Tests"
+               ReferencedContainer = "container:Pods/SKDrive.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "B9CE1A473AA6127104396985D972DA0E"
+               BuildableName = "SKBitable-Unit-Tests.xctest"
+               BlueprintName = "SKBitable-Unit-Tests"
+               ReferencedContainer = "container:Pods/SKBitable.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "D029F9FF0E958BD3238EBF913C0D23CF"
+               BuildableName = "SKBrowser-Unit-Tests.xctest"
+               BlueprintName = "SKBrowser-Unit-Tests"
+               ReferencedContainer = "container:Pods/SKBrowser.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "6719F28C434C8670CCC4CF841A5224EE"
+               BuildableName = "SKCommon-Unit-Tests.xctest"
+               BlueprintName = "SKCommon-Unit-Tests"
+               ReferencedContainer = "container:Pods/SKCommon.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C2AD9EBF21E0821FB25CC454FEE12F63"
+               BuildableName = "SKDoc-Unit-Tests.xctest"
+               BlueprintName = "SKDoc-Unit-Tests"
+               ReferencedContainer = "container:Pods/SKDoc.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "716E832C494364C6E8D994439C194C6A"
+               BuildableName = "SKFoundation-Unit-Tests.xctest"
+               BlueprintName = "SKFoundation-Unit-Tests"
+               ReferencedContainer = "container:Pods/SKFoundation.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "B0A58F021F6F6B1A6D646E5F3176842D"
+               BuildableName = "SKSheet-Unit-Tests.xctest"
+               BlueprintName = "SKSheet-Unit-Tests"
+               ReferencedContainer = "container:Pods/SKSheet.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "71B44458A7B063EBF25938020AF00ED9"
+               BuildableName = "SKSpace-Unit-Tests.xctest"
+               BlueprintName = "SKSpace-Unit-Tests"
+               ReferencedContainer = "container:Pods/SKSpace.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "99BC00A2341D390ABEC5A8824BF34352"
+               BuildableName = "SKWikiV2-Unit-Tests.xctest"
+               BlueprintName = "SKWikiV2-Unit-Tests"
+               ReferencedContainer = "container:Pods/SKWikiV2.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "7EAB3D11C564254A06096A5AD27BC333"
+               BuildableName = "SKComment-Unit-Tests.xctest"
+               BlueprintName = "SKComment-Unit-Tests"
+               ReferencedContainer = "container:Pods/SKComment.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "734A2CF8C406653B0E84AAA80BEF8794"
+               BuildableName = "SKPermission-Unit-Tests.xctest"
+               BlueprintName = "SKPermission-Unit-Tests"
+               ReferencedContainer = "container:Pods/SKPermission.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+      </Testables>
+   </TestAction>
+   <LaunchAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      launchStyle = "0"
+      useCustomWorkingDirectory = "NO"
+      ignoresPersistentStateOnLaunch = "NO"
+      debugDocumentVersioning = "YES"
+      migratedStopOnEveryIssue = "YES"
+      debugServiceExtension = "internal"
+      allowLocationSimulation = "YES"
+      queueDebuggingEnabled = "No">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "701D4EC91FC2E50000D2B0E0"
+            BuildableName = "Docs.app"
+            BlueprintName = "SpaceDemo"
+            ReferencedContainer = "container:SpaceDemo.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+      <CommandLineArguments>
+         <CommandLineArgument
+            argument = "-ADHShowOnConnectionFailed NO"
+            isEnabled = "YES">
+         </CommandLineArgument>
+      </CommandLineArguments>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "OS_ACTIVITY_MODE"
+            value = "disable"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
+   </LaunchAction>
+   <ProfileAction
+      buildConfiguration = "Debug"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      savedToolIdentifier = ""
+      useCustomWorkingDirectory = "NO"
+      debugDocumentVersioning = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "701D4EC91FC2E50000D2B0E0"
+            BuildableName = "Docs.app"
+            BlueprintName = "SpaceDemo"
+            ReferencedContainer = "container:SpaceDemo.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </ProfileAction>
+   <AnalyzeAction
+      buildConfiguration = "Debug">
+   </AnalyzeAction>
+   <ArchiveAction
+      buildConfiguration = "Debug"
+      revealArchiveInOrganizer = "YES">
+   </ArchiveAction>
+</Scheme>

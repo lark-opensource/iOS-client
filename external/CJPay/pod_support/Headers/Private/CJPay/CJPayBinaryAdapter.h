@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayComponent/Base/BinaryAdapter/CJPayBinaryAdapter.h

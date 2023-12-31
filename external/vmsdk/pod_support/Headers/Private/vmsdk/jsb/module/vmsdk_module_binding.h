@@ -1,0 +1,1 @@
+../../../../../../jsb/module/vmsdk_module_binding.h

@@ -1,0 +1,3790 @@
+ATTRS:
+  $TEAM:
+  - Base
+  - CCM
+  - Calendar
+  - IM/Beijing
+  - IM/Hangzhou
+  - Infra/Arch
+  - Infra/KA
+  - Mail
+  - Meego
+  - Minutes
+  - OpenPlatform
+  - Passport
+  - Performance/Infra
+  - Performance/Solution
+  - Search
+  - Security
+  - Task
+  - UG
+  - VC
+
+### 配置文件字段介绍 ###
+# team: 团队名, 可选值为上面 ATTRS['$TEAM'] 中的任意一项
+# owners: 维护者数组，无需填写 @bytedance.com 邮箱后缀
+# summary: 可选值，表示 pod 摘要
+# doc: 可选值，准入文档或介绍
+
+PODS:
+  ABRInterface:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: ABR接口组件，TTVideoEngine有引用
+  ADFeelGood:
+    team: IM/Hangzhou
+    owners:
+    - hupingwu
+    summary: 满意度调查工具
+    doc: https://bytedance.feishu.cn/docs/doccnGLJfiQF0nrn5LH9HL5JKvc#
+  AGFX_pub:
+    team: VC
+    owners:
+    - wangpeiran
+    summary: 这个是Effect的底层渲染引擎，Effect使用新引擎的资源包时采用的是AGFX进行画面的渲染
+    doc: https://bytedance.feishu.cn/docs/doccndMg3rKpzLzft1af2G1OLtb
+  AMapFoundation-NO-IDFA:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: 高德地图
+  AMapLocation-NO-IDFA:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: 高德地图
+  AMapSearch-NO-IDFA:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: 高德地图POI搜索
+  AWEBaseLib:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: AWE 基础组件
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  AWEBaseModel:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: AWE 基础组件
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  AWECloudCommand:
+    team: Performance/Infra
+    owners:
+    - cailiang.cl7r
+    summary: alog云控
+  AWELazyRegister:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: A short description of AWELazyRegister.
+  Action:
+    team: VC
+    owners:
+    - chentao.00
+    summary: rxswift相关引用库
+    doc: https://github.com/RxSwiftCommunity/Action
+  Alamofire:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: swift知名网络库
+    doc: https://github.com/Alamofire/Alamofire
+  AliyunFaceSDK:
+    team: Passport
+    owners:
+    - zhaokejie
+    summary: 阿里云活体检测SDK，用于实名认证
+    doc: https://bytedance.feishu.cn/docx/SddYdWYNcoAmgtxJCgCcPNglnHg
+  AnimatedTabBar:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: TabBarController的封装，item点击有动画效果
+  AppContainer:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: 容器，WatchDog、TimeLogger、BootLoader，告知应用运行中生命周期等，各模块可自己监听
+  AppReciableSDK:
+    team: Performance/Infra
+    owners:
+    - huanglx
+    summary: 用户可感知埋点上报
+    doc: https://bytedance.feishu.cn/docs/doccnQSh63PPzYzcx4nNZvqG0Kg#
+  ArtistOpenPlatformSDK:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+  Aspects:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: framework_summary
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  AsyncComponent:
+    team: IM/Beijing
+    owners:
+    - yuanping.0
+    summary: Flex布局组件
+  AvatarComponent:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: 提供UIConfig 封装Avatar相关UI属性，以便上层使用。支持自定义圆角、bgcolor、placeholder、contentMode属性
+    doc: https://bytedance.feishu.cn/docs/doccnvIJDtniBPnbKanVqzbfc7g
+  BDABTestSDK:
+    team: Infra/KA
+    owners:
+    - fengkebang
+    summary: AB test
+    doc: https://bytedance.feishu.cn/wiki/wikcn4MxZZi2qKMaRf1AWB44gtg
+  BDALog:
+    team: Performance/Infra
+    owners:
+    - cailiang.cl7r
+    summary: 头条的log库，类似xlog
+  BDAlogProtocol:
+    team: Performance/Infra
+    owners:
+    - cailiang.cl7r
+    summary: alog的对外接口
+  BDAssert:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: 头条提供的断言工具库，财经用到
+  BDDataDecorator:
+    team: Performance/Infra
+    owners:
+    - luyuze.jack
+    summary: 加密SDK二进制版本
+  BDDataDecoratorTob:
+    team: Performance/Infra
+    owners:
+    - luyuze.jack
+    summary: framework_summary
+  BDFishhook:
+    team: Performance/Infra
+    owners:
+    - cailiang.cl7r
+    summary: Heimdallr/CrashCapture依赖库
+  BDFlutterPluginManager:
+    team: Meego
+    owners:
+    - shizhengyu
+    summary: flutter 组件管理类
+    doc: https://bytedance.feishu.cn/docs/doccn0FM9Fq0XQocHJUETLliMsg
+  BDJSBridgeAuthManager:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: js相关，财经用到
+    doc: https://bytedance.feishu.cn/docs/doccnoZimZYf47FdafUnXD3UkPg
+  BDMemoryMatrix:
+    team: Performance/Infra
+    owners:
+    - cailiang.cl7r
+    summary: 监控进程的所有内存分配
+    doc: https://bytedance.feishu.cn/wiki/wikcnu1GFq8gn4LmW6jdEK0dLrf
+  BDModel:
+    team: Passport
+    owners:
+    - caiweiwei.liam
+    summary: 实名 SDK依赖的 json 转 model
+    doc: https://bytedance.feishu.cn/docx/doxcnRX0rmJw0gVytcuqRDFtNWh
+  BDMonitorProtocol:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: 用来封装HMDTTMonitor
+  BDNetworkTag:
+    team: Performance/Infra
+    owners:
+    - luyuze.jack
+    summary: heimdallr升级引入
+    doc: https://bytedance.feishu.cn/docs/doccnyAo5bh4Ma4dUqUSkexirUf
+  BDPreloadSDK:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: Bullt依赖模块
+    doc: https://bytedance.feishu.cn/docs/doccnHrxnp3c4QDxnMxXEXPk8Fb
+  BDRuleEngine:
+    team: Security
+    owners:
+    - huanzhengjie
+    summary: 策略引擎，负责策略规则的解析和执行，LarkPrivacyMonitor引入
+    doc: https://bytedance.feishu.cn/docx/YlDrdEv3joadmVx8Y0OcoLNPnyf
+  BDTrackerProtocol:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: 头条埋点接口层，财经用到
+    doc: https://bytedance.feishu.cn/docs/doccnHnumjmThZ30DD27Dl7FamX#
+  BDTuring:
+    team: Passport
+    owners:
+    - jinjian.au
+    summary: 验证码sdk
+    doc: https://bytedance.feishu.cn/docs/doccnA54jb6UhlT3hc4wnHdEOpd#
+  BDUGAccountOnekeyLogin:
+    team: Passport
+    owners:
+    - caiweiwei.liam
+    summary: 移动、电信和联通三大运营商的一键登录功能。只在国内用
+    doc: https://bytedance.feishu.cn/docs/doccn2mdnmKesc8aadvN7OzxVnc#
+  BDUGContainer:
+    team: IM/Hangzhou
+    owners:
+    - hupingwu
+    summary: framework_summary
+  BDUGLogger:
+    team: IM/Hangzhou
+    owners:
+    - hupingwu
+    summary: ug log相关
+  BDUGLoggerInterface:
+    team: IM/Hangzhou
+    owners:
+    - hupingwu
+    summary: 字节跳动用户增长 Log接口
+  BDUGMonitorInterface:
+    team: IM/Hangzhou
+    owners:
+    - hupingwu
+    summary: 和一键登录相关
+  BDUGShare:
+    team: IM/Hangzhou
+    owners:
+    - hupingwu
+    summary: 分享功能
+    doc: https://bytedance.feishu.cn/docs/doccnx1kEv8wtdFX0e8hNu
+  BDUGTrackerInterface:
+    team: IM/Hangzhou
+    owners:
+    - hupingwu
+    summary: 和一键登录相关
+  BDUGUnionSDK:
+    team: Passport
+    owners:
+    - caiweiwei.liam
+    summary: 联通运营商，引入BDUGAccountOnekeyLogin带入的库
+  BDWebCore:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: 头条web库
+    doc: https://bytedance.feishu.cn/docs/doccnoZimZYf47FdafUnXD3UkPg
+  BDWebImage:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: 类似SDWebImage, imageView加载URL
+  BDWebKit:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: 支付业务适配iPad，引入安全连接服务，用于恶意防御，提升用户体验
+    doc: https://bytedance.feishu.cn/docs/doccnBHp7203mHhLBTCtxfOFlUd
+  BDXBridgeKit:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: Bullt依赖模块
+    doc: https://bytedance.feishu.cn/docs/doccnHrxnp3c4QDxnMxXEXPk8Fb
+  BDXContainer:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: Bullt依赖模块
+    doc: https://bytedance.feishu.cn/docs/doccnHrxnp3c4QDxnMxXEXPk8Fb
+  BDXLynxKit:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: Bullt依赖模块
+    doc: https://bytedance.feishu.cn/docs/doccnHrxnp3c4QDxnMxXEXPk8Fb
+  BDXMonitor:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: Bullt依赖模块
+    doc: https://bytedance.feishu.cn/docs/doccnHrxnp3c4QDxnMxXEXPk8Fb
+  BDXOptimize:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: Bullt依赖模块
+    doc: https://bytedance.feishu.cn/docs/doccnHrxnp3c4QDxnMxXEXPk8Fb
+  BDXResourceLoader:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: Bullt依赖模块
+    doc: https://bytedance.feishu.cn/docs/doccnHrxnp3c4QDxnMxXEXPk8Fb
+  BDXRouter:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: Bullt依赖模块
+    doc: https://bytedance.feishu.cn/docs/doccnHrxnp3c4QDxnMxXEXPk8Fb
+  BDXSchema:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: Bullt依赖模块
+    doc: https://bytedance.feishu.cn/docs/doccnHrxnp3c4QDxnMxXEXPk8Fb
+  BDXServiceCenter:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: Bullt依赖模块
+    doc: https://bytedance.feishu.cn/docs/doccnHrxnp3c4QDxnMxXEXPk8Fb
+  BVCParser:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: 点播SDK 基础依赖库
+    doc: https://bytedance.feishu.cn/docx/doxcnD3pDnoA6EdH8bTJnDwDUNf
+  BitableBridge:
+    team: CCM
+    owners:
+    - lijuyou
+    summary: 基于React的一层接口封装
+  BlockMod:
+    team: OpenPlatform
+    owners:
+    - zhangmeng.94233
+    doc: https://bytedance.feishu.cn/docx/RJs2dZUMUovoSqxidhSc3w5dngd
+  Blockit:
+    team: OpenPlatform
+    owners:
+    - zhangmeng.94233
+    summary: 支持给群&消息打标签
+    doc: https://bytedance.feishu.cn/docs/doccnAeUZ06O4Ap2oFaFNWZv9Uc
+  BootManager:
+    team: Performance/Infra
+    owners:
+    - huanglx
+    summary: 管理启动相关
+    doc: https://bytedance.feishu.cn/docs/doccnoF9MHicEi9bV64KdLDpKQc#
+  BootManagerConfig:
+    team: Performance/Infra
+    owners:
+    - huanglx
+    summary: BootManagerConfig是用于配置启动任务执行的配置文件，用于确定启动过程中需要执行的任务以及执行的顺序
+    doc: https://bytedance.feishu.cn/docs/doccntOjcg0icx8mM2g5tG7jqpc
+  BootManagerDependency:
+    team: Performance/Infra
+    owners:
+    - huanglx
+    summary: 为 BootManager 提供 Lark 环境下的 dependency
+  BulletX:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: Bullt依赖模块
+    doc: https://bytedance.feishu.cn/docs/doccnHrxnp3c4QDxnMxXEXPk8Fb
+  ByteDanceKit:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: 公司通用OC基础库。包含丰富的Foundation和UIKit扩展，业务无关且不依赖其他三方库。
+  ByteRtcSDK:
+    team: VC
+    owners:
+    - chentao.00
+    summary: vc相关，从动态库转静态库
+    doc: https://bytedance.feishu.cn/docs/doccnOpoqg5Ojz9Jp8xKJD2lZFg#
+  ByteRtcScreenCapturer:
+    team: VC
+    owners:
+    - helijian.666
+    summary: framework_summary
+    doc: https://bytedance.feishu.cn/wiki/wikcnxr0rr06BMnRjO7xgG6Qdph
+  ByteView:
+    team: VC
+    owners:
+    - dengqiang.001
+    summary: 视频会议
+    doc: https://bytedance.feishu.cn/wiki/wikcncVHT5iNUtK2GXygWvFUhig#
+  ByteViewBoardcastExtension:
+    team: VC
+    owners:
+    - dengqiang.001
+    summary: ByteView Boardcast Extension on iOS
+  ByteViewCalendar:
+    team: VC
+    owners:
+    - dengqiang.001
+    summary: VC和Calendar跨业务代码
+    doc: https://bytedance.feishu.cn/docx/EtQ4dOapsoF4MgxBW00cIGmenVg
+  ByteViewCommon:
+    team: VC
+    owners:
+    - dengqiang.001
+    summary: ByteViewCommon指视频会议各组件的公共组件
+    doc: https://bytedance.feishu.cn/wiki/wikcnUjKSqZErO7CuwsxTGhJEe0
+  ByteViewDebug:
+    team: VC
+    owners:
+    - dengqiang.001
+    summary: debug相关功能
+    doc: https://bytedance.feishu.cn/docs/doccnbPTk4vjSbJRzJVcV9G6jdd
+  ByteViewHybrid:
+    team: VC
+    owners:
+    - dengqiang.001
+  ByteViewInterface:
+    team: VC
+    owners:
+    - dengqiang.001
+    summary: 主要提供byteview对外提供的接口
+    doc: https://bytedance.feishu.cn/docs/doccnMiRxo0Xjk8xACXgJjEvVHc#
+  ByteViewLiveCert:
+    team: VC
+    owners:
+    - dengqiang.001
+    summary: 视频会议中直播认证的模块
+    doc: https://bytedance.feishu.cn/docx/VEeJdxPY8opZDixKJ6lcrnSlnTc
+  ByteViewMeeting:
+    team: VC
+    owners:
+    - dengqiang.001
+  ByteViewMessenger:
+    team: VC
+    owners:
+    - chentao.00
+    summary: 和视频会议与聊天同时相关的模块，比如视频会议卡片。从LarkByteView中拆分出来。
+    doc: https://bytedance.feishu.cn/wiki/wikcnIrYKXvCdUFEgMBDP1odjkF
+  ByteViewMod:
+    team: VC
+    owners:
+    - chentao.00
+    summary: ByteViewMod指视频会议的集成模块。
+    doc: https://bytedance.feishu.cn/wiki/wikcnsmEd9ZOaGEyYSAvDRDA9Re
+  ByteViewNetwork:
+    team: VC
+    owners:
+    - chentao.00
+    summary: ByteViewNetwork指视频会议的网络模块
+    doc: https://bytedance.feishu.cn/wiki/wikcnXUbBfyYQN3lhfOQXEqJYzB
+  ByteViewRTCRenderer:
+    team: VC
+    owners:
+    - liujianlong
+    summary: Lark ByteRTCSDK 中负责视频流渲染功能的代码逻辑拆分出的组件，由 iOS 客户端团队负责维护开发
+    doc: https://bytedance.feishu.cn/docs/doccnmSVOxfPEXB8JXxtIja4Oac
+  ByteViewRtcBridge:
+    team: VC
+    owners:
+    - dengqiang.001
+    summary: 视频会议RTC API桥接层
+    doc: https://bytedance.feishu.cn/docx/OVCbdllZVofu9exea89cdzVtnSb
+  ByteViewSetting:
+    team: VC
+    owners:
+    - dengqiang.001
+    summary: 视频会议设置模块
+    doc: https://bytedance.feishu.cn/docx/VEeJdxPY8opZDixKJ6lcrnSlnTc
+  ByteViewTab:
+    team: VC
+    owners:
+    - chentao.00
+    summary: ByteViewTab指视频会议独立Tab功能组件
+    doc: https://bytedance.feishu.cn/wiki/wikcnUjKSqZErO7CuwsxTGhJEe0
+  ByteViewTracker:
+    team: VC
+    owners:
+    - chentao.00
+    summary: ByteViewTracker指视频会议的Tracker模块。
+    doc: https://bytedance.feishu.cn/wiki/wikcnXUbBfyYQN3lhfOQXEqJYzB
+  ByteViewUDColor:
+    team: VC
+    owners:
+    - wangpeiran
+    summary: ByteViewUDColor是视频会议的UDColor接口层
+    doc: https://bytedance.feishu.cn/docx/doxcnkIuLP3WpJ3kpggwPTJlOYg
+  ByteViewUI:
+    team: VC
+    owners:
+    - dengqiang.001
+    summary: ByteViewUI指视频会议的UI模块。
+    doc: https://bytedance.feishu.cn/wiki/wikcnXUbBfyYQN3lhfOQXEqJYzB
+  ByteViewWidget:
+    team: VC
+    owners:
+    - zhangxin.shin
+    summary: 灵动岛需要的 Attributes 定义，供 byteview 和 smartWidget 复用
+  ByteViewWidgetService:
+    team: VC
+    owners:
+    - zhangxin.shin
+    summary: 灵动岛相关调用服务层，屏蔽掉系统的差异，业务直接使用即可
+  ByteWebImage:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: 图片库
+  CCMMod:
+    team: CCM
+    owners:
+    - huayufan
+    summary: Doc协议层
+  CJPay:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: 财经，支付相关
+  CJPayDebugTools:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: Bullt依赖模块
+    doc: https://bytedance.feishu.cn/docs/doccnHrxnp3c4QDxnMxXEXPk8Fb
+  CTADialog:
+    team: IM/Beijing
+    owners:
+    - aslan.hu
+    summary: 为了套件内付费点位升级弹窗UI样式、埋点能统一，应产品需求PRD-20230810-CTA组件设计方案 统一抽象成弹窗组件，由组件内完成弹窗物料拉取、弹窗UI样式、数据埋点等工作，降低业务的开发成本。
+    doc: https://bytedance.sg.feishu.cn/docx/RF9GdCG38oXl6ZxwYg1lBVnogef
+  CTFoundation:
+    team: Task
+    owners:
+    - wangwanxin.sam
+    summary: Calendar 业务线 Foundation 库，CT 表示 Calendar and Todo，目前非常轻量，后续考虑将 Calendar
+      和 Todo 公共 foundation 部分下层
+    doc: https://bytedance.feishu.cn/docs/doccn19wXxa3Dw2VII5yTxAEtFh
+  Calendar:
+    team: Calendar
+    owners:
+    - shanrongxin.rico
+    summary: 日历业务组件
+  CalendarFoundation:
+    team: Calendar
+    owners:
+    - shanrongxin.rico
+    summary: 日历对Fondation的扩展方法
+  CalendarMod:
+    team: Calendar
+    owners:
+    - shanrongxin.rico
+    summary: Calendar业务中间层
+  CalendarRichTextEditor:
+    team: Calendar
+    owners:
+    - tuwenbo
+    summary: Calendar 业务的日程描述富文本渲染
+    doc: https://bytedance.larksuite.com/docs/docs12MvXxXl0sIopO0GZb4V0rg#Wa07fD
+  CameraClient:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: CK 相机相关组件
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  CameraClientModel:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: CK 相机相关组件
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  CocoaAsyncSocket:
+    team: VC
+    owners:
+    - yangyao.wildyao
+    summary: TTVideoLive引入的依赖项
+    doc: https://bytedance.feishu.cn/docs/doccnLk5yEmTWZMk2JGKDc7S703
+  CookieManager:
+    team: Passport
+    owners:
+    - caiweiwei.liam
+    summary: Cookie相关功能收敛
+  CreationKitArch:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: CK 相机相关组件
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  CreationKitBeauty:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: CK 相机相关组件
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  CreationKitComponents:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: CK 相机相关组件
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  CreationKitInfra:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: CK 相机相关组件
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  CreationKitRTProtocol:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: CK 相机相关组件
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  CreativeAlbumKit:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: CK 相机相关组件
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  CreativeKit:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: CK 相机相关组件
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  CreativeKitSticker:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: CK 相机相关组件
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  CryptoSwift:
+    team: Performance/Infra
+    owners:
+    - supeng.charlie
+    summary: Swift加密功能库
+    doc: https://github.com/krzyzanowskim/CryptoSwift
+  DVEFoundationKit:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+  DVETrackKit:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+  DateToolsSwift:
+    team: Calendar
+    owners:
+    - zhuheng.henry
+    summary: swift时间工具
+    doc: https://github.com/MatthewYork/DateTools
+  DavinciResource:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: framework_summary
+  DebugRouter:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: Bullt依赖模块，Lynx debug模块，不会进入正式版
+    doc: https://bytedance.feishu.cn/docs/doccnHrxnp3c4QDxnMxXEXPk8Fb
+  Differentiator:
+    team: IM/Beijing
+    owners:
+    - aslan.hu
+    summary: framework_summary
+  DoubleConversion:
+    team: CCM
+    owners:
+    - lijuyou
+    summary: react相关
+  DynamicURLComponent:
+    team: IM/Beijing
+    owners:
+    - yuanping.0
+    summary: 将PB转换为ComponentTree
+    doc: https://bytedance.feishu.cn/docs/doccncKrdE1oSDbzm9ULZSJPn2v
+  EAccountApiSDK:
+    team: Passport
+    owners:
+    - caiweiwei.liam
+    summary: 电信运营商，引入BDUGAccountOnekeyLogin带入的库
+  ECOInfra:
+    team: OpenPlatform
+    owners:
+    - zhaojingxin
+    summary: "- Ecosystem 团队职责划分，原开放平台基础内容下沉到 ECOInfra，包含网络，存储，配置，Cookie,开发者工具，等基础能力。"
+    doc: https://bytedance.feishu.cn/docs/doccnA7PqPd1xGUVc5DW5F1sB5b#
+  ECOProbe:
+    team: OpenPlatform
+    owners:
+    - luogantong
+    summary: "- ECOProbe 已有诊断，监控能力下沉到 ECOProbe，包含 埋点，日志，Tracing等内容。"
+    doc: https://bytedance.feishu.cn/docs/doccnA7PqPd1xGUVc5DW5F1sB5b#
+  ECOProbeMeta:
+    team: OpenPlatform
+    owners:
+    - luogantong
+    summary: 开放平台OPMonitor埋点代码管理仓库。
+    doc: https://bytedance.feishu.cn/docs/doccnCpt0UfPiW6b2JZiImziKDf
+  EEAtomic:
+    team: Infra/Arch
+    owners:
+    - wangxiaohua
+    summary: C系列原子操作封装
+  EEFlexiable:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: 对Yoga做了一层简单包装
+  EEImageMagick:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: 提供一些图片操作支持
+  EEMicroAppSDK:
+    team: OpenPlatform
+    owners:
+    - luorui.lr
+    summary: 小程序相关
+  EENavigator:
+    team: Infra/Arch
+    owners:
+    - zhangwei.wy
+    summary: URL导航路由
+  EENotification:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: 系统通知封装，注册、创建、取消、获取通知等
+  EEPodInfoDebugger:
+    team: Mail
+    owners:
+    - liutefeng
+    summary: 用于在应用内获取工程pod组件版本号信息，新版lark适配中，MR待合入
+  EETroubleKiller:
+    team: Infra/Arch
+    owners:
+    - zhangwei.wy
+    summary: 调试，日志收集等
+  ESPullToRefresh:
+    team: Infra/Arch
+    owners:
+    - lihaozhe.12
+    summary: 下拉刷新和加载更多组件
+    doc: https://bytedance.feishu.cn/docs/doccnbFnoz8fGwMIq3i5rsf4hFf
+  EcosystemWeb:
+    team: OpenPlatform
+    owners:
+    - luogantong
+    summary: EcosystemWeb承载Ecosystem Client Native Web Business，代码从目前的WebBrowser拆分出来，避免全部耦合在一个Pod中。
+    doc: https://bytedance.feishu.cn/docs/doccnqSZEIOgNIJJmZc19W34AOc
+  EditTextView:
+    team: IM/Beijing
+    owners:
+    - liluobin
+    summary: 对UITextView的封装
+  EffectPlatformSDK:
+    team: VC
+    owners:
+    - wangpeiran
+    summary: 管理和分发各类特效资源和算法模型资源
+    doc: https://bytedance.feishu.cn/docs/doccn9Wap9TE1n4TF2AgwDdpIzh
+  EffectSDK_iOS:
+    team: VC
+    owners:
+    - huanghaoting
+    summary: VC相关，美颜和背景模糊处理
+    doc: https://bytedance.feishu.cn/docs/doccnOpoqg5Ojz9Jp8xKJD2lZFg#
+  FBLazyVector:
+    team: CCM
+    owners:
+    - lijuyou
+    summary: react相关引用库
+  FBReactNativeSpec:
+    team: CCM
+    owners:
+    - lijuyou
+    summary: react相关
+  FBRetainCycleDetector:
+    team: Performance/Infra
+    owners:
+    - cailiang.cl7r
+    summary: 配合TTMLeadkFinder使用
+    doc: https://bytedance.feishu.cn/docs/doccnDLOwTMOpO3ujpHbKcipDif
+  FLAnimatedImage:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: gif等动图支持
+  FLEX:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: 内置调试工具
+  FMDB:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: sqlite相关
+  FigmaKit:
+    team: Search
+    owners:
+    - wanghaidong.nku
+    summary: FigmaKit 提供了一系列工具、UI 组件，为面向 UI 的开发提供便利
+    doc: https://bytedance.feishu.cn/docs/doccnim8enlKUmhsKXrgrkltBae
+  FileMD5Hash:
+    team: VC
+    owners:
+    - wangpeiran
+    summary: EffectPlatformSDK依赖库
+    doc: https://bytedance.feishu.cn/docs/doccn9Wap9TE1n4TF2AgwDdpIzh
+  FlowChart:
+    team: Calendar
+    owners:
+    - zhaodong.23
+    summary: 对比流程图, 抽象出了一些角色, 预期将能符合流程图的代码通过此pod进行代码重构, 让代码标准化、易读和逻辑更清晰
+    doc: https://bytedance.feishu.cn/docx/doxcnqTLDp34BJXcEFMFC5zJ1Kf
+  FlutterChannelTool:
+    team: Meego
+    owners:
+    - shizhengyu
+    summary: Flutter插件平台接口工具类
+    doc: https://bytedance.feishu.cn/docs/doccn0FM9Fq0XQocHJUETLliMsg
+  Folly:
+    team: CCM
+    owners:
+    - lijuyou
+    summary: Facebook开发的一些C++库，去掉String中的空白字符等
+  FrameRecover:
+    team: Performance/Infra
+    owners:
+    - luyuze.jack
+    summary: NSException防护功能
+    doc: https://bytedance.feishu.cn/docx/doxcnii2OkhK8xureWsjxxE2sUz
+  Gaia:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: 启动premain前的管理
+    doc: https://bytedance.feishu.cn/docs/EeFoj8VH0Djeec3CkwWimb
+  Godzippa:
+    team: Performance/Infra
+    owners:
+    - luyuze.jack
+    summary: 文件压缩
+  HMDGWPASan:
+    team: Performance/Infra
+    owners:
+    - luyuze.jack
+    summary: 线上Asan监控，用于分析内存问题
+    doc: https://bytedance.feishu.cn/docx/doxcntoQ1upOca4OtpMhGfQ0geV
+  HTSServiceKit:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: 服务中间件/消息中间件框架。
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  HTTProtocol:
+    team: Infra/Arch
+    owners:
+    - wangxiaohua
+    summary: 基础的URLProtocol和WKURLSchemeHandler对HTTP导流封装。可扩展其它导流实现
+  HandyJSON:
+    team: CCM
+    owners:
+    - chensi.123
+    summary: 用于Swift语言中的JSON序列化/反序列化库
+    doc: https://github.com/alibaba/handyjson
+  Heimdallr:
+    team: Performance/Infra
+    owners:
+    - luyuze.jack
+    summary: 高可用相关库
+  HeimdallrForExtension:
+    team: Performance/Infra
+    owners:
+    - luyuze.jack
+    summary: 高可用相关库
+  HelpDesk:
+    team: IM/Beijing
+    owners:
+    - xiaruzhen
+    summary: HelpDesk
+  Hermas:
+    team: Performance/Infra
+    owners:
+    - luyuze.jack
+    summary: 解决漏报率，重复上报率，延迟上报率等
+  Homeric:
+    team: Infra/Arch
+    owners:
+    - kongkaikai
+    summary: 埋点key存储
+  IESAppLogger_iOS:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: TTVideoEditor依赖库
+  IESFoundation:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: IES 基础组件
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  IESGeckoEncrypt:
+    team: Performance/Infra
+    owners:
+    - luyuze.jack
+    summary: Encrypt for gecko
+  IESGeckoKit:
+    team: Passport
+    owners:
+    - caiweiwei.liam
+    summary: 是一个比较灵活的通用包更新、管理方案
+  IESInject:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: IES 基础组件
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  IESJSBridgeCore:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: js相关，财经用到
+    doc: https://bytedance.feishu.cn/docs/doccnoZimZYf47FdafUnXD3UkPg
+  IESLiveResourcesButler:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: IES 基础组件
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  IESMetadataStorage:
+    team: Performance/Infra
+    owners:
+    - luyuze.jack
+    summary: framework_summary
+  IESPrefetch:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: Bullt依赖模块
+    doc: https://bytedance.feishu.cn/docs/doccnHrxnp3c4QDxnMxXEXPk8Fb
+  IESVideoDetector:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: IES 基础组件
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  IESWebViewMonitor:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: Bullt依赖模块
+    doc: https://bytedance.feishu.cn/docs/doccnHrxnp3c4QDxnMxXEXPk8Fb
+  JSONModel:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: json转换工具
+  JTAppleCalendar:
+    team: Calendar
+    owners:
+    - zhuheng.henry
+    summary: 请使用 UniverseDesignDatePicker
+    doc: https://bytedance.feishu.cn/docs/doccnv7caDgNxxUXTi2403
+  Jato:
+    team: Performance/Infra
+    owners:
+    - huanglx
+    summary: pageIn预加载
+    doc: https://bytedance.feishu.cn/docx/DOU1dzWhbo31whxj5KEcmtwQnUc
+  JsSDK:
+    team: OpenPlatform
+    owners:
+    - zhaojingxin
+  KAFileInterface:
+    team: Infra/KA
+    owners:
+    - zhaoxiangyu.love
+    summary: 用户可以基于这个Demo开发调试
+    doc: https://bytedance.feishu.cn/docx/doxcnqA55CeytAJL6pkIMiiUOEd
+  KVOController:
+    team: Performance/Infra
+    owners:
+    - luyuze.jack
+    summary: kvo监听和自动释放
+  KeychainAccess:
+    team: Passport
+    owners:
+    - caiweiwei.liam
+    summary: keychain封装
+  Kingfisher:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: A lightweight and pure Swift implemented library for downloading and
+      cacheing image from the web.
+  KingfisherWebP:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: webp格式图片支持
+  LKCommonsLogging:
+    team: Infra/Arch
+    owners:
+    - zhangwei.wy
+    summary: 日志，LKCommonsLogging只是封装的抽象接口
+  LKCommonsTracker:
+    team: Infra/KA
+    owners:
+    - fengkebang
+    summary: 埋点组件，封装了Tea和Slardar
+  LKContentFix:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: 修复字体和替换内容
+    doc: https://bytedance.feishu.cn/docs/doccnMdvUe42zergx28omvyMPUg
+  LKJsApiExternal:
+    team: Infra/KA
+    owners:
+    - zhaoxiangyu.love
+    summary: 外部组件通过 LKJsApiExternal 处理飞书的 custom js api
+    doc: https://bytedance.feishu.cn/docx/UsNSdTXtaoWg1Ux2b0OcDtvHn4f
+  LKLaunchGuide:
+    team: IM/Hangzhou
+    owners:
+    - hupingwu
+    summary: 通用的引导实现，可支持注入 图片、文案以及配置行为
+    doc: https://bytedance.feishu.cn/docs/doccnRiYphv7FYlA6rNENa5t9xp#
+  LKLoadable:
+    team: Performance/Infra
+    owners:
+    - huanglx
+    summary: "+load管理库，将之前在+Load中执行的func统一管理，提供在启动各个阶段执行这些func的接口"
+    doc: https://bytedance.feishu.cn/docs/doccngmJ1MGptUVHIEn8dHT0Ugg
+  LKMetric:
+    team: Passport
+    owners:
+    - jinjian.au
+    summary: 避免对 LKCommonsLogging 的干扰，Metric 做与日志独立的逻辑用于数据收集
+    doc: https://bytedance.feishu.cn/docs/doccnDpcDVoxxM1vONGZpbEiYab
+  LKRichView:
+    team: IM/Beijing
+    owners:
+    - yuanping.0
+    - liyong.520
+    summary: 富文本
+  LKTracing:
+    team: Passport
+    owners:
+    - jinjian.au
+    summary: 提供统一的 Tracing
+  LKWindowManager:
+    team: IM/Beijing
+    owners:
+    - dongwei.1615
+    - yaoqihao
+    summary: |-
+      收敛window创建方式，不再允许业务自己创建window。业务都接入window manager。
+      尽量减少window层级，将更多的视图放在统一window中，在window中建立层级概念。
+    doc: https://bytedance.feishu.cn/docx/ZnGvdjPH5o3ooJx95FEcUkU7n1d
+  LarkAI:
+    team: Search
+    owners:
+    - tuxiaolong
+    summary: 翻译、翻译反馈、智能回复、智能补全、企业实体词等功能
+    doc: https://bytedance.feishu.cn/docs/doccnAZvM7SlqkEuqyHmNiRXxKb#
+  LarkAIInfra:
+    team: CCM
+    owners:
+    - huayufan
+    - chensi.123
+    summary: AI浮窗组件，以及AI基础能力(onboarding、反馈弹框等)
+    doc: https://bytedance.feishu.cn/docx/A6kGdjdxHofxhoxxKQgcDjeunrb
+  LarkAccount:
+    team: Passport
+    owners:
+    - caiweiwei.liam
+    summary: 登陆账号管理
+  LarkAccountAssembly:
+    team: Passport
+    owners:
+    - caiweiwei.liam
+  LarkAccountInterface:
+    team: Passport
+    owners:
+    - caiweiwei.liam
+    summary: 账号相关接口
+  LarkActionSheet:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: 样式类似于系统的ActionSheet
+  LarkActivityIndicatorView:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: 加载Loading
+  LarkAddressBookSelector:
+    team: IM/Hangzhou
+    owners:
+    - hupingwu
+    summary: 通讯录
+  LarkAlertController:
+    team: IM/Beijing
+    owners:
+    - aslan.hu
+    summary: 提醒controller
+  LarkAppConfig:
+    team: Infra/KA
+    owners:
+    - fengkebang
+    summary: Lark App 全局配置模块
+  LarkAppLinkSDK:
+    team: OpenPlatform
+    owners:
+    - dingxu.shawn
+    summary: AppLink
+  LarkAppLog:
+    team: Infra/KA
+    owners:
+    - fengkebang
+    summary: RangersAppLog 头条埋点库封装
+    doc: https://bytedance.feishu.cn/docs/doccnrUNaWZyzU7OCU2caGmTuZc#
+  LarkAppResources:
+    team: IM/Beijing
+    owners:
+    - aslan.hu
+    summary: 存放需国际化处理的image
+  LarkAppStateSDK:
+    team: OpenPlatform
+    owners:
+    - dingxu.shawn
+    summary: 应用机制 仅小程序使用
+  LarkAssembler:
+    team: Performance/Infra
+    owners:
+    - huanglx
+    summary: 为了约束Assembly的职责
+    doc: https://bytedance.feishu.cn/docx/doxcndSOrpdg11b9cbOdqgMknKs
+  LarkAssertConfig:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: debug
+  LarkAssetsBrowser:
+    team: Search
+    owners:
+    - wanghaidong.nku
+    summary: 图片浏览
+  LarkAttachmentUploader:
+    team: IM/Beijing
+    owners:
+    - liluobin
+    summary: 附件上传，目前支持：图片、音频、文件、安全文件，目前就用到了post发送界面
+  LarkAudio:
+    team: IM/Beijing
+    owners:
+    - kangsiwan
+    summary: 处理语音相关模块
+  LarkAudioKit:
+    team: IM/Beijing
+    owners:
+    - kangsiwan
+    summary: 音频录制、播放
+  LarkAudioView:
+    team: IM/Beijing
+    owners:
+    - kangsiwan
+    summary: 语音视图，还有播放进度，可参考chat里面的语音
+  LarkAvatar:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    doc: https://bytedance.feishu.cn/docs/doccnvIJDtniBPnbKanVqzbfc7g#
+  LarkAvatarComponent:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: 提供一个封装Badge的圆形Avatar组件，并抽离相关Service，使其能够处理Avatar badge、update等逻辑
+    doc: https://bytedance.feishu.cn/docs/doccnvIJDtniBPnbKanVqzbfc7g
+  LarkBGTaskScheduler:
+    team: IM/Beijing
+    owners:
+    - lihaozhe.12
+    summary: LarkBGTaskScheduler
+  LarkBadge:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: 小红点管理，服务器可动态下发红点逻辑
+  LarkBadgeAssembly:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: 小红点管理，服务器可动态下发红点逻辑
+  LarkBaseKeyboard:
+    team: IM/Beijing
+    owners:
+    - liluobin
+    summary: 键盘业务功能组件
+  LarkBaseService:
+    team: Performance/Infra
+    owners:
+    - luyuze.jack
+  LarkBizAvatar:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: 提供一个封装Badge的圆形Avatar组件，并抽离相关Service，使其能够处理Avatar badge、update等逻辑
+    doc: https://bytedance.feishu.cn/docs/doccnvIJDtniBPnbKanVqzbfc7g
+  LarkBizTag:
+    team: IM/Beijing
+    owners:
+    - dongwei.1615
+  LarkBlockHost:
+    team: OpenPlatform
+    owners:
+    - zhangmeng.94233
+    doc: https://bytedance.feishu.cn/docx/RJs2dZUMUovoSqxidhSc3w5dngd
+  LarkBlur:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: 可自定义高斯模糊程度和颜色效果的 UI 组件
+    doc: https://bytedance.feishu.cn/docs/doccnG0N1wcOcRurzdXqfJOlzph
+  LarkBoxSetting:
+    team: IM/Beijing
+    owners:
+    - aslan.hu
+    summary: LarkBoxSetting 提供统一审核开关，主要用于审核阶段进行一些敏感功能点的屏蔽。
+    doc: https://bytedance.sg.feishu.cn/docx/S6l3d0EJnouM0hxNkvNlNWVTgdP
+  LarkBoxSettingAssembly:
+    team: IM/Beijing
+    owners:
+    - aslan.hu
+    summary: LarkBoxSetting 提供统一审核开关，主要用于审核阶段进行一些敏感功能点的屏蔽。
+    doc: https://bytedance.sg.feishu.cn/docx/S6l3d0EJnouM0hxNkvNlNWVTgdP
+  LarkButton:
+    team: IM/Beijing
+    owners:
+    - dongwei.1615
+    summary: 封装项目中部分样式Button的TypeButton以及IconButton
+  LarkBytedCert:
+    team: Passport
+    owners:
+    - caiweiwei.liam
+    summary: 通用的人脸识别服务
+  LarkCache:
+    team: Infra/Arch
+    owners:
+    - zhangwei.wy
+    summary: 提供缓存基建，统一做清理，缓存失效等操作
+    doc: https://bytedance.feishu.cn/docs/doccnHH2BRcZ6Gu3f467N0L5uDP#
+  LarkCacheAssembly:
+    team: Infra/Arch
+    owners:
+    - zhangwei.wy
+    summary: 提供缓存基建，统一做清理，缓存失效等操作
+    doc: https://bytedance.feishu.cn/docs/doccnHH2BRcZ6Gu3f467N0L5uDP#
+  LarkCamera:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: 系统图片视频选择、图片视频预览，chat->图片
+  LarkCanvas:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: 基于 PencilKit 的画板，对业务方提供简单的画板和工具
+    doc: https://bytedance.feishu.cn/docs/doccnbetouZdhdbA9xAHIF6H0vb
+  LarkChat:
+    team: IM/Beijing
+    owners:
+    - zhaochen.09
+    - zhaojiachen.hydra
+    - fengzigeng
+    summary: Lark会话业务相关
+  LarkChatKeyboardInterface:
+    team: IM/Beijing
+    owners:
+    - liluobin
+    summary: chat 键盘相关逻辑
+    doc: https://bytedance.feishu.cn/docx/Hu1ldmMiUonDuoxDcCdcog9mnuh
+  LarkChatOpenKeyboard:
+    team: IM/Beijing
+    owners:
+    - liluobin
+    summary: Lark会话键盘业务相关
+    doc: https://bytedance.feishu.cn/docx/EGgDdzYmKoNfPPxwR2ich3punng
+  LarkChatSetting:
+    team: IM/Beijing
+    owners:
+    - zhaochen.09
+    - yaoqihao
+    summary: Lark会话设置相关
+  LarkClean:
+    team: Infra/Arch
+    owners:
+    - zhangwei.wy
+    summary: Lark 磁盘清理组件
+  LarkCleanAssembly:
+    team: Infra/Arch
+    owners:
+    - zhangwei.wy
+    summary: Lark 磁盘清理组件 - 集成层
+  LarkCloudScheme:
+    team: Infra/KA
+    owners:
+    - fengkebang
+    summary: LarkCloudScheme主要为Lark云控scheme管理逻辑，从web维护的代码中下沉而来
+    doc: https://bytedance.feishu.cn/docx/doxcnY9rjHzOyV6NPhig8IxMECd
+  LarkCombine:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: 基于开源库OpenCombine、OpenCombineDispatch、OpenCombineFoundation封装了一套与ios 13上Combine相同的接口，提供了相同的异步编程框架
+    doc: https://bytedance.feishu.cn/docs/doccn2ziQtiXXz0VEHVbcdKwCqd?appid=2
+  LarkCompatible:
+    team: Infra/Arch
+    owners:
+    - kongkaikai
+    summary: Class+lf/lk/lu+方法，即可使用对应的扩展方法，如：Color.lk.read1
+  LarkContact:
+    team: IM/Hangzhou
+    owners:
+    - xiexufeng
+    summary: 联系人模块
+  LarkContactComponent:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: 杭州团队基础业务组件
+  LarkContainer:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: 给Resolver扩展了三个属性：RequestDispatcher、event只能订阅一次的订阅中心
+  LarkCore:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: Core business moudule for Lark
+  LarkCoreLocation:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: 统一定位组件
+  LarkCrashSanitizer:
+    team: Performance/Infra
+    owners:
+    - luyuze.jack
+  LarkCreateTeam:
+    team: Passport
+    owners:
+    - caiweiwei.liam
+  LarkCustomerService:
+    team: IM/Hangzhou
+    owners:
+    - hupingwu
+    summary: 客服服务
+  LarkDatePickerView:
+    team: Calendar
+    owners:
+    - zhuheng.henry
+    summary: 日期选择器
+  LarkDebug:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: debug
+  LarkDebugExtensionPoint:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: debug
+  LarkDialogManager:
+    team: IM/Hangzhou
+    owners:
+    - hupingwu
+  LarkDocsIcon:
+    team: CCM
+    owners:
+    - huangzhikai.hzk
+    summary: 统一文档图标组件
+    doc: https://bytedance.feishu.cn/wiki/V34Ewae9EipK27kfvoRcgxOknAb
+  LarkDowngrade:
+    team: Performance/Infra
+    owners:
+    - yangjing.sniper0
+    summary: 通过设备等级、CPU&内存等状态，控制lark相关性能&功能降级
+    doc: https://bytedance.feishu.cn/docx/IGXldrDP7oppRxxG5NOcX8fonth
+  LarkDowngradeDependency:
+    team: Performance/Infra
+    owners:
+    - yangjing.sniper0
+    summary: 通过设备等级、CPU&内存等状态，控制lark相关性能&功能降级的配置注入
+    doc: https://bytedance.feishu.cn/docx/IGXldrDP7oppRxxG5NOcX8fonth
+  LarkDynamicResource:
+    team: Infra/KA
+    owners:
+    - fengkebang
+    doc: https://bytedance.feishu.cn/docs/doccnvE5uEuVGnuhlDfxDhAU24V
+  LarkEMM:
+    team: Security
+    owners:
+    - wangxijing
+    summary: SuiteAppConfig
+    doc: https://bytedance.feishu.cn/docx/N3PTdjXHzoBKzOxW0u0cTS1vnWg
+  LarkEditorJS:
+    team: Mail
+    owners:
+    - liutefeng
+    summary: 存放Docs通用js组件、存放各业务方和Docs编辑器有依赖的业务js组件、提供接口给各业务方读取js/html
+  LarkEmotion:
+    team: UG
+    owners:
+    - qujieye
+    summary: emoji图片资源
+  LarkEmotionKeyboard:
+    team: UG
+    owners:
+    - qujieye
+    summary: emoji & reaction
+    doc: https://bytedance.feishu.cn/docs/doccn322aoKdOavBmFePTbmSnCh
+  LarkEnterpriseNotice:
+    team: IM/Hangzhou
+    owners:
+    - hupingwu
+    summary: 企业通知卡片相关功能
+    doc: https://bytedance.feishu.cn/docx/Mlfudk3qNoX0bmxAVYYc7EEJnNe
+  LarkEnv:
+    team: Passport
+    owners:
+    - jinjian.au
+    summary: 从 LarkAppConfig 中拆分出来的Env环境配置以及环境切换实现
+    doc: https://bytedance.feishu.cn/docs/doccncRzS6FXRdJjBZLjA1PCl6c?appid=2#
+  LarkExpressionEngine:
+    team: Security
+    owners:
+    - tangzechuan
+    summary: Lark自研策略引擎依赖的表达式引擎，提供表达式计算能力
+    doc: https://bytedance.feishu.cn/docx/SL0OdCCbBoiMQMxf24ycuQpinSd
+  LarkExtensionAssembly:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: Lark Extension基建 主App部分
+  LarkExtensionCommon:
+    team: UG
+    owners:
+    - gucongrong
+    summary: share扩展相关
+  LarkExtensionServices:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: Extension基建
+  LarkExtensions:
+    team: IM/Beijing
+    owners:
+    - aslan.hu
+    summary: 对系统中部分类功能扩展，比如：Array、String、CGRect等，可能需要UIView.lu.xxx调用
+  LarkFeatureGating:
+    team: Infra/KA
+    owners:
+    - fengkebang
+    summary: 灰度开关相关管理
+  LarkFeatureSwitch:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: Feature切换控制，控制逻辑写死在端上，跟随包切换
+  LarkFeed:
+    team: IM/Beijing
+    owners:
+    - xiaruzhen
+    summary: Lark首页Feed列表模块
+  LarkFeedBanner:
+    team: IM/Beijing
+    owners:
+    - xiaruzhen
+    summary: Lark首页Feed列表Banner模块
+    doc: https://bytedance.feishu.cn/wiki/wikcnuN8UrRJhnskGQOmGlWEtkf
+  LarkFeedBase:
+    team: IM/Beijing
+    owners:
+    - xiaruzhen
+    summary: Feed 公共组件代码下沉，供多组件使用
+    doc: https://bytedance.feishu.cn/docx/CtOcdJ91Ko0wVBxYlfscMLFknFf?scene=multi_page&sub_scene=message
+  LarkFeedEvent:
+    team: IM/Beijing
+    owners:
+    - xiaruzhen
+    summary: Lark首页Feed列表事件模块
+    doc: https://bytedance.feishu.cn/docx/FzSgds5eDoflm0xZQJRcHrORnXs
+  LarkFeedPlugin:
+    team: IM/Beijing
+    owners:
+    - xiaruzhen
+    summary: 向LarkFeedReborn注册不同类型的ViewModel和Cell，及实现各自的功能
+  LarkFile:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: 文件本地预览模块
+  LarkFileKit:
+    team: Infra/Arch
+    owners:
+    - zhangwei.wy
+    summary: 对FileManager以及其他磁盘操作进行统一封装
+    doc: https://bytedance.feishu.cn/docs/doccnlTGQaDYiQyYyfArHrBibvf#
+  LarkFinance:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: 红包相关模块
+  LarkFlag:
+    team: UG
+    owners:
+    - qujieye
+    summary: 标记模块
+  LarkFloatPicker:
+    team: IM/Beijing
+    owners:
+    - liluobin
+    summary: 一个可以方便快捷支持长按滑动选择的UI组件
+    doc: https://bytedance.feishu.cn/docx/doxcnajDaBf70gG3Dqs1hzIVGJg
+  LarkFlutterContainer:
+    team: Meego
+    owners:
+    - shizhengyu
+    summary: LarkFlutterContainer 为飞书集成 Flutter 业务提供容器环境，提供 Dart-Native 桥接、混合路由等多种基础能力
+    doc: https://bytedance.feishu.cn/docs/doccn0FM9Fq0XQocHJUETLliMsg
+  LarkFocus:
+    team: Search
+    owners:
+    - wanghaidong.nku
+    summary: 自定义个人状态业务
+  LarkFocusInterface:
+    team: IM/Beijing
+    owners:
+    - dongwei.1615
+    doc: https://bytedance.feishu.cn/docx/S7MvdqqR9oZZuSxUjIBcA9Q4nae
+  LarkFontAssembly:
+    team: IM/Beijing
+    owners:
+    - dongwei.1615
+    summary: 组件用来在工程顶层进行新字体是否使用的控制，避免底层组件依赖杂乱。
+    doc: https://bytedance.feishu.cn/docx/J5p9dHIGeo9Klvx2BWAcjALynwe
+  LarkForward:
+    team: IM/Hangzhou
+    owners:
+    - gucongrong
+    summary: 消息转发模块
+  LarkFoundation:
+    team: IM/Beijing
+    owners:
+    - aslan.hu
+    summary: Lark的通用基础代码库，WrappedError、Extensions、File、Graylog、Utils
+  LarkGeckoTTNet:
+    team: Infra/KA
+    owners:
+    - zhaoxiangyu.love
+    summary: Gecko 网络请求和下载文件使用 TTNet 做代理的组件
+    doc: https://bytedance.feishu.cn/docx/Bd2id6qWmoTqb1xXpZTc7BIknDd
+  LarkGuide:
+    team: IM/Hangzhou
+    owners:
+    - hupingwu
+    summary: 提供统一引导规范
+    doc: https://bytedance.feishu.cn/docs/doccn15PSK5CrrJnBur8x5kV8Dd#
+  LarkGuideUI:
+    team: IM/Hangzhou
+    owners:
+    - hupingwu
+    summary: 统一引导
+    doc: https://bytedance.feishu.cn/docs/doccn15PSK5CrrJnBur8x5kV8Dd#
+  LarkHTTP:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+  LarkIMMention:
+    team: IM/Hangzhou
+    owners:
+    - xiexufeng
+    summary: IM场景Mention组件，用于选择人员、群文档
+    doc: https://bytedance.feishu.cn/docx/doxcn9tXqdLyBznawSLkp1X7HVh
+  LarkIllustrationResource:
+    team: IM/Beijing
+    owners:
+    - dongwei.1615
+    summary: 统一插画资源的管理
+    doc: https://bytedance.feishu.cn/docs/doccnu8lVV21RLn6TFo8Osf2Iab
+  LarkImageEditor:
+    team: Search
+    owners:
+    - wanghaidong.nku
+    summary: 图片编辑
+  LarkInteraction:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: 可以添加多个手势，避免接口稳定报错，减少用户理解成本
+    doc: https://bytedance.feishu.cn/docs/doccnQL7ykW9HxxGTGfJNB72rNg
+  LarkJSEngine:
+    team: OpenPlatform
+    owners:
+    - luorui.lr
+    doc: https://bytedance.feishu.cn/docx/doxcnyAAvZ4JLoPuK8dl4IJkqqh
+  LarkKAFKMS:
+    team: Infra/KA
+    owners:
+    - fengkebang
+    summary: wst 接入第三方加密 SDK
+    doc: https://bytedance.feishu.cn/docx/doxcnWe1b6n6oT0MouRP5wDHikf
+  LarkKAFeatureSwitch:
+    team: Infra/KA
+    owners:
+    - guhaowei
+    summary: 从 LarkAppConfig 中拆分出来的 KA 的 本地静态 feature swith 配置
+    doc: https://bytedance.feishu.cn/docs/doccnvjEN3gVAFELQE2y7l4sbPb?appid=2
+  LarkKASDKAssemble:
+    team: Infra/KA
+    owners:
+    - zhaoxiangyu.love
+    summary: 用户可以基于这个Demo开发调试
+    doc: https://bytedance.feishu.cn/docx/doxcnqA55CeytAJL6pkIMiiUOEd
+  LarkKeyCommandKit:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: 快捷键管理工具
+  LarkKeyboardKit:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: 键盘管理工具，可以获取键盘状态
+  LarkKeyboardView:
+    team: IM/Beijing
+    owners:
+    - liluobin
+    summary: LarkKeyboardView 组织了 Keyboard 相关的一些资源
+    doc: https://bytedance.feishu.cn/docx/doxcnmVYPKAZAG3JsyBAyr5Hoec
+  LarkLaunchGuide:
+    team: IM/Hangzhou
+    owners:
+    - hupingwu
+    summary: Lark 应用使用，包含Lark 应用所需要的图片资源 、文案资源、代码实现（依赖LKLaunchGuide）等
+  LarkLeanMode:
+    team: Security
+    owners:
+    - chengqingchun
+    summary: 精简模式，提供精简模式开关功能，监听状态变换，权限校验与变更，数据清理
+    doc: https://bytedance.feishu.cn/docs/doccnaSUWFLKrvTv88BXmXkClZd#
+  LarkListItem:
+    team: IM/Hangzhou
+    owners:
+    - xiexufeng
+    summary: 通用UI组件
+    doc: https://bytedance.feishu.cn/docs/doccnFlfFtLWfkkWamsrW54u1Vd#
+  LarkLive:
+    team: VC
+    owners:
+    - lvjing.jimmy
+    summary: LarkLive 是在视频会议上发展出来的直播业务，由于业务已经独立，因此代码也需要脱离VC，方便维护和后续开发
+    doc: https://bytedance.feishu.cn/docs/doccnqkVqBcpLKZzPdEj57zFdVd
+  LarkLiveInterface:
+    team: VC
+    owners:
+    - lvjing.jimmy
+    summary: LarkLiveInterface 是 LarkLive 对外暴露的接口层
+    doc: https://bytedance.feishu.cn/docs/doccnmtn77dOEp4VmczufbWqwzd
+  LarkLiveMod:
+    team: VC
+    owners:
+    - lvjing.jimmy
+    summary: 直播业务协议层
+  LarkLocalizations:
+    team: Infra/Arch
+    owners:
+    - wangxiaohua
+    summary: 本地化、国际化
+  LarkLocationPicker:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: 地图相关，定位，选择/搜索地理位置
+  LarkLynxKit:
+    team: OpenPlatform
+    owners:
+    - dingxu.shawn
+    summary: 飞书Lynx通用容器
+    doc: https://bytedance.feishu.cn/docx/CMqHdVa7DoOzhUx2jIbcfIhVnCe
+  LarkMagic:
+    team: IM/Hangzhou
+    owners:
+    - hupingwu
+    summary: 套件维度的满意度工具
+    doc: https://bytedance.feishu.cn/docs/doccnGLJfiQF0nrn5LH9HL5JKvc
+  LarkMagicAssembly:
+    team: IM/Hangzhou
+    owners:
+    - hupingwu
+  LarkMail:
+    team: Mail
+    owners:
+    - liutefeng
+    summary: mail集成
+  LarkMailInterface:
+    team: Mail
+    owners:
+    - liutefeng
+    summary: mail接口
+    doc: http://只有一个类文件
+  LarkMedia:
+    team: VC
+    owners:
+    - zhoufeng.ford
+    summary: Lark 媒体资源统一管理组件
+    doc: https://bytedance.feishu.cn/docx/doxcn8HuxCrpsQ1abWXocEHZKxh
+  LarkMeego:
+    team: Meego
+    owners:
+    - shizhengyu
+    summary: LarkMeego 是针对 LarkMeegoInterface 的服务实现部分
+    doc: https://bytedance.feishu.cn/docs/doccn0FM9Fq0XQocHJUETLliMsg
+  LarkMeegoInterface:
+    team: Meego
+    owners:
+    - shizhengyu
+    summary: LarkMeegoInterface 是 Meego 业务的服务接口
+    doc: https://bytedance.feishu.cn/docs/doccn0FM9Fq0XQocHJUETLliMsg
+  LarkMeegoLogger:
+    team: Meego
+    owners:
+    - shizhengyu
+    summary: Meego Native 日志组件
+  LarkMeegoNetClient:
+    team: Meego
+    owners:
+    - bijinglong
+    summary: 面向Meego业务提供TTNet网络请求统一封装。
+    doc: https://bytedance.feishu.cn/wiki/wikcnwrDlABGCTrTKMXhO4b4bKc
+  LarkMeegoProjectBiz:
+    team: Meego
+    owners:
+    - shizhengyu
+    summary: framework_summary
+  LarkMeegoPush:
+    team: Meego
+    owners:
+    - bijinglong
+    summary: 定位单品SDK，面向Meego业务提供长链接数据订阅、分发能力。
+    doc: https://bytedance.feishu.cn/wiki/wikcnwrDlABGCTrTKMXhO4b4bKc
+  LarkMeegoStorage:
+    team: Meego
+    owners:
+    - shizhengyu
+    summary: Meego Native DB 存储组件
+  LarkMeegoStrategy:
+    team: Meego
+    owners:
+    - shizhengyu
+    summary: framework_summary
+  LarkMeegoViewBiz:
+    team: Meego
+    owners:
+    - shizhengyu
+    summary: framework_summary
+  LarkMeegoWorkItemBiz:
+    team: Meego
+    owners:
+    - shizhengyu
+    summary: framework_summary
+  LarkMention:
+    team: CCM
+    owners:
+    - zhuzhengtao
+    summary: Mention UD 组件，用于选择人员、群组、文档等内容
+    doc: https://bytedance.feishu.cn/docx/doxcnFR2AxTNM6K86BbFV1ApTWe
+  LarkMenuController:
+    team: IM/Beijing
+    owners:
+    - zhaoyujie.yjz
+    - fengzigeng
+    summary: 会话页面长按菜单
+  LarkMessageBase:
+    team: IM/Beijing
+    owners:
+    - zhaochen.09
+    - liyong.520
+    summary: 消息基础实现
+  LarkMessageCard:
+    team: OpenPlatform
+    owners:
+    - majiaxin.jx
+    summary: 飞书消息卡片业务逻辑组件
+  LarkMessageCore:
+    team: IM/Beijing
+    owners:
+    - zhaochen.09
+    - liyong.520
+    summary: 消息core层
+  LarkMessengerInterface:
+    team: IM/Beijing
+    owners:
+    - zhaochen.09
+    - liyong.520
+    summary: messenger业务接口层
+  LarkMicroApp:
+    team: OpenPlatform
+    owners:
+    - luorui.lr
+    summary: 小程序
+  LarkMine:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: '"我的"页面模块'
+  LarkMinimumMode:
+    team: IM/Beijing
+    owners:
+    - zhaochen.09
+    summary: 将基本模式相关逻辑抽离到子库中维护
+    doc: https://bytedance.feishu.cn/docs/doccnpjdReUHq6pu6sEJ3LXtP9d
+  LarkModel:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: pb的model的类型重定义、从PBModel转各自模块model、pb
+  LarkMonitor:
+    team: Performance/Infra
+    owners:
+    - huanglx
+    summary: app monitor
+  LarkNavigation:
+    team: IM/Hangzhou
+    owners:
+    - qujieye
+    summary: window的rootViewController、首页tabBarControlelr主要是点击tabBar做了动画
+  LarkNavigationAssembly:
+    team: IM/Hangzhou
+    owners:
+    - qujieye
+  LarkNavigator:
+    team: Infra/Arch
+    owners:
+    - zhangwei.wy
+    summary: 封装了一些路由封装方法
+  LarkNotificationContentExtension:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+  LarkNotificationContentExtensionSDK:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+  LarkNotificationServiceExtension:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+  LarkNotificationServiceExtensionLib:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+  LarkOCR:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: 图片 OCR 展示业务组件
+  LarkOPInterface:
+    team: OpenPlatform
+    owners:
+    - luorui.lr
+    summary: Open platform foundation
+  LarkOpenAPIModel:
+    team: OpenPlatform
+    owners:
+    - zhaojingxin
+    summary: API组，主要存放PluginSystem中APIModel的基类，以及各API所依赖的自定义的数据结构，用于上层内部跨Pod间的强类型调用
+    doc: https://bytedance.feishu.cn/docs/doccnFoh28uFx3yxsSTO3tJtpSf
+  LarkOpenChat:
+    team: IM/Beijing
+    owners:
+    - zhaochen.09
+    - zhaojiachen.hydra
+    - fengzigeng
+    summary: 包含Chat里的架构实现代码，各业务方依赖此库扩展Chat对应功能。
+    doc: https://bytedance.feishu.cn/docs/doccnQcBp2mmBeNiI37hmZS8gke#
+  LarkOpenCombine:
+    team: Infra/KA
+    owners:
+    - fengkebang
+    summary: 开源库，LarkCombine的依赖库
+    doc: https://bytedance.feishu.cn/docs/doccn2ziQtiXXz0VEHVbcdKwCqd?appid=2
+  LarkOpenCombineDispatch:
+    team: Infra/KA
+    owners:
+    - fengkebang
+    summary: 开源库，LarkCombine的依赖库
+    doc: https://bytedance.feishu.cn/docs/doccn2ziQtiXXz0VEHVbcdKwCqd?appid=2
+  LarkOpenCombineFoundation:
+    team: Infra/KA
+    owners:
+    - fengkebang
+    summary: 开源库，LarkCombine的依赖库
+    doc: https://bytedance.feishu.cn/docs/doccn2ziQtiXXz0VEHVbcdKwCqd?appid=2
+  LarkOpenFeed:
+    team: IM/Beijing
+    owners:
+    - xiaruzhen
+    summary: 向外部业务提供Feed模块的开放能力功能
+    doc: https://bytedance.feishu.cn/docx/CtOcdJ91Ko0wVBxYlfscMLFknFf?scene=multi_page&sub_scene=message
+  LarkOpenIM:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: 开放能力基础库。
+    doc: https://bytedance.feishu.cn/docx/QwUGdgCejobMT2xVcL4cWBTZnad
+  LarkOpenKeyboard:
+    team: IM/Beijing
+    owners:
+    - liluobin
+    summary: 键盘开放能力基础库。
+    doc: https://bytedance.feishu.cn/docx/QuszdvAs4oJilGxVopicunQKnKh
+  LarkOpenPlatform:
+    team: OpenPlatform
+    owners:
+    - luogantong
+    summary: 开放平台模块，目前主要存放开放业务代码。
+  LarkOpenPlatformAssembly:
+    team: OpenPlatform
+    owners:
+    - luogantong
+    summary: 开放平台模块，集成层。
+  LarkOpenPluginManager:
+    team: OpenPlatform
+    owners:
+    - zhaojingxin
+    summary: API组，存放PluginManager基础逻辑
+    doc: https://bytedance.feishu.cn/docs/doccnFoh28uFx3yxsSTO3tJtpSf
+  LarkOpenSetting:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: LarkSettingsUI & LarkOpenSetting 准入申请
+  LarkOpenWorkplace:
+    team: OpenPlatform
+    owners:
+    - huangjiayun
+    summary: 工作台组件开放能力
+    doc: https://bytedance.feishu.cn/docx/PP4Sd8vghozPiuxooPic6eTTnH5
+  LarkOrientation:
+    team: Search
+    owners:
+    - wanghaidong.nku
+    summary: 设备方向管理工具
+  LarkPageController:
+    team: IM/Beijing
+    owners:
+    - aslan.hu
+    summary: 目前就查看ReactionDetail使用，可以在Theard点击Reaction查看效果
+  LarkPageIn:
+    team: Performance/Infra
+    owners:
+    - huanglx
+    summary: page in 预加载
+    doc: https://bytedance.feishu.cn/docx/DOU1dzWhbo31whxj5KEcmtwQnUc
+  LarkPerf:
+    team: Performance/Infra
+    owners:
+    - huanglx
+  LarkPerfBase:
+    team: Performance/Infra
+    owners:
+    - huanglx
+    summary: 通过设备等级、CPU&内存等状态，控制lark相关性能&功能降级的基础能力
+    doc: https://bytedance.feishu.cn/docx/IGXldrDP7oppRxxG5NOcX8fonth
+  LarkPolicyEngine:
+    team: Security
+    owners:
+    - tangzechuan
+    summary: Lark自研策略引擎
+    doc: https://bytedance.feishu.cn/docx/SL0OdCCbBoiMQMxf24ycuQpinSd
+  LarkPreload:
+    team: Performance/Infra
+    owners:
+    - huanglx
+    summary: 预加载框架，负责预加载任务调度。
+    doc: https://bytedance.feishu.cn/wiki/TwTewOmgHiXFFvkwq9pcSiJwnLb
+  LarkPreloadDependency:
+    team: Performance/Infra
+    owners:
+    - huanglx
+    summary: 预加载组件依赖组件
+  LarkPrivacyAlert:
+    team: IM/Beijing
+    owners:
+    - aslan.hu
+    summary: 隐私协议弹窗、简单的网页实现
+  LarkPrivacyMonitor:
+    team: Security
+    owners:
+    - huanzhengjie
+    summary: 敏感API管控SDK，能根据场景实现线上敏感API调用的精细化监控和降级。
+    doc: https://bytedance.feishu.cn/docx/YlDrdEv3joadmVx8Y0OcoLNPnyf
+  LarkPrivacySetting:
+    team: IM/Beijing
+    owners:
+    - aslan.hu
+    summary: 获取隐私权限配置能力
+    doc: https://bytedance.feishu.cn/docx/doxcnFD9jU2Y1xwvD8hNp7MUbPd
+  LarkProfile:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+  LarkPushCard:
+    team: IM/Beijing
+    owners:
+    - dongwei.1615
+    summary: 统一管理各业务推送卡片
+  LarkPushTokenUploader:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+  LarkQRCode:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: 二维码识别、从图片视频提取、生成
+  LarkQuaterback:
+    team: Infra/Arch
+    owners:
+    - shijianghao
+    summary: 负责读取必要信息，传递给 Quaterback 引擎启动。
+    doc: https://bytedance.feishu.cn/wiki/wikcntupc4sU0zLX230VFEGBg6f
+  LarkQuickLaunchBar:
+    team: UG
+    owners:
+    - qujieye
+    summary: 通用LaunchBarUI组件
+  LarkQuickLaunchInterface:
+    team: UG
+    owners:
+    - qujieye
+    summary: 提供统一的跳转Launcher页和添加到主导航服务
+  LarkRVC:
+    team: VC
+    owners:
+    - lujunhui.2nd
+    summary: RVC(room虚拟控制器)
+    doc: https://bytedance.feishu.cn/docs/doccn3GOpOFNERbFypPUNNCflRd
+  LarkReactionDetailController:
+    team: UG
+    owners:
+    - qujieye
+    summary: Reaction detail 详情页面
+  LarkReactionView:
+    team: UG
+    owners:
+    - qujieye
+    summary: reaction view
+  LarkReleaseConfig:
+    team: Infra/KA
+    owners:
+    - guhaowei
+    summary: 内部读取了info.plist的部分属性作为config
+  LarkResource:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: Lark 语义化资源底层 SDK
+    doc: https://bytedance.feishu.cn/docs/doccnSzdUrouACb4ZA4VTqVTuuc#
+  LarkRichTextCore:
+    team: IM/Beijing
+    owners:
+    - liyong.520
+    summary: LarkRichTextCore 围绕 RichText 模型组织了一些与业务计算无关的资源
+    doc: https://bytedance.feishu.cn/docx/doxcnGsQkc8EC9PyaHL3EW0jWGv
+  LarkRustClient:
+    team: Infra/Arch
+    owners:
+    - wangxiaohua
+    summary: 发起请求的SDK，传入对应Request的pb即可
+  LarkRustClientAssembly:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: 解除 LarkAccount 和 Rust 的耦合
+    doc: https://bytedance.feishu.cn/docs/doccna9iDjxbObMrMUh29TEe2Ob
+  LarkRustFG:
+    team: Infra/KA
+    owners:
+    - fengkebang
+    summary: 向Rust SDK 取FG C接口的封装
+    doc: https://bytedance.feishu.cn/docx/ZoPGdKPgOoQoDxxl2KJcTleBnsc
+  LarkRustHTTP:
+    team: Infra/Arch
+    owners:
+    - wangxiaohua
+    summary: 发起请求的SDK，传入对应Request的pb即可
+  LarkSDK:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: 主要是LarkInterface中api的实现
+  LarkSDKInterface:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: Lark接口封装
+  LarkSQLCipher:
+    team: Performance/Infra
+    owners:
+    - xianwenhui
+    summary: 加密存储本地sql数据
+  LarkSafeMode:
+    team: Performance/Infra
+    owners:
+    - luyuze.jack
+    summary: 安全模式
+  LarkSafety:
+    team: Infra/Arch
+    owners:
+    - cailiang.cl7r
+    summary: 部分安全相关封装，比如截图，反调试
+  LarkScene:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: 提供 scene 的一些工具方法
+  LarkSceneManager:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: iPad Scene 管理模块，支持注入生成不同 scene 主页面，创建销毁不同 scene 场景
+    doc: https://bytedance.feishu.cn/docs/doccnZfwx2zew0JoH4dbI2w81ve
+  LarkSceneManagerAssembly:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: iPad Scene 管理模块，支持注入生成不同 scene 主页面，创建销毁不同 scene 场景
+  LarkSearch:
+    team: Search
+    owners:
+    - tuxiaolong
+    summary: 搜索模块
+  LarkSearchCore:
+    team: Search
+    owners:
+    - tuxiaolong
+    summary: Search的核心接口提供和功能封装
+    doc: https://bytedance.feishu.cn/docs/doccnEuh0mII2Xqmzzi0q53hOXf#
+  LarkSearchFilter:
+    team: Search
+    owners:
+    - tuxiaolong
+    summary: 搜索过滤模块
+  LarkSecurityAudit:
+    team: Security
+    owners:
+    - wangxijing
+    summary: 特定行为数据的搜集，用于记录用户操作行为日志，对各种操作行为进行审计分析
+    doc: https://bytedance.feishu.cn/docs/doccniNQYFKeJKDNI3oglB31CHx
+  LarkSecurityCompliance:
+    team: Security
+    owners:
+    - chengqingchun
+    summary: 安全合规业务组件，包含条件访问控制能力等
+    doc: https://bytedance.feishu.cn/docx/doxcnZRzOYcUrOuKNHCh1KVMqPe
+  LarkSecurityComplianceInfra:
+    team: Security
+    owners:
+    - wangxijing
+    summary: 安全合规组件基础组件，包括对网络、日志、埋点等基础组件
+    doc: https://bytedance.feishu.cn/docx/FU6idduJJotfkuxT9c6cPsN2nlg
+  LarkSecurityComplianceInterface:
+    team: Security
+    owners:
+    - wangxijing
+    summary: 安全合规业务接入层，包含文件策略管理对外服务等
+    doc: https://bytedance.feishu.cn/docx/GbokdAZJfoEimlxdp1uc4AqJnZf
+  LarkSegmentedView:
+    team: IM/Beijing
+    owners:
+    - aslan.hu
+    summary: 分类切换滚动视图
+    doc: https://github.com/pujiaxin33/JXSegmentedView
+  LarkSendMessage:
+    team: IM/Beijing
+    owners:
+    - liyong.520
+    summary: 收敛发消息逻辑
+  LarkSensitivityControl:
+    team: Security
+    owners:
+    - huanzhengjie
+    summary: 敏感 API 管控 SDK
+    doc: https://bytedance.feishu.cn/docx/R0eLd2tzVoThAgxhQ6ScRjyvnZc
+  LarkSetting:
+    team: Infra/KA
+    owners:
+    - fengkebang
+    summary: LarkSetting负责管理内部配置，主要分为下面四个方面的配置，下载，缓存，更新等
+    doc: https://bytedance.feishu.cn/docs/doccnQQlD78dRE8a2qnBR4z9yTd
+  LarkSettingUI:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: LarkSettingsUI & LarkOpenSetting 准入申请
+  LarkSettingsBundle:
+    team: Passport
+    owners:
+    - caiweiwei.liam
+    summary: 用于封装加载 apple setting，让用户多一个settings app的控制
+  LarkShareContainer:
+    team: UG
+    owners:
+    - gucongrong
+    summary: Lark分享容器组件
+    doc: https://bytedance.feishu.cn/wiki/wikcnTbvBrprdtJqOZTzaWekFLy
+  LarkShareExtension:
+    team: UG
+    owners:
+    - gucongrong
+    summary: share扩展
+  LarkShareToken:
+    team: Calendar
+    owners:
+    - zhaodong.23
+    summary: 具有分享口令的基础能力, 业务方可调用此库实现自己的业务逻辑
+    doc: https://bytedance.feishu.cn/docs/doccnkHkNl7AtOOsL32W9xpJqzf#
+  LarkSheetMenu:
+    team: IM/Beijing
+    owners:
+    - zhaoyujie.yjz
+    - fengzigeng
+    summary: 弹出式Sheet型消息菜单，目前供非中文用户使用
+    doc: https://bytedance.feishu.cn/docx/Lp4BdhbtUo9sS1xAg2XcC9HDnWe
+  LarkSnCService:
+    team: Security
+    owners:
+    - wanghao.ios
+    summary: 安全合规组件服务注册 SDK
+    doc: https://bytedance.feishu.cn/docx/DrLjd5VUeo4tkxx5Ejyc7hN5nZf
+  LarkSnsShare:
+    team: UG
+    owners:
+    - gucongrong
+    summary: 三方分享组件
+    doc: https://bytedance.feishu.cn/docs/doccngbnlPSCV7NQ7CuXLy19RJn
+  LarkSplash:
+    team: IM/Hangzhou
+    owners:
+    - xiexufeng
+    summary: 飞书开屏图片相关库，支持启动显示图片，类似于其它头条系App的开屏广告
+    doc: https://bytedance.feishu.cn/docs/doccn7DZVu3WWwl4a2cuut1BE1f#
+  LarkSplitViewController:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: 分屏容器
+  LarkStorage:
+    team: Infra/Arch
+    owners:
+    - zhangwei.wy
+    - lihaozhe.12
+    summary: Lark 本地存储统一管理组件
+    doc: https://bytedance.feishu.cn/docx/doxcnNGCbYEF5ngJZOWhGemSWpy
+  LarkStorageAssembly:
+    team: Infra/Arch
+    owners:
+    - zhangwei.wy
+    - lihaozhe.12
+    summary: Lark 本地存储统一管理组件 Assembly
+    doc: https://bytedance.feishu.cn/docx/doxcnNGCbYEF5ngJZOWhGemSWpy
+  LarkStorageCore:
+    team: Infra/Arch
+    owners:
+    - zhangwei.wy
+    - lihaozhe.12
+    summary: Lark 本地存储统一管理组件 核心部分，最简依赖
+    doc: https://bytedance.feishu.cn/docx/doxcnNGCbYEF5ngJZOWhGemSWpy
+  LarkSuspendable:
+    team: Search
+    owners:
+    - wanghaidong.nku
+    summary: 多任务页面暂存的解决方案
+    doc: https://bytedance.feishu.cn/docs/doccn60P6XX7FaUMeCvYFjsYEfb?appid=2#
+  LarkSwipeCellKit:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: 封装GitHub的SwipeCellKit，并扩展部分功能
+  LarkTTNetInitializor:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: iOS接入ttnet网络库由于多方依赖问题，需要把初始化工作放在端上来做，这个库主要承载TTNetworkManager、TTNet的初始化在Lark的落地工作。
+    doc: https://bytedance.feishu.cn/docs/doccntl0oYxQEQ9P2M5jSuNgLLD
+  LarkTab:
+    team: IM/Hangzhou
+    owners:
+    - qujieye
+    summary: Tab组件相关，用于注册Tab，跳转等
+  LarkTabMicroApp:
+    team: OpenPlatform
+    owners:
+    - luorui.lr
+    summary: 小程序
+  LarkTag:
+    team: IM/Beijing
+    owners:
+    - aslan.hu
+    summary: 封装了系统中常见小标签的TagView，比如：有新版、机器人、已读、未读等
+  LarkTeam:
+    team: IM/Beijing
+    owners:
+    - xiaruzhen
+    summary: 团队模块
+  LarkThread:
+    team: IM/Beijing
+    owners:
+    - liluobin
+    summary: 话题群模块
+  LarkTimeFormatUtils:
+    team: Calendar
+    owners:
+    - zhuheng.henry
+    summary: 用于输出各业务都可使用的时间格式
+    doc: https://bytedance.feishu.cn/docs/doccn9isKQp5OpIVrBcYKJs5kcb#
+  LarkTour:
+    team: IM/Hangzhou
+    owners:
+    - hupingwu
+    summary: 承载新用户引导流程、广告投放用户归因、升级团队业务
+    doc: https://bytedance.feishu.cn/docs/doccnRanaF0zdZJlx4vUg7uR95b
+  LarkTourInterface:
+    team: IM/Hangzhou
+    owners:
+    - hupingwu
+    summary: 接口定义收敛进入LarkTourInterface
+  LarkTraceId:
+    team: IM/Hangzhou
+    owners:
+    - hupingwu
+  LarkTracing:
+    team: Performance/Infra
+    owners:
+    - huanglx
+    summary: 记录阶段耗时的可视化日志，加强问题单点分析能力
+    doc: https://bytedance.feishu.cn/docx/doxcnN5ANaXg204osNk4RUKRLGf
+  LarkTracker:
+    team: Infra/KA
+    owners:
+    - fengkebang
+    summary: 头条打点封装
+  LarkTraitCollection:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: 自定义 TraitCollection 组件，支持自定义 sizeClass
+  LarkUIExtension:
+    team: Search
+    owners:
+    - wanghaidong.nku
+    summary: 资源管理的底层库，用来完成 Key 与 资源文件的查找与映射
+    doc: https://bytedance.feishu.cn/docs/doccnrVvXDhtIl4zsDvHk4Ln6jZ
+  LarkUIKit:
+    team: IM/Beijing
+    owners:
+    - aslan.hu
+    summary: 封装的一些基础视图组件库，如：加载菊花、系统图片视频选择/预览、CheckBox、FloatWindow、其他的一些view/vc
+  LarkUrgent:
+    team: IM/Beijing
+    owners:
+    - liyong.520
+    summary: 消息加急模块
+  LarkVersion:
+    team: IM/Beijing
+    owners:
+    - liuxianyu
+    summary: 版本升级相关
+    doc: https://bytedance.feishu.cn/docx/doxcnyhxtmiQz6hCYi1QrflGlhj
+  LarkVersionAssembly:
+    team: IM/Beijing
+    owners:
+    - liuxianyu
+    summary: Lark Version Aseembly
+  LarkVideoDirector:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: Lark 视频模块
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  LarkVote:
+    team: UG
+    owners:
+    - gucongrong
+    summary: 群投票模块
+    doc: https://bytedance.feishu.cn/docx/doxcnExEAHiSBAflVdcPRuvXxhb
+  LarkWaterMark:
+    team: Security
+    owners:
+    - sunxingjian
+    summary: 水印
+    doc: https://bytedance.feishu.cn/docs/doccnc6ehRQNDPTVZHV3DXIjGgh#
+  LarkWebViewContainer:
+    team: OpenPlatform
+    owners:
+    - luogantong
+    summary: 套件统一WebView
+    doc: https://bytedance.feishu.cn/docs/doccnEwef7gq6jioPBC0RQztLcc#
+  LarkWebviewNativeComponent:
+    team: OpenPlatform
+    owners:
+    - baojianjun.786
+    summary: webview同层渲染组件
+    doc: https://bytedance.feishu.cn/docs/doccn5yVQASgeX1Y9reHPfADWib
+  LarkWidget:
+    team: Search
+    owners:
+    - wanghaidong.nku
+    summary: 包含SwiftUI开发的UI代码、数据读取逻辑，尽量拆除了多余逻辑
+    doc: https://bytedance.feishu.cn/docs/doccn8X482cqQzLjEaLXfTAYVvh?appid=2
+  LarkWidgetService:
+    team: Search
+    owners:
+    - wanghaidong.nku
+    summary: 负责数据请求，数据处理等逻辑
+    doc: https://bytedance.feishu.cn/docs/doccn8X482cqQzLjEaLXfTAYVvh?appid=2
+  LarkWorkplace:
+    team: OpenPlatform
+    owners:
+    - zhangmeng.94233
+    summary: 工作台业务模块
+  LarkWorkplaceModel:
+    team: OpenPlatform
+    owners:
+    - shengxiaoying.keri
+    summary: 工作台网络数据定义和解析
+    doc: https://bytedance.feishu.cn/docx/PP4Sd8vghozPiuxooPic6eTTnH5
+  LarkZoomable:
+    team: Search
+    owners:
+    - wanghaidong.nku
+    summary: LarkZoomable 内部管理字体缩放等级，并根据当前缩放等级，使用统一的 API 返回字体或约束数值。
+    doc: https://bytedance.feishu.cn/docs/doccnJZPpyfuflvjLmuDulz84Bd#?user_id=6856554860205080577&suite_passport_dli=MzAwNzg2MTM3OTU3OTEwMg==&disposable_login_token=eu_nc:v2:d95d97d4ac84390a407d2223f88722d4a4f8ef1f936c5c5b059709fcb5787067&suite_passport_timestamp=1609823429&appid=2
+  LibArchiveKit:
+    team: CCM
+    owners:
+    - zenghao.howie
+    summary: 压缩文件解压的库
+    doc: https://bytedance.feishu.cn/docx/doxcnAQYYrxqeuaW9cuWDXN0QBf
+  Logger:
+    team: Infra/Arch
+    owners:
+    - zhangwei.wy
+    summary: 日志库
+  LookinServer:
+    team: IM/Hangzhou
+    owners:
+    - xiexufeng
+    summary: UI 调试工具
+  Lynx:
+    team: OpenPlatform
+    owners:
+    - dingxu.shawn
+    summary: Lynx
+  LynxDevtool:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: Bullt依赖模块，Lynx debug模块，不会进入正式版
+    doc: https://bytedance.feishu.cn/docs/doccnHrxnp3c4QDxnMxXEXPk8Fb
+  MBProgressHUD:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: 加载指示器
+  MDLMediaDataLoader:
+    team: Mail
+    owners:
+    - longweiwei
+    summary: 多媒体数据预加载
+    doc: https://bytedance.feishu.cn/docs/doccn3plAxMPmdN4j3sbZX
+  MJExtension:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: framework_summary
+  MJRefresh:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: framework_summary
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  MMKV:
+    team: Performance/Infra
+    owners:
+    - luyuze.jack
+    summary: 只有广告开屏用到，是基于 mmap 内存映射的 key-value 组件
+  MMKVCore:
+    team: Performance/Infra
+    owners:
+    - luyuze.jack
+    summary: 只有广告开屏用到，是基于 mmap 内存映射的 key-value 组件
+  MailNativeTemplate:
+    team: Mail
+    owners:
+    - gaoquanze
+    summary: 读信工程模板
+    doc: https://bytedance.feishu.cn/docx/KSHadHj5zoLv4txnQOacwSr7nsb?theme=LIGHT&contentTheme=DARK
+  MailSDK:
+    team: Mail
+    owners:
+    - liutefeng
+    summary: 邮件相关业务
+  Mantle:
+    team: VC
+    owners:
+    - chentao.00
+    summary: EffectPlatformSDK依赖组件库
+    doc: https://bytedance.feishu.cn/docs/doccn9Wap9TE1n4TF2AgwDdpIzh
+  Masonry:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: 自动布局
+  MeegoMod:
+    team: Meego
+    owners:
+    - shizhengyu
+    summary: Meego 业务集成模块
+  MemoryGraphCapture:
+    team: Performance/Infra
+    owners:
+    - cailiang.cl7r
+    summary: iOS端采集堆以及vm内存分布及其关系的模块
+  MessengerMod:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: Messager集成
+  Minutes:
+    team: Minutes
+    owners:
+    - panzaofeng
+    summary: 实现Minutes业务的主要模块
+    doc: https://bytedance.feishu.cn/docs/doccnGYIguR0rOdxPbH9UKXA1Cg?appid=2#2OxoGu
+  MinutesDependency:
+    team: Minutes
+    owners:
+    - panzaofeng
+    summary: 妙记外部依赖仓库模块
+    doc: https://bytedance.feishu.cn/docx/G1PgdpTzWooGedxwrk7cMz75n8b
+  MinutesFoundation:
+    team: Minutes
+    owners:
+    - panzaofeng
+    summary: Minutes基础库，以及共享业务模型
+    doc: https://bytedance.feishu.cn/docs/doccnGYIguR0rOdxPbH9UKXA1Cg?appid=2#2OxoGu
+  MinutesInterface:
+    team: Minutes
+    owners:
+    - panzaofeng
+    summary: 实现Minutes业务对外接口
+    doc: https://bytedance.feishu.cn/docs/doccnGYIguR0rOdxPbH9UKXA1Cg?appid=2#2OxoGu
+  MinutesMod:
+    team: Minutes
+    owners:
+    - panzaofeng
+    summary: MinutesMod指飞书妙记的集成模块
+    doc: https://bytedance.feishu.cn/docx/doxcnDkGcD4mKEIgFRfUUGGuz4f
+  MinutesNavigator:
+    team: Minutes
+    owners:
+    - panzaofeng
+    summary: Minutes业务接入LarkForward ，通过该pod 解除互相之间的依赖
+    doc: https://bytedance.feishu.cn/docs/doccnzuLeO7epHhiLCxO4w6TGAe#
+  Moment:
+    team: IM/Beijing
+    owners:
+    - zhaochen.09
+    - liluobin
+    doc: https://bytedance.feishu.cn/docs/doccnfpjpKomZTsChG51DiDvFUc
+  NLEEditor:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+  NLEPlatform:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: NLE 基础组件
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  NSObject+Rx:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: rxswift相关引用库
+  Napi:
+    team: Search
+    owners:
+    - tuxiaolong
+    summary: Lynx/Canvas依赖
+    doc: https://bytedance.feishu.cn/docs/doccnaXNQ9z2LrBeHmqz4dcgExc#
+  NewLarkDynamic:
+    team: OpenPlatform
+    owners:
+    - majiaxin.jx
+    summary: 消息卡片
+  NotificationUserInfo:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: 和服务器约定好的通知格式，在NoticePushHandler中使用
+  OPBlock:
+    team: OpenPlatform
+    owners:
+    - zhangmeng.94233
+    summary: Block 应用
+    doc: https://bytedance.feishu.cn/docs/doccnsf2FTccbLk0w8W8yN41RPb#?user_id=6856554860205080577&suite_passport_dli=MzAwNzg2MTM3OTU3OTEwMg==&disposable_login_token=eu_nc:v2:cf95d2c12be48db72103347adeeaccd046ce539638e6d4d90b001f5b79665487&suite_passport_timestamp=1609823589&appid=2
+  OPBlockInterface:
+    team: OpenPlatform
+    owners:
+    - zhangmeng.94233
+    summary: OPBlock的声明部分
+    doc: https://bytedance.feishu.cn/docx/doxcnx6BKMGnZ22vbrISqQG1DAh
+  OPDynamicComponent:
+    team: OpenPlatform
+    owners:
+    - taofengping
+    summary: 动态组件
+    doc: https://bytedance.feishu.cn/docx/doxcnSyyx5fS0Oe4b9etWnkPakg
+  OPFoundation:
+    team: OpenPlatform
+    owners:
+    - zhaojingxin
+    summary: 开放平台Infra基础能力
+    doc: https://bytedance.feishu.cn/docs/doccnsf2FTccbLk0w8W8yN41RPb#?user_id=6856554860205080577&suite_passport_dli=MzAwNzg2MTM3OTU3OTEwMg==&disposable_login_token=eu_nc:v2:cf95d2c12be48db72103347adeeaccd046ce539638e6d4d90b001f5b79665487&suite_passport_timestamp=1609823589&appid=2
+  OPGadget:
+    team: OpenPlatform
+    owners:
+    - luorui.lr
+    summary: 小程序
+    doc: https://bytedance.feishu.cn/docs/doccnsf2FTccbLk0w8W8yN41RPb#?user_id=6856554860205080577&suite_passport_dli=MzAwNzg2MTM3OTU3OTEwMg==&disposable_login_token=eu_nc:v2:cf95d2c12be48db72103347adeeaccd046ce539638e6d4d90b001f5b79665487&suite_passport_timestamp=1609823589&appid=2
+  OPJSEngine:
+    team: OpenPlatform
+    owners:
+    - luorui.lr
+    doc: https://bytedance.feishu.cn/docx/doxcnenNXJYLsTokuu4InXZjyme
+  OPPlugin:
+    team: OpenPlatform
+    owners:
+    - zhaojingxin
+    summary: API组，Ecosystem 团队职责划分，原开放平台API相关实现代码拆分，需要下沉并接入到新的API开放基建中
+    doc: https://bytedance.feishu.cn/docs/doccn3OMZJI0RyYdwqDtgCHNgsf
+  OPPluginBiz:
+    team: OpenPlatform
+    owners:
+    - baojianjun.786
+    summary: 开放平台API业务，从小程序/网页等容器抽离API的复用能力
+    doc: https://bytedance.feishu.cn/docx/Gc4KdPEsaoOKEHxi8MOcLM0jnUe
+  OPPluginManagerAdapter:
+    team: OpenPlatform
+    owners:
+    - baojianjun.786
+    summary: 开平API适配层
+    doc: https://bytedance.feishu.cn/docx/GifcdbR68oH29axVZWtcLkNinz5
+  OPSDK:
+    team: OpenPlatform
+    owners:
+    - luorui.lr
+    summary: 开放应用形态SDK
+    doc: https://bytedance.feishu.cn/docs/doccnsf2FTccbLk0w8W8yN41RPb#?user_id=6856554860205080577&suite_passport_dli=MzAwNzg2MTM3OTU3OTEwMg==&disposable_login_token=eu_nc:v2:cf95d2c12be48db72103347adeeaccd046ce539638e6d4d90b001f5b79665487&suite_passport_timestamp=1609823589&appid=2
+  OPWebApp:
+    team: OpenPlatform
+    owners:
+    - taofengping
+    summary: OPWebApp 为开放平台下和 OPGadget/OPBlock 并行组件
+    doc: https://bytedance.feishu.cn/docx/doxcnSKjlgkHhSpqTFqfaUPIDwg
+  Objection:
+    team: OpenPlatform
+    owners:
+    - zhaojingxin
+    summary: 注解依赖
+  OfflineResourceManager:
+    team: Passport
+    owners:
+    - caiweiwei.liam
+    summary: Lark启动时，拉取业务的patterns
+  OneKit:
+    team: Infra/KA
+    owners:
+    - fengkebang
+    summary: OneKit 是升级 RangersAppLog 需要引入的 TOB sdk 基础模块
+    doc: https://bytedance.feishu.cn/docs/doccnDZtsq6dUdI7pTauXIvNqrd
+  PNSServiceKit:
+    team: Security
+    owners:
+    - huanzhengjie
+    summary: 隐私合规服务绑定组件，LarkPrivacyMonitor引入
+    doc: https://bytedance.feishu.cn/docx/YlDrdEv3joadmVx8Y0OcoLNPnyf
+  PassportDebug:
+    team: Passport
+    owners:
+    - caiweiwei.liam
+    summary: Passport 高级调试组件
+    doc: https://bytedance.feishu.cn/docx/doxcnPrA7yMMPdNuAve7e4pNJah
+  PocketSVG:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: framework_summary
+  PresentContainerController:
+    team: IM/Beijing
+    owners:
+    - aslan.hu
+    summary: present带自定义动画，目前LarkConfirmContainer和Calendar使用
+  QRCode:
+    team: IM/Hangzhou
+    owners:
+    - fangjun.001
+    summary: 二维码识别、从图片视频提取、生成
+  Quaterback:
+    team: Infra/Arch
+    owners:
+    - shijianghao
+    summary: 热修复主引擎，包括虚拟机、配置下发、白名单、灰度功能；
+    doc: https://bytedance.feishu.cn/wiki/wikcntupc4sU0zLX230VFEGBg6f
+  RCTRequired:
+    team: CCM
+    owners:
+    - lijuyou
+    summary: react引用的
+  RCTTypeSafety:
+    team: CCM
+    owners:
+    - lijuyou
+    summary: react引用的
+  RSSwizzle:
+    team: Infra/Arch
+    owners:
+    - wangxiaohua
+    summary: TSPrivacyKit依赖库
+    doc: https://bytedance.feishu.cn/docs/doccnCYfZvritXQma4EJuOM1U1e#BGGTkp
+  RangersAppLog:
+    team: Infra/KA
+    owners:
+    - fengkebang
+  ReSwift:
+    team: CCM
+    owners:
+    - wuwenjian.weston
+    summary: 管理应用状态
+    doc: https://github.com/ReSwift/ReSwift
+  ReachabilitySwift:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: 网络监听
+  React-Core:
+    team: CCM
+    owners:
+    - lijuyou
+    summary: 用于跨端，构建用户界面的开源框架
+  React-CoreModules:
+    team: CCM
+    owners:
+    - lijuyou
+  React-RCTImage:
+    team: CCM
+    owners:
+    - lijuyou
+    summary: A React component for displaying different types of images.
+  React-RCTNetwork:
+    team: CCM
+    owners:
+    - lijuyou
+    summary: react相关
+  React-cxxreact:
+    team: CCM
+    owners:
+    - lijuyou
+  React-jsi:
+    team: CCM
+    owners:
+    - lijuyou
+    summary: RN轻量级的通用的API框架，可以应用于任意的JavaScript virtual machine
+  React-jsiexecutor:
+    team: CCM
+    owners:
+    - lijuyou
+    summary: 用于跨端，构建用户界面的开源框架
+  React-jsinspector:
+    team: CCM
+    owners:
+    - lijuyou
+    summary: react相关引用库
+  ReactCommon:
+    team: CCM
+    owners:
+    - lijuyou
+    summary: react相关
+  ReactiveObjC:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: framework_summary
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  RenderRouterInterface:
+    team: IM/Beijing
+    owners:
+    - yuanping.0
+    summary: URL中台多引擎渲染接口
+    doc: https://bytedance.feishu.cn/docx/CpgMdgJbjooQ9rxnUiic0Vizn7g
+  RichLabel:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: 富文本渲染，支持link、phone、指定text点击监听
+  RoundedHUD:
+    team: Calendar
+    owners:
+    - zhuheng.henry
+    summary: 请使用 UniverseDesignToast
+  RunloopTools:
+    team: Performance/Infra
+    owners:
+    - huanglx
+    summary: Runloop工具集
+  RustPB:
+    team: Performance/Infra
+    owners:
+    - xianwenhui
+    summary: rust封装接口
+  RustSDK:
+    team: Performance/Infra
+    owners:
+    - xianwenhui
+    summary: rust封装接口
+  RustSimpleLogSDK:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: Rust 提供的Simple LogSDK在iOS中的库，主要是为了Extension的日志安全服务
+    doc: https://bytedance.feishu.cn/docx/QX7ndoIU5oonVMxUBIvcTlfxnXe
+  RxAutomaton:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: RX相关，状态机
+  RxCocoa:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: https://code.byted.org/TTIOS/chromium_android/tree/ttnet/third_party/boringssl
+    doc: https://cocoapods.org/pods/RxCocoa
+  RxDataSources:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: rx相关，tableView数据源
+  RxRelay:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: rxswift相关引用库
+  RxSwift:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: 异步编程的框架
+    doc: https://beeth0ven.github.io/RxSwift-Chinese-Documentation/
+  SAMKeychain:
+    team: UG
+    owners:
+    - qujieye
+    summary: 财经引用到此库，keychain相关
+  SDWebImage:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: Asynchronous image downloader with cache support with an UIImageView
+      category.
+  SGPagingView:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: framework_summary
+  SKBitable:
+    team: Base
+    owners:
+    - zoujie.andy
+    summary: bitable 多维表格
+    doc: https://bytedance.feishu.cn/docs/doccnI8rfpQaqyICF5aVYG5ZsKh#?user_id=6856554860205080577&suite_passport_dli=MzAwNzg2MTM3OTU3OTEwMg==&disposable_login_token=eu_nc:v2:32ced60e1c66800138b1c46b6abc56f73e549ee54954dbfcff186b8679a83b5f&suite_passport_timestamp=1610020131&appid=2
+  SKBrowser:
+    team: CCM
+    owners:
+    - huangzhikai.hzk
+    summary: 所有文档类型的公共服务组件
+    doc: https://bytedance.feishu.cn/docs/doccnlmYGP71qF54YfR5ZBL3P5e?appid=2
+  SKComment:
+    team: CCM
+    owners:
+    - huayufan
+    summary: 评论组件
+    doc: https://bytedance.us.feishu.cn/docx/Iz6xdEwEDo6flxxJA2SuCSQBs4c
+  SKCommon:
+    team: CCM
+    owners:
+    - huayufan
+    summary: 业务基础组件
+  SKDoc:
+    team: CCM
+    owners:
+    - liujinwei.zhangsan
+    summary: Doc文档特性
+    doc: https://bytedance.feishu.cn/docs/doccnlmYGP71qF54YfR5ZBL3P5e?appid=2
+  SKDrive:
+    team: CCM
+    owners:
+    - zenghao.howie
+    summary: 拆分 SKECM 为 SKSpace 和 SKDrive 两个模块
+    doc: https://bytedance.feishu.cn/docs/doccnTiSiG9zAe40A0vr4SyEEEf
+  SKFoundation:
+    team: CCM
+    owners:
+    - huangzhikai.hzk
+    summary: Doc通用基础组件
+    doc: https://bytedance.feishu.cn/wiki/wikcn5Zb1RDbdbWoXIoYtJfuZIh
+  SKInfra:
+    team: CCM
+    owners:
+    - huangzhikai.hzk
+    summary: SpaceKit 业务支持基建组件
+    doc: https://bytedance.us.feishu.cn/docx/Iz6xdEwEDo6flxxJA2SuCSQBs4c
+  SKMindnote:
+    team: CCM
+    owners:
+    - liujinwei.zhangsan
+    summary: 思维导图文档
+    doc: https://bytedance.feishu.cn/docs/doccnI8rfpQaqyICF5aVYG5ZsKh#?user_id=6856554860205080577&suite_passport_dli=MzAwNzg2MTM3OTU3OTEwMg==&disposable_login_token=eu_nc:v2:32ced60e1c66800138b1c46b6abc56f73e549ee54954dbfcff186b8679a83b5f&suite_passport_timestamp=1610020131&appid=2
+  SKPermission:
+    team: CCM
+    owners:
+    - wuwenjian.weston
+    summary: CCM 权限能力服务
+    doc: https://bytedance.feishu.cn/wiki/I1QAwXK5Oii8WMkXWggcHFplnVf
+  SKResource:
+    team: CCM
+    owners:
+    - lijuyou
+    summary: Doc相关资源
+  SKSheet:
+    team: CCM
+    owners:
+    - lijuyou
+    summary: sheet 表格
+    doc: https://bytedance.feishu.cn/docs/doccnI8rfpQaqyICF5aVYG5ZsKh#?user_id=6856554860205080577&suite_passport_dli=MzAwNzg2MTM3OTU3OTEwMg==&disposable_login_token=eu_nc:v2:32ced60e1c66800138b1c46b6abc56f73e549ee54954dbfcff186b8679a83b5f&suite_passport_timestamp=1610020131&appid=2
+  SKSlides:
+    team: CCM
+    owners:
+    - liujinwei.zhangsan
+    summary: 新版slides幻灯片
+    doc: https://bytedance.feishu.cn/wiki/GpCbwAJftiaprjkCzmncKz2Inuh
+  SKSpace:
+    team: CCM
+    owners:
+    - wuwenjian.weston
+    summary: 拆分 SKECM 为 SKSpace 和 SKDrive 两个模块
+    doc: https://bytedance.feishu.cn/docs/doccnTiSiG9zAe40A0vr4SyEEEf
+  SKUIKit:
+    team: CCM
+    owners:
+    - lijuyou
+    summary: Doc相关UI，与业务无关
+  SKWikiV2:
+    team: CCM
+    owners:
+    - majie.7
+    summary: Wiki 文档
+    doc: https://bytedance.feishu.cn/docs/doccnKS4O1nh8wWdQYrMh2ZyObc
+  SKWorkspace:
+    team: CCM
+    owners:
+    - majie.7
+    summary: wiki与space互通能力
+  SQLite.swift:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: Swift实现SQLite3库
+    doc: https://github.com/stephencelis/SQLite.swift
+  SQLiteMigrationManager.swift:
+    team: CCM
+    owners:
+    - chensi.123
+    summary: sqlite迁移
+  SSZipArchive:
+    team: Performance/Infra
+    owners:
+    - luyuze.jack
+    summary: zip压缩库
+  SecSDK:
+    team: Security
+    owners:
+    - huanzhengjie
+    summary: 安全环境检查
+    doc: https://bytedance.feishu.cn/docs/doccnm8mNyW7aJunh9C3q3d3m3g#
+  SecurityComplianceDebug:
+    team: Security
+    owners:
+    - chengqingchun
+    summary: 安全合规高级调试组件
+    doc: https://bytedance.feishu.cn/docx/F7kJdDVzbobWbDxhw0rcTmQrnUf
+  SelectMenu:
+    team: Calendar
+    owners:
+    - zhuheng.henry
+    summary: 文本选择控件
+  ServerPB:
+    team: Infra/Arch
+    owners:
+    - wangxiaohua
+    summary: rust接口透传，用于服务端
+  ShootsAPISocket:
+    team: Security
+    owners:
+    - huanzhengjie
+    summary: shoots与客户端通信组件。只用在inhouse环境下。
+    doc: https://bytedance.feishu.cn/docx/LHxqdq5mKokElmx2TPFcVjzjnDO
+  SkeletonView:
+    team: Infra/Arch
+    owners:
+    - lihaozhe.12
+    summary: 三方通用库，无法区分主要使用者，owner待定
+    doc: https://github.com/Juanpe/SkeletonView
+  SnapKit:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: 自动布局
+  SocketRocket:
+    team: OpenPlatform
+    owners:
+    - lianjintao
+    summary: WebSocket实现
+  SpaceInterface:
+    team: CCM
+    owners:
+    - huangzhikai.hzk
+    summary: SpaceKit提供对外接口定义
+    doc: https://bytedance.feishu.cn/wiki/wikcnXL1NOPLItuXipkQMcTkRie
+  SpaceKit:
+    team: CCM
+    owners:
+    - huangzhikai.hzk
+    summary: SpaceKit 接入层
+  Stinger:
+    team: Performance/Infra
+    owners:
+    - cailiang.cl7r
+    summary: Heimdallr字库ProtectCustomCatch用
+    doc: https://bytedance.feishu.cn/docs/doccn7iXOk9zKpGEDyqUrirSJYc
+  SuiteAppConfig:
+    team: IM/Beijing
+    owners:
+    - yuanping.0
+    summary: 精简模式配置
+  SuiteCodable:
+    team: Infra/Arch
+    owners:
+    - zhangwei.wy
+    summary: 序列化反序列化库, 主要用于路由
+  SwiftLint:
+    team: Infra/Arch
+    owners:
+    - kongkaikai
+    - zhangwei.wy
+    summary: swift代码规范检查工具，仅在debug下
+    doc: https://github.com/realm/SwiftLint
+  SwiftProtobuf:
+    team: Infra/Arch
+    owners:
+    - hongqinghua
+    summary: swift与protobuf数据类型转换库，用于pb序列化支持
+    doc: https://bytedance.feishu.cn/docx/GDsrd7achotLBsxeu3icu1ainoh
+  SwiftyJSON:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: json转换工具
+  Swinject:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: 依赖注入
+  TSPrivacyKit:
+    team: Security
+    owners:
+    - huanzhengjie
+    summary: 敏感API调用管控
+    doc: https://bytedance.feishu.cn/docs/doccnCYfZvritXQma4EJuOM1U1e#BGGTkp
+  TTAdSplashSDK:
+    team: IM/Hangzhou
+    owners:
+    - xiexufeng
+    summary: 引入头条的开屏广告
+    doc: https://bytedance.feishu.cn/docs/doccn7DZVu3WWwl4a2cuut1BE1f#
+  TTBridgeUnify:
+    team: UG
+    owners:
+    - qujieye
+    summary: 财经，js相关
+    doc: https://bytedance.feishu.cn/docs/doccnoZimZYf47FdafUnXD3UkPg
+  TTFFmpeg:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: The open source ffmpeg lib for video media player and editor
+  TTKitchen:
+    team: Security
+    owners:
+    - huanzhengjie
+    summary: Settings 服务指定 iOS SDK，LarkPrivacyMonitor引入
+    doc: https://bytedance.feishu.cn/docx/YlDrdEv3joadmVx8Y0OcoLNPnyf
+  TTMLeaksFinder:
+    team: Performance/Infra
+    owners:
+    - cailiang.cl7r
+    summary: TTMLeaksFinder主要是针对swift环境下的工程做内存泄漏检测，以及泄漏对象环的查找
+    doc: https://bytedance.feishu.cn/docs/doccnDLOwTMOpO3ujpHbKcipDif
+  TTMacroManager:
+    team: Performance/Infra
+    owners:
+    - cailiang.cl7r
+    summary: heimdallr用，判断包的环境
+  TTMicroApp:
+    team: OpenPlatform
+    owners:
+    - luorui.lr
+    summary: 小程序
+    doc: https://bytedance.feishu.cn/wiki/wikcn4oJo5YjbXyoaFlxIdbo1wh#5hboAL
+  TTNetworkDownloader:
+    team: UG
+    owners:
+    - qujieye
+    summary: Bullt依赖模块
+    doc: https://bytedance.feishu.cn/docs/doccnHrxnp3c4QDxnMxXEXPk8Fb
+  TTNetworkManager:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: 网络相关
+  TTNetworkPredict:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+  TTPlayerSDK:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: 头条视频播放SDK
+  TTReachability:
+    team: Performance/Infra
+    owners:
+    - cailiang.cl7r
+    summary: 网络监听
+  TTRoute:
+    team: OpenPlatform
+    owners:
+    - luorui.lr
+    summary: 基于URL的路由库
+  TTSVGView:
+    team: OpenPlatform
+    owners:
+    - dingxu.shawn
+    summary: SVG展示
+    doc: https://bytedance.feishu.cn/docx/doxcnJnbcwaiEIXepV9QxDS55Yb
+  TTTopSignature:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: TTVideoEngine有引用
+  TTVideoEditor:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: 视频编辑相关
+  TTVideoEngine:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: 头条的视频播放SDK
+  TYRZApiSDK:
+    team: Passport
+    owners:
+    - caiweiwei.liam
+    summary: 移动运营商，引入BDUGAccountOnekeyLogin带入的库
+  TangramComponent:
+    team: IM/Beijing
+    owners:
+    - yuanping.0
+    summary: 提供端上 IM 内 URL 预览渲染的框架
+    doc: https://bytedance.feishu.cn/docs/doccnCSzGODZhtvreI6MNHJICFb
+  TangramLayoutKit:
+    team: IM/Beijing
+    owners:
+    - yuanping.0
+    summary: 提供端上 IM 内 URL 预览渲染的框架
+    doc: https://bytedance.feishu.cn/docs/doccnCSzGODZhtvreI6MNHJICFb
+  TangramService:
+    team: IM/Beijing
+    owners:
+    - yuanping.0
+    summary: 内置Push更新，基础模型转换能力的Service层，业务方按需接入
+    doc: https://bytedance.feishu.cn/docs/doccnIHqupPH8sanlbTksMYvsxb
+  TangramUIComponent:
+    team: IM/Beijing
+    owners:
+    - yuanping.0
+    summary: 提供端上 IM 内 URL 预览渲染的框架
+    doc: https://bytedance.feishu.cn/docs/doccnCSzGODZhtvreI6MNHJICFb
+  TemplateConsumer:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  TencentQQSDK:
+    team: UG
+    owners:
+    - gucongrong
+    summary: 腾讯QQ SDK，主要用于分享到QQ
+    doc: https://wiki.open.qq.com/wiki/%E9%A6%96%E9%A1%B5
+  ThreadSafeDataStructure:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+  Todo:
+    team: Task
+    owners:
+    - wangwanxin.sam
+    summary: 飞书任务业务主库
+    doc: https://bytedance.feishu.cn/docs/doccn19wXxa3Dw2VII5yTxAEtFh
+  TodoInterface:
+    team: Task
+    owners:
+    - wangwanxin.sam
+    summary: 飞书任务对外接口，主要是提供支持路由跳转的 body，较轻量
+    doc: https://bytedance.feishu.cn/docs/doccn19wXxa3Dw2VII5yTxAEtFh
+  TodoMod:
+    team: Task
+    owners:
+    - wangwanxin.sam
+    summary: TODO集成
+  TransBridge-iOS:
+    team: Meego
+    owners:
+    - shizhengyu
+    summary: 兼容Flutter Method Channel和JSBridge的混合bridge调用方案
+    doc: https://bytedance.feishu.cn/docs/doccn0FM9Fq0XQocHJUETLliMsg
+  UDDebug:
+    team: IM/Beijing
+    owners:
+    - dongwei.1615
+    summary: UD 组件 debug 工具，提供当前版本 图标、颜色、插画等资源查询
+    doc: https://bytedance.feishu.cn/docx/NvrhdbDzToK6GAxOfqJcVHTwnkd
+  UGBadge:
+    team: UG
+    owners:
+    - qujieye
+    summary: UG 触达中台客户端 SDK 内，Badge 触达点位的 UI 组件层，对 Badge 点位的实现
+    doc: https://bytedance.feishu.cn/docs/doccnFagLchRFbbUqXYndKctgNh
+  UGBanner:
+    team: UG
+    owners:
+    - qujieye
+  UGContainer:
+    team: UG
+    owners:
+    - qujieye
+    doc: https://bytedance.feishu.cn/docs/doccnM6pJ1YiGOL2TRB1BINlVWd
+  UGCoordinator:
+    team: UG
+    owners:
+    - qujieye
+    summary: 触达中台客户端 SDK内，解决触达点位间不同优先级的冲突的和抢占策略的调度层
+    doc: https://bytedance.feishu.cn/docs/doccnw0bswGxogAVgpTHhwNkipd
+  UGDialog:
+    team: UG
+    owners:
+    - qujieye
+    summary: UG中台Dialog UI层
+    doc: https://bytedance.feishu.cn/docx/doxcnz5nPbZla69oy0i8bB656Ag
+  UGRCoreIntegration:
+    team: UG
+    owners:
+    - qujieye
+    summary: UG 触达中台逻辑集成模块
+    doc: https://bytedance.feishu.cn/docs/doccnM6pJ1YiGOL2TRB1BINlVWd
+  UGReachSDK:
+    team: UG
+    owners:
+    - qujieye
+    summary: 用户触达客户端SDK
+    doc: https://bytedance.feishu.cn/docs/doccnM6pJ1YiGOL2TRB1BINlVWd
+  UGRule:
+    team: UG
+    owners:
+    - qujieye
+    summary: UG中台SDK, 本地规则
+    doc: https://bytedance.feishu.cn/docs/doccnM6pJ1YiGOL2TRB1BINlVWd
+  UGSpotlight:
+    team: UG
+    owners:
+    - qujieye
+    summary: 触达中台客户端 SDK内，气泡触达点位的 UI 组件层，对气泡点位的实现
+    doc: https://bytedance.feishu.cn/docs/doccnw0bswGxogAVgpTHhwNkipd
+  UIImageViewAlignedSwift:
+    team: CCM
+    owners:
+    - wuwenjian.weston
+    summary: 会画中展示docs缩略图用的image view
+    doc: http://只有Doc在用，后面考虑移除此组件
+  UITextView+Placeholder:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: framework_summary
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  URLInterceptorManagerAssembly:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: 拦截OpenURL能力
+  UniversalCard:
+    team: OpenPlatform
+    owners:
+    - majiaxin.jx
+    summary: 统一卡片渲染引擎实现层代码
+    doc: https://bytedance.feishu.cn/docx/HS6BdoPUZoAaToxKAmfc17phneg
+  UniversalCardBase:
+    team: OpenPlatform
+    owners:
+    - majiaxin.jx
+    summary: 统一卡片渲染引擎，提供基础可复用的代码逻辑。
+    doc: https://bytedance.feishu.cn/wiki/EB8lwoziOiC0tokHW8bcgoRCn3b?renamingWikiNode=true
+  UniversalCardInterface:
+    team: OpenPlatform
+    owners:
+    - majiaxin.jx
+    summary: 统一卡片接口层代码
+    doc: https://bytedance.feishu.cn/wiki/JwDnwMjj0iCgznkJCGacFnymnic?create_from=copy_within_wiki&from=create_suite_copy&renamingWikiNode=true
+  UniverseDesignActionPanel:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    doc: https://bytedance.feishu.cn/wiki/wikcntx3TOURrX1jSFgLxC5uisf
+  UniverseDesignAvatar:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+  UniverseDesignBadge:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    doc: https://bytedance.feishu.cn/wiki/wikcnLe0cbn1JraLiSm0y0G2NYd
+  UniverseDesignBreadcrumb:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+  UniverseDesignButton:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    doc: https://bytedance.feishu.cn/wiki/wikcnLe0cbn1JraLiSm0y0G2NYd
+  UniverseDesignCardHeader:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+  UniverseDesignCheckBox:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+  UniverseDesignColor:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    doc: https://bytedance.feishu.cn/wiki/wikcnRDsNXyLqw8hk3X06wqSUYV?appid=2
+  UniverseDesignColorPicker:
+    team: IM/Beijing
+    owners:
+    - dongwei.1615
+  UniverseDesignDatePicker:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    summary: 时间选择器
+  UniverseDesignDialog:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+  UniverseDesignDrawer:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+  UniverseDesignEmpty:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+  UniverseDesignFont:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    doc: https://bytedance.feishu.cn/wiki/wikcnRDsNXyLqw8hk3X06wqSUYV?appid=2
+  UniverseDesignIcon:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    doc: https://bytedance.feishu.cn/wiki/wikcnLe0cbn1JraLiSm0y0G2NYd
+  UniverseDesignInput:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+  UniverseDesignLoading:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+  UniverseDesignMenu:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+  UniverseDesignNotice:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+  UniverseDesignPopover:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+  UniverseDesignProgressView:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+  UniverseDesignShadow:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+  UniverseDesignStyle:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    doc: https://bytedance.feishu.cn/wiki/wikcnLe0cbn1JraLiSm0y0G2NYd
+  UniverseDesignSwitch:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+  UniverseDesignTabs:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    doc: https://bytedance.feishu.cn/wiki/wikcnRDsNXyLqw8hk3X06wqSUYV?appid=2
+  UniverseDesignTag:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    doc: https://bytedance.feishu.cn/wiki/wikcnLe0cbn1JraLiSm0y0G2NYd
+  UniverseDesignTheme:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+    doc: https://bytedance.feishu.cn/wiki/wikcnRDsNXyLqw8hk3X06wqSUYV?appid=2
+  UniverseDesignToast:
+    team: IM/Beijing
+    owners:
+    - yaoqihao
+  VCBaseKit:
+    team: Performance/Infra
+    owners:
+    - luyuze.jack
+    summary: A set of shared base classes for video cloud.
+    doc: https://bytedance.feishu.cn/docx/doxcno5blfJqXTjO67kTYNN0PLd
+  VCNVCloudNetwork:
+    team: VC
+    owners:
+    - huanghaoting
+    summary: 视频相关，内部网络库
+  VCPreloadStrategy:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: framework_summary
+  VCVodSettings:
+    team: Performance/Infra
+    owners:
+    - luyuze.jack
+    summary: 视频播放缓存相关
+    doc: https://bytedance.feishu.cn/docx/doxcno5blfJqXTjO67kTYNN0PLd
+  VideoTemplate:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  WbLib:
+    team: VC
+    owners:
+    - helijian.666
+    summary: 白板SDK
+    doc: https://bytedance.feishu.cn/wiki/wikcn87X9RKsyxvnAIhgZ2ZOj7f
+  WebBrowser:
+    team: OpenPlatform
+    owners:
+    - luogantong
+    summary: 套件统一浏览器 SUITE Universe WebBrowser 目前支持飞书及多个飞书单品
+  WechatSDK:
+    team: UG
+    owners:
+    - gucongrong
+    summary: 微信分享SDK（头条内部源）
+    doc: https://code.byted.org/growth_client/WechatSDK
+  WeiboSDK:
+    team: UG
+    owners:
+    - gucongrong
+    summary: 微博分享SDK（头条内部源）
+  Whiteboard:
+    team: VC
+    owners:
+    - helijian.666
+    summary: 白板SDK适配
+    doc: https://bytedance.feishu.cn/wiki/wikcn87X9RKsyxvnAIhgZ2ZOj7f
+  WorkplaceMod:
+    team: OpenPlatform
+    owners:
+    - zhangmeng.94233
+    summary: 工作台集成层
+  XElement:
+    team: OpenPlatform
+    owners:
+    - dingxu.shawn
+    summary: Native 渲染框架
+    doc: https://bytedance.feishu.cn/docs/doccneD8BlneiL0LgWZJJGVGU7c
+  YYCache:
+    team: Infra/Arch
+    owners:
+    - zhangwei.wy
+    summary: cache相关
+  YYText:
+    team: VC
+    owners:
+    - yangyao.wildyao
+    summary: 需要通过YYText 自动高亮显示文字，选取文字获取时间范围
+    doc: https://bytedance.feishu.cn/docs/doccnGYIguR0rOdxPbH9UKXA1Cg?appid=2#
+  Yoga:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: flex布局
+  ZeroTrust:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: 零信任网络需求，支持OA应用接入安全网关
+    doc: https://bytedance.feishu.cn/docs/doccnZ5T6OJ09Y6gM0l3JUqlDpf?sidebarOpen=1
+  ZstdDecompressKit:
+    team: Performance/Infra
+    owners:
+    - luyuze.jack
+    summary: zstd解压缩组件
+  arkcrypto-minigame-iOS:
+    team: Passport
+    owners:
+    - caiweiwei.liam
+    summary: 提供客户端和服务端之间的数据加密传输能力，客户端 sdk 经过高强度代码加固，保护密钥不会被轻易提取。同时随着安全对抗，支持对算法进行升级，服务端可以同时兼容多个客户端版本。
+    doc: https://bytedance.feishu.cn/docs/doccnInqe6tC3z4zvaUmT3pC13b
+  audiosdk:
+    team: VC
+    owners:
+    - yangyao.wildyao
+    summary: VC相关
+    doc: https://bytedance.feishu.cn/docs/doccnOpoqg5Ojz9Jp8xKJD2lZFg#
+  boost-for-react-native:
+    team: CCM
+    owners:
+    - lijuyou
+    summary: react相关的库
+  boringssl:
+    team: Infra/Arch
+    owners:
+    - lihaozhe.12
+    summary: ssl的封装实现
+  byted_cert:
+    team: Passport
+    owners:
+    - caiweiwei.liam
+    summary: 面部识别AI库
+    doc: https://bytedance.feishu.cn/docs/doccnndMMalacFKRyTUDtdgw1Vh
+  bytedt-ios:
+    team: Security
+    owners:
+    - wanghao.ios
+    summary: ByteDT 推理引擎
+    doc: https://bytedance.feishu.cn/docx/UjHgdT8FOojFQTxjIGPcCFYknjb
+  bytenn-ios:
+    team: VC
+    owners:
+    - yangyao.wildyao
+    summary: VC相关
+    doc: https://bytedance.feishu.cn/docs/doccnOpoqg5Ojz9Jp8xKJD2lZFg#
+  espresso:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: 移动端底层加速库
+  fastcv:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: TTVideoEditor依赖库
+    doc: https://bytedance.feishu.cn/docx/doxcnxTF1VvHZil6UHTg68hRnpg
+  gaia_lib_publish:
+    team: VC
+    owners:
+    - wangpeiran
+    summary: AGFX_pub依赖库
+  glog:
+    team: Passport
+    owners:
+    - jinjian.au
+    summary: 谷歌日志框架
+    doc: https://github.com/google/glog
+  icu_lark:
+    team: Infra/Arch
+    owners:
+    - wangxiaohua
+    summary: 本地化、国际化插值
+    doc: https://unicode-org.github.io/icu/
+  lens:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: TTVideoEditor依赖库
+    doc: https://bytedance.feishu.cn/docx/doxcnxTF1VvHZil6UHTg68hRnpg
+  libPhoneNumber-iOS:
+    team: Passport
+    owners:
+    - caiweiwei.liam
+    summary: 电话号码文本处理
+    doc: https://github.com/iziz/libPhoneNumber-iOS.git
+  lib_h_dec:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: bytedance vc1 decoder
+  libextobjc:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: framework_summary
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  libpng:
+    team: CCM
+    owners:
+    - chensi.123
+    summary: docs导出长图功能优化
+    doc: https://bytedance.feishu.cn/docs/doccnoGhsIRe1LRhiCshxVNI2Sc#
+  libttheif_ios:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: bytedance heif decoder
+  libwebp:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: google知名webp图框架
+  libyuv-iOS:
+    team: Search
+    owners:
+    - wanghaidong.nku
+    summary: 图片编辑标注功能涉及的能力
+    doc: https://bytedance.feishu.cn/docx/doxcnNCqP9qUQ9hpq1lhNMZ8kMd
+  lottie-ios:
+    team: IM/Beijing
+    owners:
+    - qihongye
+    summary: airbnb动画库2.6.5
+    doc: https://github.com/airbnb/lottie-ios
+  lottie-lark:
+    team: IM/Hangzhou
+    owners:
+    - xiexufeng
+    summary: airbnb动画库4.2.0
+    doc: https://github.com/airbnb/lottie-ios
+  meego_rust_ios:
+    team: Meego
+    owners:
+    - shizhengyu
+    summary: Rust SDK meego_rust  在 iOS 平台下的 ffi codegen 仓库，用于未来能高性能地使用 meego rust
+      crate 自行封装的一些基础能力
+  mobilecv2:
+    team: Passport
+    owners:
+    - caiweiwei.liam
+    summary: openCV精简版，被smash依赖
+  nanosvg:
+    team: OpenPlatform
+    owners:
+    - dingxu.shawn
+    summary: SVG展示
+    doc: https://bytedance.feishu.cn/docx/doxcnJnbcwaiEIXepV9QxDS55Yb
+  nfdsdk:
+    team: VC
+    owners:
+    - lujunhui.2nd
+    summary: 超声波识别库，用于支持iOS Room投屏识别投屏码
+    doc: https://bytedance.feishu.cn/docx/XwvSdox0UoAbXWxe7uacwDKHnqb
+  oc-opus-codec:
+    team: IM/Beijing
+    owners:
+    - kangsiwan
+    summary: Opus 格式音频编码解码器
+    doc: http://LarkAudioKit引用
+  pop:
+    team: Performance/Solution
+    owners:
+    - huanghaoting
+    summary: framework_summary
+    doc: https://bytedance.feishu.cn/docx/doxcnZBCLD2Hu8SLb9HdjsGVH0f
+  protobuf_lite:
+    team: Infra/Arch
+    owners:
+    - supeng.charlie
+    summary: TTNetworkManager/Core依赖库
+  protobuf_pty:
+    team: Security
+    owners:
+    - wanghao.ios
+    summary: ByteDT 推理引擎以来的 PB 库
+    doc: https://bytedance.feishu.cn/docx/UjHgdT8FOojFQTxjIGPcCFYknjb
+  smash:
+    team: Passport
+    owners:
+    - caiweiwei.liam
+    summary: 活体检测、二维码识别
+  tfccsdk:
+    team: UG
+    owners:
+    - qujieye
+    summary: 财经，加解密库，目前被支付使用
+  vmsdk:
+    team: OpenPlatform
+    owners:
+    - dingxu.shawn
+    summary: Lynx依赖
+  yaml-cpp:
+    team: VC
+    owners:
+    - yangyao.wildyao
+    summary: VC相关
+  # MARK: ADD NEW POD HERE 不要删除或修改此行，脚本依赖此行注释添加新 pod

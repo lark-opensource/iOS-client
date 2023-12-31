@@ -1,0 +1,65 @@
+{
+  "name": "BDUGAccountOnekeyLogin",
+  "version": "2.1.5",
+  "summary": "framework_summary",
+  "homepage": "https://code.byted.org/growth_client/BDUGAccountOnekeyLogin",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "wangpeng": "wangpeng.yony@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:growth_client/BDUGAccountOnekeyLogin.git",
+    "commit": "e16c4cc99e63e4947d265dfa7008c8b122a5798a"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "source_files": "BDUGAccountOnekeyLogin/Classes/**/*",
+  "ios": {
+    "public_header_files": [
+      "BDUGAccountOnekeyLogin/Classes/BDUGAccountOnekeyLogin.h",
+      "BDUGAccountOnekeyLogin/Classes/BDUGAccountOneKeyDef.h"
+    ]
+  },
+  "default_subspecs": "Core",
+  "subspecs": [
+    {
+      "name": "Core",
+      "dependencies": {
+        "BDUGAccountOnekeyLogin/Base": [],
+        "BDTrackerProtocol": [],
+        "ByteDanceKit/Foundation": []
+      }
+    },
+    {
+      "name": "Base",
+      "source_files": "BDUGAccountOnekeyLogin/Classes/**/*",
+      "dependencies": {
+        "TTReachability": [
+          ">= 0.6.0"
+        ],
+        "TYRZApiSDK": [
+          ">=9.6.3"
+        ],
+        "BDUGUnionSDK": [],
+        "EAccountApiSDK": []
+      }
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "1725",
+    "app_id": "9999"
+  },
+  "repoId": "1725",
+  "description": "framework_description",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDUGAccountOnekeyLogin_POD_VERSION=@\\\"9999_2.1.5\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDUGAccountOnekeyLogin_POD_VERSION=@\\\"9999_2.1.5\\\""
+  }
+}

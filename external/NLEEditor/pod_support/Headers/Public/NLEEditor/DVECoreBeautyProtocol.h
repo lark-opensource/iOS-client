@@ -1,0 +1,1 @@
+../../../../NLEEditor/Classes/LiteEditor/Editor/Beauty/DVECoreBeautyProtocol.h

@@ -1,0 +1,1 @@
+../../../../BDWebImage/Classes/BDBase/BDBase.h

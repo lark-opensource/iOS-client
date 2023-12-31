@@ -1,0 +1,23 @@
+type: pipeline # 必填, 表示类型为pipeline
+
+jobs:
+  pre_check:
+    display_name: Lint 检查
+    type: exec  # exec 任务
+    failed_approvers: 
+      - wangxiaohua@bytedance.com
+      - lichen.arthur@bytedance.com
+      - huanghaoting@bytedance.com
+      - kangsiwan@bytedance.com
+    env:
+      type: freestyle
+      name: bits_ios # 支持bigmac
+    settings: 
+      os_type: 1
+      required_resource: 2
+      queue_id: 4
+      image_ref: "iOS:2.3"
+    script:
+      - curl -O http://tosv.byted.org/obj/ee-infra-ios/swiftlint_0.40.3.zip
+      - unzip swiftlint_0.40.3.zip
+      - ./swiftlint --config ./.eescaffold/swiftlint.yaml

@@ -1,0 +1,79 @@
+# yaml-language-server: $schema=http://tosv.byted.org/obj/ee-infra-ios/schema/i18n_configuration#
+EMAI18n:
+  - LittleApp_UserInfoPermission_BluetoothPermDesc
+  - LittleApp_UserInfoPermission_BluetoothPermNameFull
+  - LittleApp_UserInfoPermission_BluetoothPermListDisplay
+  - LittleApp_UserInfoPermission_BluetoothPermName
+  - add_address
+  - address_already_exists
+  - app_update_tip
+  - brightness
+  - change_address
+  - contact
+  - continue_show_modal_exit
+  - continue_show_modal_no
+  - continue_show_modal_tip
+  - date_format_incorrect
+  - detailed_address
+  - device_info_desc
+  - device_info_name
+  - docs_nothing_found
+  - docs_people_may_mention
+  - docs_toolbar_high_light
+  - enter_bot
+  - enter_detailed_address_information
+  - failed_to_connect_ide
+  - get_address_failed
+  - load_failed_and_retry
+  - my_address
+  - name
+  - no_internet_connection
+  - not_logged_in
+  - open_with_other_app
+  - phone_number
+  - phone_number_invalid
+  - please_select
+  - please_wait
+  - select_region
+  - share_fail
+  - show_prompt_ok
+  - show_prompt_placeholder
+  - submission_failed
+  - sure_to_test_on_device
+  - update_now
+
+config:
+  positional-args: true
+  use-native: true
+  # generate strings dir, relative to current file dir
+  res_dir: ../../Assets/EMAI18n.bundle
+  # generate code dir, relative to current file dir
+  code_dir: ../../Classes/Util/i18n
+  objc:
+    # 生成代码前的代码，需要注入stringForKey(NSString *key)方法
+    pre_code: |
+      #import <OPFoundation/OPBundle.h>
+      #import "EMAI18n.h"
+      #import <TTMicroApp/TTMicroApp-Swift.h>
+      #import <OPFoundation/OPFoundation-Swift.h>
+
+      static NSString *stringForKey(NSString *key) {
+          NSBundle *bundle = [OPBundle bundle];
+          NSString *tableName = BDPLanguageHelper.stringsLanguage;
+          NSString *bundleName = @"EMAI18n";
+          NSURL *url = [bundle URLForResource:bundleName withExtension:@"bundle"];
+          if (url) { bundle = [NSBundle bundleWithURL:url]; }
+          NSString *locale = [BDPLanguageHelper getLocaleWith:key in:bundle moduleName:@"EEMicroAppSDK"];
+          if (locale) {
+              return locale;
+          }
+          if (!url) {
+              return NSLocalizedStringFromTable(key, tableName, nil);
+          }
+
+          // If the current language file does not exist, then use English as default
+          if (![bundle pathForResource:tableName ofType:@"strings"]) {
+              tableName = @"en-US";
+          }
+          return NSLocalizedStringFromTableInBundle(key, tableName, bundle, nil);
+      }

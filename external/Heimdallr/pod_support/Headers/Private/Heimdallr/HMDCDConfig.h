@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/HMDCoreDump/Common/Public/HMDCDConfig.h

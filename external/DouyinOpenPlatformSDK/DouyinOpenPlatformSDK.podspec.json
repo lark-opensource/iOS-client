@@ -1,0 +1,320 @@
+{
+  "_bytebus_platform": {
+    "repo_id": "8909",
+    "app_id": "9999"
+  },
+  "prepare_command": "curl https://ios.bytedance.net/wlapi/tosDownload/iosbinary/platform/master/awesomecommand_xz.sh | bash ;",
+  "preserve_paths": [
+    "**/*.bwp"
+  ],
+  "default_subspecs": [
+    "Auth",
+    "Share"
+  ],
+  "description": "framework_description",
+  "license": {
+    "type": "MIT"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "DouyinOpenPlatformSDK_POD_VERSION=@\\\"9999_5.13.0.3-bugfix\\\""
+  },
+  "ios": {
+    "frameworks": [
+      "UIKit",
+      "Foundation",
+      "JavaScriptCore"
+    ]
+  },
+  "summary": "framework_summary",
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/9999/DouyinOpenPlatformSDK/5.13.0.3-bugfix.1.binary/DouyinOpenPlatformSDK.framework.tar.xz"
+  },
+  "version": "5.13.0.3-bugfix.1.binary",
+  "build_file_count": 70,
+  "authors": {
+    "dujunyu": "jiny.du@bytedance.com"
+  },
+  "pod_target_xcconfig": {
+    "GCC_GENERATE_DEBUGGING_SYMBOLS": "YES",
+    "CLANG_ENABLE_MODULES": "NO",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PRECOMPILE_PREFIX_HEADER": "NO",
+    "GCC_PREPROCESSOR_DEFINITIONS": "DouyinOpenPlatformSDK_POD_VERSION=@\\\"9999_5.13.0.3-bugfix\\\""
+  },
+  "source_code": {
+    "commit": "74f5a41bf091f532d63268454b5102c4c8567a8d",
+    "git": "git@code.byted.org:ugc/DouyinOpenPlatformSDK.git"
+  },
+  "homepage": "https://code.byted.org/ugc/DouyinOpenPlatformSDK",
+  "repoId": "8909",
+  "subspecs": [
+    {
+      "public_header_files": [
+        "DouyinOpenPlatformSDK/Classes/Core/Public/*.{h}",
+        "DouyinOpenPlatformSDK/Classes/Core/__Internal/Public/*.{h}",
+        "DouyinOpenPlatformSDK/Classes/Core/Bridge/*.{h}"
+      ],
+      "name": "Core",
+      "xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "BDT_OP_INTERNAL=1"
+      },
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Core_*awesome_*.a"
+      },
+      "frameworks": [
+        "UIKit",
+        "Foundation",
+        "CoreGraphics",
+        "Security"
+      ],
+      "dependencies": {
+        "ByteDanceKit/UIKit": [],
+        "BDTrackerProtocol": [],
+        "ByteDanceKit/Foundation": [],
+        "FMDB": [],
+        "BDTicketGuard": [],
+        "TTNetworkManager": []
+      },
+      "source_files": "DouyinOpenPlatformSDK/Classes/Core/**/*.{h,m,mm,c}"
+    },
+    {
+      "public_header_files": [
+        "DouyinOpenPlatformSDK/Classes/Auth/Public/*.{h}",
+        "DouyinOpenPlatformSDK/Classes/Auth/Inner/*.{h}",
+        "DouyinOpenPlatformSDK/Classes/Auth/__Internal/Public/*.{h}",
+        "DouyinOpenPlatformSDK/Classes/Auth/Bridge/Public/*.{h}"
+      ],
+      "name": "Auth",
+      "resource_bundles": {
+        "DYOpenAuth": [
+          "DouyinOpenPlatformSDK/Resources/Auth/**/*.{png,storyboard}"
+        ]
+      },
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Auth_*awesome_*.a"
+      },
+      "frameworks": [
+        "WebKit",
+        "SafariServices"
+      ],
+      "dependencies": {
+        "TTTAttributedLabel": [],
+        "Masonry": [],
+        "DouyinOpenPlatformSDK/Core": []
+      },
+      "source_files": "DouyinOpenPlatformSDK/Classes/Auth/**/*.{h,m,mm,c}"
+    },
+    {
+      "public_header_files": [
+        "DouyinOpenPlatformSDK/Classes/Share/Public/*.{h}",
+        "DouyinOpenPlatformSDK/Classes/Share/Inner/*.{h}",
+        "DouyinOpenPlatformSDK/Classes/Share/__Internal/Public/*.{h}",
+        "DouyinOpenPlatformSDK/Classes/Share/Bridge/Public/*.{h}"
+      ],
+      "name": "Share",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Share_*awesome_*.a"
+      },
+      "frameworks": "Photos",
+      "dependencies": {
+        "DouyinOpenPlatformSDK/Core": []
+      },
+      "source_files": "DouyinOpenPlatformSDK/Classes/Share/**/*.{h,m,mm,c}"
+    },
+    {
+      "pod_target_xcconfig": {
+        "CLANG_ENABLE_MODULES": "YES",
+        "DEFINES_MODULE": "YES"
+      },
+      "dependencies": {
+        "DouyinOpenPlatformSDK/Core": []
+      },
+      "name": "EnableModule",
+      "preserve_paths": [
+        "**/*.bwp"
+      ]
+    },
+    {
+      "public_header_files": "DouyinOpenPlatformSDK/Classes/PhoneAuth/Public/*.{h}",
+      "name": "PhoneAuth",
+      "resource_bundles": {
+        "DYOpenPhone": [
+          "DouyinOpenPlatformSDK/Resources/PhoneAuth/**/*.{png,storyboard}"
+        ]
+      },
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_PhoneAuth_*awesome_*.a"
+      },
+      "dependencies": {
+        "DouyinOpenPlatformSDK/Core": []
+      },
+      "source_files": "DouyinOpenPlatformSDK/Classes/PhoneAuth/**/*.{h,m,mm,c}"
+    },
+    {
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "name": "JSB",
+      "subspecs": [
+        {
+          "dependencies": {
+            "BDXBridgeKit/Core": []
+          },
+          "name": "BDXBridgeKit",
+          "subspecs": [
+            {
+              "public_header_files": "DouyinOpenPlatformSDK/Classes/JSB/BDXBridge/Auth/**/*.{h}",
+              "dependencies": {
+                "DouyinOpenPlatformSDK/Auth": []
+              },
+              "ios": {
+                "vendored_libraries": "ios-arch-iphone/*_JAuth_*awesome_*.a"
+              },
+              "name": "JAuth",
+              "source_files": "DouyinOpenPlatformSDK/Classes/JSB/BDXBridge/Auth/**/*.{h,m,mm,c}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "name": "Ticket",
+      "subspecs": [
+        {
+          "public_header_files": "DouyinOpenPlatformSDK/Classes/Ticket/Interface/**/*.{h}",
+          "ios": {
+            "vendored_libraries": "ios-arch-iphone/*_Interface_*awesome_*.a"
+          },
+          "name": "Interface",
+          "source_files": "DouyinOpenPlatformSDK/Classes/Ticket/Interface/**/*.{h,m,mm}"
+        },
+        {
+          "xcconfig": {
+            "GCC_PREPROCESSOR_DEFINITIONS": "BDT_OP_CLIENT_TICKET_IMPL=1"
+          },
+          "dependencies": {
+            "DouyinOpenPlatformSDK/Ticket/Interface": [],
+            "BDTicketGuard/Core": [],
+            "DouyinOpenPlatformSDK/Core": [],
+            "BDTicketGuard/Inner": []
+          },
+          "ios": {
+            "vendored_libraries": "ios-arch-iphone/*_Impl_*awesome_*.a"
+          },
+          "name": "Impl",
+          "source_files": "DouyinOpenPlatformSDK/Classes/Ticket/Impl/**/*.{h,m,mm,c}"
+        }
+      ]
+    },
+    {
+      "public_header_files": "DouyinOpenPlatformSDK/Classes/Follow/Public/*.{h}",
+      "name": "Follow",
+      "resource_bundles": {
+        "DYOpenFollow": [
+          "DouyinOpenPlatformSDK/Resources/Follow/**/*.{png,storyboard}"
+        ]
+      },
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Follow_*awesome_*.a"
+      },
+      "dependencies": {
+        "BDWebImage": [],
+        "TTNetworkManager": [],
+        "DouyinOpenPlatformSDK/Core": [],
+        "DouyinOpenPlatformSDK/Profile/Base": []
+      },
+      "source_files": "DouyinOpenPlatformSDK/Classes/Follow/**/*.{h,m,mm,c}"
+    },
+    {
+      "public_header_files": "DouyinOpenPlatformSDK/Classes/Profile/Public/*.{h}",
+      "name": "Profile",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Profile_*awesome_*.a"
+      },
+      "frameworks": "AVKit",
+      "dependencies": {
+        "DouyinOpenPlatformSDK/Ticket/Interface": [],
+        "Masonry": [],
+        "DouyinOpenPlatformSDK/Core": []
+      },
+      "source_files": "DouyinOpenPlatformSDK/Classes/Profile/**/*.*",
+      "subspecs": [
+        {
+          "public_header_files": "DouyinOpenPlatformSDK/Classes/Profile/Base/Public/*.{h}",
+          "ios": {
+            "vendored_libraries": "ios-arch-iphone/*_Base_*awesome_*.a"
+          },
+          "name": "Base",
+          "source_files": "DouyinOpenPlatformSDK/Classes/Profile/Base/**/*.*"
+        },
+        {
+          "public_header_files": "DouyinOpenPlatformSDK/Classes/Profile/General/Public/*.{h}",
+          "name": "General",
+          "resource_bundles": {
+            "DYOpenProfileGeneral": [
+              "DouyinOpenPlatformSDK/Resources/Profile/GeneralProfile/**/*.{png,storyboard}"
+            ]
+          },
+          "ios": {
+            "vendored_libraries": "ios-arch-iphone/*_General_*awesome_*.a"
+          },
+          "dependencies": {
+            "DouyinOpenPlatformSDK/Profile/Base": []
+          },
+          "source_files": "DouyinOpenPlatformSDK/Classes/Profile/General/**/*.*"
+        },
+        {
+          "public_header_files": "DouyinOpenPlatformSDK/Classes/Profile/MLBB/Public/*.{h}",
+          "name": "MLBB",
+          "resource_bundles": {
+            "DYOpenProfileMLBB": [
+              "DouyinOpenPlatformSDK/Resources/Profile/MLBBProfile/**/*.{png,storyboard}"
+            ]
+          },
+          "ios": {
+            "vendored_libraries": "ios-arch-iphone/*_MLBB_*awesome_*.a"
+          },
+          "dependencies": {
+            "DouyinOpenPlatformSDK/Profile/Base": []
+          },
+          "source_files": "DouyinOpenPlatformSDK/Classes/Profile/MLBB/**/*.*"
+        }
+      ]
+    },
+    {
+      "resource_bundles": {
+        "ByteguardBundle": "DouyinOpenPlatformSDK/.byteguard.json"
+      },
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "name": "ByteGuard"
+    }
+  ],
+  "name": "DouyinOpenPlatformSDK"
+}

@@ -1,0 +1,49 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:ios)
+
+platform :ios do
+  lane :build_verify do |options|
+    options[:iCloud_container_environment] = "Development"
+    puts options
+
+    begin
+      sh <<~SHELL
+        cd ..
+        SYMROOT="$(PWD)/../Build"
+        LOG_DIR="${GYM_BUILDLOG_PATH:-Logs}"
+        LOG_PATH="$LOG_DIR"/xcodebuild.log
+
+        echo "xcodebuild log output to $LOG_PATH"
+        mkdir -p "$LOG_DIR"
+
+        "$DEVELOPER_DIR/usr/bin/"xcodebuild \
+          -workspace LarkRVCDemo.xcworkspace \
+          -scheme LarkRVCDemo \
+          -configuration Debug \
+          -sdk iphonesimulator \
+          -derivedDataPath "$DERIVED_DATA_PATH" \
+          -resultBundlePath "$RESULT_DATA_PATH" \
+          SYMROOT="$SYMROOT" \
+          clean build \
+          ODE_SIGNING_REQUIRED="NO" \
+          VALID_ARCHS="x86_64" \
+        | tee "$LOG_PATH" \
+        | xcpretty && exit ${PIPESTATUS[0]}
+      SHELL
+    end
+  end
+end

@@ -1,0 +1,1 @@
+../../../../TransBridge-iOS/Classes/Util/BDChannelJsonUtil.h

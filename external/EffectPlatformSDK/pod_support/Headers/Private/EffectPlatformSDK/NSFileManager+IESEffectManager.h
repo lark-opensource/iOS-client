@@ -1,0 +1,1 @@
+../../../../EffectPlatformSDK/Core/Internal/Category/NSFileManager+IESEffectManager.h

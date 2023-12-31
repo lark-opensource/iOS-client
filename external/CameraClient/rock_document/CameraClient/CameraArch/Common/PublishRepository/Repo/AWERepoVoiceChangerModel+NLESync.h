@@ -1,0 +1,17 @@
+//
+//  AWERepoVoiceChangerModel+NLESync.h
+//  CameraClient-Pods-Aweme
+//
+//  Created by fangxiaomin on 2021/2/9.
+//
+
+#import "AWERepoVoiceChangerModel.h"
+#import "ACCPublishRepositoryNLESyncProtocol.h"
+
+NS_ASSUME_NONNULL_BEGIN
+
+@interface AWERepoVoiceChangerModel (NLESync) <ACCPublishRepositoryNLESyncProtocol>
+
+@end
+
+NS_ASSUME_NONNULL_END

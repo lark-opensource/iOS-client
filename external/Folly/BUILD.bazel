@@ -1,0 +1,736 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "Folly_pod_hdrs",
+  srcs = [
+    ":Folly_root_pod_hdrs",
+    ":Default_pod_hdrs",
+    ":Fabric_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "Folly_private_includes",
+  include = [
+    "external/Folly/pod_support/Headers/Private/Folly/"
+  ],
+  deps = [],
+  external_name = "Folly"
+)
+gen_includes(
+  name = "Folly_public_includes",
+  include = [
+    "external/Folly/pod_support/Headers/Public/Folly/"
+  ],
+  deps = [],
+  external_name = "Folly"
+)
+filegroup(
+  name = "_Folly_hdrs",
+  srcs = [
+    ":Folly_root_hdrs",
+    ":Default_hdrs",
+    ":Fabric_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "Folly_xcode_hmapsource",
+  hdrs = [
+    ":Folly_root_hdrs",
+    ":Default_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "Folly_xcode_hmap",
+  dep = ":Folly_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/Folly/*-bitsky-generated.modulemap", "pod_support/Headers/Public/Folly/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "Folly_custom_includes",
+  include = [
+    "external/Folly",
+    "external/boost-for-react-native",
+    "external/DoubleConversion",
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "Folly",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Folly_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Folly_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Folly_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Folly_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Folly_module_map",
+  module_map = "pod_support/Headers/Public/Folly/Folly-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Folly/Folly-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Folly_root_srcs",
+  srcs = [
+    "folly/lang/Assume.cpp",
+    "folly/lang/ColdClass.cpp",
+    "folly/Conv.cpp",
+    "folly/Demangle.cpp",
+    "folly/detail/Demangle.cpp",
+    "folly/dynamic.cpp",
+    "folly/container/detail/F14Table.cpp",
+    "folly/Format.cpp",
+    "folly/json.cpp",
+    "folly/json_pointer.cpp",
+    "folly/memory/detail/MallocImpl.cpp",
+    "folly/ScopeGuard.cpp",
+    "folly/hash/SpookyHashV2.cpp",
+    "folly/String.cpp",
+    "folly/Unicode.cpp"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Folly_oc",
+  enable_modules = 1,
+  srcs = [
+    "Folly_root_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Folly_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Folly_private_includes",
+    ":Folly_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@boost-for-react-native//:boost-for-react-native_objc_interface",
+    "@DoubleConversion//:DoubleConversion_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@boost-for-react-native//:boost-for-react-native_swift_interface",
+    "@DoubleConversion//:DoubleConversion_swift_interface",
+    "@glog//:glog_swift_interface",
+    ":Folly_objc_interface",
+    "@boost-for-react-native//:boost-for-react-native_module_map",
+    "@DoubleConversion//:DoubleConversion_module_map",
+    "@glog//:glog_module_map"
+  ],
+  per_label_options = [
+    ".*folly/Conv.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/Demangle.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/Format.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/ScopeGuard.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/String.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/Unicode.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/container/detail/F14Table.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/detail/Demangle.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/dynamic.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/hash/SpookyHashV2.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/json.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/json_pointer.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/lang/Assume.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/lang/ColdClass.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/memory/detail/MallocImpl.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=c++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Folly",
+  deps = [
+    ":Folly_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Folly_lib",
+  deps = [
+    ":Folly"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Default_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Default_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Default_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Default_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Default_module_map",
+  module_map = "pod_support/Headers/Public/Folly/Folly_Default-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Folly/Folly_Default-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Default_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Default_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Folly_private_includes",
+    ":Folly_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@boost-for-react-native//:boost-for-react-native_objc_interface",
+    "@DoubleConversion//:DoubleConversion_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@boost-for-react-native//:boost-for-react-native_swift_interface",
+    "@DoubleConversion//:DoubleConversion_swift_interface",
+    "@glog//:glog_swift_interface",
+    ":Default_objc_interface",
+    "@boost-for-react-native//:boost-for-react-native_module_map",
+    "@DoubleConversion//:DoubleConversion_module_map",
+    "@glog//:glog_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=c++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Default",
+  deps = [
+    ":Default_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Default_lib",
+  deps = [
+    ":Default"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Fabric_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Fabric_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Fabric_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Fabric_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Fabric_module_map",
+  module_map = "pod_support/Headers/Public/Folly/Folly_Fabric-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Folly/Folly_Fabric-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Fabric_srcs",
+  srcs = [
+    "folly/concurrency/CacheLocality.cpp",
+    "folly/FileUtil.cpp",
+    "folly/detail/Futex.cpp",
+    "folly/portability/Malloc.cpp",
+    "folly/synchronization/ParkingLot.cpp",
+    "folly/lang/SafeAssert.cpp",
+    "folly/SharedMutex.cpp",
+    "folly/portability/SysUio.cpp"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Fabric_oc",
+  enable_modules = 1,
+  srcs = [
+    "Fabric_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Fabric_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Folly_private_includes",
+    ":Folly_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@boost-for-react-native//:boost-for-react-native_objc_interface",
+    "@DoubleConversion//:DoubleConversion_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@boost-for-react-native//:boost-for-react-native_swift_interface",
+    "@DoubleConversion//:DoubleConversion_swift_interface",
+    "@glog//:glog_swift_interface",
+    ":Fabric_objc_interface",
+    "@boost-for-react-native//:boost-for-react-native_module_map",
+    "@DoubleConversion//:DoubleConversion_module_map",
+    "@glog//:glog_module_map"
+  ],
+  per_label_options = [
+    ".*folly/FileUtil.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/SharedMutex.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/concurrency/CacheLocality.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/detail/Futex.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/lang/SafeAssert.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/portability/Malloc.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/portability/SysUio.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/synchronization/ParkingLot.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=c++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Fabric",
+  deps = [
+    ":Fabric_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Fabric_lib",
+  deps = [
+    ":Fabric"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_Folly_module_map",
+  module_map = "@Folly//:pod_support/Headers/Public/Folly/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@Folly//:pod_support/Headers/Public/Folly/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_Folly_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@Folly//:Default_objc_interface", "@Folly//:Folly_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_Folly",
+  target_name = "Lark",
+  module_name = "folly",
+  hdrs = ["@Folly//:Default_pod_hdrs", "@Folly//:Folly_root_pod_hdrs"],
+  srcs = ["@Folly//:Folly_root_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["boost-for-react-native", "DoubleConversion", "glog"],
+  per_label_options = [".*folly/Conv.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/Demangle.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/Format.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/ScopeGuard.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/String.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/Unicode.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/container/detail/F14Table.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/detail/Demangle.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/dynamic.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/hash/SpookyHashV2.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/json.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/json_pointer.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/lang/Assume.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/lang/ColdClass.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*folly/memory/detail/MallocImpl.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-DFOLLY_HAVE_PTHREAD=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation"],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "Folly_copts", []),
+  cxxopts = ["-std=c++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "Folly_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = ["stdc++"],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "Folly_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "Folly_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "Folly_dynamic", False),
+  tags = getattr(defs_external_objc_library, "Folly_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("Folly", {}),
+  visibility = ["//visibility:public"],
+)

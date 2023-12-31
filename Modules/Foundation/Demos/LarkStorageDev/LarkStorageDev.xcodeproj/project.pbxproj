@@ -1,0 +1,969 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 51;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		056C97454699F2A0957ECFF6 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = C20C0796408CD558C5AF5086 /* main.swift */; };
+		12D5E4DD5B2249F20F80E76F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FFD3308FC76E09C573C92DA5 /* Assets.xcassets */; };
+		262793BCAA97684631A15170 /* Pods_LarkStorageDevTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 110AFCDA3B528D3AF5DE498E /* Pods_LarkStorageDevTests.framework */; };
+		2B2321F129E412AE001A74CD /* KVStoreBag.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B2321F029E412AE001A74CD /* KVStoreBag.swift */; };
+		2B2321F329E4148C001A74CD /* KVTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B2321F229E4148C001A74CD /* KVTestCase.swift */; };
+		2B4D724C2959535400077E30 /* KVAllKeysTester.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4D724B2959535400077E30 /* KVAllKeysTester.swift */; };
+		2B694C28299DDBE400D5F021 /* KVMigrationRegistryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B694C27299DDBE400D5F021 /* KVMigrationRegistryTests.swift */; };
+		2B74FDEA2A8A215100C45ED6 /* KVInt64Testser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B74FDE92A8A215100C45ED6 /* KVInt64Testser.swift */; };
+		353FF5E3CCD8275676083309 /* BaseAssembly.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5BD37B5BC8563193DC49C6F /* BaseAssembly.swift */; };
+		7217580E2912422500FE55D4 /* IsolateSandboxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721757ED2912422500FE55D4 /* IsolateSandboxTests.swift */; };
+		7217580F2912422500FE55D4 /* IsoPath_LfkPathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721757EE2912422500FE55D4 /* IsoPath_LfkPathTests.swift */; };
+		721758102912422500FE55D4 /* AbsPathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721757EF2912422500FE55D4 /* AbsPathTests.swift */; };
+		721758122912422500FE55D4 /* PathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721757F12912422500FE55D4 /* PathTests.swift */; };
+		721758132912422500FE55D4 /* IsoPathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721757F22912422500FE55D4 /* IsoPathTests.swift */; };
+		721758142912422500FE55D4 /* LfkPathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721757F32912422500FE55D4 /* LfkPathTests.swift */; };
+		721758152912422500FE55D4 /* MigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721757F42912422500FE55D4 /* MigrationTests.swift */; };
+		721758162912422500FE55D4 /* SandboxBaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721757F52912422500FE55D4 /* SandboxBaseTests.swift */; };
+		721758172912422500FE55D4 /* AbsPath_LfkPathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721757F62912422500FE55D4 /* AbsPath_LfkPathTests.swift */; };
+		721758182912422500FE55D4 /* KVStoreUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721757F82912422500FE55D4 /* KVStoreUtils.swift */; };
+		7217581A2912422500FE55D4 /* KVAllValueTester.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721757FB2912422500FE55D4 /* KVAllValueTester.swift */; };
+		7217581B2912422500FE55D4 /* KVSaveLoadTester.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721757FC2912422500FE55D4 /* KVSaveLoadTester.swift */; };
+		7217581C2912422500FE55D4 /* KVClearTester.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721757FD2912422500FE55D4 /* KVClearTester.swift */; };
+		7217581D2912422500FE55D4 /* KVRemoveTester.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721757FE2912422500FE55D4 /* KVRemoveTester.swift */; };
+		7217581E2912422500FE55D4 /* KVContainsTester.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721757FF2912422500FE55D4 /* KVContainsTester.swift */; };
+		7217581F2912422500FE55D4 /* KVGetSetTester.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721758002912422500FE55D4 /* KVGetSetTester.swift */; };
+		721758202912422500FE55D4 /* KVBindingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721758012912422500FE55D4 /* KVBindingTests.swift */; };
+		721758212912422500FE55D4 /* KVCryptoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721758022912422500FE55D4 /* KVCryptoTests.swift */; };
+		721758232912422500FE55D4 /* KVStoreBaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721758042912422500FE55D4 /* KVStoreBaseTests.swift */; };
+		721758242912422500FE55D4 /* KVKeyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721758052912422500FE55D4 /* KVKeyTests.swift */; };
+		721758252912422500FE55D4 /* KVMigrationProxyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721758062912422500FE55D4 /* KVMigrationProxyTests.swift */; };
+		721758262912422500FE55D4 /* KVPerfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721758072912422500FE55D4 /* KVPerfTests.swift */; };
+		721758272912422500FE55D4 /* KVSubscriptTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721758082912422500FE55D4 /* KVSubscriptTests.swift */; };
+		721758282912422500FE55D4 /* KVSharedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721758092912422500FE55D4 /* KVSharedTests.swift */; };
+		721758292912422500FE55D4 /* KVRekeyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7217580A2912422500FE55D4 /* KVRekeyTests.swift */; };
+		7217582A2912422500FE55D4 /* Tester.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7217580C2912422500FE55D4 /* Tester.swift */; };
+		7217582B2912422500FE55D4 /* IsolatableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7217580D2912422500FE55D4 /* IsolatableTests.swift */; };
+		7217582D2912439900FE55D4 /* KVConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7217582C2912439900FE55D4 /* KVConfigTests.swift */; };
+		721803E9295BF17300B8C9CF /* IsoPath+ParseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721803E8295BF17300B8C9CF /* IsoPath+ParseTests.swift */; };
+		721803EB295BF24400B8C9CF /* IsoPath+MapTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721803EA295BF24400B8C9CF /* IsoPath+MapTests.swift */; };
+		72226C7129221818003A6672 /* SBMigrationTaskManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72226C7029221818003A6672 /* SBMigrationTaskManagerTests.swift */; };
+		72226C7329223622003A6672 /* SBMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72226C7229223622003A6672 /* SBMigrationTests.swift */; };
+		72226C7529226157003A6672 /* SBMigrationStrategyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72226C7429226156003A6672 /* SBMigrationStrategyTests.swift */; };
+		72254DEE2973285300CA2949 /* KVStore+ObjectTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72254DED2973285300CA2949 /* KVStore+ObjectTests.swift */; };
+		72254F61297409A000CA2949 /* KVItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72254F60297409A000CA2949 /* KVItem.swift */; };
+		72254F6329740A3600CA2949 /* KVObject.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72254F6229740A3600CA2949 /* KVObject.swift */; };
+		7235A0E3290FC53D005EDE73 /* Demo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7235A0E2290FC53D005EDE73 /* Demo.swift */; };
+		726747082914B5B900895A89 /* KVMigrationConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726747072914B5B900895A89 /* KVMigrationConfigTests.swift */; };
+		7267470A291508E000895A89 /* KVMigrationTaskManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72674709291508E000895A89 /* KVMigrationTaskManagerTests.swift */; };
+		7267B45229991EA600FA8535 /* SBCipherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7267B45129991EA600FA8535 /* SBCipherTests.swift */; };
+		72AFCA85296406CD0093300A /* IsoPath+MicroAppTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72AFCA84296406CD0093300A /* IsoPath+MicroAppTests.swift */; };
+		72D876A2292333F5009C266C /* SBMigrationThreadSafeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72D876A1292333F5009C266C /* SBMigrationThreadSafeTests.swift */; };
+		72DAF3B3298D335E00EB4913 /* IsoPath+NotStrictly+ParseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72DAF3B2298D335E00EB4913 /* IsoPath+NotStrictly+ParseTests.swift */; };
+		72E2A0C4295EC00200F78302 /* PathTypeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72E2A0C3295EC00200F78302 /* PathTypeTests.swift */; };
+		72FFE02E291673DA00A8EE07 /* KVMigrationTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72FFE02D291673DA00A8EE07 /* KVMigrationTestCase.swift */; };
+		7E296569A362723AAA7F5D1A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = EDBC87A8CB3916B8F4289B93 /* LaunchScreen.storyboard */; };
+		F527BB82B29250CE1DDBBD66 /* Pods_LarkStorageDev.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 80EE11AA5C9477D6BC0D22C5 /* Pods_LarkStorageDev.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		7211BE9429100F4400DFF36C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83927105A98BEDDBBE0DCE20 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 400DA3EB389104728B537835;
+			remoteInfo = LarkStorageDev;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		2B4CED952A1E087900654279 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		110AFCDA3B528D3AF5DE498E /* Pods_LarkStorageDevTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_LarkStorageDevTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		2B2321F029E412AE001A74CD /* KVStoreBag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KVStoreBag.swift; sourceTree = "<group>"; };
+		2B2321F229E4148C001A74CD /* KVTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KVTestCase.swift; sourceTree = "<group>"; };
+		2B4D724B2959535400077E30 /* KVAllKeysTester.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KVAllKeysTester.swift; sourceTree = "<group>"; };
+		2B694C27299DDBE400D5F021 /* KVMigrationRegistryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KVMigrationRegistryTests.swift; sourceTree = "<group>"; };
+		2B74FDE92A8A215100C45ED6 /* KVInt64Testser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KVInt64Testser.swift; sourceTree = "<group>"; };
+		2B768E6329260ECC00E640D2 /* LarkStorageDev.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LarkStorageDev.entitlements; sourceTree = "<group>"; };
+		38ABB12C6887D58500E23D47 /* Pods-LarkStorageDevTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LarkStorageDevTests.release.xcconfig"; path = "Target Support Files/Pods-LarkStorageDevTests/Pods-LarkStorageDevTests.release.xcconfig"; sourceTree = "<group>"; };
+		46F0537FFBCDAE144C6CBCA9 /* Pods-LarkStorageDev.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LarkStorageDev.release.xcconfig"; path = "Target Support Files/Pods-LarkStorageDev/Pods-LarkStorageDev.release.xcconfig"; sourceTree = "<group>"; };
+		4D4F6884FFAF9C31F5871573 /* Pods-LarkStorageSandboxDev.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LarkStorageSandboxDev.release.xcconfig"; path = "Target Support Files/Pods-LarkStorageSandboxDev/Pods-LarkStorageSandboxDev.release.xcconfig"; sourceTree = "<group>"; };
+		633C5ECDE66E38234AFEA74A /* Pods-LarkStorageDev.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LarkStorageDev.debug.xcconfig"; path = "Target Support Files/Pods-LarkStorageDev/Pods-LarkStorageDev.debug.xcconfig"; sourceTree = "<group>"; };
+		6A2EAB2CCED3BBFFAEBCEF77 /* LarkStorageDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LarkStorageDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		721757ED2912422500FE55D4 /* IsolateSandboxTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IsolateSandboxTests.swift; sourceTree = "<group>"; };
+		721757EE2912422500FE55D4 /* IsoPath_LfkPathTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IsoPath_LfkPathTests.swift; sourceTree = "<group>"; };
+		721757EF2912422500FE55D4 /* AbsPathTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AbsPathTests.swift; sourceTree = "<group>"; };
+		721757F12912422500FE55D4 /* PathTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PathTests.swift; sourceTree = "<group>"; };
+		721757F22912422500FE55D4 /* IsoPathTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IsoPathTests.swift; sourceTree = "<group>"; };
+		721757F32912422500FE55D4 /* LfkPathTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LfkPathTests.swift; sourceTree = "<group>"; };
+		721757F42912422500FE55D4 /* MigrationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MigrationTests.swift; sourceTree = "<group>"; };
+		721757F52912422500FE55D4 /* SandboxBaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SandboxBaseTests.swift; sourceTree = "<group>"; };
+		721757F62912422500FE55D4 /* AbsPath_LfkPathTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AbsPath_LfkPathTests.swift; sourceTree = "<group>"; };
+		721757F82912422500FE55D4 /* KVStoreUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KVStoreUtils.swift; sourceTree = "<group>"; };
+		721757FB2912422500FE55D4 /* KVAllValueTester.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KVAllValueTester.swift; sourceTree = "<group>"; };
+		721757FC2912422500FE55D4 /* KVSaveLoadTester.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KVSaveLoadTester.swift; sourceTree = "<group>"; };
+		721757FD2912422500FE55D4 /* KVClearTester.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KVClearTester.swift; sourceTree = "<group>"; };
+		721757FE2912422500FE55D4 /* KVRemoveTester.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KVRemoveTester.swift; sourceTree = "<group>"; };
+		721757FF2912422500FE55D4 /* KVContainsTester.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KVContainsTester.swift; sourceTree = "<group>"; };
+		721758002912422500FE55D4 /* KVGetSetTester.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KVGetSetTester.swift; sourceTree = "<group>"; };
+		721758012912422500FE55D4 /* KVBindingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KVBindingTests.swift; sourceTree = "<group>"; };
+		721758022912422500FE55D4 /* KVCryptoTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KVCryptoTests.swift; sourceTree = "<group>"; };
+		721758042912422500FE55D4 /* KVStoreBaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KVStoreBaseTests.swift; sourceTree = "<group>"; };
+		721758052912422500FE55D4 /* KVKeyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KVKeyTests.swift; sourceTree = "<group>"; };
+		721758062912422500FE55D4 /* KVMigrationProxyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KVMigrationProxyTests.swift; sourceTree = "<group>"; };
+		721758072912422500FE55D4 /* KVPerfTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KVPerfTests.swift; sourceTree = "<group>"; };
+		721758082912422500FE55D4 /* KVSubscriptTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KVSubscriptTests.swift; sourceTree = "<group>"; };
+		721758092912422500FE55D4 /* KVSharedTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KVSharedTests.swift; sourceTree = "<group>"; };
+		7217580A2912422500FE55D4 /* KVRekeyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KVRekeyTests.swift; sourceTree = "<group>"; };
+		7217580C2912422500FE55D4 /* Tester.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Tester.swift; sourceTree = "<group>"; };
+		7217580D2912422500FE55D4 /* IsolatableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IsolatableTests.swift; sourceTree = "<group>"; };
+		7217582C2912439900FE55D4 /* KVConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KVConfigTests.swift; sourceTree = "<group>"; };
+		721803E8295BF17300B8C9CF /* IsoPath+ParseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "IsoPath+ParseTests.swift"; sourceTree = "<group>"; };
+		721803EA295BF24400B8C9CF /* IsoPath+MapTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "IsoPath+MapTests.swift"; sourceTree = "<group>"; };
+		72226C7029221818003A6672 /* SBMigrationTaskManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SBMigrationTaskManagerTests.swift; sourceTree = "<group>"; };
+		72226C7229223622003A6672 /* SBMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SBMigrationTests.swift; sourceTree = "<group>"; };
+		72226C7429226156003A6672 /* SBMigrationStrategyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SBMigrationStrategyTests.swift; sourceTree = "<group>"; };
+		72254DED2973285300CA2949 /* KVStore+ObjectTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "KVStore+ObjectTests.swift"; sourceTree = "<group>"; };
+		72254F60297409A000CA2949 /* KVItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KVItem.swift; sourceTree = "<group>"; };
+		72254F6229740A3600CA2949 /* KVObject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KVObject.swift; sourceTree = "<group>"; };
+		7235A0E2290FC53D005EDE73 /* Demo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Demo.swift; sourceTree = "<group>"; };
+		726747072914B5B900895A89 /* KVMigrationConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KVMigrationConfigTests.swift; sourceTree = "<group>"; };
+		72674709291508E000895A89 /* KVMigrationTaskManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KVMigrationTaskManagerTests.swift; sourceTree = "<group>"; };
+		7267B45129991EA600FA8535 /* SBCipherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SBCipherTests.swift; sourceTree = "<group>"; };
+		72858E5B290FBBA900216409 /* LarkStorageDevTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LarkStorageDevTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		72AFCA84296406CD0093300A /* IsoPath+MicroAppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "IsoPath+MicroAppTests.swift"; sourceTree = "<group>"; };
+		72D876A1292333F5009C266C /* SBMigrationThreadSafeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SBMigrationThreadSafeTests.swift; sourceTree = "<group>"; };
+		72DAF3B2298D335E00EB4913 /* IsoPath+NotStrictly+ParseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "IsoPath+NotStrictly+ParseTests.swift"; sourceTree = "<group>"; };
+		72E2A0C3295EC00200F78302 /* PathTypeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathTypeTests.swift; sourceTree = "<group>"; };
+		72FFE02D291673DA00A8EE07 /* KVMigrationTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KVMigrationTestCase.swift; sourceTree = "<group>"; };
+		80EE11AA5C9477D6BC0D22C5 /* Pods_LarkStorageDev.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_LarkStorageDev.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		9858262ECF0717EA7F1E37C6 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B8BEF4D7738B183052D4CFAE /* Pods-LarkStorageDevTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LarkStorageDevTests.debug.xcconfig"; path = "Target Support Files/Pods-LarkStorageDevTests/Pods-LarkStorageDevTests.debug.xcconfig"; sourceTree = "<group>"; };
+		C20C0796408CD558C5AF5086 /* main.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		D770655A055A087EEC385775 /* Pods-LarkStorageKeyValueDev.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LarkStorageKeyValueDev.release.xcconfig"; path = "Target Support Files/Pods-LarkStorageKeyValueDev/Pods-LarkStorageKeyValueDev.release.xcconfig"; sourceTree = "<group>"; };
+		E5BD37B5BC8563193DC49C6F /* BaseAssembly.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BaseAssembly.swift; path = AutoGenerated/BaseAssembly.swift; sourceTree = "<group>"; };
+		E6097DECE0624E4E991F3727 /* Pods-LarkStorageSandboxDev.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LarkStorageSandboxDev.debug.xcconfig"; path = "Target Support Files/Pods-LarkStorageSandboxDev/Pods-LarkStorageSandboxDev.debug.xcconfig"; sourceTree = "<group>"; };
+		EDBC87A8CB3916B8F4289B93 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		F5B9BEFA70D1BDA125A40FC2 /* Pods-LarkStorageKeyValueDev.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LarkStorageKeyValueDev.debug.xcconfig"; path = "Target Support Files/Pods-LarkStorageKeyValueDev/Pods-LarkStorageKeyValueDev.debug.xcconfig"; sourceTree = "<group>"; };
+		F79D51DF9584410B689A026E /* Pods_LarkStorageKeyValueDev.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_LarkStorageKeyValueDev.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FA7B3C138DDB0195A8E0A503 /* Pods_LarkStorageSandboxDev.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_LarkStorageSandboxDev.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FFD3308FC76E09C573C92DA5 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		72858E58290FBBA900216409 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				262793BCAA97684631A15170 /* Pods_LarkStorageDevTests.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D4936DA6D78AD1895E6C788F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F527BB82B29250CE1DDBBD66 /* Pods_LarkStorageDev.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0D37CDB79AF74ABA8B21F60B /* AutoGenerated */ = {
+			isa = PBXGroup;
+			children = (
+				E5BD37B5BC8563193DC49C6F /* BaseAssembly.swift */,
+			);
+			name = AutoGenerated;
+			sourceTree = "<group>";
+		};
+		1CBEB9F1F9073B4A6AD1E5D8 /* LarkStorageDev */ = {
+			isa = PBXGroup;
+			children = (
+				2B768E6329260ECC00E640D2 /* LarkStorageDev.entitlements */,
+				7235A0E2290FC53D005EDE73 /* Demo.swift */,
+				C20C0796408CD558C5AF5086 /* main.swift */,
+				9858262ECF0717EA7F1E37C6 /* Info.plist */,
+				EDBC87A8CB3916B8F4289B93 /* LaunchScreen.storyboard */,
+				4B7A3474A740528AE6F00B60 /* resource */,
+			);
+			path = LarkStorageDev;
+			sourceTree = "<group>";
+		};
+		478B81820A034C4B1B369A26 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				46F0537FFBCDAE144C6CBCA9 /* Pods-LarkStorageDev.release.xcconfig */,
+				633C5ECDE66E38234AFEA74A /* Pods-LarkStorageDev.debug.xcconfig */,
+				B8BEF4D7738B183052D4CFAE /* Pods-LarkStorageDevTests.debug.xcconfig */,
+				38ABB12C6887D58500E23D47 /* Pods-LarkStorageDevTests.release.xcconfig */,
+				F5B9BEFA70D1BDA125A40FC2 /* Pods-LarkStorageKeyValueDev.debug.xcconfig */,
+				D770655A055A087EEC385775 /* Pods-LarkStorageKeyValueDev.release.xcconfig */,
+				E6097DECE0624E4E991F3727 /* Pods-LarkStorageSandboxDev.debug.xcconfig */,
+				4D4F6884FFAF9C31F5871573 /* Pods-LarkStorageSandboxDev.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		4B7A3474A740528AE6F00B60 /* resource */ = {
+			isa = PBXGroup;
+			children = (
+				FFD3308FC76E09C573C92DA5 /* Assets.xcassets */,
+			);
+			path = resource;
+			sourceTree = "<group>";
+		};
+		721757EC2912422500FE55D4 /* Sandbox */ = {
+			isa = PBXGroup;
+			children = (
+				7267B45029991D2F00FA8535 /* Crypto */,
+				72226C6D292217B8003A6672 /* Migration */,
+				721757ED2912422500FE55D4 /* IsolateSandboxTests.swift */,
+				721757EE2912422500FE55D4 /* IsoPath_LfkPathTests.swift */,
+				721757EF2912422500FE55D4 /* AbsPathTests.swift */,
+				721757F12912422500FE55D4 /* PathTests.swift */,
+				721757F22912422500FE55D4 /* IsoPathTests.swift */,
+				721757F32912422500FE55D4 /* LfkPathTests.swift */,
+				721757F42912422500FE55D4 /* MigrationTests.swift */,
+				721757F52912422500FE55D4 /* SandboxBaseTests.swift */,
+				721757F62912422500FE55D4 /* AbsPath_LfkPathTests.swift */,
+				721803E8295BF17300B8C9CF /* IsoPath+ParseTests.swift */,
+				721803EA295BF24400B8C9CF /* IsoPath+MapTests.swift */,
+				72E2A0C3295EC00200F78302 /* PathTypeTests.swift */,
+				72AFCA84296406CD0093300A /* IsoPath+MicroAppTests.swift */,
+				72DAF3B2298D335E00EB4913 /* IsoPath+NotStrictly+ParseTests.swift */,
+			);
+			path = Sandbox;
+			sourceTree = "<group>";
+		};
+		721757F72912422500FE55D4 /* KeyValue */ = {
+			isa = PBXGroup;
+			children = (
+				72254F5F2974098200CA2949 /* Utils */,
+				726747062914B54D00895A89 /* Migration */,
+				721757FA2912422500FE55D4 /* Testers */,
+				721758012912422500FE55D4 /* KVBindingTests.swift */,
+				7217582C2912439900FE55D4 /* KVConfigTests.swift */,
+				721758022912422500FE55D4 /* KVCryptoTests.swift */,
+				721758042912422500FE55D4 /* KVStoreBaseTests.swift */,
+				721758052912422500FE55D4 /* KVKeyTests.swift */,
+				721758072912422500FE55D4 /* KVPerfTests.swift */,
+				721758082912422500FE55D4 /* KVSubscriptTests.swift */,
+				721758092912422500FE55D4 /* KVSharedTests.swift */,
+				7217580A2912422500FE55D4 /* KVRekeyTests.swift */,
+				72254DED2973285300CA2949 /* KVStore+ObjectTests.swift */,
+			);
+			path = KeyValue;
+			sourceTree = "<group>";
+		};
+		721757FA2912422500FE55D4 /* Testers */ = {
+			isa = PBXGroup;
+			children = (
+				721757FB2912422500FE55D4 /* KVAllValueTester.swift */,
+				2B4D724B2959535400077E30 /* KVAllKeysTester.swift */,
+				721757FC2912422500FE55D4 /* KVSaveLoadTester.swift */,
+				721757FD2912422500FE55D4 /* KVClearTester.swift */,
+				721757FE2912422500FE55D4 /* KVRemoveTester.swift */,
+				721757FF2912422500FE55D4 /* KVContainsTester.swift */,
+				721758002912422500FE55D4 /* KVGetSetTester.swift */,
+				2B74FDE92A8A215100C45ED6 /* KVInt64Testser.swift */,
+			);
+			path = Testers;
+			sourceTree = "<group>";
+		};
+		7217580B2912422500FE55D4 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				7217580C2912422500FE55D4 /* Tester.swift */,
+				7217580D2912422500FE55D4 /* IsolatableTests.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		72226C6D292217B8003A6672 /* Migration */ = {
+			isa = PBXGroup;
+			children = (
+				72226C7029221818003A6672 /* SBMigrationTaskManagerTests.swift */,
+				72226C7229223622003A6672 /* SBMigrationTests.swift */,
+				72226C7429226156003A6672 /* SBMigrationStrategyTests.swift */,
+				72D876A1292333F5009C266C /* SBMigrationThreadSafeTests.swift */,
+			);
+			path = Migration;
+			sourceTree = "<group>";
+		};
+		72254F5F2974098200CA2949 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				72254F60297409A000CA2949 /* KVItem.swift */,
+				72254F6229740A3600CA2949 /* KVObject.swift */,
+				721757F82912422500FE55D4 /* KVStoreUtils.swift */,
+				2B2321F229E4148C001A74CD /* KVTestCase.swift */,
+				2B2321F029E412AE001A74CD /* KVStoreBag.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		726747062914B54D00895A89 /* Migration */ = {
+			isa = PBXGroup;
+			children = (
+				72FFE02D291673DA00A8EE07 /* KVMigrationTestCase.swift */,
+				2B694C27299DDBE400D5F021 /* KVMigrationRegistryTests.swift */,
+				726747072914B5B900895A89 /* KVMigrationConfigTests.swift */,
+				72674709291508E000895A89 /* KVMigrationTaskManagerTests.swift */,
+				721758062912422500FE55D4 /* KVMigrationProxyTests.swift */,
+			);
+			path = Migration;
+			sourceTree = "<group>";
+		};
+		7267B45029991D2F00FA8535 /* Crypto */ = {
+			isa = PBXGroup;
+			children = (
+				7267B45129991EA600FA8535 /* SBCipherTests.swift */,
+			);
+			path = Crypto;
+			sourceTree = "<group>";
+		};
+		72858E5C290FBBA900216409 /* LarkStorageDevTests */ = {
+			isa = PBXGroup;
+			children = (
+				7217580B2912422500FE55D4 /* Core */,
+				721757F72912422500FE55D4 /* KeyValue */,
+				721757EC2912422500FE55D4 /* Sandbox */,
+			);
+			path = LarkStorageDevTests;
+			sourceTree = "<group>";
+		};
+		A5A69AD4A1ACD2C4BEC7B12F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				80EE11AA5C9477D6BC0D22C5 /* Pods_LarkStorageDev.framework */,
+				110AFCDA3B528D3AF5DE498E /* Pods_LarkStorageDevTests.framework */,
+				F79D51DF9584410B689A026E /* Pods_LarkStorageKeyValueDev.framework */,
+				FA7B3C138DDB0195A8E0A503 /* Pods_LarkStorageSandboxDev.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		E4D8E9CD6045DC53563A1C48 = {
+			isa = PBXGroup;
+			children = (
+				F9EF67668576089AA5747E69 /* Products */,
+				1CBEB9F1F9073B4A6AD1E5D8 /* LarkStorageDev */,
+				72858E5C290FBBA900216409 /* LarkStorageDevTests */,
+				0D37CDB79AF74ABA8B21F60B /* AutoGenerated */,
+				478B81820A034C4B1B369A26 /* Pods */,
+				A5A69AD4A1ACD2C4BEC7B12F /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		F9EF67668576089AA5747E69 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6A2EAB2CCED3BBFFAEBCEF77 /* LarkStorageDev.app */,
+				72858E5B290FBBA900216409 /* LarkStorageDevTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		400DA3EB389104728B537835 /* LarkStorageDev */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3079B6E2C0E50945C17F5978 /* Build configuration list for PBXNativeTarget "LarkStorageDev" */;
+			buildPhases = (
+				7034D774367E0BF4BC3EC166 /* [CP] Check Pods Manifest.lock */,
+				033E16936A61F33DBA1695ED /* [CP-User] Hummer-before-hooks */,
+				D7C02FC5BE56243D5F4E3D8E /* Sources */,
+				D4936DA6D78AD1895E6C788F /* Frameworks */,
+				CB78C28371B2B8788EDC2B71 /* Resources */,
+				668592441A490AD6BB96E791 /* [CP] Record Xcode SRCROOT */,
+				2B4CED952A1E087900654279 /* Embed Frameworks */,
+				272FC20C9A1752992D523CD6 /* [CP] Embed Pods Frameworks */,
+				91E5B59F539B8C884F8D95B6 /* [CP] Copy Pods Resources */,
+				3E7679B613F919937B86E741 /* [CP-User] Hummer-after-hooks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LarkStorageDev;
+			productName = LarkStorageDev;
+			productReference = 6A2EAB2CCED3BBFFAEBCEF77 /* LarkStorageDev.app */;
+			productType = "com.apple.product-type.application";
+		};
+		72858E5A290FBBA900216409 /* LarkStorageDevTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 72858E63290FBBA900216409 /* Build configuration list for PBXNativeTarget "LarkStorageDevTests" */;
+			buildPhases = (
+				4A57D7A0633E3BD9B21D426B /* [CP] Check Pods Manifest.lock */,
+				991A86777EF15408F5396BE3 /* [CP-User] Hummer-before-hooks */,
+				72858E57290FBBA900216409 /* Sources */,
+				72858E58290FBBA900216409 /* Frameworks */,
+				72858E59290FBBA900216409 /* Resources */,
+				4062EA4FC08BAF34A4DA1CC0 /* [CP] Record Xcode SRCROOT */,
+				78112E62B10899F70EFA29DE /* [CP-User] Hummer-after-hooks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7211BE9529100F4400DFF36C /* PBXTargetDependency */,
+			);
+			name = LarkStorageDevTests;
+			productName = LarkStorageDevTests;
+			productReference = 72858E5B290FBBA900216409 /* LarkStorageDevTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		83927105A98BEDDBBE0DCE20 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1400;
+				LastUpgradeCheck = 1300;
+				TargetAttributes = {
+					72858E5A290FBBA900216409 = {
+						CreatedOnToolsVersion = 14.0;
+						TestTargetID = 400DA3EB389104728B537835;
+					};
+				};
+			};
+			buildConfigurationList = B1669F0525B51A27192CFD0E /* Build configuration list for PBXProject "LarkStorageDev" */;
+			compatibilityVersion = "Xcode 10.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = E4D8E9CD6045DC53563A1C48;
+			productRefGroup = F9EF67668576089AA5747E69 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				400DA3EB389104728B537835 /* LarkStorageDev */,
+				72858E5A290FBBA900216409 /* LarkStorageDevTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		72858E59290FBBA900216409 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CB78C28371B2B8788EDC2B71 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7E296569A362723AAA7F5D1A /* LaunchScreen.storyboard in Resources */,
+				12D5E4DD5B2249F20F80E76F /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		033E16936A61F33DBA1695ED /* [CP-User] Hummer-before-hooks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "[CP-User] Hummer-before-hooks";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ -f \"${PODS_ROOT}/hummer_before_hooks.sh\" ];then\n  bash \"${PODS_ROOT}/hummer_before_hooks.sh\"\nfi\n";
+		};
+		272FC20C9A1752992D523CD6 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-LarkStorageDev/Pods-LarkStorageDev-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-LarkStorageDev/Pods-LarkStorageDev-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-LarkStorageDev/Pods-LarkStorageDev-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		3E7679B613F919937B86E741 /* [CP-User] Hummer-after-hooks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "[CP-User] Hummer-after-hooks";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ -f \"${PODS_ROOT}/hummer_after_hooks.sh\" ];then\n  bash \"${PODS_ROOT}/hummer_after_hooks.sh\"\nfi\n";
+		};
+		4062EA4FC08BAF34A4DA1CC0 /* [CP] Record Xcode SRCROOT */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Record Xcode SRCROOT";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "echo \"$SRCROOT\" > ~/.last_xcode_root\n";
+			showEnvVarsInLog = 0;
+		};
+		4A57D7A0633E3BD9B21D426B /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-LarkStorageDevTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		668592441A490AD6BB96E791 /* [CP] Record Xcode SRCROOT */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Record Xcode SRCROOT";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "echo \"$SRCROOT\" > ~/.last_xcode_root\n";
+			showEnvVarsInLog = 0;
+		};
+		7034D774367E0BF4BC3EC166 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-LarkStorageDev-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		78112E62B10899F70EFA29DE /* [CP-User] Hummer-after-hooks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "[CP-User] Hummer-after-hooks";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ -f \"${PODS_ROOT}/hummer_after_hooks.sh\" ];then\n  bash \"${PODS_ROOT}/hummer_after_hooks.sh\"\nfi\n";
+		};
+		91E5B59F539B8C884F8D95B6 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-LarkStorageDev/Pods-LarkStorageDev-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-LarkStorageDev/Pods-LarkStorageDev-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-LarkStorageDev/Pods-LarkStorageDev-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		991A86777EF15408F5396BE3 /* [CP-User] Hummer-before-hooks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "[CP-User] Hummer-before-hooks";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ -f \"${PODS_ROOT}/hummer_before_hooks.sh\" ];then\n  bash \"${PODS_ROOT}/hummer_before_hooks.sh\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		72858E57290FBBA900216409 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				721758272912422500FE55D4 /* KVSubscriptTests.swift in Sources */,
+				72254F6329740A3600CA2949 /* KVObject.swift in Sources */,
+				721758242912422500FE55D4 /* KVKeyTests.swift in Sources */,
+				7217580E2912422500FE55D4 /* IsolateSandboxTests.swift in Sources */,
+				721758122912422500FE55D4 /* PathTests.swift in Sources */,
+				721758282912422500FE55D4 /* KVSharedTests.swift in Sources */,
+				72DAF3B3298D335E00EB4913 /* IsoPath+NotStrictly+ParseTests.swift in Sources */,
+				7267470A291508E000895A89 /* KVMigrationTaskManagerTests.swift in Sources */,
+				721758262912422500FE55D4 /* KVPerfTests.swift in Sources */,
+				72AFCA85296406CD0093300A /* IsoPath+MicroAppTests.swift in Sources */,
+				7217581C2912422500FE55D4 /* KVClearTester.swift in Sources */,
+				2B74FDEA2A8A215100C45ED6 /* KVInt64Testser.swift in Sources */,
+				7217581F2912422500FE55D4 /* KVGetSetTester.swift in Sources */,
+				7267B45229991EA600FA8535 /* SBCipherTests.swift in Sources */,
+				72E2A0C4295EC00200F78302 /* PathTypeTests.swift in Sources */,
+				726747082914B5B900895A89 /* KVMigrationConfigTests.swift in Sources */,
+				7217582B2912422500FE55D4 /* IsolatableTests.swift in Sources */,
+				721758292912422500FE55D4 /* KVRekeyTests.swift in Sources */,
+				7217581B2912422500FE55D4 /* KVSaveLoadTester.swift in Sources */,
+				7217580F2912422500FE55D4 /* IsoPath_LfkPathTests.swift in Sources */,
+				721803E9295BF17300B8C9CF /* IsoPath+ParseTests.swift in Sources */,
+				721803EB295BF24400B8C9CF /* IsoPath+MapTests.swift in Sources */,
+				7217581D2912422500FE55D4 /* KVRemoveTester.swift in Sources */,
+				7217581A2912422500FE55D4 /* KVAllValueTester.swift in Sources */,
+				721758142912422500FE55D4 /* LfkPathTests.swift in Sources */,
+				72254DEE2973285300CA2949 /* KVStore+ObjectTests.swift in Sources */,
+				721758152912422500FE55D4 /* MigrationTests.swift in Sources */,
+				721758252912422500FE55D4 /* KVMigrationProxyTests.swift in Sources */,
+				72FFE02E291673DA00A8EE07 /* KVMigrationTestCase.swift in Sources */,
+				2B694C28299DDBE400D5F021 /* KVMigrationRegistryTests.swift in Sources */,
+				721758202912422500FE55D4 /* KVBindingTests.swift in Sources */,
+				721758182912422500FE55D4 /* KVStoreUtils.swift in Sources */,
+				2B4D724C2959535400077E30 /* KVAllKeysTester.swift in Sources */,
+				72D876A2292333F5009C266C /* SBMigrationThreadSafeTests.swift in Sources */,
+				721758232912422500FE55D4 /* KVStoreBaseTests.swift in Sources */,
+				721758102912422500FE55D4 /* AbsPathTests.swift in Sources */,
+				721758172912422500FE55D4 /* AbsPath_LfkPathTests.swift in Sources */,
+				7217581E2912422500FE55D4 /* KVContainsTester.swift in Sources */,
+				7217582D2912439900FE55D4 /* KVConfigTests.swift in Sources */,
+				721758162912422500FE55D4 /* SandboxBaseTests.swift in Sources */,
+				721758132912422500FE55D4 /* IsoPathTests.swift in Sources */,
+				2B2321F329E4148C001A74CD /* KVTestCase.swift in Sources */,
+				72226C7329223622003A6672 /* SBMigrationTests.swift in Sources */,
+				72226C7129221818003A6672 /* SBMigrationTaskManagerTests.swift in Sources */,
+				721758212912422500FE55D4 /* KVCryptoTests.swift in Sources */,
+				72254F61297409A000CA2949 /* KVItem.swift in Sources */,
+				72226C7529226157003A6672 /* SBMigrationStrategyTests.swift in Sources */,
+				7217582A2912422500FE55D4 /* Tester.swift in Sources */,
+				2B2321F129E412AE001A74CD /* KVStoreBag.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D7C02FC5BE56243D5F4E3D8E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				056C97454699F2A0957ECFF6 /* main.swift in Sources */,
+				353FF5E3CCD8275676083309 /* BaseAssembly.swift in Sources */,
+				7235A0E3290FC53D005EDE73 /* Demo.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		7211BE9529100F4400DFF36C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 400DA3EB389104728B537835 /* LarkStorageDev */;
+			targetProxy = 7211BE9429100F4400DFF36C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		10336B659D55A8BF112AC432 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 46F0537FFBCDAE144C6CBCA9 /* Pods-LarkStorageDev.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = LarkStorageDev/LarkStorageDev.entitlements;
+				DEVELOPMENT_TEAM = 88Q289P63J;
+				INFOPLIST_FILE = LarkStorageDev/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.bytedance.LarkStorageDev;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		14C402DBD1740FFC6B281C57 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				EXPORTED_SYMBOLS_FILE = "";
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.4;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		72858E61290FBBA900216409 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B8BEF4D7738B183052D4CFAE /* Pods-LarkStorageDevTests.debug.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 88Q289P63J;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.4;
+				MARKETING_VERSION = 1.0;
+				OTHER_SWIFT_FLAGS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.7up.LarkStorageDevTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LarkStorageDev.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/LarkStorageDev";
+			};
+			name = Debug;
+		};
+		72858E62290FBBA900216409 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 38ABB12C6887D58500E23D47 /* Pods-LarkStorageDevTests.release.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 88Q289P63J;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.4;
+				MARKETING_VERSION = 1.0;
+				OTHER_SWIFT_FLAGS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.7up.LarkStorageDevTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LarkStorageDev.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/LarkStorageDev";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		A62D80EA20EBB76FE4336705 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 633C5ECDE66E38234AFEA74A /* Pods-LarkStorageDev.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = LarkStorageDev/LarkStorageDev.entitlements;
+				DEVELOPMENT_TEAM = 88Q289P63J;
+				INFOPLIST_FILE = LarkStorageDev/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.bytedance.LarkStorageDev;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B1D89428B43E46565A609F16 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				EXPORTED_SYMBOLS_FILE = "";
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.4;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3079B6E2C0E50945C17F5978 /* Build configuration list for PBXNativeTarget "LarkStorageDev" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				10336B659D55A8BF112AC432 /* Release */,
+				A62D80EA20EBB76FE4336705 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		72858E63290FBBA900216409 /* Build configuration list for PBXNativeTarget "LarkStorageDevTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				72858E61290FBBA900216409 /* Debug */,
+				72858E62290FBBA900216409 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B1669F0525B51A27192CFD0E /* Build configuration list for PBXProject "LarkStorageDev" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B1D89428B43E46565A609F16 /* Debug */,
+				14C402DBD1740FFC6B281C57 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 83927105A98BEDDBBE0DCE20 /* Project object */;
+}

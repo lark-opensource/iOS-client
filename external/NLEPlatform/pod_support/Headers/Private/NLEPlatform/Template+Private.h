@@ -1,0 +1,1 @@
+../../../../ios/Classes/private/TemplateModels/Template+Private.h

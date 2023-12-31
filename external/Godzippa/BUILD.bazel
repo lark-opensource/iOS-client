@@ -1,0 +1,433 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "Godzippa_pod_hdrs",
+  srcs = [
+    ":Godzippa_root_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "Godzippa_private_includes",
+  include = [
+    "external/Godzippa/pod_support/Headers/Private/Godzippa/"
+  ],
+  deps = [],
+  external_name = "Godzippa"
+)
+gen_includes(
+  name = "Godzippa_public_includes",
+  include = [
+    "external/Godzippa/pod_support/Headers/Public/Godzippa/"
+  ],
+  deps = [],
+  external_name = "Godzippa"
+)
+filegroup(
+  name = "_Godzippa_hdrs",
+  srcs = [
+    ":Godzippa_root_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "Godzippa_xcode_hmapsource",
+  hdrs = [
+    ":_Godzippa_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "Godzippa_xcode_hmap",
+  dep = ":Godzippa_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/Godzippa/*-bitsky-generated.modulemap", "pod_support/Headers/Public/Godzippa/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "Godzippa_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "Godzippa",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "Godzippa_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":Godzippa_xcode_hmap"
+  ],
+  external_name = "Godzippa",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Godzippa_root_hdrs",
+  srcs = [
+    "Sources/Godzippa.h",
+    "Sources/GodzippaDefines.h",
+    "Sources/NSData+Godzippa.h",
+    "Sources/NSFileManager+Godzippa.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Godzippa_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/Godzippa/Godzippa.h",
+    "pod_support/Headers/Private/Godzippa/GodzippaDefines.h",
+    "pod_support/Headers/Private/Godzippa/NSData+Godzippa.h",
+    "pod_support/Headers/Private/Godzippa/NSFileManager+Godzippa.h",
+    "pod_support/Headers/Public/Godzippa/Godzippa.h",
+    "pod_support/Headers/Public/Godzippa/GodzippaDefines.h",
+    "pod_support/Headers/Public/Godzippa/NSData+Godzippa.h",
+    "pod_support/Headers/Public/Godzippa/NSFileManager+Godzippa.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Godzippa_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Godzippa_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Godzippa_module_map",
+  module_map = "pod_support/Headers/Public/Godzippa/Godzippa-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Godzippa/Godzippa-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Godzippa_root_srcs",
+  srcs = [
+    "Sources/NSData+Godzippa.m",
+    "Sources/NSFileManager+Godzippa.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Godzippa_oc",
+  enable_modules = 1,
+  srcs = [
+    "Godzippa_root_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Godzippa_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_dylibs = [
+    "z"
+  ],
+  deps = [
+    ":Godzippa_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Godzippa_private_includes",
+    ":Godzippa_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Godzippa_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DGodzippa_POD_VERSION=@\\\"8888_2.1.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Godzippa",
+  deps = [
+    ":Godzippa_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Godzippa_lib",
+  deps = [
+    ":Godzippa"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_Godzippa_module_map",
+  module_map = "@Godzippa//:pod_support/Headers/Public/Godzippa/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@Godzippa//:pod_support/Headers/Public/Godzippa/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_Godzippa_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@Godzippa//:Godzippa_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_Godzippa",
+  target_name = "Lark",
+  module_name = "Godzippa",
+  hdrs = ["@Godzippa//:Godzippa_root_pod_hdrs"],
+  srcs = ["@Godzippa//:Godzippa_root_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DGodzippa_POD_VERSION=@\\\"8888_2.1.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "Godzippa_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "Godzippa_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = ["z"],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "Godzippa_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "Godzippa_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "Godzippa_dynamic", False),
+  tags = getattr(defs_external_objc_library, "Godzippa_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("Godzippa", {}),
+  visibility = ["//visibility:public"],
+)

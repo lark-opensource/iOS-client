@@ -1,0 +1,526 @@
+load('@build_bazel_rules_apple//apple:resources.bzl', 'apple_resource_group')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "TTPlayerSDK_pod_hdrs",
+  srcs = [
+    ":TTPlayerSDK_root_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "TTPlayerSDK_private_includes",
+  include = [
+    "external/TTPlayerSDK/pod_support/Headers/Private/TTPlayerSDK/"
+  ],
+  deps = [],
+  external_name = "TTPlayerSDK"
+)
+gen_includes(
+  name = "TTPlayerSDK_public_includes",
+  include = [
+    "external/TTPlayerSDK/pod_support/Headers/Public/TTPlayerSDK/"
+  ],
+  deps = [],
+  external_name = "TTPlayerSDK"
+)
+filegroup(
+  name = "_TTPlayerSDK_hdrs",
+  srcs = [
+    ":TTPlayerSDK_root_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "TTPlayerSDK_xcode_hmapsource",
+  hdrs = [
+    ":_TTPlayerSDK_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "TTPlayerSDK_xcode_hmap",
+  dep = ":TTPlayerSDK_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/TTPlayerSDK/*-bitsky-generated.modulemap", "pod_support/Headers/Public/TTPlayerSDK/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "TTPlayerSDK_VendoredLibraries",
+  archives = [
+    "TTPlayerSDK/TTPlayer/libttdecrypter.a",
+    "TTPlayerSDK/TTPlayer/libTTPlayer.a",
+    "TTPlayerSDK/TTPlayer/libTTVideoDecode.a"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+apple_resource_group(
+  name = "TTPlayerSDK_resource_group",
+  resources = [
+    "TTPlayerSDK/Assets/ttplayer.metallib"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "TTPlayerSDK_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "TTPlayerSDK",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "TTPlayerSDK_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":TTPlayerSDK_xcode_hmap"
+  ],
+  external_name = "TTPlayerSDK",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTPlayerSDK_root_hdrs",
+  srcs = [
+    "TTPlayerSDK/TTPlayer/ByteCrypto.h",
+    "TTPlayerSDK/TTPlayer/MediaDecrypter.h",
+    "TTPlayerSDK/TTPlayer/TTAVPlayer.h",
+    "TTPlayerSDK/TTPlayer/TTAVPlayerItem.h",
+    "TTPlayerSDK/TTPlayer/TTAVPlayerItemProtocol.h",
+    "TTPlayerSDK/TTPlayer/TTAVPlayerKit.h",
+    "TTPlayerSDK/TTPlayer/TTAVPlayerLoadControlInterface.h",
+    "TTPlayerSDK/TTPlayer/TTAVPlayerMaskInfoInterface.h",
+    "TTPlayerSDK/TTPlayer/TTAVPlayerOpenGLActivity.h",
+    "TTPlayerSDK/TTPlayer/TTAVPlayerProtocol.h",
+    "TTPlayerSDK/TTPlayer/TTAVPlayerSubInfoInterface.h",
+    "TTPlayerSDK/TTPlayer/TTPlayerDef.h",
+    "TTPlayerSDK/TTPlayer/TTPlayerView.h",
+    "TTPlayerSDK/TTPlayer/TTPlayerViewProtocol.h",
+    "TTPlayerSDK/TTPlayer/av_base.h",
+    "TTPlayerSDK/TTPlayer/av_config.h",
+    "TTPlayerSDK/TTPlayer/av_error.h",
+    "TTPlayerSDK/TTPlayer/av_namespace.h",
+    "TTPlayerSDK/TTPlayer/ttvideodec.h",
+    "TTPlayerSDK/TTPlayer/ttvideoenc.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTPlayerSDK_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTPlayerSDK/ByteCrypto.h",
+    "pod_support/Headers/Private/TTPlayerSDK/MediaDecrypter.h",
+    "pod_support/Headers/Private/TTPlayerSDK/TTAVPlayer.h",
+    "pod_support/Headers/Private/TTPlayerSDK/TTAVPlayerItem.h",
+    "pod_support/Headers/Private/TTPlayerSDK/TTAVPlayerItemProtocol.h",
+    "pod_support/Headers/Private/TTPlayerSDK/TTAVPlayerKit.h",
+    "pod_support/Headers/Private/TTPlayerSDK/TTAVPlayerLoadControlInterface.h",
+    "pod_support/Headers/Private/TTPlayerSDK/TTAVPlayerMaskInfoInterface.h",
+    "pod_support/Headers/Private/TTPlayerSDK/TTAVPlayerOpenGLActivity.h",
+    "pod_support/Headers/Private/TTPlayerSDK/TTAVPlayerProtocol.h",
+    "pod_support/Headers/Private/TTPlayerSDK/TTAVPlayerSubInfoInterface.h",
+    "pod_support/Headers/Private/TTPlayerSDK/TTPlayerDef.h",
+    "pod_support/Headers/Private/TTPlayerSDK/TTPlayerView.h",
+    "pod_support/Headers/Private/TTPlayerSDK/TTPlayerViewProtocol.h",
+    "pod_support/Headers/Private/TTPlayerSDK/av_base.h",
+    "pod_support/Headers/Private/TTPlayerSDK/av_config.h",
+    "pod_support/Headers/Private/TTPlayerSDK/av_error.h",
+    "pod_support/Headers/Private/TTPlayerSDK/av_namespace.h",
+    "pod_support/Headers/Private/TTPlayerSDK/ttvideodec.h",
+    "pod_support/Headers/Private/TTPlayerSDK/ttvideoenc.h",
+    "pod_support/Headers/Public/TTPlayerSDK/ByteCrypto.h",
+    "pod_support/Headers/Public/TTPlayerSDK/MediaDecrypter.h",
+    "pod_support/Headers/Public/TTPlayerSDK/TTAVPlayer.h",
+    "pod_support/Headers/Public/TTPlayerSDK/TTAVPlayerItem.h",
+    "pod_support/Headers/Public/TTPlayerSDK/TTAVPlayerItemProtocol.h",
+    "pod_support/Headers/Public/TTPlayerSDK/TTAVPlayerKit.h",
+    "pod_support/Headers/Public/TTPlayerSDK/TTAVPlayerLoadControlInterface.h",
+    "pod_support/Headers/Public/TTPlayerSDK/TTAVPlayerMaskInfoInterface.h",
+    "pod_support/Headers/Public/TTPlayerSDK/TTAVPlayerOpenGLActivity.h",
+    "pod_support/Headers/Public/TTPlayerSDK/TTAVPlayerProtocol.h",
+    "pod_support/Headers/Public/TTPlayerSDK/TTAVPlayerSubInfoInterface.h",
+    "pod_support/Headers/Public/TTPlayerSDK/TTPlayerDef.h",
+    "pod_support/Headers/Public/TTPlayerSDK/TTPlayerView.h",
+    "pod_support/Headers/Public/TTPlayerSDK/TTPlayerViewProtocol.h",
+    "pod_support/Headers/Public/TTPlayerSDK/av_base.h",
+    "pod_support/Headers/Public/TTPlayerSDK/av_config.h",
+    "pod_support/Headers/Public/TTPlayerSDK/av_error.h",
+    "pod_support/Headers/Public/TTPlayerSDK/av_namespace.h",
+    "pod_support/Headers/Public/TTPlayerSDK/ttvideodec.h",
+    "pod_support/Headers/Public/TTPlayerSDK/ttvideoenc.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTPlayerSDK_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTPlayerSDK_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TTPlayerSDK_module_map",
+  module_map = "pod_support/Headers/Public/TTPlayerSDK/TTPlayerSDK-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTPlayerSDK/TTPlayerSDK-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTPlayerSDK_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "TTPlayerSDK_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "OpenAL",
+    "VideoToolbox",
+    "CoreMedia",
+    "AudioToolbox",
+    "MediaPlayer",
+    "CoreMotion",
+    "AVFoundation",
+    "SystemConfiguration"
+  ],
+  weak_sdk_frameworks = [
+    "MetalKit"
+  ],
+  sdk_dylibs = [
+    "c++",
+    "iconv",
+    "lzma",
+    "z",
+    "xml2"
+  ],
+  deps = [
+    ":TTPlayerSDK_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTPlayerSDK_private_includes",
+    ":TTPlayerSDK_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@audiosdk//:audiosdk_objc_interface",
+    "@boringssl//:boringssl_objc_interface",
+    "@BVCParser//:BVCParser_objc_interface",
+    "@lib_h_dec//:lib_h_dec_objc_interface",
+    "@TTFFmpeg//:TTFFmpeg_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@VCBaseKit//:VCBaseKit_objc_interface",
+    "@audiosdk//:audiosdk_swift_interface",
+    "@boringssl//:boringssl_swift_interface",
+    "@BVCParser//:BVCParser_swift_interface",
+    "@lib_h_dec//:lib_h_dec_swift_interface",
+    "@TTFFmpeg//:TTFFmpeg_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    "@VCBaseKit//:VCBaseKit_swift_interface",
+    ":TTPlayerSDK_VendoredLibraries",
+    ":TTPlayerSDK_objc_interface",
+    "@audiosdk//:audiosdk_module_map",
+    "@boringssl//:boringssl_module_map",
+    "@BVCParser//:BVCParser_module_map",
+    "@lib_h_dec//:lib_h_dec_module_map",
+    "@TTFFmpeg//:TTFFmpeg_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map",
+    "@VCBaseKit//:VCBaseKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":TTPlayerSDK_resource_group"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTPlayerSDK",
+  deps = [
+    ":TTPlayerSDK_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TTPlayerSDK_lib",
+  deps = [
+    ":TTPlayerSDK"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_TTPlayerSDK_module_map",
+  module_map = "@TTPlayerSDK//:pod_support/Headers/Public/TTPlayerSDK/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@TTPlayerSDK//:pod_support/Headers/Public/TTPlayerSDK/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_TTPlayerSDK_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@TTPlayerSDK//:TTPlayerSDK_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_TTPlayerSDK",
+  target_name = "Lark",
+  module_name = "TTPlayerSDK",
+  hdrs = ["@TTPlayerSDK//:TTPlayerSDK_root_pod_hdrs"],
+  srcs = [],
+  non_arc_srcs = [],
+  deps = ["@TTPlayerSDK//:TTPlayerSDK_VendoredLibraries"],
+  pod_deps = ["audiosdk", "boringssl", "BVCParser", "lib_h_dec", "TTFFmpeg", "TTNetworkManager", "VCBaseKit"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "TTPlayerSDK_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "TTPlayerSDK_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["OpenAL", "VideoToolbox", "CoreMedia", "AudioToolbox", "MediaPlayer", "CoreMotion", "AVFoundation", "SystemConfiguration"],
+  weak_sdk_frameworks = ["MetalKit"],
+  sdk_dylibs = ["c++", "iconv", "lzma", "z", "xml2"],
+  data = ["@TTPlayerSDK//:TTPlayerSDK_resource_group"],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "TTPlayerSDK_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "TTPlayerSDK_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "TTPlayerSDK_dynamic", False),
+  tags = getattr(defs_external_objc_library, "TTPlayerSDK_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("TTPlayerSDK", {}),
+  visibility = ["//visibility:public"],
+)

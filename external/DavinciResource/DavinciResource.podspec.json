@@ -1,0 +1,77 @@
+{
+  "name": "DavinciResource",
+  "version": "0.0.29-alpha.0",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://github.com/wangchengyi.1/DavinciResource",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "wangchengyi.1": "wangchengyi.1@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:ies/DavinciResource.git",
+    "submodules": true,
+    "commit": "4581391ed17157369b1e956338d0485534a6e102"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "source_files": [
+    "resource/*.{h,c,hpp,cpp,m,mm}",
+    "resource_impl/*.{h,c,hpp,cpp,m,mm}",
+    "url_resource/*.{h,c,hpp,cpp,m,mm}",
+    "loki_resource/*.{h,c,hpp,cpp,m,mm}",
+    "loki_resource/*/*.{h,c,hpp,cpp,m,mm}",
+    "algorithm_resource/*.{h,c,hpp,cpp,m,mm}",
+    "algorithm_resource/*/*.{h,c,hpp,cpp,m,mm}",
+    "cbox/cbox/file/*.{h,c,hpp,cpp,m,mm}",
+    "cbox/cbox/executor/*.{h,c,hpp,cpp,m,mm}",
+    "base/*.{h,c,hpp,cpp,m,mm}",
+    "base/logger/*.{h,c,hpp,cpp,m,mm}",
+    "base/networker/*.{h,c,hpp,cpp,m,mm}",
+    "base/downloader/*",
+    "base/common_util/*.{h,c,hpp,cpp,m,mm}",
+    "base/task/*.{h,c,hpp,cpp,m,mm}",
+    "base/task/pipeline/*.{h,c,hpp,cpp,m,mm}",
+    "base/thirdparty/nlohmann/**/*.{h,c,hpp,cpp,m,mm}"
+  ],
+  "public_header_files": [
+    "resource/*.{h,hpp}",
+    "url_resource/UrlResourceProtocol.h",
+    "url_resource/UrlResourceHandler.h",
+    "base/networker/*.h",
+    "loki_resource/LokiResource.h",
+    "loki_resource/LokiResourceConfig.h",
+    "loki_resource/LokiResourceHandler.h",
+    "algorithm_resource/AlgorithmResourceConfig.h",
+    "algorithm_resource/AlgorithmResourceProtocol.h",
+    "algorithm_resource/AlgorithmResourceHandler.h",
+    "algorithm_resource/IBuildInModelFinder.h",
+    "algorithm_resource/IRequirementsPeeker.h",
+    "algorithm_resource/AlgorithmResourceGlobalSettings.h",
+    "cbox/cbox/file/*.{h,hpp}",
+    "cbox/cbox/executor/*.{h,hpp}"
+  ],
+  "xcconfig": {
+    "CC": "clang",
+    "CXX": "clang++",
+    "CLANG_CXX_LANGUAGE_STANDARD": "c++14",
+    "CLANG_CXX_LIBRARY": "libc++",
+    "HEADER_SEARCH_PATHS": "\"$(PODS_TARGET_SRCROOT)/resource\" \"$(PODS_TARGET_SRCROOT)/url_resource\" \"$(PODS_TARGET_SRCROOT)/loki_resource\" \"$(PODS_TARGET_SRCROOT)/algorithm_resource\" \"$(PODS_TARGET_SRCROOT)/cbox/executor\" \"$(PODS_TARGET_SRCROOT)/cbox/file\" \"$(PODS_TARGET_SRCROOT)/base/thirdparty\" \"$(PODS_TARGET_SRCROOT)/base/logger\" \"$(PODS_TARGET_SRCROOT)/base/networker\" \"$(PODS_TARGET_SRCROOT)/base/task\" \"$(PODS_TARGET_SRCROOT)/base/downloader\" \"$(PODS_TARGET_SRCROOT)/base/common_util\""
+  },
+  "pod_target_xcconfig": {
+    "GCC_PREPROCESSOR_DEFINITIONS": "__V_IPHONE_PLATFORM__ DavinciResource_POD_VERSION=@\\\"9999_0.0.29-alpha.0\\\"",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES"
+  },
+  "_bytebus_platform": {
+    "repo_id": "18685",
+    "app_id": "9999"
+  },
+  "repoId": "18685",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "DavinciResource_POD_VERSION=@\\\"9999_0.0.29-alpha.0\\\""
+  }
+}

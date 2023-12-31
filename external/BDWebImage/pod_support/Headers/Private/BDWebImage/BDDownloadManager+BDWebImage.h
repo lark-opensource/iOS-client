@@ -1,0 +1,1 @@
+../../../../BDWebImage/Classes/Download/BDDownloadManager+BDWebImage.h

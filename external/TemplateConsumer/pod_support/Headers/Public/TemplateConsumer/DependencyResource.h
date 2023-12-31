@@ -1,0 +1,1 @@
+../../../../core/cutsame/templatemodel/DependencyResource.h

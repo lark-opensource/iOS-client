@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayAbility/NativeBindCard/CommonBindCard/Net/CJPayMemCardBinInfoRequest.h

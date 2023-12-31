@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/HMDThreadMonitor/Common/Private/HMDThreadMonitorPluginProtocol.h

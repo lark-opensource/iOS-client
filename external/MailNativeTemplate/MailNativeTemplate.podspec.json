@@ -1,0 +1,47 @@
+{
+  "name": "MailNativeTemplate",
+  "version": "7.10.0-20231227142936",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "Required. 设置为该Pod所在Repo的URL地址，精确到Pod所在目录",
+  "authors": {
+    "name": "verehu.2022@bytedance.com"
+  },
+  "platforms": {
+    "ios": "11.0"
+  },
+  "swift_versions": "5.0",
+  "source_files": "src/**/*.{swift}",
+  "resource_bundles": {
+    "MailNativeTemplate": [
+      "resources/mail_template/*"
+    ]
+  },
+  "license": "MIT",
+  "source": {
+    "git": "git@code.byted.org:verehu.2022/mail-template-compile-ios.git",
+    "commit": "a5581dc6df9a036c4548d9e9252c13268b16b666"
+  },
+  "dependencies": {
+    "LarkLocalizations": []
+  },
+  "extra": {
+    "git_url": "https://code.byted.org/verehu.2022/mail-template-compile-ios"
+  },
+  "swift_version": "5.0",
+  "_bytebus_platform": {
+    "repo_id": "39909",
+    "app_id": "137801",
+    "is_swift": "1"
+  },
+  "repoId": "39909",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "MailNativeTemplate_POD_VERSION=@\\\"137801_7.10.0-20231227142936\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS[config=Release]": "$(inherited) NDEBUG=1",
+    "GCC_PREPROCESSOR_DEFINITIONS": "MailNativeTemplate_POD_VERSION=@\\\"137801_7.10.0-20231227142936\\\""
+  }
+}

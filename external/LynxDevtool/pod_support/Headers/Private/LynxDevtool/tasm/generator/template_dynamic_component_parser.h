@@ -1,0 +1,1 @@
+../../../../../../Lynx/tasm/generator/template_dynamic_component_parser.h

@@ -1,0 +1,42 @@
+# coding: utf-8
+#debug_info_plist_file "app/app/resources/Info.plist"
+
+debug_dependency 'SnapKit'
+
+debug_fastlane do
+    lane :unit_test, <<-'LANE'
+    proj_name = 'LKRichViewDev'
+    workspace = "#{proj_name}.xcworkspace"
+    begin
+        scan(
+            scheme: proj_name,
+            clean: false,
+            code_coverage: true,
+            output_types: 'html,junit',
+            output_directory: 'fastlane/test_reports',
+            workspace: workspace,
+            devices: ['iPhone 8 Plus (11.0.1)'],
+            # only_testing: 'test**'
+        )
+    rescue => exception
+        on_error("❌ Fail Lane unit_test 🚩", exception)
+        UI.user_error! exception
+    end
+
+    slather(
+        output_directory: "fastlane/test_outputs",
+        proj: "#{proj_name}.xcodeproj",
+        workspace: workspace,
+        scheme: proj_name,
+        html: true,
+        ignore: ['../../Libs/LKRichView/app/app/src/**'],
+        source_directory: "Pods/LKRichView"
+    )
+
+    # target_coverage = 90
+    # m = /id=\"total_coverage\">(?<coverage>[\d\.]+)%/.match(IO.read("./test_outputs/index.html"))
+    # if m['coverage'].to_f < target_coverage
+    #     UI.user_error! "Total coverage is #{m['coverage']}, less than #{target_coverage}!"
+    # end
+    LANE
+end

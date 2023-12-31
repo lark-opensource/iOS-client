@@ -1,0 +1,10 @@
+# 生成依赖描述
+# run cmd
+#  rake podspec_patch[LarkTour]
+# 指定ios-client目录详见 Rakefile
+
+debug_dependency 'TTAdSplashSDK', '0.7.26.5-bugfix', :subspecs => ['Core'], :source => 'git@code.byted.org:iOS_Library/privatethird_source_repo.git'
+#debug_dependency 'BDASplashSDKI18N', '0.2.16.1-binary', :subspecs => ['Core'], :source => 'git@code.byted.org:iOS_Library/privatethird_binary_repo.git'
+debug_dependency 'LarkSplash', :subspecs => ['common', 'domestic'], :integration => :local
+
+eval_tonic 'pod_pre_install_0.1'

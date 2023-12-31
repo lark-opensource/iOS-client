@@ -1,0 +1,110 @@
+# Copyright 2022 The Lynx Authors. All rights reserved.
+
+if (is_android) {
+  import("//Android/LynxAndroid/LynxAndroid.gni")
+} else {
+  import("//Lynx/Lynx.gni")
+}
+
+
+js_v8_bridge_shared_sources = [
+  "v8_api.h",
+  "v8_cache_generator.cc",
+  "v8_cache_generator.h",
+  "v8_context_wrapper.h",
+  "v8_context_wrapper_impl.cc",
+  "v8_context_wrapper_impl.h",
+  "v8_exception.cc",
+  "v8_exception.h",
+  "v8_helper.cc",
+  "v8_helper.h",
+  "v8_host_function.cc",
+  "v8_host_function.h",
+  "v8_host_object.cc",
+  "v8_host_object.h",
+  "v8_isolate_wrapper.h",
+  "v8_isolate_wrapper_impl.cc",
+  "v8_isolate_wrapper_impl.h",
+  "v8_runtime.cc",
+  "v8_runtime.h",
+]
+
+
+if (is_android) {
+  shared_library("lynx_v8_bridge") {
+    output_name = "lynx_v8_bridge"
+    deps = [
+      ":js_v8_bridge",
+      "//Android/LynxAndroid:lynx_android",
+    ]
+    lib_dirs = [
+      "//third_party/v8/7.5.288/lib/${android_abi}",
+    ]
+    libs = [
+      "//third_party/v8/7.5.288/lib/${android_abi}/libv8_libfull.cr.so",
+    ]
+    if (enable_napi_binding) {
+      lib_dirs += [
+        "${vmsdk_native_lib_dir}",
+      ]
+      libs += [
+        "${vmsdk_native_lib_dir}/libnapi.so",
+        "${vmsdk_native_lib_dir}/libnapi_v8.so",
+      ]
+    }
+
+    configs += [  "//Android:link_flag_config" ]
+  }
+
+  lynx_source_set("js_v8_bridge") {
+    include_dirs = [
+      "//third_party/napi/include",
+      "//third_party/v8/7.5.288/include",
+    ]
+    sources = js_v8_bridge_shared_sources
+    sources += [
+      "//Lynx/base/log/log_stream.cc",
+      "//Lynx/base/log/log_stream.h",
+      "//Lynx/base/observer/observer.h",
+      "//Lynx/base/observer/observer_list.cc",
+      "//Lynx/base/observer/observer_list.h",
+      "//Lynx/jsbridge/android/jni_v8_bridge.cc",
+    ]
+    if (enable_napi_binding) {
+      sources += [
+        "//Lynx/jsbridge/napi/napi_runtime_proxy_v8.cc",
+      ]
+    }
+    cflags_c = [ 
+      "-Oz",
+    ]
+    cflags_cc = [ 
+      "-Oz",
+    ]
+  }
+}
+
+
+source_set("devtool_js_v8_bridge") {
+  include_dirs = [ "//third_party/v8/7.5.288/include" ]
+  sources = js_v8_bridge_shared_sources
+  public_configs = [ "//Lynx:config" ]
+  if (is_android) {
+    public_configs += [
+      "//Android/LynxDevtool:devtool_common_defines",
+      "//Android/LynxDevtool:devtool_flag_config",
+      "//Android/LynxDevtool:devtool_include_config",
+    ]
+  } else if (is_win) {
+    public_configs += [ "//Windows/config:win_common_config"]
+  }
+}
+
+if (enable_gen_podspec) {
+  gen_subspec_file("jsbridge_v8_podspec") {
+    module_name = "Devtool"
+    parent_path = "subspecs-NativeScript"
+    podspec_name = "V8"
+    sources = js_v8_bridge_shared_sources
+  }
+}

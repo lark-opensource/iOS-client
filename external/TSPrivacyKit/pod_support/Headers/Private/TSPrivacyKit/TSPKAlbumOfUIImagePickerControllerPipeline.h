@@ -1,0 +1,1 @@
+../../../../TSPrivacyKit/Classes/Pipelines/Album/UIImagePickerController/TSPKAlbumOfUIImagePickerControllerPipeline.h

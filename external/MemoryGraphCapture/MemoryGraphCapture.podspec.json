@@ -1,0 +1,40 @@
+{
+  "name": "MemoryGraphCapture",
+  "version": "1.4.6-rc.1",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/ugc/MemoryGraphCapture",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "chao.wei": "chao.wei@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:ugc/MemoryGraphCapture.git",
+    "commit": "2187fd1f2538960105a3934c4d7f36645f08f67e"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "source_files": [
+    "MemoryGraphCapture/Classes/**/*"
+  ],
+  "public_header_files": "MemoryGraphCapture/Classes/**/*.h",
+  "libraries": "c++",
+  "requires_arc": false,
+  "pod_target_xcconfig": {
+    "OTHER_CPLUSPLUSFLAGS": "-fno-c++-static-destructors",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "MemoryGraphCapture_POD_VERSION=@\\\"9999_1.4.6-rc.1\\\""
+  },
+  "_bytebus_platform": {
+    "repo_id": "5083",
+    "app_id": "9999"
+  },
+  "repoId": "5083",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "MemoryGraphCapture_POD_VERSION=@\\\"9999_1.4.6-rc.1\\\""
+  }
+}

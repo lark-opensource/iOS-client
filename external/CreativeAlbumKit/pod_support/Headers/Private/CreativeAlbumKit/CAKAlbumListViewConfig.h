@@ -1,0 +1,1 @@
+../../../../CreativeAlbumKit/Classes/Core/Config/CAKAlbumListViewConfig.h

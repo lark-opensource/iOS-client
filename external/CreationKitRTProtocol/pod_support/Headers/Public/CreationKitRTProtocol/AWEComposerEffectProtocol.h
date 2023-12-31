@@ -1,0 +1,1 @@
+../../../../RuntimeProtocol/CameraService/Protocol/AWEComposerEffectProtocol.h

@@ -1,0 +1,546 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "BDALog_pod_hdrs",
+  srcs = [
+    ":BDALog_root_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "BDALog_private_includes",
+  include = [
+    "external/BDALog/pod_support/Headers/Private/BDALog/"
+  ],
+  deps = [],
+  external_name = "BDALog"
+)
+gen_includes(
+  name = "BDALog_public_includes",
+  include = [
+    "external/BDALog/pod_support/Headers/Public/BDALog/"
+  ],
+  deps = [],
+  external_name = "BDALog"
+)
+filegroup(
+  name = "_BDALog_hdrs",
+  srcs = [
+    ":BDALog_root_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "BDALog_xcode_hmapsource",
+  hdrs = [
+    ":_BDALog_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "BDALog_xcode_hmap",
+  dep = ":BDALog_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/BDALog/*-bitsky-generated.modulemap", "pod_support/Headers/Public/BDALog/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "BDALog_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libBDALog_BDALog_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "BDALog_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "BDALog",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "BDALog_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":BDALog_xcode_hmap"
+  ],
+  external_name = "BDALog",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDALog_root_private_hdrs",
+  srcs = [
+    "BDALog/Classes/Private/Core/BDALogBuffer.h",
+    "BDALog/Classes/Private/Core/BDALogBufferBlock.h",
+    "BDALog/Classes/Private/Core/BDALogEnv.h",
+    "BDALog/Classes/Private/Core/BDALogInstance.h",
+    "BDALog/Classes/Private/Core/BDALogManager.h",
+    "BDALog/Classes/Private/Core/BDContainer.hpp",
+    "BDALog/Classes/Private/Util/BDALogAssert.h",
+    "BDALog/Classes/Private/Util/BDALogConfigMMappedFile.h",
+    "BDALog/Classes/Private/Util/BDAlogFilesManager.h",
+    "BDALog/Classes/Private/Util/BDAlogTools.h",
+    "BDALog/Classes/Private/Util/BDAppInfo.h",
+    "BDALog/Classes/Private/Util/BDCompressor.hpp",
+    "BDALog/Classes/Private/Util/BDEncryptor.h",
+    "BDALog/Classes/Private/Util/BDFileManager.h",
+    "BDALog/Classes/Private/Util/BDFormatter.h",
+    "BDALog/Classes/Private/Util/BDHeapedLogInfo.h",
+    "BDALog/Classes/Private/Util/BDMMappedFile.h",
+    "BDALog/Classes/crypt/micro-ecc-master/BDTypes.h",
+    "BDALog/Classes/crypt/micro-ecc-master/BDuECC.h",
+    "BDALog/Classes/crypt/micro-ecc-master/BDuECC_vli.h",
+    "BDALog/Classes/crypt/micro-ecc-master/bd_asm_arm.inc",
+    "BDALog/Classes/crypt/micro-ecc-master/bd_asm_arm_mult_square.inc",
+    "BDALog/Classes/crypt/micro-ecc-master/bd_asm_arm_mult_square_umaal.inc",
+    "BDALog/Classes/crypt/micro-ecc-master/bd_asm_avr.inc",
+    "BDALog/Classes/crypt/micro-ecc-master/bd_asm_avr_mult_square.inc",
+    "BDALog/Classes/crypt/micro-ecc-master/bd_curve-specific.inc",
+    "BDALog/Classes/crypt/micro-ecc-master/bd_platform-specific.inc"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDALog_root_public_hdrs",
+  srcs = [
+    "BDALog/Classes/Public/BDAgileLog.h",
+    "BDALog/Classes/Public/BDAgileLogs.h",
+    "BDALog/Classes/Public/BDALogHelper.h",
+    "BDALog/Classes/Public/BDALogProtocolHelper.h",
+    "BDALog/Classes/Public/bdloggerbase.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDALog_root_hdrs",
+  srcs = [
+    "BDALog/Classes/Private/Core/BDALogBuffer.h",
+    "BDALog/Classes/Private/Core/BDALogBufferBlock.h",
+    "BDALog/Classes/Private/Core/BDALogEnv.h",
+    "BDALog/Classes/Private/Core/BDALogInstance.h",
+    "BDALog/Classes/Private/Core/BDALogManager.h",
+    "BDALog/Classes/Private/Core/BDContainer.hpp",
+    "BDALog/Classes/Private/Util/BDALogAssert.h",
+    "BDALog/Classes/Private/Util/BDALogConfigMMappedFile.h",
+    "BDALog/Classes/Private/Util/BDAlogFilesManager.h",
+    "BDALog/Classes/Private/Util/BDAlogTools.h",
+    "BDALog/Classes/Private/Util/BDAppInfo.h",
+    "BDALog/Classes/Private/Util/BDCompressor.hpp",
+    "BDALog/Classes/Private/Util/BDEncryptor.h",
+    "BDALog/Classes/Private/Util/BDFileManager.h",
+    "BDALog/Classes/Private/Util/BDFormatter.h",
+    "BDALog/Classes/Private/Util/BDHeapedLogInfo.h",
+    "BDALog/Classes/Private/Util/BDMMappedFile.h",
+    "BDALog/Classes/Public/BDALogHelper.h",
+    "BDALog/Classes/Public/BDALogProtocolHelper.h",
+    "BDALog/Classes/Public/BDAgileLog.h",
+    "BDALog/Classes/Public/BDAgileLogs.h",
+    "BDALog/Classes/Public/bdloggerbase.h",
+    "BDALog/Classes/crypt/micro-ecc-master/BDTypes.h",
+    "BDALog/Classes/crypt/micro-ecc-master/BDuECC.h",
+    "BDALog/Classes/crypt/micro-ecc-master/BDuECC_vli.h",
+    "BDALog/Classes/crypt/micro-ecc-master/bd_asm_arm.inc",
+    "BDALog/Classes/crypt/micro-ecc-master/bd_asm_arm_mult_square.inc",
+    "BDALog/Classes/crypt/micro-ecc-master/bd_asm_arm_mult_square_umaal.inc",
+    "BDALog/Classes/crypt/micro-ecc-master/bd_asm_avr.inc",
+    "BDALog/Classes/crypt/micro-ecc-master/bd_asm_avr_mult_square.inc",
+    "BDALog/Classes/crypt/micro-ecc-master/bd_curve-specific.inc",
+    "BDALog/Classes/crypt/micro-ecc-master/bd_platform-specific.inc"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BDALog_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BDALog/BDALogAssert.h",
+    "pod_support/Headers/Private/BDALog/BDALogBuffer.h",
+    "pod_support/Headers/Private/BDALog/BDALogBufferBlock.h",
+    "pod_support/Headers/Private/BDALog/BDALogConfigMMappedFile.h",
+    "pod_support/Headers/Private/BDALog/BDALogEnv.h",
+    "pod_support/Headers/Private/BDALog/BDALogHelper.h",
+    "pod_support/Headers/Private/BDALog/BDALogInstance.h",
+    "pod_support/Headers/Private/BDALog/BDALogManager.h",
+    "pod_support/Headers/Private/BDALog/BDALogProtocolHelper.h",
+    "pod_support/Headers/Private/BDALog/BDAgileLog.h",
+    "pod_support/Headers/Private/BDALog/BDAgileLogs.h",
+    "pod_support/Headers/Private/BDALog/BDAlogFilesManager.h",
+    "pod_support/Headers/Private/BDALog/BDAlogTools.h",
+    "pod_support/Headers/Private/BDALog/BDAppInfo.h",
+    "pod_support/Headers/Private/BDALog/BDCompressor.hpp",
+    "pod_support/Headers/Private/BDALog/BDContainer.hpp",
+    "pod_support/Headers/Private/BDALog/BDEncryptor.h",
+    "pod_support/Headers/Private/BDALog/BDFileManager.h",
+    "pod_support/Headers/Private/BDALog/BDFormatter.h",
+    "pod_support/Headers/Private/BDALog/BDHeapedLogInfo.h",
+    "pod_support/Headers/Private/BDALog/BDMMappedFile.h",
+    "pod_support/Headers/Private/BDALog/BDTypes.h",
+    "pod_support/Headers/Private/BDALog/BDuECC.h",
+    "pod_support/Headers/Private/BDALog/BDuECC_vli.h",
+    "pod_support/Headers/Private/BDALog/bd_asm_arm.inc",
+    "pod_support/Headers/Private/BDALog/bd_asm_arm_mult_square.inc",
+    "pod_support/Headers/Private/BDALog/bd_asm_arm_mult_square_umaal.inc",
+    "pod_support/Headers/Private/BDALog/bd_asm_avr.inc",
+    "pod_support/Headers/Private/BDALog/bd_asm_avr_mult_square.inc",
+    "pod_support/Headers/Private/BDALog/bd_curve-specific.inc",
+    "pod_support/Headers/Private/BDALog/bd_platform-specific.inc",
+    "pod_support/Headers/Private/BDALog/bdloggerbase.h",
+    "pod_support/Headers/Public/BDALog/BDALogHelper.h",
+    "pod_support/Headers/Public/BDALog/BDALogProtocolHelper.h",
+    "pod_support/Headers/Public/BDALog/BDAgileLog.h",
+    "pod_support/Headers/Public/BDALog/BDAgileLogs.h",
+    "pod_support/Headers/Public/BDALog/bdloggerbase.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDALog_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDALog_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "BDALog_module_map",
+  module_map = "pod_support/Headers/Public/BDALog/BDALog-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BDALog/BDALog-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BDALog_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "BDALog_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":BDALog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BDALog_private_includes",
+    ":BDALog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":BDALog_VendoredLibraries",
+    ":BDALog_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDALog_POD_VERSION=@\\\"9999_0.9.1-rc.7\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-fno-c++-static-destructors",
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BDALog",
+  deps = [
+    ":BDALog_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "BDALog_lib",
+  deps = [
+    ":BDALog"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Lark_BDALog_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@BDALog//:BDALog_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_library")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_library(
+  name = "Lark_BDALog",
+  target_name = "Lark",
+  module_name = "BDALog",
+  public_hdrs = ["@BDALog//:BDALog_root_public_hdrs"],
+  private_hdrs = ["@BDALog//:BDALog_root_private_hdrs"],
+  srcs = [],
+  non_arc_srcs = [],
+  deps = ["@BDALog//:BDALog_VendoredLibraries"],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DBDALog_POD_VERSION=@\\\"9999_0.9.1-rc.7\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "BDALog_copts", []),
+  cxxopts = ["-fno-c++-static-destructors", "-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "BDALog_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["UIKit", "Foundation", "JavaScriptCore"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = ["z", "c++"],
+  data = [],
+  features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "BDALog_features", []),
+  cxx_features = [] + getattr(defs_external_objc_library, "common_cxx_features", []) 
+    + getattr(defs_external_objc_library, "BDALog_cpp_features", []),
+  objc_features = [] + getattr(defs_external_objc_library, "common_objc_features", []) 
+    + getattr(defs_external_objc_library, "BDALog_objc_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "BDALog_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "BDALog_dynamic", False),
+  tags = getattr(defs_external_objc_library, "BDALog_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("BDALog", {}),
+  visibility = ["//visibility:public"],
+)

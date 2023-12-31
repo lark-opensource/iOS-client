@@ -1,0 +1,1 @@
+../../../../DouyinOpenPlatformSDK/Classes/Core/DouyinOpenSDKURLServiceProtocol.h

@@ -1,0 +1,96 @@
+# frozen_string_literal: true
+
+#
+# Be sure to run `pod lib lint LarkNotificationAssembly.podspec' to ensure this is a
+# valid spec before submitting.
+#
+# Any lines starting with a # are optional, but their use is encouraged
+# To learn more about a Podspec see http://guides.cocoapods.org/syntax/podspec.html
+# To learn more about EEScaffold see http://eescaffold.web.bytedance.net
+# To learn more about podspec.patch see http://eescaffold.web.bytedance.net/docs/en/podspec/patch
+
+Pod::Spec.new do |s|
+  # 修改此文件前请先浏览 *Podspec规范* https://bytedance.feishu.cn/space/doc/doccnZwORNUpwphkrhiTgv#
+  s.name             = 'LarkNotificationAssembly'
+  s.version          = '0.1.0-alpha.0'
+  s.summary          = 'Required. 一句话描述该Pod功能'
+  s.description      = 'Required. 描述该Pod的功能组成等信息'
+  s.homepage         = 'Required. 设置为该Pod所在Repo的URL地址，精确到Pod所在目录'
+
+  # 界面相关的Pod必填。设置为展示该界面功能的图片地址
+  # s.screenshots     = "www.example.com/screenshots_1", "www.example.com/screenshots_2"
+
+  # 责任人，必填。必要时要及时更新该信息
+  s.authors = {
+    "hujinzang": 'aslan.hu@bytedance.com'
+  }
+
+  s.ios.deployment_target = '12.0'
+  s.swift_version = '5.0'
+
+  s.preserve_paths = 'configurations/**/*'
+
+  s.default_subspec = 'Core'
+
+  s.subspec 'Core' do |cs|
+    cs.source_files = 'src/{Core,configurations,View,Service,Tracker}/**/*.{swift}'
+    cs.resource_bundles = {
+      'LarkNotificationAssembly' => ['resources/*.lproj/*', 'resources/*'] ,
+      'LarkNotificationAssemblyAuto' => ['auto_resources/*.lproj/*', 'auto_resources/*']
+    }
+    cs.dependency 'LarkLocalizations'
+    cs.dependency "LKCommonsLogging"
+    cs.dependency "LarkContainer"
+    cs.dependency "Swinject"
+    cs.dependency "RxSwift"
+    cs.dependency "LarkAssembler"
+    cs.dependency 'LarkNotificationServiceExtensionLib'
+    cs.dependency 'NotificationUserInfo'
+    cs.dependency 'LarkNotificationContentExtension'
+    cs.dependency 'LarkNotificationServiceExtension'
+    cs.dependency 'LarkNotificationContentExtensionSDK'
+    cs.dependency 'ServerPB'
+    cs.dependency 'RustPB'
+    cs.dependency 'LarkRustClient'
+    cs.dependency 'LarkNavigator'
+    cs.dependency 'Homeric'
+    cs.dependency 'LarkAccountInterface'
+    cs.dependency 'LarkModel'
+    cs.dependency 'LarkSDKInterface'
+    cs.dependency 'UniverseDesignDialog'
+    cs.dependency 'UniverseDesignToast'
+    cs.dependency 'BootManager'
+    cs.dependency 'LarkUIKit'
+    cs.dependency 'EENotification'
+    cs.dependency 'ByteWebImage'
+    cs.dependency 'LarkDialogManager'
+  end
+
+  s.subspec 'Debug' do |cs|
+    cs.source_files = 'src/Debug/**/*.{swift}'
+    cs.dependency "LarkDebugExtensionPoint"
+    cs.dependency "EENotification"
+    cs.dependency "EditTextView"
+    cs.dependency "FigmaKit"
+    cs.dependency "LarkUIKit"
+    cs.dependency "UniverseDesignIcon"
+    cs.dependency "UniverseDesignInput"
+    cs.dependency "LarkNotificationServiceExtension"
+    cs.dependency "NotificationUserInfo"
+  end
+
+  # 以下2个字段不要修改。EEScaffold会自动修改source字段为生成的zip包地址。
+  s.license          = 'MIT'
+  s.source           = { git: 'generated_by_eesc.zip', tag: s.version.to_s }
+
+  attributes_hash = s.instance_variable_get('@attributes_hash')
+  # setup custom bot 参考教程：https://docs.bytedance.net/doc/fuHCWYbPdHZTGODh1DbiIa#jjJE6r
+  # 使用版本机器人，请关闭注释，然后填写你的bot的token到下面
+  # attributes_hash['lark_group'] = {
+  #  "bot": "TOKEN"
+  # }
+  attributes_hash['extra'] = {
+    # 设置为该Pod所在的Repo的Git地址
+    "git_url": 'Required.'
+  }
+end

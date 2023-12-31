@@ -1,0 +1,1 @@
+../../../../DouyinOpenPlatformSDK/Classes/Core/Public/DouyinOpenSDKObjects.h

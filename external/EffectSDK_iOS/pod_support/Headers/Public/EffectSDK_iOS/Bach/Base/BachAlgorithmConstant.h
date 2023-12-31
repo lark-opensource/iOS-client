@@ -1,0 +1,1 @@
+../../../../../../libEffectSDK/inc/Bach/Base/BachAlgorithmConstant.h

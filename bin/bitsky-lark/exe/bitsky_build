@@ -1,0 +1,61 @@
+require 'optparse'
+require_relative '../lib/bitsky_install.rb'
+require_relative '../lib/xcode_register.rb'
+options = {}
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: example.rb [options]"
+
+  opts.on("--configuration [CONFIGURATION]", [:Debug, :Release], "Set configuration") do |v|
+    options[:configuration] = v.to_s
+  end
+
+  opts.on("--scheme [SCHEME]", "Set scheme") do |v|
+    options[:scheme] = v
+  end
+
+  opts.on("--archs [ARCHS]", [:arm64, :x86_64, :sim_arm64], "Set architectures") do |v|
+    options[:archs] = v.to_s
+  end
+
+  opts.on("--sdk [SDK]", [:simulator, :os], "Set SDK") do |v|
+    options[:sdk] = v.to_s
+  end
+end.parse!
+
+puts options
+
+sdk = options['sdk'] || "simulator"
+configuration = options['configuration'] || "Debug"
+
+if options['archs'].nil?
+  if sdk == "simulator"
+    cpu_type = `uname -m`.strip
+    if cpu_type == "arm64" # Apple Silicon 默认 sim arm64
+      archs = "sim_arm64"
+    else
+      archs = "x86_64"
+    end
+  else
+    archs = "arm64" # 真机默认 arm64
+  end
+else
+  archs = options['archs']
+end
+
+# TODO 根据环境变量选择对应 dev-build / ocean yaml
+bitsky_command = "bitsky "
+bitsky_command += (configuration == "Debug" ? "dev-build" : "build")
+bitsky_command += " --configuration #{configuration} --sdk #{sdk} --archs #{archs}"
+if ENV['BIT_WORKSPACE_DIR']  
+  if File.directory?(ENV['BIT_WORKSPACE_DIR'] + '/products')
+    FileUtils.rm_rf(ENV['BIT_WORKSPACE_DIR'] + '/products')
+  end
+  FileUtils.mkdir_p(ENV['BIT_WORKSPACE_DIR'] + '/products')
+  bitsky_command = "#{bitsky_command} --output=#{ENV['BIT_WORKSPACE_DIR']}/products --raw_log_path=#{ENV['BIT_WORKSPACE_DIR']}/products/bazel_build.raw.log"
+  if configuration == 'Release'
+    bitsky_command = "#{bitsky_command} --linkmap --dsym"
+  end
+end
+puts bitsky_command
+raise "Build failed" unless system(bitsky_command)

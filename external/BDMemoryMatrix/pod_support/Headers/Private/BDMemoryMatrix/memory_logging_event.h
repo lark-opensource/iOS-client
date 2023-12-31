@@ -1,0 +1,1 @@
+../../../../BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/memory_logging_event.h

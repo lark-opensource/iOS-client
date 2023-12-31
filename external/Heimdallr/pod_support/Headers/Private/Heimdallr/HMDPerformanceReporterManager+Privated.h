@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/Upload/Common/Private/HMDPerformanceReporterManager+Privated.h

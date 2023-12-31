@@ -1,0 +1,1 @@
+../../../../IESJSBridgeCore/Core/Deprecated/IESFastBridge_Deprecated.h

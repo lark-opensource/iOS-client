@@ -1,0 +1,1 @@
+../../../../../Lynx/jsbridge/lynx_console_helper.h

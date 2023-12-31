@@ -1,0 +1,304 @@
+# This file is a template, and might need editing before it works on your project.
+# Lifted from: https://about.gitlab.com/2016/03/10/setting-up-gitlab-ci-for-ios-projects/
+# This file assumes an own GitLab CI runner, setup on an OS X system.
+stages:
+  - package
+#  - generate
+#  - build
+#  - rebase
+  - deploy
+  - sonar
+  - clean-disk
+#  - ui-test
+  - binary-upload
+
+#rebase_triggers:
+#  stage: rebase
+#  script:
+#    - bundle exec fastlane rebase
+#    - bundle exec fastlane merge
+#  only:
+#    refs:
+#      - triggers
+#    variables:
+#      - $WHICH_TRIGGER =~ /rebase/
+#  tags:
+#    - eesh-mac-mini-1
+
+#review:
+#  stage: review
+#  before_script:
+#    - kinit $KINIT_USER
+#  script:
+#    - export DANGER_GITLAB_API_TOKEN=$GITLAB_PRIVATE_TOKEN
+#    - export DANGER_GITLAB_HOST=code.byted.org
+#    - export DANGER_GITLAB_API_BASE_URL=https://code.byted.org/api/v4
+#    - export LANG=en_US.UTF-8
+#    - bundle install
+#    - bundle exec fastlane ios check
+#    - bundle exec fastlane postReviewStatus
+#  only:
+#    refs:
+#      - triggers
+#    variables:
+#      - $WHICH_TRIGGER =~ /review/
+#  tags:
+#    - eesh-mac-mini-1
+
+#review_status:
+#  stage: review
+#  script:
+#    - bundle exec fastlane getReviewStatus
+#  only:
+#    refs:
+#      - triggers
+#    variables:
+#      - $WHICH_TRIGGER =~ /get_status/
+#  tags:
+#    - eesh-mac-mini-1
+
+deploy_lark:
+  stage: deploy
+  before_script:
+    - kinit $KINIT_USER
+  script:
+    - export LANG=en_US.UTF-8
+    - export LRAK_NOTIFY_BOT_SENDER_USERNAME=$CI_REGISTRY_USER
+    - bundle exec eesc module develop -n ByteView --force -o Product
+    - bundle exec fastlane ios build_lark
+  environment:
+    name: lark
+    url: http://10.93.206.100/install/$CI_ENVIRONMENT_SLUG
+  dependencies: []
+  when: manual
+  tags:
+    - eesh-mac-mini-2
+
+daily_deploy:
+  extends: package_lark
+  when: always
+  only: 
+    refs:
+      - schedules
+    variables:
+      - $WHICH_SCHEDULE =~ /deploy_lark/
+
+#publish:
+#  stage: deploy
+#  script:
+#    - export LANG=en_US.UTF-8
+#    - export FL_VERSION_BUMP_PODSPEC_VERSION_NUMBER=$CI_COMMIT_TAG
+#    - bundle install
+#    - bundle exec fastlane ios deploy
+#  only:
+#    - tags
+#  tags:
+#    - eesh-mac-mini-1
+
+publish_tag:
+  stage: deploy
+  script: 
+    - export LANG=en_US.UTF-8
+    - export FL_VERSION_BUMP_PODSPEC_VERSION_NUMBER=$TAG_NAME
+    - bundle install
+    - bundle exec fastlane ios deploy
+  only:
+    refs:
+      - triggers
+    variables:
+      - $WHICH_TRIGGER =~ /publish/
+  tags:
+    - eesh-mac-mini-1
+
+#update_release_note:
+#  stage: generate
+#  before_script:
+#    - echo "will run change log request"
+#  script:
+#    - export LANG=en_US.UTF-8
+#    - bundle install
+#    - bundle exec fastlane ios generate
+#  after_script:
+#    - echo "did end run change log request"
+#  only:
+#    - tags
+#  tags:
+#    - eesh-mac-mini-1
+
+sonar:
+  stage: sonar
+  script: 
+    - export FL_SONAR_RUNNER_BRANCH_NAME=$CI_COMMIT_REF_NAME
+    - export LANG=en_US.UTF-8
+    - bundle install
+    - bundle exec fastlane ios execute_sonar
+    - bundle exec fastlane ios send_sonar_info
+  only:
+    refs:
+      - schedules
+    variables:
+      - $WHICH_SCHEDULE =~ /sonar_scanner/
+  tags:
+    - eesh-mac-mini-1
+
+clean-disk:
+  stage: clean-disk
+  script:
+    - echo "开始清理"
+    - bash ./Script/clean-disk.sh
+    - echo "清理完毕"
+  only:
+    refs:
+      - schedules
+    variables:
+      - $WHICH_SCHEDULE =~ /clean-disk/
+  tags:
+    - eesh-mac-mini-1
+
+binary-upload:
+  stage: binary-upload
+  script:
+    - cd "Example/"
+    - export LANG=en_US.UTF-8
+    - export BYTEVIEW_BINARY=1
+    - export EESC_ONLY_BINARY_REPO=1
+    - export EESC_BINARY_REPO=git@code.byted.org:ee/ByteView.iOS_binary.git
+    - bundle install
+    - echo "开始上传二进制文件"
+    - bundle exec pod app-cache --repo-update --verbose
+    - echo "二进制文件上传完毕"
+  only:
+    refs:
+      - schedules
+    variables:
+      - $WHICH_SCHEDULE =~ /binary_upload/
+  tags:
+    - eesh-mac-mini-2
+
+deploy_on_master:
+  stage: package
+  before_script:
+    - kinit $KINIT_USER
+  script:
+    - export LANG=en_US.UTF-8
+    - export LRAK_NOTIFY_BOT_SENDER_USERNAME=$CI_REGISTRY_USER
+    - echo "$LARK_BRANCH_NAME"
+    - echo "$USE_LOCAL"
+    - ruby ~/lark/package_read_json.rb look_cache $LARK_BRANCH_NAME $CI_JOB_ID
+    - sh ~/lark/package_script.sh $LARK_BRANCH_NAME $USE_LOCAL
+  after_script:
+    - ruby ~/lark/package_read_json.rb clear_cache $LARK_BRANCH_NAME $CI_JOB_ID
+  when: manual
+  variables:
+    LARK_BRANCH_NAME: 'master'
+    USE_LOCAL: 'true'
+  tags:
+    - eesh-mac-mini-2
+
+deploy_on_byteview:
+  extends: deploy_on_master
+  variables:
+    LARK_BRANCH_NAME: 'byteview'
+
+deploy_on_byteview1:
+  extends: deploy_on_master
+  variables:
+    LARK_BRANCH_NAME: 'byteview1'
+
+package_lark:
+  stage: package
+  before_script:
+    - kinit $KINIT_USER
+  script:
+    - export LANG=en_US.UTF-8
+    - export LRAK_NOTIFY_BOT_SENDER_USERNAME=$CI_REGISTRY_USER
+    - echo "$LARK_BRANCH_NAME"
+    - echo "$USE_LOCAL"
+    - ruby ~/lark/package_read_json.rb look_cache $LARK_BRANCH_NAME $CI_JOB_ID
+    - sh ~/lark/package_script.sh
+  after_script:
+    - ruby ~/lark/package_read_json.rb clear_cache $LARK_BRANCH_NAME $CI_JOB_ID
+  only:
+    refs:
+      - web
+      - api
+    variables:
+        - $WHICH_TRIGGER =~ /package_lark/
+  variables:
+    USE_LOCAL: 'false'
+  tags:
+    - eesh-mac-mini-2
+
+#openHost:
+#  stage: ui-test
+#  script:
+#    - cd "Example/"
+#    - pwd
+#    - bundle install
+#    - bundle exec pod install
+#    - curl -v "$UITEST_URL?REQUESTACTION=STARTDEVICE"
+#    - xcodebuild test -workspace ByteView.xcworkspace -scheme ByteView_KIFTests -destination "platform=$PLATFORM,name=$NAME" -skip-testing:ByteView_KIFTests/CallOutTests/test01 -quiet
+#  only:
+#    refs:
+#      - triggers
+#    variables:
+#      - $WHICH_TRIGGER =~ /openHost/
+#  tags:
+#    - eesh-mac-mini-1
+
+#openClient:
+#    stage: ui-test
+#    script:
+#      - pwd
+#      - cd "Example/"
+#      - pwd
+#      - bundle install
+#      - bundle exec pod install
+#      - curl -v "$UITEST_URL?REQUESTACTION=STARTDEVICE"
+#      - xcodebuild test -workspace ByteView.xcworkspace -scheme ByteView_KIFTests -destination "platform=$PLATFORM,name=$NAME" -only-testing:ByteView_KIFTests/CallOutTests/test01 -quiet
+#    only:
+#      refs:
+#        - triggers
+#      variables:
+#        - $WHICH_TRIGGER =~ /openClient/
+#    tags:
+#      - eesh-mac-mini-1
+
+#startTest:
+#    stage: ui-test
+#    script:
+#      - curl -v "$UITEST_URL?REQUESTACTION=STARTTEST"
+#    only:
+#      refs:
+#        - schedules
+#      variables:
+#        - $WHICH_SCHEDULE =~ /uiTest/
+#    tags:
+#      - eesh-mac-mini-1
+
+# Command-Server 自动化测试
+command_server_automation:
+  stage: package
+  script:
+    - export LANG=en_US.UTF-8
+    - echo `pwd`
+    - echo "$LARK_BRANCH_NAME"
+    - echo "$BYTEVIEW_BRANCH_NAME"
+    - echo "$USE_LOCAL"
+    - echo "$RUST_PB_VERSION"
+    - echo "$RTC_VERSION"
+    - echo "$AUTOMATION_STAGE"
+    - echo "$PARTICIPANTS_TOTAL_COUNT"
+    - echo "$PERFORMANCE_TEST_PERIOD_SEC"
+    - echo "$PERFORMANCE_TEST_DURATION_SEC"
+    - echo "$LARK_OPEN_ID"
+    - echo "$LARK_OPEN_CHAT_ID"
+    - echo "$LARK_OPEN_MESSAGE_ID"
+    - python3 -u ~/projects/command_server_ci/bin/main.py
+  only:
+    refs:
+      - triggers
+    variables:
+      - $WHICH_TRIGGER =~ /command-server-automation/
+  tags:
+    - eesh-mac-mini-auto

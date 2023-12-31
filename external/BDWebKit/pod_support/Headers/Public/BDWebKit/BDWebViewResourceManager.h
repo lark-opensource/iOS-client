@@ -1,0 +1,1 @@
+../../../../BDWebKit/Classes/Resource/BDWebViewResourceManager.h

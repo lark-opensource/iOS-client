@@ -1,0 +1,22 @@
+# Copyright 2021 The Lynx Authors. All rights reserved.
+
+import("//build/toolchain/gen_subspec_file.gni")
+import("//third_party/krypton/krypton.gni")
+
+glue_shared_sources = [
+  "canvas_manager_interface.h",
+  "canvas_runtime.h",
+  "canvas_runtime_observer.h",
+  "lynx_canvas_runtime.h",
+]
+
+krypton_source_set("glue") {
+  sources = glue_shared_sources
+}
+
+gen_subspec_file("glue_podspec") {
+  parent_path = "subspecs-Native"
+  podspec_name = "tasm"
+  private_header_files = "third_party/krypton/glue/*.h"
+  sources = glue_shared_sources
+}

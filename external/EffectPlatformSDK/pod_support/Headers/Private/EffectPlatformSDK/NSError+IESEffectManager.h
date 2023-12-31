@@ -1,0 +1,1 @@
+../../../../EffectPlatformSDK/Core/Internal/Category/NSError+IESEffectManager.h

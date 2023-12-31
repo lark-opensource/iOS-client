@@ -1,0 +1,2317 @@
+load('@build_bazel_rules_apple//apple:resources.bzl', 'apple_resource_group')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "EffectSDK_iOS_pod_hdrs",
+  srcs = [
+    ":EffectSDK_iOS_root_pod_hdrs",
+    ":Core_pod_hdrs",
+    ":FullModel_pod_hdrs",
+    ":PartModel_pod_hdrs",
+    ":OCInterface_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "EffectSDK_iOS_private_includes",
+  include = [
+    "external/EffectSDK_iOS/pod_support/Headers/Private/EffectSDK_iOS/"
+  ],
+  deps = [],
+  external_name = "EffectSDK_iOS"
+)
+gen_includes(
+  name = "EffectSDK_iOS_public_includes",
+  include = [
+    "external/EffectSDK_iOS/pod_support/Headers/Public/EffectSDK_iOS/"
+  ],
+  deps = [],
+  external_name = "EffectSDK_iOS"
+)
+filegroup(
+  name = "_EffectSDK_iOS_hdrs",
+  srcs = [
+    ":EffectSDK_iOS_root_hdrs",
+    ":Core_hdrs",
+    ":FullModel_hdrs",
+    ":PartModel_hdrs",
+    ":OCInterface_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "EffectSDK_iOS_xcode_hmapsource",
+  hdrs = [
+    ":EffectSDK_iOS_root_hdrs",
+    ":Core_hdrs",
+    ":PartModel_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "EffectSDK_iOS_xcode_hmap",
+  dep = ":EffectSDK_iOS_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/EffectSDK_iOS/*-bitsky-generated.modulemap", "pod_support/Headers/Public/EffectSDK_iOS/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "EffectSDK_iOS_Core_VendoredLibraries",
+  archives = [
+    "libEffectSDK/lib/Release/libeffect-sdk.a"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "EffectSDK_iOS_OCInterface_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libEffectSDK_iOS_OCInterface_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "EffectSDK_iOS_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "EffectSDK_iOS",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "EffectSDK_iOS_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":EffectSDK_iOS_xcode_hmap"
+  ],
+  external_name = "EffectSDK_iOS",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EffectSDK_iOS_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EffectSDK_iOS_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EffectSDK_iOS_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EffectSDK_iOS_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "EffectSDK_iOS_module_map",
+  module_map = "pod_support/Headers/Public/EffectSDK_iOS/EffectSDK_iOS-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EffectSDK_iOS_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "EffectSDK_iOS_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":EffectSDK_iOS_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":EffectSDK_iOS_private_includes",
+    ":EffectSDK_iOS_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@AGFX_pub//:AGFX_pub_objc_interface",
+    "@audiosdk//:audiosdk_objc_interface",
+    "@bytenn-ios//:bytenn-ios_objc_interface",
+    "@espresso//:espresso_objc_interface",
+    "@gaia_lib_publish//:gaia_lib_publish_objc_interface",
+    "@mobilecv2//:mobilecv2_objc_interface",
+    "@AGFX_pub//:AGFX_pub_swift_interface",
+    "@audiosdk//:audiosdk_swift_interface",
+    "@bytenn-ios//:bytenn-ios_swift_interface",
+    "@espresso//:espresso_swift_interface",
+    "@gaia_lib_publish//:gaia_lib_publish_swift_interface",
+    "@mobilecv2//:mobilecv2_swift_interface",
+    ":EffectSDK_iOS_objc_interface",
+    "@AGFX_pub//:AGFX_pub_module_map",
+    "@audiosdk//:audiosdk_module_map",
+    "@bytenn-ios//:bytenn-ios_module_map",
+    "@espresso//:espresso_module_map",
+    "@gaia_lib_publish//:gaia_lib_publish_module_map",
+    "@mobilecv2//:mobilecv2_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEffectSDK_iOS_POD_VERSION=@\\\"9999_14.5.0.275-LarkMobile\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EffectSDK_iOS",
+  deps = [
+    ":EffectSDK_iOS_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "EffectSDK_iOS_lib",
+  deps = [
+    ":EffectSDK_iOS"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [
+    "libEffectSDK/inc/AudioPlayerInterface.h",
+    "libEffectSDK/inc/BEFBuildInMotionManager.h",
+    "libEffectSDK/inc/Bach/Algorithm/ARScan/BachARScanBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ActionDetect/BachActionDetectBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ActionRecognition/BachActionRecognitionBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/AfterEffect/BachAfterEffectBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/AlgorithmCommonKey.h",
+    "libEffectSDK/inc/Bach/Algorithm/AlgorithmInfo.h",
+    "libEffectSDK/inc/Bach/Algorithm/AlgorithmParamDefine.h",
+    "libEffectSDK/inc/Bach/Algorithm/ApolloFace3D/BachApolloFace3DBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/AudioAvatar/BachAudioAvatarBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/AudioProducer/BachAudioProducerBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/AutoReframe/BachAutoReframeBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Avacap/BachAvacapBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Avatar3D/BachAvatar3DBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Avatar3DFusion/BachAvatar3DFusionBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/AvatarDrive/BachAvatarDriveBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Bling/BachBlingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/BlockGan/BachBlockGanBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/BuildingNormal/BachBuildingNormalBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/BuildingSeg/BachBuildingSegBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/CarSeg/BachCarSegBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/CarSeries/BachCarSeriesBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/CatFace/BachCatFaceBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ChromaKeying/BachChromaKeyingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ClothClass/BachClothClassBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ClothGan/BachClothGanBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ClothesSeg/BachClothesSegBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ColorMapping/BachColorMappingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ContentRecommend/BachContentRecommendBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/CpuRender/BachCpuRenderBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/DeepInpaint/BachDeepInpaintBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/DepthEstimation/BachDepthEstimationBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/DynamicGesture/BachDynamicGestureBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/EarSeg/BachEarSegBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Enigma/BachEnigmaBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/EyeFitting/BachEyeFittingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Face/BachFaceBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Face/BachFakeFaceBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FaceAttr/BachFaceAttrBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FaceBeautify/BachFaceBeautifyBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FaceClusting/BachFaceClustingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FaceFitting/BachFaceFittingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FaceGan/BachFaceGanBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FaceLight/BachFaceLightBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FaceMask/BachFaceMaskBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FaceNewLandmark/BachFaceNewLandmarkBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FacePartBeauty/BachFacePartBeautyBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FacePetDetect/BachFacePetDetectBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FaceReenact/BachFaceReenactBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FaceSmoothCPU/BachFaceSmoothCPUBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FaceVerify/BachFaceVerifyBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FemaleGan/BachFemaleGanBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FindContour/BachFindContourBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FoodComics/BachFoodComicsBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Foot/BachFootBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ForeheadSeg/BachForeheadSegBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Freid/BachFreidBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/GazeEstimation/BachGazeEstimationBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/GroundSeg/BachGroundSegBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/HAvatar/BachHAvatarBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/HairColor/BachHairColorBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/HairFlow/BachHairFlowBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Hand/BachHandBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/HandObjectSegTrack/BachHandObjectSegTrackBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/HandTV/BachHandTVBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/HdrNet/BachHdrNetBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/HeadFitting/BachHeadFittingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/HeadSeg/BachHeadSegBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/HumanParsing/BachHumanParsingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/IDream/BachIDreamBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/IndoorSeg/BachIndoorSegBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/InteractiveMatting/BachInteractiveMattingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Joints1/BachJoints1Buffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Joints2/BachJoints2Buffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Kira/BachKiraBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/LicensePlateDetect/BachLicensePlateDetectBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Manga/BachMangaBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Matting/BachMattingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Mega/BachMegaBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/MemojiMatch/BachMemojiMatchBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Mug/BachMugBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/MvTempRec/BachMvTempRecBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/NH/BachNHBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/NH/BachNHType.h",
+    "libEffectSDK/inc/Bach/Algorithm/NH/NHConstant.h",
+    "libEffectSDK/inc/Bach/Algorithm/NailSeg/BachNailBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/NailSlam/BachNailSlamBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/NaviAvatarDrive/BachNaviAvatarDriveBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ObjectDetect/BachObjectDetectBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ObjectDetection2/BachObjectDetection2Buffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ObjectTracking/BachObjectTrackingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/OilPaint/BachOilPaintBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/PetMatting/BachPetMattingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/PictureAr/BachPictureArBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/PornCls/BachPornClsBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/RelationRecog/BachRelationRecogBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Rgbd2Mesh/BachRgbd2MeshBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SaliencySeg/BachSaliencySegBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SceneLight/BachSceneLightBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SceneNormal/BachSceneNormalBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SceneRecog/BachSceneRecogBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SceneRecogV2/BachSceneRecogV2Buffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SceneRecogV3/BachSceneRecogV3Buffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Similarity/BachSimilarityBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Skeleton/BachSkeletonBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SkeletonPose3D/BachSkeletonPose3DBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SkinSeg/BachSkinSegBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SkinUnified/BachSkinUnifiedBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SkySeg/BachSkySegBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SwapLive/BachSwapLiveBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SwapperMe/BachSwapperMeBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Teeth/BachTeethBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/TrackingAr/BachTrackingArBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Upperbody3d/BachUpperbody3DBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/VideoCls/BachVideoClsBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/VideoMoment/BachVideoMomentBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/VideoSR/BachVideoSRBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/VideoTempRec/BachVideoTempRecBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/WatchTryon/BachWatchTryonBuffer.h",
+    "libEffectSDK/inc/Bach/BachAlgorithmInput.h",
+    "libEffectSDK/inc/Bach/BachAlgorithmSystem.h",
+    "libEffectSDK/inc/Bach/BachAlgorithmSystemGE.h",
+    "libEffectSDK/inc/Bach/BachCommon.h",
+    "libEffectSDK/inc/Bach/Base/BachAlgorithmBuffer.h",
+    "libEffectSDK/inc/Bach/Base/BachAlgorithmConstant.h",
+    "libEffectSDK/inc/Bach/Base/BachAlgorithmGraphicsInfo.h",
+    "libEffectSDK/inc/Bach/Base/BachBaseDefine.h",
+    "libEffectSDK/inc/Bach/Base/BachObject.h",
+    "libEffectSDK/inc/Bach/Base/BachResourceFinder.h",
+    "libEffectSDK/inc/EffectSdk-umbrella.h",
+    "libEffectSDK/inc/Gaia/AMGExport.h",
+    "libEffectSDK/inc/Gaia/AMGInclude.h",
+    "libEffectSDK/inc/Gaia/AMGLog.h",
+    "libEffectSDK/inc/Gaia/AMGPrerequisites.h",
+    "libEffectSDK/inc/Gaia/AMGPrimitiveNumber.h",
+    "libEffectSDK/inc/Gaia/AMGPrimitiveVector.h",
+    "libEffectSDK/inc/Gaia/AMGRefBase.h",
+    "libEffectSDK/inc/Gaia/AMGSharePtr.h",
+    "libEffectSDK/inc/Gaia/AMGSystemTime.h",
+    "libEffectSDK/inc/Gaia/AMGThreadLocal.h",
+    "libEffectSDK/inc/Gaia/AMGThreadPool.h",
+    "libEffectSDK/inc/Gaia/Files/AMGArchive.h",
+    "libEffectSDK/inc/Gaia/Files/AMGFile.h",
+    "libEffectSDK/inc/Gaia/Files/AMGFileDescriptor.h",
+    "libEffectSDK/inc/Gaia/Files/AMGFileHandle.h",
+    "libEffectSDK/inc/Gaia/Files/AMGFileHandleGeneric.h",
+    "libEffectSDK/inc/Gaia/Files/AMGFileReader.h",
+    "libEffectSDK/inc/Gaia/Files/AMGFileUtils.h",
+    "libEffectSDK/inc/Gaia/Files/AMGFileWriter.h",
+    "libEffectSDK/inc/Gaia/Files/AMGMemoryReader.h",
+    "libEffectSDK/inc/Gaia/Files/AMGMemoryStream.h",
+    "libEffectSDK/inc/Gaia/Files/AMGMemoryWriter.h",
+    "libEffectSDK/inc/Gaia/Image/AMGImageType.h",
+    "libEffectSDK/inc/Gaia/Math/AMGColor.h",
+    "libEffectSDK/inc/Gaia/Math/AMGColorSpaceConversion.h",
+    "libEffectSDK/inc/Gaia/Math/AMGCurve.h",
+    "libEffectSDK/inc/Gaia/Math/AMGDynamicBitset.h",
+    "libEffectSDK/inc/Gaia/Math/AMGFloatConversion.h",
+    "libEffectSDK/inc/Gaia/Math/AMGHashFunction.h",
+    "libEffectSDK/inc/Gaia/Math/AMGMatrix3x3.h",
+    "libEffectSDK/inc/Gaia/Math/AMGMatrix4x4.h",
+    "libEffectSDK/inc/Gaia/Math/AMGPerlinNoise.h",
+    "libEffectSDK/inc/Gaia/Math/AMGPolynomials.h",
+    "libEffectSDK/inc/Gaia/Math/AMGQuaternion.h",
+    "libEffectSDK/inc/Gaia/Math/AMGRect.h",
+    "libEffectSDK/inc/Gaia/Math/AMGSphericalHarmonics.h",
+    "libEffectSDK/inc/Gaia/Math/AMGVector2.h",
+    "libEffectSDK/inc/Gaia/Math/AMGVector2i.h",
+    "libEffectSDK/inc/Gaia/Math/AMGVector3.h",
+    "libEffectSDK/inc/Gaia/Math/AMGVector3i.h",
+    "libEffectSDK/inc/Gaia/Math/AMGVector4.h",
+    "libEffectSDK/inc/Gaia/Math/Random/AMGRandom.h",
+    "libEffectSDK/inc/Gaia/Math/Random/amg_rand.h",
+    "libEffectSDK/inc/Gaia/MemoryManager/AMGAllocationHeader.h",
+    "libEffectSDK/inc/Gaia/MemoryManager/AMGBaseAllocator.h",
+    "libEffectSDK/inc/Gaia/MemoryManager/AMGDefaultAllocator.h",
+    "libEffectSDK/inc/Gaia/MemoryManager/AMGLowLevelAllocator.h",
+    "libEffectSDK/inc/Gaia/MemoryManager/AMGMemoryLabelNames.h",
+    "libEffectSDK/inc/Gaia/MemoryManager/AMGMemoryLabels.h",
+    "libEffectSDK/inc/Gaia/MemoryManager/AMGMemoryManager.h",
+    "libEffectSDK/inc/Gaia/MemoryManager/AMGMemoryManagerCommon.h",
+    "libEffectSDK/inc/Gaia/MemoryManager/AMGMemoryPool.h",
+    "libEffectSDK/inc/Gaia/Message/AMGMessageCenter.h",
+    "libEffectSDK/inc/Gaia/Message/AMGMessageQueue.h",
+    "libEffectSDK/inc/Gaia/Network/AMGNetHeaderMessageProcessor.h",
+    "libEffectSDK/inc/Gaia/Network/AMGNetMessageProcessor.h",
+    "libEffectSDK/inc/Gaia/Network/AMGNetworkCall.h",
+    "libEffectSDK/inc/Gaia/Network/AMGNetworkClient.h",
+    "libEffectSDK/inc/Gaia/Network/AMGNetworkPrerequisites.h",
+    "libEffectSDK/inc/Gaia/Network/AMGNetworkRequest.h",
+    "libEffectSDK/inc/Gaia/Network/AMGP2PClient.h",
+    "libEffectSDK/inc/Gaia/Network/AMGP2PService.h",
+    "libEffectSDK/inc/Gaia/Performance/AMGPerformance.h",
+    "libEffectSDK/inc/Gaia/Performance/AMGPerformanceEvaluation.h",
+    "libEffectSDK/inc/Gaia/Platform/AMGPlatformDef.h",
+    "libEffectSDK/inc/Gaia/STL/Sort.h",
+    "libEffectSDK/inc/Gaia/Text/AMGSTBTrueType.h",
+    "libEffectSDK/inc/Gaia/Thread/AMGThreadFactory.h",
+    "libEffectSDK/inc/Gaia/Thread/AMGThreadWrapper.h",
+    "libEffectSDK/inc/GitVersion.h",
+    "libEffectSDK/inc/LiveAudioPlayer.h",
+    "libEffectSDK/inc/MessageDefine.h",
+    "libEffectSDK/inc/RenderMsgDefine.h",
+    "libEffectSDK/inc/RenderMsgDelegate.h",
+    "libEffectSDK/inc/RequirementDefine.h",
+    "libEffectSDK/inc/VEAudioPlayerFactory.h",
+    "libEffectSDK/inc/VEVideoPlayerFactory.h",
+    "libEffectSDK/inc/VideoPlayerInterface.h",
+    "libEffectSDK/inc/bef_ae_brick_api.h",
+    "libEffectSDK/inc/bef_ae_device_monitor_api.h",
+    "libEffectSDK/inc/bef_ae_device_monitor_define.h",
+    "libEffectSDK/inc/bef_ae_style_api.h",
+    "libEffectSDK/inc/bef_ae_video_canvas_api.h",
+    "libEffectSDK/inc/bef_ae_video_feature_api.h",
+    "libEffectSDK/inc/bef_app_manager_api.h",
+    "libEffectSDK/inc/bef_benchmark_api.h",
+    "libEffectSDK/inc/bef_effect_3d_object_manipulate_api.h",
+    "libEffectSDK/inc/bef_effect_aerender_api.h",
+    "libEffectSDK/inc/bef_effect_algorithm_after_effect.h",
+    "libEffectSDK/inc/bef_effect_algorithm_api.h",
+    "libEffectSDK/inc/bef_effect_algorithm_audio_onset_api.h",
+    "libEffectSDK/inc/bef_effect_algorithm_c1.h",
+    "libEffectSDK/inc/bef_effect_algorithm_cap.h",
+    "libEffectSDK/inc/bef_effect_algorithm_face.h",
+    "libEffectSDK/inc/bef_effect_algorithm_face_clusting.h",
+    "libEffectSDK/inc/bef_effect_algorithm_face_verify.h",
+    "libEffectSDK/inc/bef_effect_algorithm_general_obj_detect_api.h",
+    "libEffectSDK/inc/bef_effect_algorithm_portrait_matting_api.h",
+    "libEffectSDK/inc/bef_effect_algorithm_rect_doc_det_api.h",
+    "libEffectSDK/inc/bef_effect_algorithm_similarity.h",
+    "libEffectSDK/inc/bef_effect_allow_list.h",
+    "libEffectSDK/inc/bef_effect_api.h",
+    "libEffectSDK/inc/bef_effect_ar_core_api.h",
+    "libEffectSDK/inc/bef_effect_ar_core_define.h",
+    "libEffectSDK/inc/bef_effect_audio_api.h",
+    "libEffectSDK/inc/bef_effect_audio_effect.h",
+    "libEffectSDK/inc/bef_effect_bach_api.h",
+    "libEffectSDK/inc/bef_effect_brush2d_define.h",
+    "libEffectSDK/inc/bef_effect_build_macro.h",
+    "libEffectSDK/inc/bef_effect_cloud_rendering_define.h",
+    "libEffectSDK/inc/bef_effect_codec_api.h",
+    "libEffectSDK/inc/bef_effect_codec_define.h",
+    "libEffectSDK/inc/bef_effect_common.h",
+    "libEffectSDK/inc/bef_effect_composer.h",
+    "libEffectSDK/inc/bef_effect_dynamic_load_library.h",
+    "libEffectSDK/inc/bef_effect_editor_api.h",
+    "libEffectSDK/inc/bef_effect_face_detect.h",
+    "libEffectSDK/inc/bef_effect_face_distortionV2.h",
+    "libEffectSDK/inc/bef_effect_for_faceReshapeTool.h",
+    "libEffectSDK/inc/bef_effect_general_param.h",
+    "libEffectSDK/inc/bef_effect_global_filter.h",
+    "libEffectSDK/inc/bef_effect_gpu_detect.h",
+    "libEffectSDK/inc/bef_effect_hand_detect.h",
+    "libEffectSDK/inc/bef_effect_ibr_api.h",
+    "libEffectSDK/inc/bef_effect_ibr_define.h",
+    "libEffectSDK/inc/bef_effect_image_decode_api.h",
+    "libEffectSDK/inc/bef_effect_image_decode_define.h",
+    "libEffectSDK/inc/bef_effect_imgproc.h",
+    "libEffectSDK/inc/bef_effect_javascript_binding.h",
+    "libEffectSDK/inc/bef_effect_lua_base_object.h",
+    "libEffectSDK/inc/bef_effect_mv_api.h",
+    "libEffectSDK/inc/bef_effect_photo_face_detect.h",
+    "libEffectSDK/inc/bef_effect_public_avatar_drive_define.h",
+    "libEffectSDK/inc/bef_effect_public_business_define.h",
+    "libEffectSDK/inc/bef_effect_public_business_mv_define.h",
+    "libEffectSDK/inc/bef_effect_public_define.h",
+    "libEffectSDK/inc/bef_effect_public_face_define.h",
+    "libEffectSDK/inc/bef_effect_public_frame_info_define.h",
+    "libEffectSDK/inc/bef_effect_public_hand_define.h",
+    "libEffectSDK/inc/bef_effect_public_skeleton_define.h",
+    "libEffectSDK/inc/bef_effect_pure_algorithm_api.h",
+    "libEffectSDK/inc/bef_effect_sticker.h",
+    "libEffectSDK/inc/bef_effect_touch_api.h",
+    "libEffectSDK/inc/bef_effect_transition_api.h",
+    "libEffectSDK/inc/bef_effect_update_api.h",
+    "libEffectSDK/inc/bef_effect_video_after_effect.h",
+    "libEffectSDK/inc/bef_effect_xt.h",
+    "libEffectSDK/inc/bef_effect_xt_define.h",
+    "libEffectSDK/inc/bef_framework_public_algorithm_define.h",
+    "libEffectSDK/inc/bef_framework_public_base_define.h",
+    "libEffectSDK/inc/bef_framework_public_constant_define.h",
+    "libEffectSDK/inc/bef_framework_public_enum_define.h",
+    "libEffectSDK/inc/bef_framework_public_geometry_define.h",
+    "libEffectSDK/inc/bef_game_api.h",
+    "libEffectSDK/inc/bef_game_public_define.h",
+    "libEffectSDK/inc/bef_info_sticker_api.h",
+    "libEffectSDK/inc/bef_info_sticker_public_define.h",
+    "libEffectSDK/inc/bef_msg_delegate_manager.h",
+    "libEffectSDK/inc/bef_slam_api.h",
+    "libEffectSDK/inc/bef_slam_camera_api.h",
+    "libEffectSDK/inc/bef_swing_api.h",
+    "libEffectSDK/inc/bef_swing_async_api.h",
+    "libEffectSDK/inc/bef_swing_async_define.h",
+    "libEffectSDK/inc/bef_swing_define.h",
+    "libEffectSDK/inc/bef_swing_key_frame_api.h",
+    "libEffectSDK/inc/bef_swing_manager_api.h",
+    "libEffectSDK/inc/bef_swing_segment_api.h",
+    "libEffectSDK/inc/bef_swing_segment_custom_api.h",
+    "libEffectSDK/inc/bef_swing_segment_feature_api.h",
+    "libEffectSDK/inc/bef_swing_segment_script_api.h",
+    "libEffectSDK/inc/bef_swing_segment_static_api.h",
+    "libEffectSDK/inc/bef_swing_segment_sticker_api.h",
+    "libEffectSDK/inc/bef_swing_segment_sticker_brush_api.h",
+    "libEffectSDK/inc/bef_swing_segment_sticker_pin_api.h",
+    "libEffectSDK/inc/bef_swing_segment_sticker_template_api.h",
+    "libEffectSDK/inc/bef_swing_segment_sticker_text_api.h",
+    "libEffectSDK/inc/bef_swing_segment_video_api.h",
+    "libEffectSDK/inc/bef_swing_track_api.h",
+    "libEffectSDK/inc/bef_swing_tracker_api.h",
+    "libEffectSDK/inc/bef_view_api.h",
+    "libEffectSDK/inc/bef_view_public_define.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/EffectSDK_iOS/AudioPlayerInterface.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/BEFBuildInMotionManager.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/ARScan/BachARScanBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/ActionDetect/BachActionDetectBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/ActionRecognition/BachActionRecognitionBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/AfterEffect/BachAfterEffectBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/AlgorithmCommonKey.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/AlgorithmInfo.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/AlgorithmParamDefine.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/ApolloFace3D/BachApolloFace3DBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/AudioAvatar/BachAudioAvatarBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/AudioProducer/BachAudioProducerBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/AutoReframe/BachAutoReframeBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/Avacap/BachAvacapBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/Avatar3D/BachAvatar3DBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/Avatar3DFusion/BachAvatar3DFusionBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/AvatarDrive/BachAvatarDriveBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/Bling/BachBlingBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/BlockGan/BachBlockGanBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/BuildingNormal/BachBuildingNormalBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/BuildingSeg/BachBuildingSegBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/CarSeg/BachCarSegBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/CarSeries/BachCarSeriesBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/CatFace/BachCatFaceBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/ChromaKeying/BachChromaKeyingBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/ClothClass/BachClothClassBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/ClothGan/BachClothGanBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/ClothesSeg/BachClothesSegBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/ColorMapping/BachColorMappingBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/ContentRecommend/BachContentRecommendBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/CpuRender/BachCpuRenderBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/DeepInpaint/BachDeepInpaintBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/DepthEstimation/BachDepthEstimationBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/DynamicGesture/BachDynamicGestureBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/EarSeg/BachEarSegBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/Enigma/BachEnigmaBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/EyeFitting/BachEyeFittingBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/Face/BachFaceBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/Face/BachFakeFaceBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/FaceAttr/BachFaceAttrBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/FaceBeautify/BachFaceBeautifyBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/FaceClusting/BachFaceClustingBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/FaceFitting/BachFaceFittingBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/FaceGan/BachFaceGanBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/FaceLight/BachFaceLightBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/FaceMask/BachFaceMaskBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/FaceNewLandmark/BachFaceNewLandmarkBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/FacePartBeauty/BachFacePartBeautyBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/FacePetDetect/BachFacePetDetectBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/FaceReenact/BachFaceReenactBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/FaceSmoothCPU/BachFaceSmoothCPUBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/FaceVerify/BachFaceVerifyBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/FemaleGan/BachFemaleGanBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/FindContour/BachFindContourBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/FoodComics/BachFoodComicsBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/Foot/BachFootBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/ForeheadSeg/BachForeheadSegBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/Freid/BachFreidBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/GazeEstimation/BachGazeEstimationBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/GroundSeg/BachGroundSegBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/HAvatar/BachHAvatarBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/HairColor/BachHairColorBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/HairFlow/BachHairFlowBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/Hand/BachHandBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/HandObjectSegTrack/BachHandObjectSegTrackBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/HandTV/BachHandTVBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/HdrNet/BachHdrNetBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/HeadFitting/BachHeadFittingBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/HeadSeg/BachHeadSegBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/HumanParsing/BachHumanParsingBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/IDream/BachIDreamBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/IndoorSeg/BachIndoorSegBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/InteractiveMatting/BachInteractiveMattingBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/Joints1/BachJoints1Buffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/Joints2/BachJoints2Buffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/Kira/BachKiraBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/LicensePlateDetect/BachLicensePlateDetectBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/Manga/BachMangaBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/Matting/BachMattingBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/Mega/BachMegaBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/MemojiMatch/BachMemojiMatchBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/Mug/BachMugBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/MvTempRec/BachMvTempRecBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/NH/BachNHBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/NH/BachNHType.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/NH/NHConstant.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/NailSeg/BachNailBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/NailSlam/BachNailSlamBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/NaviAvatarDrive/BachNaviAvatarDriveBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/ObjectDetect/BachObjectDetectBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/ObjectDetection2/BachObjectDetection2Buffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/ObjectTracking/BachObjectTrackingBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/OilPaint/BachOilPaintBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/PetMatting/BachPetMattingBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/PictureAr/BachPictureArBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/PornCls/BachPornClsBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/RelationRecog/BachRelationRecogBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/Rgbd2Mesh/BachRgbd2MeshBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/SaliencySeg/BachSaliencySegBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/SceneLight/BachSceneLightBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/SceneNormal/BachSceneNormalBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/SceneRecog/BachSceneRecogBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/SceneRecogV2/BachSceneRecogV2Buffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/SceneRecogV3/BachSceneRecogV3Buffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/Similarity/BachSimilarityBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/Skeleton/BachSkeletonBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/SkeletonPose3D/BachSkeletonPose3DBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/SkinSeg/BachSkinSegBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/SkinUnified/BachSkinUnifiedBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/SkySeg/BachSkySegBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/SwapLive/BachSwapLiveBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/SwapperMe/BachSwapperMeBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/Teeth/BachTeethBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/TrackingAr/BachTrackingArBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/Upperbody3d/BachUpperbody3DBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/VideoCls/BachVideoClsBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/VideoMoment/BachVideoMomentBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/VideoSR/BachVideoSRBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/VideoTempRec/BachVideoTempRecBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Algorithm/WatchTryon/BachWatchTryonBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/BachAlgorithmInput.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/BachAlgorithmSystem.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/BachAlgorithmSystemGE.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/BachCommon.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Base/BachAlgorithmBuffer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Base/BachAlgorithmConstant.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Base/BachAlgorithmGraphicsInfo.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Base/BachBaseDefine.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Base/BachObject.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Bach/Base/BachResourceFinder.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/EffectSdk-umbrella.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/AMGExport.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/AMGInclude.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/AMGLog.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/AMGPrerequisites.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/AMGPrimitiveNumber.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/AMGPrimitiveVector.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/AMGRefBase.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/AMGSharePtr.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/AMGSystemTime.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/AMGThreadLocal.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/AMGThreadPool.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Files/AMGArchive.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Files/AMGFile.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Files/AMGFileDescriptor.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Files/AMGFileHandle.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Files/AMGFileHandleGeneric.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Files/AMGFileReader.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Files/AMGFileUtils.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Files/AMGFileWriter.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Files/AMGMemoryReader.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Files/AMGMemoryStream.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Files/AMGMemoryWriter.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Image/AMGImageType.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Math/AMGColor.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Math/AMGColorSpaceConversion.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Math/AMGCurve.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Math/AMGDynamicBitset.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Math/AMGFloatConversion.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Math/AMGHashFunction.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Math/AMGMatrix3x3.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Math/AMGMatrix4x4.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Math/AMGPerlinNoise.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Math/AMGPolynomials.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Math/AMGQuaternion.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Math/AMGRect.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Math/AMGSphericalHarmonics.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Math/AMGVector2.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Math/AMGVector2i.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Math/AMGVector3.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Math/AMGVector3i.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Math/AMGVector4.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Math/Random/AMGRandom.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Math/Random/amg_rand.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/MemoryManager/AMGAllocationHeader.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/MemoryManager/AMGBaseAllocator.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/MemoryManager/AMGDefaultAllocator.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/MemoryManager/AMGLowLevelAllocator.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/MemoryManager/AMGMemoryLabelNames.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/MemoryManager/AMGMemoryLabels.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/MemoryManager/AMGMemoryManager.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/MemoryManager/AMGMemoryManagerCommon.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/MemoryManager/AMGMemoryPool.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Message/AMGMessageCenter.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Message/AMGMessageQueue.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Network/AMGNetHeaderMessageProcessor.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Network/AMGNetMessageProcessor.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Network/AMGNetworkCall.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Network/AMGNetworkClient.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Network/AMGNetworkPrerequisites.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Network/AMGNetworkRequest.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Network/AMGP2PClient.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Network/AMGP2PService.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Performance/AMGPerformance.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Performance/AMGPerformanceEvaluation.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Platform/AMGPlatformDef.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/STL/Sort.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Text/AMGSTBTrueType.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Thread/AMGThreadFactory.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/Gaia/Thread/AMGThreadWrapper.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/GitVersion.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/LiveAudioPlayer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/MessageDefine.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/RenderMsgDefine.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/RenderMsgDelegate.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/RequirementDefine.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/VEAudioPlayerFactory.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/VEVideoPlayerFactory.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/VideoPlayerInterface.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_ae_brick_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_ae_device_monitor_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_ae_device_monitor_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_ae_style_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_ae_video_canvas_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_ae_video_feature_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_app_manager_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_benchmark_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_3d_object_manipulate_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_aerender_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_algorithm_after_effect.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_algorithm_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_algorithm_audio_onset_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_algorithm_c1.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_algorithm_cap.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_algorithm_face.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_algorithm_face_clusting.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_algorithm_face_verify.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_algorithm_general_obj_detect_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_algorithm_portrait_matting_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_algorithm_rect_doc_det_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_algorithm_similarity.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_allow_list.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_ar_core_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_ar_core_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_audio_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_audio_effect.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_bach_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_brush2d_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_build_macro.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_cloud_rendering_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_codec_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_codec_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_common.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_composer.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_dynamic_load_library.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_editor_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_face_detect.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_face_distortionV2.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_for_faceReshapeTool.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_general_param.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_global_filter.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_gpu_detect.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_hand_detect.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_ibr_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_ibr_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_image_decode_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_image_decode_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_imgproc.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_javascript_binding.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_lua_base_object.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_mv_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_photo_face_detect.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_public_avatar_drive_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_public_business_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_public_business_mv_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_public_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_public_face_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_public_frame_info_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_public_hand_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_public_skeleton_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_pure_algorithm_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_sticker.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_touch_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_transition_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_update_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_video_after_effect.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_xt.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_effect_xt_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_framework_public_algorithm_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_framework_public_base_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_framework_public_constant_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_framework_public_enum_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_framework_public_geometry_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_game_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_game_public_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_info_sticker_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_info_sticker_public_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_msg_delegate_manager.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_slam_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_slam_camera_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_swing_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_swing_async_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_swing_async_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_swing_define.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_swing_key_frame_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_swing_manager_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_swing_segment_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_swing_segment_custom_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_swing_segment_feature_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_swing_segment_script_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_swing_segment_static_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_swing_segment_sticker_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_swing_segment_sticker_brush_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_swing_segment_sticker_pin_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_swing_segment_sticker_template_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_swing_segment_sticker_text_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_swing_segment_video_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_swing_track_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_swing_tracker_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_view_api.h",
+    "pod_support/Headers/Private/EffectSDK_iOS/bef_view_public_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/AudioPlayerInterface.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/BEFBuildInMotionManager.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/ARScan/BachARScanBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/ActionDetect/BachActionDetectBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/ActionRecognition/BachActionRecognitionBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/AfterEffect/BachAfterEffectBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/AlgorithmCommonKey.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/AlgorithmInfo.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/AlgorithmParamDefine.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/ApolloFace3D/BachApolloFace3DBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/AudioAvatar/BachAudioAvatarBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/AudioProducer/BachAudioProducerBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/AutoReframe/BachAutoReframeBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/Avacap/BachAvacapBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/Avatar3D/BachAvatar3DBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/Avatar3DFusion/BachAvatar3DFusionBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/AvatarDrive/BachAvatarDriveBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/Bling/BachBlingBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/BlockGan/BachBlockGanBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/BuildingNormal/BachBuildingNormalBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/BuildingSeg/BachBuildingSegBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/CarSeg/BachCarSegBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/CarSeries/BachCarSeriesBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/CatFace/BachCatFaceBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/ChromaKeying/BachChromaKeyingBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/ClothClass/BachClothClassBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/ClothGan/BachClothGanBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/ClothesSeg/BachClothesSegBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/ColorMapping/BachColorMappingBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/ContentRecommend/BachContentRecommendBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/CpuRender/BachCpuRenderBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/DeepInpaint/BachDeepInpaintBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/DepthEstimation/BachDepthEstimationBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/DynamicGesture/BachDynamicGestureBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/EarSeg/BachEarSegBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/Enigma/BachEnigmaBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/EyeFitting/BachEyeFittingBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/Face/BachFaceBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/Face/BachFakeFaceBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/FaceAttr/BachFaceAttrBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/FaceBeautify/BachFaceBeautifyBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/FaceClusting/BachFaceClustingBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/FaceFitting/BachFaceFittingBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/FaceGan/BachFaceGanBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/FaceLight/BachFaceLightBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/FaceMask/BachFaceMaskBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/FaceNewLandmark/BachFaceNewLandmarkBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/FacePartBeauty/BachFacePartBeautyBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/FacePetDetect/BachFacePetDetectBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/FaceReenact/BachFaceReenactBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/FaceSmoothCPU/BachFaceSmoothCPUBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/FaceVerify/BachFaceVerifyBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/FemaleGan/BachFemaleGanBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/FindContour/BachFindContourBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/FoodComics/BachFoodComicsBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/Foot/BachFootBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/ForeheadSeg/BachForeheadSegBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/Freid/BachFreidBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/GazeEstimation/BachGazeEstimationBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/GroundSeg/BachGroundSegBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/HAvatar/BachHAvatarBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/HairColor/BachHairColorBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/HairFlow/BachHairFlowBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/Hand/BachHandBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/HandObjectSegTrack/BachHandObjectSegTrackBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/HandTV/BachHandTVBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/HdrNet/BachHdrNetBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/HeadFitting/BachHeadFittingBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/HeadSeg/BachHeadSegBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/HumanParsing/BachHumanParsingBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/IDream/BachIDreamBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/IndoorSeg/BachIndoorSegBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/InteractiveMatting/BachInteractiveMattingBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/Joints1/BachJoints1Buffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/Joints2/BachJoints2Buffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/Kira/BachKiraBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/LicensePlateDetect/BachLicensePlateDetectBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/Manga/BachMangaBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/Matting/BachMattingBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/Mega/BachMegaBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/MemojiMatch/BachMemojiMatchBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/Mug/BachMugBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/MvTempRec/BachMvTempRecBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/NH/BachNHBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/NH/BachNHType.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/NH/NHConstant.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/NailSeg/BachNailBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/NailSlam/BachNailSlamBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/NaviAvatarDrive/BachNaviAvatarDriveBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/ObjectDetect/BachObjectDetectBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/ObjectDetection2/BachObjectDetection2Buffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/ObjectTracking/BachObjectTrackingBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/OilPaint/BachOilPaintBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/PetMatting/BachPetMattingBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/PictureAr/BachPictureArBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/PornCls/BachPornClsBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/RelationRecog/BachRelationRecogBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/Rgbd2Mesh/BachRgbd2MeshBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/SaliencySeg/BachSaliencySegBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/SceneLight/BachSceneLightBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/SceneNormal/BachSceneNormalBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/SceneRecog/BachSceneRecogBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/SceneRecogV2/BachSceneRecogV2Buffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/SceneRecogV3/BachSceneRecogV3Buffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/Similarity/BachSimilarityBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/Skeleton/BachSkeletonBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/SkeletonPose3D/BachSkeletonPose3DBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/SkinSeg/BachSkinSegBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/SkinUnified/BachSkinUnifiedBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/SkySeg/BachSkySegBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/SwapLive/BachSwapLiveBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/SwapperMe/BachSwapperMeBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/Teeth/BachTeethBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/TrackingAr/BachTrackingArBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/Upperbody3d/BachUpperbody3DBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/VideoCls/BachVideoClsBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/VideoMoment/BachVideoMomentBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/VideoSR/BachVideoSRBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/VideoTempRec/BachVideoTempRecBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Algorithm/WatchTryon/BachWatchTryonBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/BachAlgorithmInput.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/BachAlgorithmSystem.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/BachAlgorithmSystemGE.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/BachCommon.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Base/BachAlgorithmBuffer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Base/BachAlgorithmConstant.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Base/BachAlgorithmGraphicsInfo.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Base/BachBaseDefine.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Base/BachObject.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Bach/Base/BachResourceFinder.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/EffectSdk-umbrella.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/AMGExport.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/AMGInclude.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/AMGLog.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/AMGPrerequisites.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/AMGPrimitiveNumber.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/AMGPrimitiveVector.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/AMGRefBase.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/AMGSharePtr.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/AMGSystemTime.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/AMGThreadLocal.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/AMGThreadPool.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Files/AMGArchive.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Files/AMGFile.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Files/AMGFileDescriptor.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Files/AMGFileHandle.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Files/AMGFileHandleGeneric.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Files/AMGFileReader.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Files/AMGFileUtils.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Files/AMGFileWriter.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Files/AMGMemoryReader.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Files/AMGMemoryStream.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Files/AMGMemoryWriter.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Image/AMGImageType.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Math/AMGColor.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Math/AMGColorSpaceConversion.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Math/AMGCurve.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Math/AMGDynamicBitset.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Math/AMGFloatConversion.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Math/AMGHashFunction.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Math/AMGMatrix3x3.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Math/AMGMatrix4x4.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Math/AMGPerlinNoise.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Math/AMGPolynomials.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Math/AMGQuaternion.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Math/AMGRect.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Math/AMGSphericalHarmonics.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Math/AMGVector2.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Math/AMGVector2i.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Math/AMGVector3.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Math/AMGVector3i.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Math/AMGVector4.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Math/Random/AMGRandom.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Math/Random/amg_rand.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/MemoryManager/AMGAllocationHeader.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/MemoryManager/AMGBaseAllocator.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/MemoryManager/AMGDefaultAllocator.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/MemoryManager/AMGLowLevelAllocator.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/MemoryManager/AMGMemoryLabelNames.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/MemoryManager/AMGMemoryLabels.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/MemoryManager/AMGMemoryManager.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/MemoryManager/AMGMemoryManagerCommon.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/MemoryManager/AMGMemoryPool.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Message/AMGMessageCenter.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Message/AMGMessageQueue.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Network/AMGNetHeaderMessageProcessor.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Network/AMGNetMessageProcessor.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Network/AMGNetworkCall.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Network/AMGNetworkClient.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Network/AMGNetworkPrerequisites.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Network/AMGNetworkRequest.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Network/AMGP2PClient.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Network/AMGP2PService.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Performance/AMGPerformance.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Performance/AMGPerformanceEvaluation.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Platform/AMGPlatformDef.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/STL/Sort.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Text/AMGSTBTrueType.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Thread/AMGThreadFactory.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/Gaia/Thread/AMGThreadWrapper.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/GitVersion.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/LiveAudioPlayer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/MessageDefine.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/RenderMsgDefine.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/RenderMsgDelegate.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/RequirementDefine.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/VEAudioPlayerFactory.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/VEVideoPlayerFactory.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/VideoPlayerInterface.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_ae_brick_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_ae_device_monitor_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_ae_device_monitor_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_ae_style_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_ae_video_canvas_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_ae_video_feature_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_app_manager_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_benchmark_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_3d_object_manipulate_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_aerender_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_algorithm_after_effect.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_algorithm_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_algorithm_audio_onset_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_algorithm_c1.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_algorithm_cap.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_algorithm_face.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_algorithm_face_clusting.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_algorithm_face_verify.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_algorithm_general_obj_detect_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_algorithm_portrait_matting_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_algorithm_rect_doc_det_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_algorithm_similarity.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_allow_list.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_ar_core_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_ar_core_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_audio_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_audio_effect.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_bach_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_brush2d_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_build_macro.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_cloud_rendering_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_codec_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_codec_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_common.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_composer.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_dynamic_load_library.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_editor_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_face_detect.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_face_distortionV2.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_for_faceReshapeTool.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_general_param.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_global_filter.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_gpu_detect.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_hand_detect.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_ibr_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_ibr_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_image_decode_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_image_decode_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_imgproc.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_javascript_binding.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_lua_base_object.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_mv_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_photo_face_detect.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_public_avatar_drive_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_public_business_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_public_business_mv_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_public_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_public_face_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_public_frame_info_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_public_hand_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_public_skeleton_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_pure_algorithm_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_sticker.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_touch_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_transition_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_update_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_video_after_effect.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_xt.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_effect_xt_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_framework_public_algorithm_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_framework_public_base_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_framework_public_constant_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_framework_public_enum_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_framework_public_geometry_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_game_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_game_public_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_info_sticker_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_info_sticker_public_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_msg_delegate_manager.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_slam_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_slam_camera_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_swing_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_swing_async_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_swing_async_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_swing_define.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_swing_key_frame_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_swing_manager_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_swing_segment_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_swing_segment_custom_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_swing_segment_feature_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_swing_segment_script_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_swing_segment_static_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_swing_segment_sticker_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_swing_segment_sticker_brush_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_swing_segment_sticker_pin_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_swing_segment_sticker_template_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_swing_segment_sticker_text_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_swing_segment_video_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_swing_track_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_swing_tracker_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_view_api.h",
+    "pod_support/Headers/Public/EffectSDK_iOS/bef_view_public_define.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/EffectSDK_iOS/EffectSDK_iOS_Core-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "AVFoundation",
+    "CoreMedia",
+    "VideoToolbox",
+    "Accelerate",
+    "AudioToolbox",
+    "Foundation",
+    "GLKit",
+    "imageIO",
+    "IOKit",
+    "JavaScriptCore",
+    "UIKit"
+  ],
+  weak_sdk_frameworks = [
+    "CoreHaptics"
+  ],
+  sdk_dylibs = [
+    "z",
+    "c++"
+  ],
+  deps = [
+    ":EffectSDK_iOS_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":EffectSDK_iOS_private_includes",
+    ":EffectSDK_iOS_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@AGFX_pub//:AGFX_pub_objc_interface",
+    "@audiosdk//:audiosdk_objc_interface",
+    "@bytenn-ios//:bytenn-ios_objc_interface",
+    "@espresso//:espresso_objc_interface",
+    "@gaia_lib_publish//:gaia_lib_publish_objc_interface",
+    "@mobilecv2//:mobilecv2_objc_interface",
+    "@AGFX_pub//:AGFX_pub_swift_interface",
+    "@audiosdk//:audiosdk_swift_interface",
+    "@bytenn-ios//:bytenn-ios_swift_interface",
+    "@espresso//:espresso_swift_interface",
+    "@gaia_lib_publish//:gaia_lib_publish_swift_interface",
+    "@mobilecv2//:mobilecv2_swift_interface",
+    ":EffectSDK_iOS_Core_VendoredLibraries",
+    ":Core_objc_interface",
+    "@AGFX_pub//:AGFX_pub_module_map",
+    "@audiosdk//:audiosdk_module_map",
+    "@bytenn-ios//:bytenn-ios_module_map",
+    "@espresso//:espresso_module_map",
+    "@gaia_lib_publish//:gaia_lib_publish_module_map",
+    "@mobilecv2//:mobilecv2_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEffectSDK_iOS_POD_VERSION=@\\\"9999_14.5.0.275-LarkMobile\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+apple_resource_group(
+  name = "FullModel_resource_group",
+  resources = glob(
+    [
+      "libEffectSDK/Resources/EffectSDKResources.bundle/**"
+    ]
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "FullModel_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "FullModel_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "FullModel_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "FullModel_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "FullModel_module_map",
+  module_map = "pod_support/Headers/Public/EffectSDK_iOS/EffectSDK_iOS_FullModel-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "FullModel_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "FullModel_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":EffectSDK_iOS_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":EffectSDK_iOS_private_includes",
+    ":EffectSDK_iOS_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@AGFX_pub//:AGFX_pub_objc_interface",
+    "@audiosdk//:audiosdk_objc_interface",
+    "@bytenn-ios//:bytenn-ios_objc_interface",
+    "@espresso//:espresso_objc_interface",
+    "@gaia_lib_publish//:gaia_lib_publish_objc_interface",
+    "@mobilecv2//:mobilecv2_objc_interface",
+    "@AGFX_pub//:AGFX_pub_swift_interface",
+    "@audiosdk//:audiosdk_swift_interface",
+    "@bytenn-ios//:bytenn-ios_swift_interface",
+    "@espresso//:espresso_swift_interface",
+    "@gaia_lib_publish//:gaia_lib_publish_swift_interface",
+    "@mobilecv2//:mobilecv2_swift_interface",
+    ":FullModel_objc_interface",
+    "@AGFX_pub//:AGFX_pub_module_map",
+    "@audiosdk//:audiosdk_module_map",
+    "@bytenn-ios//:bytenn-ios_module_map",
+    "@espresso//:espresso_module_map",
+    "@gaia_lib_publish//:gaia_lib_publish_module_map",
+    "@mobilecv2//:mobilecv2_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEffectSDK_iOS_POD_VERSION=@\\\"9999_14.5.0.275-LarkMobile\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":FullModel_resource_group"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "FullModel",
+  deps = [
+    ":FullModel_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "FullModel_lib",
+  deps = [
+    ":FullModel"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+apple_resource_group(
+  name = "PartModel_resource_group",
+  resources = glob(
+    [
+      "libEffectSDK/Resources/part/EffectSDKResources.bundle/**"
+    ]
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "PartModel_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "PartModel_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "PartModel_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "PartModel_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "PartModel_module_map",
+  module_map = "pod_support/Headers/Public/EffectSDK_iOS/EffectSDK_iOS_PartModel-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "PartModel_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "PartModel_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":EffectSDK_iOS_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":EffectSDK_iOS_private_includes",
+    ":EffectSDK_iOS_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@AGFX_pub//:AGFX_pub_objc_interface",
+    "@audiosdk//:audiosdk_objc_interface",
+    "@bytenn-ios//:bytenn-ios_objc_interface",
+    "@espresso//:espresso_objc_interface",
+    "@gaia_lib_publish//:gaia_lib_publish_objc_interface",
+    "@mobilecv2//:mobilecv2_objc_interface",
+    "@AGFX_pub//:AGFX_pub_swift_interface",
+    "@audiosdk//:audiosdk_swift_interface",
+    "@bytenn-ios//:bytenn-ios_swift_interface",
+    "@espresso//:espresso_swift_interface",
+    "@gaia_lib_publish//:gaia_lib_publish_swift_interface",
+    "@mobilecv2//:mobilecv2_swift_interface",
+    ":PartModel_objc_interface",
+    "@AGFX_pub//:AGFX_pub_module_map",
+    "@audiosdk//:audiosdk_module_map",
+    "@bytenn-ios//:bytenn-ios_module_map",
+    "@espresso//:espresso_module_map",
+    "@gaia_lib_publish//:gaia_lib_publish_module_map",
+    "@mobilecv2//:mobilecv2_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEffectSDK_iOS_POD_VERSION=@\\\"9999_14.5.0.275-LarkMobile\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":PartModel_resource_group"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "PartModel",
+  deps = [
+    ":PartModel_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "PartModel_lib",
+  deps = [
+    ":PartModel"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "OCInterface_hdrs",
+  srcs = [
+    "libEffectSDK/ocInterface/ios/BEFEffectGetVersion.h",
+    "libEffectSDK/ocInterface/ios/BEFEffectUpdateManager.h",
+    "libEffectSDK/ocInterface/ios/BEFGameView.h",
+    "libEffectSDK/ocInterface/ios/BEFGeneralParam.h",
+    "libEffectSDK/ocInterface/ios/BEFInterfaceCommon.h",
+    "libEffectSDK/ocInterface/ios/BEFView.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "OCInterface_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "OCInterface_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "OCInterface_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "OCInterface_module_map",
+  module_map = "pod_support/Headers/Public/EffectSDK_iOS/EffectSDK_iOS_OCInterface-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "OCInterface_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "OCInterface_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "AVFoundation",
+    "CoreMedia",
+    "Foundation",
+    "GLKit",
+    "IOKit",
+    "UIKit",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":EffectSDK_iOS_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":EffectSDK_iOS_private_includes",
+    ":EffectSDK_iOS_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@AGFX_pub//:AGFX_pub_objc_interface",
+    "@audiosdk//:audiosdk_objc_interface",
+    "@bytenn-ios//:bytenn-ios_objc_interface",
+    "@espresso//:espresso_objc_interface",
+    "@gaia_lib_publish//:gaia_lib_publish_objc_interface",
+    "@mobilecv2//:mobilecv2_objc_interface",
+    "@AGFX_pub//:AGFX_pub_swift_interface",
+    "@audiosdk//:audiosdk_swift_interface",
+    "@bytenn-ios//:bytenn-ios_swift_interface",
+    "@espresso//:espresso_swift_interface",
+    "@gaia_lib_publish//:gaia_lib_publish_swift_interface",
+    "@mobilecv2//:mobilecv2_swift_interface",
+    ":EffectSDK_iOS_OCInterface_VendoredLibraries",
+    ":OCInterface_objc_interface",
+    "@AGFX_pub//:AGFX_pub_module_map",
+    "@audiosdk//:audiosdk_module_map",
+    "@bytenn-ios//:bytenn-ios_module_map",
+    "@espresso//:espresso_module_map",
+    "@gaia_lib_publish//:gaia_lib_publish_module_map",
+    "@mobilecv2//:mobilecv2_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEffectSDK_iOS_POD_VERSION=@\\\"9999_14.5.0.275-LarkMobile\\\"",
+    "-DBEF_FEATURE_CONFIG_GAME=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "OCInterface",
+  deps = [
+    ":OCInterface_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "OCInterface_lib",
+  deps = [
+    ":OCInterface"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_EffectSDK_iOS_module_map",
+  module_map = "@EffectSDK_iOS//:pod_support/Headers/Public/EffectSDK_iOS/Lark-bitsky-generated.modulemap",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_EffectSDK_iOS_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@EffectSDK_iOS//:Core_objc_interface", "@EffectSDK_iOS//:EffectSDK_iOS_objc_interface", "@EffectSDK_iOS//:PartModel_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_EffectSDK_iOS",
+  target_name = "Lark",
+  module_name = "EffectSDK_iOS",
+  module_map = "libEffectSDK/inc/EffectSdk.modulemap",
+  hdrs = ["@EffectSDK_iOS//:Core_pod_hdrs", "@EffectSDK_iOS//:EffectSDK_iOS_root_pod_hdrs", "@EffectSDK_iOS//:PartModel_pod_hdrs"],
+  srcs = [],
+  non_arc_srcs = [],
+  deps = ["@EffectSDK_iOS//:EffectSDK_iOS_Core_VendoredLibraries"],
+  pod_deps = ["AGFX_pub", "audiosdk", "bytenn-ios", "espresso", "gaia_lib_publish", "mobilecv2"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEffectSDK_iOS_POD_VERSION=@\\\"9999_14.5.0.275-LarkMobile\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "EffectSDK_iOS_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "EffectSDK_iOS_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["AVFoundation", "CoreMedia", "VideoToolbox", "Accelerate", "AudioToolbox", "Foundation", "GLKit", "imageIO", "IOKit", "JavaScriptCore", "UIKit"],
+  weak_sdk_frameworks = ["CoreHaptics"],
+  sdk_dylibs = ["z", "c++"],
+  data = ["@EffectSDK_iOS//:PartModel_resource_group"],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "EffectSDK_iOS_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "EffectSDK_iOS_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "EffectSDK_iOS_dynamic", False),
+  tags = getattr(defs_external_objc_library, "EffectSDK_iOS_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  header_mappings = {
+    "*": "*",
+    "libEffectSDK/inc/AudioPlayerInterface.h": "AudioPlayerInterface.h",
+    "libEffectSDK/inc/BEFBuildInMotionManager.h": "BEFBuildInMotionManager.h",
+    "libEffectSDK/inc/Bach/Algorithm/ARScan/BachARScanBuffer.h": "Bach/Algorithm/ARScan/BachARScanBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ActionDetect/BachActionDetectBuffer.h": "Bach/Algorithm/ActionDetect/BachActionDetectBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ActionRecognition/BachActionRecognitionBuffer.h": "Bach/Algorithm/ActionRecognition/BachActionRecognitionBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/AfterEffect/BachAfterEffectBuffer.h": "Bach/Algorithm/AfterEffect/BachAfterEffectBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/AlgorithmCommonKey.h": "Bach/Algorithm/AlgorithmCommonKey.h",
+    "libEffectSDK/inc/Bach/Algorithm/AlgorithmInfo.h": "Bach/Algorithm/AlgorithmInfo.h",
+    "libEffectSDK/inc/Bach/Algorithm/AlgorithmParamDefine.h": "Bach/Algorithm/AlgorithmParamDefine.h",
+    "libEffectSDK/inc/Bach/Algorithm/ApolloFace3D/BachApolloFace3DBuffer.h": "Bach/Algorithm/ApolloFace3D/BachApolloFace3DBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/AudioAvatar/BachAudioAvatarBuffer.h": "Bach/Algorithm/AudioAvatar/BachAudioAvatarBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/AudioProducer/BachAudioProducerBuffer.h": "Bach/Algorithm/AudioProducer/BachAudioProducerBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/AutoReframe/BachAutoReframeBuffer.h": "Bach/Algorithm/AutoReframe/BachAutoReframeBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Avacap/BachAvacapBuffer.h": "Bach/Algorithm/Avacap/BachAvacapBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Avatar3D/BachAvatar3DBuffer.h": "Bach/Algorithm/Avatar3D/BachAvatar3DBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Avatar3DFusion/BachAvatar3DFusionBuffer.h": "Bach/Algorithm/Avatar3DFusion/BachAvatar3DFusionBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/AvatarDrive/BachAvatarDriveBuffer.h": "Bach/Algorithm/AvatarDrive/BachAvatarDriveBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Bling/BachBlingBuffer.h": "Bach/Algorithm/Bling/BachBlingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/BlockGan/BachBlockGanBuffer.h": "Bach/Algorithm/BlockGan/BachBlockGanBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/BuildingNormal/BachBuildingNormalBuffer.h": "Bach/Algorithm/BuildingNormal/BachBuildingNormalBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/BuildingSeg/BachBuildingSegBuffer.h": "Bach/Algorithm/BuildingSeg/BachBuildingSegBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/CarSeg/BachCarSegBuffer.h": "Bach/Algorithm/CarSeg/BachCarSegBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/CarSeries/BachCarSeriesBuffer.h": "Bach/Algorithm/CarSeries/BachCarSeriesBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/CatFace/BachCatFaceBuffer.h": "Bach/Algorithm/CatFace/BachCatFaceBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ChromaKeying/BachChromaKeyingBuffer.h": "Bach/Algorithm/ChromaKeying/BachChromaKeyingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ClothClass/BachClothClassBuffer.h": "Bach/Algorithm/ClothClass/BachClothClassBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ClothGan/BachClothGanBuffer.h": "Bach/Algorithm/ClothGan/BachClothGanBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ClothesSeg/BachClothesSegBuffer.h": "Bach/Algorithm/ClothesSeg/BachClothesSegBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ColorMapping/BachColorMappingBuffer.h": "Bach/Algorithm/ColorMapping/BachColorMappingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ContentRecommend/BachContentRecommendBuffer.h": "Bach/Algorithm/ContentRecommend/BachContentRecommendBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/CpuRender/BachCpuRenderBuffer.h": "Bach/Algorithm/CpuRender/BachCpuRenderBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/DeepInpaint/BachDeepInpaintBuffer.h": "Bach/Algorithm/DeepInpaint/BachDeepInpaintBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/DepthEstimation/BachDepthEstimationBuffer.h": "Bach/Algorithm/DepthEstimation/BachDepthEstimationBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/DynamicGesture/BachDynamicGestureBuffer.h": "Bach/Algorithm/DynamicGesture/BachDynamicGestureBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/EarSeg/BachEarSegBuffer.h": "Bach/Algorithm/EarSeg/BachEarSegBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Enigma/BachEnigmaBuffer.h": "Bach/Algorithm/Enigma/BachEnigmaBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/EyeFitting/BachEyeFittingBuffer.h": "Bach/Algorithm/EyeFitting/BachEyeFittingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Face/BachFaceBuffer.h": "Bach/Algorithm/Face/BachFaceBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Face/BachFakeFaceBuffer.h": "Bach/Algorithm/Face/BachFakeFaceBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FaceAttr/BachFaceAttrBuffer.h": "Bach/Algorithm/FaceAttr/BachFaceAttrBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FaceBeautify/BachFaceBeautifyBuffer.h": "Bach/Algorithm/FaceBeautify/BachFaceBeautifyBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FaceClusting/BachFaceClustingBuffer.h": "Bach/Algorithm/FaceClusting/BachFaceClustingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FaceFitting/BachFaceFittingBuffer.h": "Bach/Algorithm/FaceFitting/BachFaceFittingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FaceGan/BachFaceGanBuffer.h": "Bach/Algorithm/FaceGan/BachFaceGanBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FaceLight/BachFaceLightBuffer.h": "Bach/Algorithm/FaceLight/BachFaceLightBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FaceMask/BachFaceMaskBuffer.h": "Bach/Algorithm/FaceMask/BachFaceMaskBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FaceNewLandmark/BachFaceNewLandmarkBuffer.h": "Bach/Algorithm/FaceNewLandmark/BachFaceNewLandmarkBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FacePartBeauty/BachFacePartBeautyBuffer.h": "Bach/Algorithm/FacePartBeauty/BachFacePartBeautyBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FacePetDetect/BachFacePetDetectBuffer.h": "Bach/Algorithm/FacePetDetect/BachFacePetDetectBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FaceReenact/BachFaceReenactBuffer.h": "Bach/Algorithm/FaceReenact/BachFaceReenactBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FaceSmoothCPU/BachFaceSmoothCPUBuffer.h": "Bach/Algorithm/FaceSmoothCPU/BachFaceSmoothCPUBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FaceVerify/BachFaceVerifyBuffer.h": "Bach/Algorithm/FaceVerify/BachFaceVerifyBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FemaleGan/BachFemaleGanBuffer.h": "Bach/Algorithm/FemaleGan/BachFemaleGanBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FindContour/BachFindContourBuffer.h": "Bach/Algorithm/FindContour/BachFindContourBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/FoodComics/BachFoodComicsBuffer.h": "Bach/Algorithm/FoodComics/BachFoodComicsBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Foot/BachFootBuffer.h": "Bach/Algorithm/Foot/BachFootBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ForeheadSeg/BachForeheadSegBuffer.h": "Bach/Algorithm/ForeheadSeg/BachForeheadSegBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Freid/BachFreidBuffer.h": "Bach/Algorithm/Freid/BachFreidBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/GazeEstimation/BachGazeEstimationBuffer.h": "Bach/Algorithm/GazeEstimation/BachGazeEstimationBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/GroundSeg/BachGroundSegBuffer.h": "Bach/Algorithm/GroundSeg/BachGroundSegBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/HAvatar/BachHAvatarBuffer.h": "Bach/Algorithm/HAvatar/BachHAvatarBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/HairColor/BachHairColorBuffer.h": "Bach/Algorithm/HairColor/BachHairColorBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/HairFlow/BachHairFlowBuffer.h": "Bach/Algorithm/HairFlow/BachHairFlowBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Hand/BachHandBuffer.h": "Bach/Algorithm/Hand/BachHandBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/HandObjectSegTrack/BachHandObjectSegTrackBuffer.h": "Bach/Algorithm/HandObjectSegTrack/BachHandObjectSegTrackBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/HandTV/BachHandTVBuffer.h": "Bach/Algorithm/HandTV/BachHandTVBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/HdrNet/BachHdrNetBuffer.h": "Bach/Algorithm/HdrNet/BachHdrNetBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/HeadFitting/BachHeadFittingBuffer.h": "Bach/Algorithm/HeadFitting/BachHeadFittingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/HeadSeg/BachHeadSegBuffer.h": "Bach/Algorithm/HeadSeg/BachHeadSegBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/HumanParsing/BachHumanParsingBuffer.h": "Bach/Algorithm/HumanParsing/BachHumanParsingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/IDream/BachIDreamBuffer.h": "Bach/Algorithm/IDream/BachIDreamBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/IndoorSeg/BachIndoorSegBuffer.h": "Bach/Algorithm/IndoorSeg/BachIndoorSegBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/InteractiveMatting/BachInteractiveMattingBuffer.h": "Bach/Algorithm/InteractiveMatting/BachInteractiveMattingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Joints1/BachJoints1Buffer.h": "Bach/Algorithm/Joints1/BachJoints1Buffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Joints2/BachJoints2Buffer.h": "Bach/Algorithm/Joints2/BachJoints2Buffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Kira/BachKiraBuffer.h": "Bach/Algorithm/Kira/BachKiraBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/LicensePlateDetect/BachLicensePlateDetectBuffer.h": "Bach/Algorithm/LicensePlateDetect/BachLicensePlateDetectBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Manga/BachMangaBuffer.h": "Bach/Algorithm/Manga/BachMangaBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Matting/BachMattingBuffer.h": "Bach/Algorithm/Matting/BachMattingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Mega/BachMegaBuffer.h": "Bach/Algorithm/Mega/BachMegaBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/MemojiMatch/BachMemojiMatchBuffer.h": "Bach/Algorithm/MemojiMatch/BachMemojiMatchBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Mug/BachMugBuffer.h": "Bach/Algorithm/Mug/BachMugBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/MvTempRec/BachMvTempRecBuffer.h": "Bach/Algorithm/MvTempRec/BachMvTempRecBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/NH/BachNHBuffer.h": "Bach/Algorithm/NH/BachNHBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/NH/BachNHType.h": "Bach/Algorithm/NH/BachNHType.h",
+    "libEffectSDK/inc/Bach/Algorithm/NH/NHConstant.h": "Bach/Algorithm/NH/NHConstant.h",
+    "libEffectSDK/inc/Bach/Algorithm/NailSeg/BachNailBuffer.h": "Bach/Algorithm/NailSeg/BachNailBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/NailSlam/BachNailSlamBuffer.h": "Bach/Algorithm/NailSlam/BachNailSlamBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/NaviAvatarDrive/BachNaviAvatarDriveBuffer.h": "Bach/Algorithm/NaviAvatarDrive/BachNaviAvatarDriveBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ObjectDetect/BachObjectDetectBuffer.h": "Bach/Algorithm/ObjectDetect/BachObjectDetectBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ObjectDetection2/BachObjectDetection2Buffer.h": "Bach/Algorithm/ObjectDetection2/BachObjectDetection2Buffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/ObjectTracking/BachObjectTrackingBuffer.h": "Bach/Algorithm/ObjectTracking/BachObjectTrackingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/OilPaint/BachOilPaintBuffer.h": "Bach/Algorithm/OilPaint/BachOilPaintBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/PetMatting/BachPetMattingBuffer.h": "Bach/Algorithm/PetMatting/BachPetMattingBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/PictureAr/BachPictureArBuffer.h": "Bach/Algorithm/PictureAr/BachPictureArBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/PornCls/BachPornClsBuffer.h": "Bach/Algorithm/PornCls/BachPornClsBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/RelationRecog/BachRelationRecogBuffer.h": "Bach/Algorithm/RelationRecog/BachRelationRecogBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Rgbd2Mesh/BachRgbd2MeshBuffer.h": "Bach/Algorithm/Rgbd2Mesh/BachRgbd2MeshBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SaliencySeg/BachSaliencySegBuffer.h": "Bach/Algorithm/SaliencySeg/BachSaliencySegBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SceneLight/BachSceneLightBuffer.h": "Bach/Algorithm/SceneLight/BachSceneLightBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SceneNormal/BachSceneNormalBuffer.h": "Bach/Algorithm/SceneNormal/BachSceneNormalBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SceneRecog/BachSceneRecogBuffer.h": "Bach/Algorithm/SceneRecog/BachSceneRecogBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SceneRecogV2/BachSceneRecogV2Buffer.h": "Bach/Algorithm/SceneRecogV2/BachSceneRecogV2Buffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SceneRecogV3/BachSceneRecogV3Buffer.h": "Bach/Algorithm/SceneRecogV3/BachSceneRecogV3Buffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Similarity/BachSimilarityBuffer.h": "Bach/Algorithm/Similarity/BachSimilarityBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Skeleton/BachSkeletonBuffer.h": "Bach/Algorithm/Skeleton/BachSkeletonBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SkeletonPose3D/BachSkeletonPose3DBuffer.h": "Bach/Algorithm/SkeletonPose3D/BachSkeletonPose3DBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SkinSeg/BachSkinSegBuffer.h": "Bach/Algorithm/SkinSeg/BachSkinSegBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SkinUnified/BachSkinUnifiedBuffer.h": "Bach/Algorithm/SkinUnified/BachSkinUnifiedBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SkySeg/BachSkySegBuffer.h": "Bach/Algorithm/SkySeg/BachSkySegBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SwapLive/BachSwapLiveBuffer.h": "Bach/Algorithm/SwapLive/BachSwapLiveBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/SwapperMe/BachSwapperMeBuffer.h": "Bach/Algorithm/SwapperMe/BachSwapperMeBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Teeth/BachTeethBuffer.h": "Bach/Algorithm/Teeth/BachTeethBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/TrackingAr/BachTrackingArBuffer.h": "Bach/Algorithm/TrackingAr/BachTrackingArBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/Upperbody3d/BachUpperbody3DBuffer.h": "Bach/Algorithm/Upperbody3d/BachUpperbody3DBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/VideoCls/BachVideoClsBuffer.h": "Bach/Algorithm/VideoCls/BachVideoClsBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/VideoMoment/BachVideoMomentBuffer.h": "Bach/Algorithm/VideoMoment/BachVideoMomentBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/VideoSR/BachVideoSRBuffer.h": "Bach/Algorithm/VideoSR/BachVideoSRBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/VideoTempRec/BachVideoTempRecBuffer.h": "Bach/Algorithm/VideoTempRec/BachVideoTempRecBuffer.h",
+    "libEffectSDK/inc/Bach/Algorithm/WatchTryon/BachWatchTryonBuffer.h": "Bach/Algorithm/WatchTryon/BachWatchTryonBuffer.h",
+    "libEffectSDK/inc/Bach/BachAlgorithmInput.h": "Bach/BachAlgorithmInput.h",
+    "libEffectSDK/inc/Bach/BachAlgorithmSystem.h": "Bach/BachAlgorithmSystem.h",
+    "libEffectSDK/inc/Bach/BachAlgorithmSystemGE.h": "Bach/BachAlgorithmSystemGE.h",
+    "libEffectSDK/inc/Bach/BachCommon.h": "Bach/BachCommon.h",
+    "libEffectSDK/inc/Bach/Base/BachAlgorithmBuffer.h": "Bach/Base/BachAlgorithmBuffer.h",
+    "libEffectSDK/inc/Bach/Base/BachAlgorithmConstant.h": "Bach/Base/BachAlgorithmConstant.h",
+    "libEffectSDK/inc/Bach/Base/BachAlgorithmGraphicsInfo.h": "Bach/Base/BachAlgorithmGraphicsInfo.h",
+    "libEffectSDK/inc/Bach/Base/BachBaseDefine.h": "Bach/Base/BachBaseDefine.h",
+    "libEffectSDK/inc/Bach/Base/BachObject.h": "Bach/Base/BachObject.h",
+    "libEffectSDK/inc/Bach/Base/BachResourceFinder.h": "Bach/Base/BachResourceFinder.h",
+    "libEffectSDK/inc/EffectSdk-umbrella.h": "EffectSdk-umbrella.h",
+    "libEffectSDK/inc/Gaia/AMGExport.h": "Gaia/AMGExport.h",
+    "libEffectSDK/inc/Gaia/AMGInclude.h": "Gaia/AMGInclude.h",
+    "libEffectSDK/inc/Gaia/AMGLog.h": "Gaia/AMGLog.h",
+    "libEffectSDK/inc/Gaia/AMGPrerequisites.h": "Gaia/AMGPrerequisites.h",
+    "libEffectSDK/inc/Gaia/AMGPrimitiveNumber.h": "Gaia/AMGPrimitiveNumber.h",
+    "libEffectSDK/inc/Gaia/AMGPrimitiveVector.h": "Gaia/AMGPrimitiveVector.h",
+    "libEffectSDK/inc/Gaia/AMGRefBase.h": "Gaia/AMGRefBase.h",
+    "libEffectSDK/inc/Gaia/AMGSharePtr.h": "Gaia/AMGSharePtr.h",
+    "libEffectSDK/inc/Gaia/AMGSystemTime.h": "Gaia/AMGSystemTime.h",
+    "libEffectSDK/inc/Gaia/AMGThreadLocal.h": "Gaia/AMGThreadLocal.h",
+    "libEffectSDK/inc/Gaia/AMGThreadPool.h": "Gaia/AMGThreadPool.h",
+    "libEffectSDK/inc/Gaia/Files/AMGArchive.h": "Gaia/Files/AMGArchive.h",
+    "libEffectSDK/inc/Gaia/Files/AMGFile.h": "Gaia/Files/AMGFile.h",
+    "libEffectSDK/inc/Gaia/Files/AMGFileDescriptor.h": "Gaia/Files/AMGFileDescriptor.h",
+    "libEffectSDK/inc/Gaia/Files/AMGFileHandle.h": "Gaia/Files/AMGFileHandle.h",
+    "libEffectSDK/inc/Gaia/Files/AMGFileHandleGeneric.h": "Gaia/Files/AMGFileHandleGeneric.h",
+    "libEffectSDK/inc/Gaia/Files/AMGFileReader.h": "Gaia/Files/AMGFileReader.h",
+    "libEffectSDK/inc/Gaia/Files/AMGFileUtils.h": "Gaia/Files/AMGFileUtils.h",
+    "libEffectSDK/inc/Gaia/Files/AMGFileWriter.h": "Gaia/Files/AMGFileWriter.h",
+    "libEffectSDK/inc/Gaia/Files/AMGMemoryReader.h": "Gaia/Files/AMGMemoryReader.h",
+    "libEffectSDK/inc/Gaia/Files/AMGMemoryStream.h": "Gaia/Files/AMGMemoryStream.h",
+    "libEffectSDK/inc/Gaia/Files/AMGMemoryWriter.h": "Gaia/Files/AMGMemoryWriter.h",
+    "libEffectSDK/inc/Gaia/Image/AMGImageType.h": "Gaia/Image/AMGImageType.h",
+    "libEffectSDK/inc/Gaia/Math/AMGColor.h": "Gaia/Math/AMGColor.h",
+    "libEffectSDK/inc/Gaia/Math/AMGColorSpaceConversion.h": "Gaia/Math/AMGColorSpaceConversion.h",
+    "libEffectSDK/inc/Gaia/Math/AMGCurve.h": "Gaia/Math/AMGCurve.h",
+    "libEffectSDK/inc/Gaia/Math/AMGDynamicBitset.h": "Gaia/Math/AMGDynamicBitset.h",
+    "libEffectSDK/inc/Gaia/Math/AMGFloatConversion.h": "Gaia/Math/AMGFloatConversion.h",
+    "libEffectSDK/inc/Gaia/Math/AMGHashFunction.h": "Gaia/Math/AMGHashFunction.h",
+    "libEffectSDK/inc/Gaia/Math/AMGMatrix3x3.h": "Gaia/Math/AMGMatrix3x3.h",
+    "libEffectSDK/inc/Gaia/Math/AMGMatrix4x4.h": "Gaia/Math/AMGMatrix4x4.h",
+    "libEffectSDK/inc/Gaia/Math/AMGPerlinNoise.h": "Gaia/Math/AMGPerlinNoise.h",
+    "libEffectSDK/inc/Gaia/Math/AMGPolynomials.h": "Gaia/Math/AMGPolynomials.h",
+    "libEffectSDK/inc/Gaia/Math/AMGQuaternion.h": "Gaia/Math/AMGQuaternion.h",
+    "libEffectSDK/inc/Gaia/Math/AMGRect.h": "Gaia/Math/AMGRect.h",
+    "libEffectSDK/inc/Gaia/Math/AMGSphericalHarmonics.h": "Gaia/Math/AMGSphericalHarmonics.h",
+    "libEffectSDK/inc/Gaia/Math/AMGVector2.h": "Gaia/Math/AMGVector2.h",
+    "libEffectSDK/inc/Gaia/Math/AMGVector2i.h": "Gaia/Math/AMGVector2i.h",
+    "libEffectSDK/inc/Gaia/Math/AMGVector3.h": "Gaia/Math/AMGVector3.h",
+    "libEffectSDK/inc/Gaia/Math/AMGVector3i.h": "Gaia/Math/AMGVector3i.h",
+    "libEffectSDK/inc/Gaia/Math/AMGVector4.h": "Gaia/Math/AMGVector4.h",
+    "libEffectSDK/inc/Gaia/Math/Random/AMGRandom.h": "Gaia/Math/Random/AMGRandom.h",
+    "libEffectSDK/inc/Gaia/Math/Random/amg_rand.h": "Gaia/Math/Random/amg_rand.h",
+    "libEffectSDK/inc/Gaia/MemoryManager/AMGAllocationHeader.h": "Gaia/MemoryManager/AMGAllocationHeader.h",
+    "libEffectSDK/inc/Gaia/MemoryManager/AMGBaseAllocator.h": "Gaia/MemoryManager/AMGBaseAllocator.h",
+    "libEffectSDK/inc/Gaia/MemoryManager/AMGDefaultAllocator.h": "Gaia/MemoryManager/AMGDefaultAllocator.h",
+    "libEffectSDK/inc/Gaia/MemoryManager/AMGLowLevelAllocator.h": "Gaia/MemoryManager/AMGLowLevelAllocator.h",
+    "libEffectSDK/inc/Gaia/MemoryManager/AMGMemoryLabelNames.h": "Gaia/MemoryManager/AMGMemoryLabelNames.h",
+    "libEffectSDK/inc/Gaia/MemoryManager/AMGMemoryLabels.h": "Gaia/MemoryManager/AMGMemoryLabels.h",
+    "libEffectSDK/inc/Gaia/MemoryManager/AMGMemoryManager.h": "Gaia/MemoryManager/AMGMemoryManager.h",
+    "libEffectSDK/inc/Gaia/MemoryManager/AMGMemoryManagerCommon.h": "Gaia/MemoryManager/AMGMemoryManagerCommon.h",
+    "libEffectSDK/inc/Gaia/MemoryManager/AMGMemoryPool.h": "Gaia/MemoryManager/AMGMemoryPool.h",
+    "libEffectSDK/inc/Gaia/Message/AMGMessageCenter.h": "Gaia/Message/AMGMessageCenter.h",
+    "libEffectSDK/inc/Gaia/Message/AMGMessageQueue.h": "Gaia/Message/AMGMessageQueue.h",
+    "libEffectSDK/inc/Gaia/Network/AMGNetHeaderMessageProcessor.h": "Gaia/Network/AMGNetHeaderMessageProcessor.h",
+    "libEffectSDK/inc/Gaia/Network/AMGNetMessageProcessor.h": "Gaia/Network/AMGNetMessageProcessor.h",
+    "libEffectSDK/inc/Gaia/Network/AMGNetworkCall.h": "Gaia/Network/AMGNetworkCall.h",
+    "libEffectSDK/inc/Gaia/Network/AMGNetworkClient.h": "Gaia/Network/AMGNetworkClient.h",
+    "libEffectSDK/inc/Gaia/Network/AMGNetworkPrerequisites.h": "Gaia/Network/AMGNetworkPrerequisites.h",
+    "libEffectSDK/inc/Gaia/Network/AMGNetworkRequest.h": "Gaia/Network/AMGNetworkRequest.h",
+    "libEffectSDK/inc/Gaia/Network/AMGP2PClient.h": "Gaia/Network/AMGP2PClient.h",
+    "libEffectSDK/inc/Gaia/Network/AMGP2PService.h": "Gaia/Network/AMGP2PService.h",
+    "libEffectSDK/inc/Gaia/Performance/AMGPerformance.h": "Gaia/Performance/AMGPerformance.h",
+    "libEffectSDK/inc/Gaia/Performance/AMGPerformanceEvaluation.h": "Gaia/Performance/AMGPerformanceEvaluation.h",
+    "libEffectSDK/inc/Gaia/Platform/AMGPlatformDef.h": "Gaia/Platform/AMGPlatformDef.h",
+    "libEffectSDK/inc/Gaia/STL/Sort.h": "Gaia/STL/Sort.h",
+    "libEffectSDK/inc/Gaia/Text/AMGSTBTrueType.h": "Gaia/Text/AMGSTBTrueType.h",
+    "libEffectSDK/inc/Gaia/Thread/AMGThreadFactory.h": "Gaia/Thread/AMGThreadFactory.h",
+    "libEffectSDK/inc/Gaia/Thread/AMGThreadWrapper.h": "Gaia/Thread/AMGThreadWrapper.h",
+    "libEffectSDK/inc/GitVersion.h": "GitVersion.h",
+    "libEffectSDK/inc/LiveAudioPlayer.h": "LiveAudioPlayer.h",
+    "libEffectSDK/inc/MessageDefine.h": "MessageDefine.h",
+    "libEffectSDK/inc/RenderMsgDefine.h": "RenderMsgDefine.h",
+    "libEffectSDK/inc/RenderMsgDelegate.h": "RenderMsgDelegate.h",
+    "libEffectSDK/inc/RequirementDefine.h": "RequirementDefine.h",
+    "libEffectSDK/inc/VEAudioPlayerFactory.h": "VEAudioPlayerFactory.h",
+    "libEffectSDK/inc/VEVideoPlayerFactory.h": "VEVideoPlayerFactory.h",
+    "libEffectSDK/inc/VideoPlayerInterface.h": "VideoPlayerInterface.h",
+    "libEffectSDK/inc/bef_ae_brick_api.h": "bef_ae_brick_api.h",
+    "libEffectSDK/inc/bef_ae_device_monitor_api.h": "bef_ae_device_monitor_api.h",
+    "libEffectSDK/inc/bef_ae_device_monitor_define.h": "bef_ae_device_monitor_define.h",
+    "libEffectSDK/inc/bef_ae_style_api.h": "bef_ae_style_api.h",
+    "libEffectSDK/inc/bef_ae_video_canvas_api.h": "bef_ae_video_canvas_api.h",
+    "libEffectSDK/inc/bef_ae_video_feature_api.h": "bef_ae_video_feature_api.h",
+    "libEffectSDK/inc/bef_app_manager_api.h": "bef_app_manager_api.h",
+    "libEffectSDK/inc/bef_benchmark_api.h": "bef_benchmark_api.h",
+    "libEffectSDK/inc/bef_effect_3d_object_manipulate_api.h": "bef_effect_3d_object_manipulate_api.h",
+    "libEffectSDK/inc/bef_effect_aerender_api.h": "bef_effect_aerender_api.h",
+    "libEffectSDK/inc/bef_effect_algorithm_after_effect.h": "bef_effect_algorithm_after_effect.h",
+    "libEffectSDK/inc/bef_effect_algorithm_api.h": "bef_effect_algorithm_api.h",
+    "libEffectSDK/inc/bef_effect_algorithm_audio_onset_api.h": "bef_effect_algorithm_audio_onset_api.h",
+    "libEffectSDK/inc/bef_effect_algorithm_c1.h": "bef_effect_algorithm_c1.h",
+    "libEffectSDK/inc/bef_effect_algorithm_cap.h": "bef_effect_algorithm_cap.h",
+    "libEffectSDK/inc/bef_effect_algorithm_face.h": "bef_effect_algorithm_face.h",
+    "libEffectSDK/inc/bef_effect_algorithm_face_clusting.h": "bef_effect_algorithm_face_clusting.h",
+    "libEffectSDK/inc/bef_effect_algorithm_face_verify.h": "bef_effect_algorithm_face_verify.h",
+    "libEffectSDK/inc/bef_effect_algorithm_general_obj_detect_api.h": "bef_effect_algorithm_general_obj_detect_api.h",
+    "libEffectSDK/inc/bef_effect_algorithm_portrait_matting_api.h": "bef_effect_algorithm_portrait_matting_api.h",
+    "libEffectSDK/inc/bef_effect_algorithm_rect_doc_det_api.h": "bef_effect_algorithm_rect_doc_det_api.h",
+    "libEffectSDK/inc/bef_effect_algorithm_similarity.h": "bef_effect_algorithm_similarity.h",
+    "libEffectSDK/inc/bef_effect_allow_list.h": "bef_effect_allow_list.h",
+    "libEffectSDK/inc/bef_effect_api.h": "bef_effect_api.h",
+    "libEffectSDK/inc/bef_effect_ar_core_api.h": "bef_effect_ar_core_api.h",
+    "libEffectSDK/inc/bef_effect_ar_core_define.h": "bef_effect_ar_core_define.h",
+    "libEffectSDK/inc/bef_effect_audio_api.h": "bef_effect_audio_api.h",
+    "libEffectSDK/inc/bef_effect_audio_effect.h": "bef_effect_audio_effect.h",
+    "libEffectSDK/inc/bef_effect_bach_api.h": "bef_effect_bach_api.h",
+    "libEffectSDK/inc/bef_effect_brush2d_define.h": "bef_effect_brush2d_define.h",
+    "libEffectSDK/inc/bef_effect_build_macro.h": "bef_effect_build_macro.h",
+    "libEffectSDK/inc/bef_effect_cloud_rendering_define.h": "bef_effect_cloud_rendering_define.h",
+    "libEffectSDK/inc/bef_effect_codec_api.h": "bef_effect_codec_api.h",
+    "libEffectSDK/inc/bef_effect_codec_define.h": "bef_effect_codec_define.h",
+    "libEffectSDK/inc/bef_effect_common.h": "bef_effect_common.h",
+    "libEffectSDK/inc/bef_effect_composer.h": "bef_effect_composer.h",
+    "libEffectSDK/inc/bef_effect_dynamic_load_library.h": "bef_effect_dynamic_load_library.h",
+    "libEffectSDK/inc/bef_effect_editor_api.h": "bef_effect_editor_api.h",
+    "libEffectSDK/inc/bef_effect_face_detect.h": "bef_effect_face_detect.h",
+    "libEffectSDK/inc/bef_effect_face_distortionV2.h": "bef_effect_face_distortionV2.h",
+    "libEffectSDK/inc/bef_effect_for_faceReshapeTool.h": "bef_effect_for_faceReshapeTool.h",
+    "libEffectSDK/inc/bef_effect_general_param.h": "bef_effect_general_param.h",
+    "libEffectSDK/inc/bef_effect_global_filter.h": "bef_effect_global_filter.h",
+    "libEffectSDK/inc/bef_effect_gpu_detect.h": "bef_effect_gpu_detect.h",
+    "libEffectSDK/inc/bef_effect_hand_detect.h": "bef_effect_hand_detect.h",
+    "libEffectSDK/inc/bef_effect_ibr_api.h": "bef_effect_ibr_api.h",
+    "libEffectSDK/inc/bef_effect_ibr_define.h": "bef_effect_ibr_define.h",
+    "libEffectSDK/inc/bef_effect_image_decode_api.h": "bef_effect_image_decode_api.h",
+    "libEffectSDK/inc/bef_effect_image_decode_define.h": "bef_effect_image_decode_define.h",
+    "libEffectSDK/inc/bef_effect_imgproc.h": "bef_effect_imgproc.h",
+    "libEffectSDK/inc/bef_effect_javascript_binding.h": "bef_effect_javascript_binding.h",
+    "libEffectSDK/inc/bef_effect_lua_base_object.h": "bef_effect_lua_base_object.h",
+    "libEffectSDK/inc/bef_effect_mv_api.h": "bef_effect_mv_api.h",
+    "libEffectSDK/inc/bef_effect_photo_face_detect.h": "bef_effect_photo_face_detect.h",
+    "libEffectSDK/inc/bef_effect_public_avatar_drive_define.h": "bef_effect_public_avatar_drive_define.h",
+    "libEffectSDK/inc/bef_effect_public_business_define.h": "bef_effect_public_business_define.h",
+    "libEffectSDK/inc/bef_effect_public_business_mv_define.h": "bef_effect_public_business_mv_define.h",
+    "libEffectSDK/inc/bef_effect_public_define.h": "bef_effect_public_define.h",
+    "libEffectSDK/inc/bef_effect_public_face_define.h": "bef_effect_public_face_define.h",
+    "libEffectSDK/inc/bef_effect_public_frame_info_define.h": "bef_effect_public_frame_info_define.h",
+    "libEffectSDK/inc/bef_effect_public_hand_define.h": "bef_effect_public_hand_define.h",
+    "libEffectSDK/inc/bef_effect_public_skeleton_define.h": "bef_effect_public_skeleton_define.h",
+    "libEffectSDK/inc/bef_effect_pure_algorithm_api.h": "bef_effect_pure_algorithm_api.h",
+    "libEffectSDK/inc/bef_effect_sticker.h": "bef_effect_sticker.h",
+    "libEffectSDK/inc/bef_effect_touch_api.h": "bef_effect_touch_api.h",
+    "libEffectSDK/inc/bef_effect_transition_api.h": "bef_effect_transition_api.h",
+    "libEffectSDK/inc/bef_effect_update_api.h": "bef_effect_update_api.h",
+    "libEffectSDK/inc/bef_effect_video_after_effect.h": "bef_effect_video_after_effect.h",
+    "libEffectSDK/inc/bef_effect_xt.h": "bef_effect_xt.h",
+    "libEffectSDK/inc/bef_effect_xt_define.h": "bef_effect_xt_define.h",
+    "libEffectSDK/inc/bef_framework_public_algorithm_define.h": "bef_framework_public_algorithm_define.h",
+    "libEffectSDK/inc/bef_framework_public_base_define.h": "bef_framework_public_base_define.h",
+    "libEffectSDK/inc/bef_framework_public_constant_define.h": "bef_framework_public_constant_define.h",
+    "libEffectSDK/inc/bef_framework_public_enum_define.h": "bef_framework_public_enum_define.h",
+    "libEffectSDK/inc/bef_framework_public_geometry_define.h": "bef_framework_public_geometry_define.h",
+    "libEffectSDK/inc/bef_game_api.h": "bef_game_api.h",
+    "libEffectSDK/inc/bef_game_public_define.h": "bef_game_public_define.h",
+    "libEffectSDK/inc/bef_info_sticker_api.h": "bef_info_sticker_api.h",
+    "libEffectSDK/inc/bef_info_sticker_public_define.h": "bef_info_sticker_public_define.h",
+    "libEffectSDK/inc/bef_msg_delegate_manager.h": "bef_msg_delegate_manager.h",
+    "libEffectSDK/inc/bef_slam_api.h": "bef_slam_api.h",
+    "libEffectSDK/inc/bef_slam_camera_api.h": "bef_slam_camera_api.h",
+    "libEffectSDK/inc/bef_swing_api.h": "bef_swing_api.h",
+    "libEffectSDK/inc/bef_swing_async_api.h": "bef_swing_async_api.h",
+    "libEffectSDK/inc/bef_swing_async_define.h": "bef_swing_async_define.h",
+    "libEffectSDK/inc/bef_swing_define.h": "bef_swing_define.h",
+    "libEffectSDK/inc/bef_swing_key_frame_api.h": "bef_swing_key_frame_api.h",
+    "libEffectSDK/inc/bef_swing_manager_api.h": "bef_swing_manager_api.h",
+    "libEffectSDK/inc/bef_swing_segment_api.h": "bef_swing_segment_api.h",
+    "libEffectSDK/inc/bef_swing_segment_custom_api.h": "bef_swing_segment_custom_api.h",
+    "libEffectSDK/inc/bef_swing_segment_feature_api.h": "bef_swing_segment_feature_api.h",
+    "libEffectSDK/inc/bef_swing_segment_script_api.h": "bef_swing_segment_script_api.h",
+    "libEffectSDK/inc/bef_swing_segment_static_api.h": "bef_swing_segment_static_api.h",
+    "libEffectSDK/inc/bef_swing_segment_sticker_api.h": "bef_swing_segment_sticker_api.h",
+    "libEffectSDK/inc/bef_swing_segment_sticker_brush_api.h": "bef_swing_segment_sticker_brush_api.h",
+    "libEffectSDK/inc/bef_swing_segment_sticker_pin_api.h": "bef_swing_segment_sticker_pin_api.h",
+    "libEffectSDK/inc/bef_swing_segment_sticker_template_api.h": "bef_swing_segment_sticker_template_api.h",
+    "libEffectSDK/inc/bef_swing_segment_sticker_text_api.h": "bef_swing_segment_sticker_text_api.h",
+    "libEffectSDK/inc/bef_swing_segment_video_api.h": "bef_swing_segment_video_api.h",
+    "libEffectSDK/inc/bef_swing_track_api.h": "bef_swing_track_api.h",
+    "libEffectSDK/inc/bef_swing_tracker_api.h": "bef_swing_tracker_api.h",
+    "libEffectSDK/inc/bef_view_api.h": "bef_view_api.h",
+    "libEffectSDK/inc/bef_view_public_define.h": "bef_view_public_define.h",
+  },
+  xcconfig_by_build_setting = defs_xcconfigs.get("EffectSDK_iOS", {}),
+  visibility = ["//visibility:public"],
+)

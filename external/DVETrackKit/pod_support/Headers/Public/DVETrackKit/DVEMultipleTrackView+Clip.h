@@ -1,0 +1,1 @@
+../../../../DVETrackKit/Classes/MultipleTrack/DVEMultipleTrackView+Clip.h

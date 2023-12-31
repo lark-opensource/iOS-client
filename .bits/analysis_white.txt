@@ -1,0 +1,33 @@
+# MR场景静态分析白名单配置文件
+
+# 1. # 开头的行作为注释
+# 2. 使用 Python 正则表达式匹配文件进行过滤, 参考 https://docs.python.org/3.9/library/re.html
+# 3. 每一行代表一条匹配规则
+
+# 示例
+# (/.+)*/.*\.swift
+# .+/Foundation/Libs/LarkStorage/.+
+# Modules/ByteView/Modules/ByteView/src/Core/Common/.+
+
+# 注意
+# 1. 每条规则不用加引号
+# 2. 静态分析引擎会使用文件的 绝对路径 进行规则匹配, 所以像 ^Modules/.+/.*\.swift 这种会匹配失败
+# 3. 如果不确定规则能否生效, 本地使用 python 验证即可
+
+# 忽略单测文件（xxxTest.swift xxxTests.swift）
+.+Test(s)?\.swift
+
+# 忽略 external/ -- 二三方库
+external/
+
+# 忽略单测模块
+Modules/OpenPlatform/OPUnitTestFoundation/.+
+
+# 忽略 Debug 文件
+.+Debug.+\.swift
+
+# 忽略 Debug 目录
+.+Debug/.+
+
+# Demo 工程
+.+/app/app/.+

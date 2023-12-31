@@ -1,0 +1,42 @@
+{
+  "name": "Mantle",
+  "version": "2.1.2-rc2",
+  "summary": "framework_summary",
+  "homepage": "https://github.com/Mantle/Mantle",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "Github": "support@github.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:aweme/Mantle.git",
+    "commit": "745701511b06a273003345bd2a3bfa9e14c19105"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "source_files": "Mantle",
+  "frameworks": "Foundation",
+  "subspecs": [
+    {
+      "name": "extobjc",
+      "source_files": "Mantle/extobjc",
+      "private_header_files": "Mantle/extobjc/*.h"
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "1196",
+    "app_id": "1128"
+  },
+  "repoId": "1196",
+  "description": "framework_description",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "Mantle_POD_VERSION=@\\\"1128_2.1.2-rc2\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "Mantle_POD_VERSION=@\\\"1128_2.1.2-rc2\\\""
+  }
+}

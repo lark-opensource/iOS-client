@@ -1,0 +1,1 @@
+../../../bitsky_plugin/defs.bzl

@@ -1,0 +1,1 @@
+../../../../TSPrivacyKit/Classes/Core/Events/TSPKEventManager.h

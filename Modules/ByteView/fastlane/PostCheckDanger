@@ -1,0 +1,38 @@
+# Sometimes it's a README fix, or something like that - which isn't relevant for
+# including in a project's CHANGELOG for example
+
+# MR info
+
+# basic check
+
+markdown("<details><summary>swiftlint</summary>")
+swiftlint.verbose = true
+swiftlint.lint_all_files = true
+swiftlint.lint_files
+markdown("</details>")
+
+# Ignoring warnings from Pods
+xcode_summary.ignored_files = ['Example/**','DerivedData/**']
+
+# Ignoring specific warnings
+xcode_summary.ignored_results { |result|
+  result.location.nil?
+}
+xcode_summary.inline_mode = true
+xcode_summary.report 'reports/xcodebuild.json'
+
+coberturafile = 'reports/cobertura.xml'
+if File.file?(coberturafile)
+  markdown("<details><summary>cobertura</summary>")
+  cobertura.report = coberturafile
+  cobertura.warn_if_file_less_than(percentage: 50.0)
+  cobertura.fail_if_file_less_than(percentage: 30.0)
+  cobertura.additional_headers = [:line, :branch]
+  cobertura.show_coverage
+  markdown("</details>")
+else
+  warn('没有发现代码覆盖率统计文件')
+end
+
+# LGTM
+message("LGTM") if (violation_report[:errors] + violation_report[:warnings]).count.zero?

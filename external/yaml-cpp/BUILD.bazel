@@ -1,0 +1,633 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "yaml-cpp_pod_hdrs",
+  srcs = [
+    ":yaml-cpp_root_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "yaml-cpp_private_includes",
+  include = [
+    "external/yaml-cpp/pod_support/Headers/Private/yaml-cpp/"
+  ],
+  deps = [],
+  external_name = "yaml-cpp"
+)
+gen_includes(
+  name = "yaml-cpp_public_includes",
+  include = [
+    "external/yaml-cpp/pod_support/Headers/Public/yaml-cpp/"
+  ],
+  deps = [],
+  external_name = "yaml-cpp"
+)
+filegroup(
+  name = "_yaml-cpp_hdrs",
+  srcs = [
+    ":yaml-cpp_root_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "yaml-cpp_xcode_hmapsource",
+  hdrs = [
+    ":_yaml-cpp_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "yaml-cpp_xcode_hmap",
+  dep = ":yaml-cpp_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/yaml-cpp/*-bitsky-generated.modulemap", "pod_support/Headers/Public/yaml-cpp/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "yaml-cpp_custom_includes",
+  include = [
+    "external/yaml-cpp/include",
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "yaml-cpp",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "yaml-cpp_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":yaml-cpp_xcode_hmap"
+  ],
+  external_name = "yaml-cpp",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "yaml-cpp_root_hdrs",
+  srcs = [
+    "include/yaml-cpp/anchor.h",
+    "include/yaml-cpp/binary.h",
+    "include/yaml-cpp/dll.h",
+    "include/yaml-cpp/emitfromevents.h",
+    "include/yaml-cpp/emitter.h",
+    "include/yaml-cpp/emitterdef.h",
+    "include/yaml-cpp/emittermanip.h",
+    "include/yaml-cpp/emitterstyle.h",
+    "include/yaml-cpp/eventhandler.h",
+    "include/yaml-cpp/exceptions.h",
+    "include/yaml-cpp/mark.h",
+    "include/yaml-cpp/node/convert.h",
+    "include/yaml-cpp/node/detail/bool_type.h",
+    "include/yaml-cpp/node/detail/impl.h",
+    "include/yaml-cpp/node/detail/iterator.h",
+    "include/yaml-cpp/node/detail/iterator_fwd.h",
+    "include/yaml-cpp/node/detail/memory.h",
+    "include/yaml-cpp/node/detail/node.h",
+    "include/yaml-cpp/node/detail/node_data.h",
+    "include/yaml-cpp/node/detail/node_iterator.h",
+    "include/yaml-cpp/node/detail/node_ref.h",
+    "include/yaml-cpp/node/emit.h",
+    "include/yaml-cpp/node/impl.h",
+    "include/yaml-cpp/node/iterator.h",
+    "include/yaml-cpp/node/node.h",
+    "include/yaml-cpp/node/parse.h",
+    "include/yaml-cpp/node/ptr.h",
+    "include/yaml-cpp/node/type.h",
+    "include/yaml-cpp/noncopyable.h",
+    "include/yaml-cpp/null.h",
+    "include/yaml-cpp/ostream_wrapper.h",
+    "include/yaml-cpp/parser.h",
+    "include/yaml-cpp/stlemitter.h",
+    "include/yaml-cpp/traits.h",
+    "include/yaml-cpp/yaml.h",
+    "src/collectionstack.h",
+    "src/directives.h",
+    "src/emitterstate.h",
+    "src/emitterutils.h",
+    "src/exp.h",
+    "src/indentation.h",
+    "src/nodebuilder.h",
+    "src/nodeevents.h",
+    "src/ptr_vector.h",
+    "src/regex_yaml.h",
+    "src/regeximpl.h",
+    "src/scanner.h",
+    "src/scanscalar.h",
+    "src/scantag.h",
+    "src/setting.h",
+    "src/singledocparser.h",
+    "src/stream.h",
+    "src/streamcharsource.h",
+    "src/stringsource.h",
+    "src/tag.h",
+    "src/token.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "yaml-cpp_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/yaml-cpp/collectionstack.h",
+    "pod_support/Headers/Private/yaml-cpp/directives.h",
+    "pod_support/Headers/Private/yaml-cpp/emitterstate.h",
+    "pod_support/Headers/Private/yaml-cpp/emitterutils.h",
+    "pod_support/Headers/Private/yaml-cpp/exp.h",
+    "pod_support/Headers/Private/yaml-cpp/indentation.h",
+    "pod_support/Headers/Private/yaml-cpp/nodebuilder.h",
+    "pod_support/Headers/Private/yaml-cpp/nodeevents.h",
+    "pod_support/Headers/Private/yaml-cpp/ptr_vector.h",
+    "pod_support/Headers/Private/yaml-cpp/regex_yaml.h",
+    "pod_support/Headers/Private/yaml-cpp/regeximpl.h",
+    "pod_support/Headers/Private/yaml-cpp/scanner.h",
+    "pod_support/Headers/Private/yaml-cpp/scanscalar.h",
+    "pod_support/Headers/Private/yaml-cpp/scantag.h",
+    "pod_support/Headers/Private/yaml-cpp/setting.h",
+    "pod_support/Headers/Private/yaml-cpp/singledocparser.h",
+    "pod_support/Headers/Private/yaml-cpp/stream.h",
+    "pod_support/Headers/Private/yaml-cpp/streamcharsource.h",
+    "pod_support/Headers/Private/yaml-cpp/stringsource.h",
+    "pod_support/Headers/Private/yaml-cpp/tag.h",
+    "pod_support/Headers/Private/yaml-cpp/token.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/anchor.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/binary.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/dll.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/emitfromevents.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/emitter.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/emitterdef.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/emittermanip.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/emitterstyle.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/eventhandler.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/exceptions.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/mark.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/node/convert.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/node/detail/bool_type.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/node/detail/impl.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/node/detail/iterator.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/node/detail/iterator_fwd.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/node/detail/memory.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/node/detail/node.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/node/detail/node_data.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/node/detail/node_iterator.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/node/detail/node_ref.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/node/emit.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/node/impl.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/node/iterator.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/node/node.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/node/parse.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/node/ptr.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/node/type.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/noncopyable.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/null.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/ostream_wrapper.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/parser.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/stlemitter.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/traits.h",
+    "pod_support/Headers/Private/yaml-cpp/yaml-cpp/yaml.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/anchor.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/binary.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/dll.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/emitfromevents.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/emitter.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/emitterdef.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/emittermanip.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/emitterstyle.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/eventhandler.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/exceptions.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/mark.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/node/convert.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/node/detail/bool_type.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/node/detail/impl.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/node/detail/iterator.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/node/detail/iterator_fwd.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/node/detail/memory.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/node/detail/node.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/node/detail/node_data.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/node/detail/node_iterator.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/node/detail/node_ref.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/node/emit.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/node/impl.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/node/iterator.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/node/node.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/node/parse.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/node/ptr.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/node/type.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/noncopyable.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/null.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/ostream_wrapper.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/parser.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/stlemitter.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/traits.h",
+    "pod_support/Headers/Public/yaml-cpp/yaml-cpp/yaml.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "yaml-cpp_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "yaml-cpp_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "yaml-cpp_module_map",
+  module_map = "pod_support/Headers/Public/yaml-cpp/yaml-cpp-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/yaml-cpp/yaml-cpp-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "yaml-cpp_root_srcs",
+  srcs = [
+    "src/binary.cpp",
+    "src/convert.cpp",
+    "src/directives.cpp",
+    "src/emit.cpp",
+    "src/emitfromevents.cpp",
+    "src/emitter.cpp",
+    "src/emitterstate.cpp",
+    "src/emitterutils.cpp",
+    "src/exceptions.cpp",
+    "src/exp.cpp",
+    "src/memory.cpp",
+    "src/node.cpp",
+    "src/node_data.cpp",
+    "src/nodebuilder.cpp",
+    "src/nodeevents.cpp",
+    "src/null.cpp",
+    "src/ostream_wrapper.cpp",
+    "src/parse.cpp",
+    "src/parser.cpp",
+    "src/regex_yaml.cpp",
+    "src/scanner.cpp",
+    "src/scanscalar.cpp",
+    "src/scantag.cpp",
+    "src/scantoken.cpp",
+    "src/simplekey.cpp",
+    "src/singledocparser.cpp",
+    "src/stream.cpp",
+    "src/tag.cpp"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "yaml-cpp_oc",
+  enable_modules = 1,
+  srcs = [
+    "yaml-cpp_root_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "yaml-cpp_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":yaml-cpp_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":yaml-cpp_private_includes",
+    ":yaml-cpp_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":yaml-cpp_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dyaml_cpp_POD_VERSION=@\\\"9999_0.6.2.4\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "yaml-cpp",
+  deps = [
+    ":yaml-cpp_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "yaml-cpp_lib",
+  deps = [
+    ":yaml-cpp"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_yaml-cpp_module_map",
+  module_map = "@yaml-cpp//:pod_support/Headers/Public/yaml-cpp/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@yaml-cpp//:pod_support/Headers/Public/yaml-cpp/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_yaml-cpp_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@yaml-cpp//:yaml-cpp_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_yaml-cpp",
+  target_name = "Lark",
+  module_name = "yaml_cpp",
+  hdrs = ["@yaml-cpp//:yaml-cpp_root_pod_hdrs"],
+  srcs = ["@yaml-cpp//:yaml-cpp_root_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dyaml_cpp_POD_VERSION=@\\\"9999_0.6.2.4\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "yaml_cpp_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "yaml_cpp_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = ["c++"],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "yaml_cpp_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "yaml_cpp_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "yaml_cpp_dynamic", False),
+  tags = getattr(defs_external_objc_library, "yaml_cpp_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  header_mappings = {
+    "*": "*",
+    "include/yaml-cpp/anchor.h": "yaml-cpp/anchor.h",
+    "include/yaml-cpp/binary.h": "yaml-cpp/binary.h",
+    "include/yaml-cpp/dll.h": "yaml-cpp/dll.h",
+    "include/yaml-cpp/emitfromevents.h": "yaml-cpp/emitfromevents.h",
+    "include/yaml-cpp/emitter.h": "yaml-cpp/emitter.h",
+    "include/yaml-cpp/emitterdef.h": "yaml-cpp/emitterdef.h",
+    "include/yaml-cpp/emittermanip.h": "yaml-cpp/emittermanip.h",
+    "include/yaml-cpp/emitterstyle.h": "yaml-cpp/emitterstyle.h",
+    "include/yaml-cpp/eventhandler.h": "yaml-cpp/eventhandler.h",
+    "include/yaml-cpp/exceptions.h": "yaml-cpp/exceptions.h",
+    "include/yaml-cpp/mark.h": "yaml-cpp/mark.h",
+    "include/yaml-cpp/node/convert.h": "yaml-cpp/node/convert.h",
+    "include/yaml-cpp/node/detail/bool_type.h": "yaml-cpp/node/detail/bool_type.h",
+    "include/yaml-cpp/node/detail/impl.h": "yaml-cpp/node/detail/impl.h",
+    "include/yaml-cpp/node/detail/iterator.h": "yaml-cpp/node/detail/iterator.h",
+    "include/yaml-cpp/node/detail/iterator_fwd.h": "yaml-cpp/node/detail/iterator_fwd.h",
+    "include/yaml-cpp/node/detail/memory.h": "yaml-cpp/node/detail/memory.h",
+    "include/yaml-cpp/node/detail/node.h": "yaml-cpp/node/detail/node.h",
+    "include/yaml-cpp/node/detail/node_data.h": "yaml-cpp/node/detail/node_data.h",
+    "include/yaml-cpp/node/detail/node_iterator.h": "yaml-cpp/node/detail/node_iterator.h",
+    "include/yaml-cpp/node/detail/node_ref.h": "yaml-cpp/node/detail/node_ref.h",
+    "include/yaml-cpp/node/emit.h": "yaml-cpp/node/emit.h",
+    "include/yaml-cpp/node/impl.h": "yaml-cpp/node/impl.h",
+    "include/yaml-cpp/node/iterator.h": "yaml-cpp/node/iterator.h",
+    "include/yaml-cpp/node/node.h": "yaml-cpp/node/node.h",
+    "include/yaml-cpp/node/parse.h": "yaml-cpp/node/parse.h",
+    "include/yaml-cpp/node/ptr.h": "yaml-cpp/node/ptr.h",
+    "include/yaml-cpp/node/type.h": "yaml-cpp/node/type.h",
+    "include/yaml-cpp/noncopyable.h": "yaml-cpp/noncopyable.h",
+    "include/yaml-cpp/null.h": "yaml-cpp/null.h",
+    "include/yaml-cpp/ostream_wrapper.h": "yaml-cpp/ostream_wrapper.h",
+    "include/yaml-cpp/parser.h": "yaml-cpp/parser.h",
+    "include/yaml-cpp/stlemitter.h": "yaml-cpp/stlemitter.h",
+    "include/yaml-cpp/traits.h": "yaml-cpp/traits.h",
+    "include/yaml-cpp/yaml.h": "yaml-cpp/yaml.h",
+  },
+  xcconfig_by_build_setting = defs_xcconfigs.get("yaml_cpp", {}),
+  visibility = ["//visibility:public"],
+)

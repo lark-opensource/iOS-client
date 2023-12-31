@@ -1,0 +1,15 @@
+source 'https://rubygems.org'
+source "https://rubygems.byted.org"
+
+gem 'xcode-install'
+
+gem 'EEScaffold', '>= 0.1.266'
+gem 'cocoapods-amicable', '~> 0.3.0' # pod 1.7.0需要0.3.0以上
+cocoapods_version = '1.8.4'
+gem 'cocoapods', cocoapods_version # 保证Bundle执行的和本地Podfile兼容
+gem 'brickwork'
+gem 'xcpretty', '0.3.1.1'
+gem 'ffi', '1.13.0'
+
+# 隔离cocoapod缓存环境. cocoapod发现版本不一样会清缓存，这样多个版本混用时会互相清楚，造成并发问题。
+ENV['CP_CACHE_DIR'] = File.join(Dir.home, "Library/Caches/CocoaPods", cocoapods_version)

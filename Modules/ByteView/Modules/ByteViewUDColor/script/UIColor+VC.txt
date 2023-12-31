@@ -1,0 +1,404 @@
+//
+//  Theme.swift
+//  ByteView
+//
+//  Created by 李凌峰 on 2018/8/22.
+//
+
+import Foundation
+import UniverseDesignColor
+import UniverseDesignTheme
+
+
+/// VC UDColor Name Extension
+public extension UDColor.Name {
+    /// vcTokenVCBgBody, Value: "vctoken-vc-bg-body"
+    static let vcTokenVCBgBody = UDColor.Name("vctoken-vc-bg-body")
+    /// vcTokenVCBgVideoCall, Value: "vctoken-vc-bg-video-call"
+    static let vcTokenVCBgVideoCall = UDColor.Name("vctoken-vc-bg-video-call")
+    /// vcTokenVCBgMobileShareBar, Value: "vctoken-vc-bg-mobile-share-bar"
+    static let vcTokenVCBgMobileShareBar = UDColor.Name("vctoken-vc-bg-mobile-share-bar")
+    /// vcTokenVCBgFloat, Value: "vctoken-vc-bg-float"
+    static let vcTokenVCBgFloat = UDColor.Name("vctoken-vc-bg-float")
+    /// vcTokenVCBgCamOff, Value: "vctoken-vc-bg-cam-off"
+    static let vcTokenVCBgCamOff = UDColor.Name("vctoken-vc-bg-cam-off")
+    /// vcTokenVCBtnBgOpacity, Value: "vctoken-vc-btn-bg-opacity"
+    static let vcTokenVCBtnBgOpacity = UDColor.Name("vctoken-vc-btn-bg-opacity")
+    /// vcTokenVCBtnTextSelected, Value: "vctoken-vc-btn-text-selected"
+    static let vcTokenVCBtnTextSelected = UDColor.Name("vctoken-vc-btn-text-selected")
+    /// vcTokenVCBtnFillSelected, Value: "vctoken-vc-btn-fill-selected"
+    static let vcTokenVCBtnFillSelected = UDColor.Name("vctoken-vc-btn-fill-selected")
+    /// vcTokenVCBtnIconSelected, Value: "vctoken-vc-btn-icon-selected"
+    static let vcTokenVCBtnIconSelected = UDColor.Name("vctoken-vc-btn-icon-selected")
+    /// vcTokenVCBgFloatVideo, Value: "vctoken-vc-bg-float-video"
+    static let vcTokenVCBgFloatVideo = UDColor.Name("vctoken-vc-bg-float-video")
+    /// vcTokenVCBtnBgFloat, Value: "vctoken-vc-btn-bg-float"
+    static let vcTokenVCBtnBgFloat = UDColor.Name("vctoken-vc-btn-bg-float")
+    /// vcTokenVCBtnBgFloatHover, Value: "vctoken-vc-btn-bg-float-hover"
+    static let vcTokenVCBtnBgFloatHover = UDColor.Name("vctoken-vc-btn-bg-float-hover")
+    /// vcTokenVCBtnBgFloatPressed, Value: "vctoken-vc-btn-bg-float-pressed"
+    static let vcTokenVCBtnBgFloatPressed = UDColor.Name("vctoken-vc-btn-bg-float-pressed")
+    /// vcTokenVCBgSubtitle, Value: "vctoken-vc-bg-subtitle"
+    static let vcTokenVCBgSubtitle = UDColor.Name("vctoken-vc-bg-subtitle")
+    /// vcTokenVCBgCardEnded, Value: "vctoken-vc-bg-card-ended"
+    static let vcTokenVCBgCardEnded = UDColor.Name("vctoken-vc-bg-card-ended")
+    /// vcTokenVCFillHover, Value: "vctoken-vc-fill-hover"
+    static let vcTokenVCFillHover = UDColor.Name("vctoken-vc-fill-hover")
+    /// vcTokenVCShadowSm, Value: "vctoken-vc-shadow-sm"
+    static let vcTokenVCShadowSm = UDColor.Name("vctoken-vc-shadow-sm")
+    /// vcTokenVCBgCardLeft, Value: "vctoken-vc-bg-card-left"
+    static let vcTokenVCBgCardLeft = UDColor.Name("vctoken-vc-bg-card-left")
+    /// vcTokenVCBgCardRight, Value: "vctoken-vc-bg-card-right"
+    static let vcTokenVCBgCardRight = UDColor.Name("vctoken-vc-bg-card-right")
+    /// vcTokenVCannotateBgRed, Value: "vctoken-vc-annotate-bg-red"
+    static let vcTokenVCannotateBgRed = UDColor.Name("vctoken-vc-annotate-bg-red")
+    /// vcTokenVCannotateBgYellow, Value: "vctoken-vc-annotate-bg-yellow"
+    static let vcTokenVCannotateBgYellow = UDColor.Name("vctoken-vc-annotate-bg-yellow")
+    /// vcTokenVCannotateBgGreen, Value: "vctoken-vc-annotate-bg-green"
+    static let vcTokenVCannotateBgGreen = UDColor.Name("vctoken-vc-annotate-bg-green")
+    /// vcTokenVCannotateBgBlue, Value: "vctoken-vc-annotate-bg-blue"
+    static let vcTokenVCannotateBgBlue = UDColor.Name("vctoken-vc-annotate-bg-blue")
+    /// vcTokenVCannotateBgPurple, Value: "vctoken-vc-annotate-bg-purple"
+    static let vcTokenVCannotateBgPurple = UDColor.Name("vctoken-vc-annotate-bg-purple")
+    /// vcTokenVCBtnBgNewMeeting, Value: "vctoken-vc-btn-bg-new-meeting"
+    static let vcTokenVCBtnBgNewMeeting = UDColor.Name("vctoken-vc-btn-bg-new-meeting")
+    /// vcTokenVCBtnBgSchedule, Value: "vctoken-vc-btn-bg-schedule"
+    static let vcTokenVCBtnBgSchedule = UDColor.Name("vctoken-vc-btn-bg-schedule")
+    /// vcTokenVCBtnBgShareScreen, Value: "vctoken-vc-btn-bg-share-screen"
+    static let vcTokenVCBtnBgShareScreen = UDColor.Name("vctoken-vc-btn-bg-share-screen")
+    /// vcTokenVCBtnBgMinutes, Value: "vctoken-vc-btn-bg-minutes"
+    static let vcTokenVCBtnBgMinutes = UDColor.Name("vctoken-vc-btn-bg-minutes")
+    /// vcTokenVCBtnIconNewMeeting, Value: "vctoken-vc-btn-bg-new-meeting"
+    static let vcTokenVCBtnIconNewMeeting = UDColor.Name("vctoken-vc-btn-icon-new-meeting")
+    /// vcTokenVCBtnIconSchedule, Value: "vctoken-vc-btn-bg-schedule"
+    static let vcTokenVCBtnIconSchedule = UDColor.Name("vctoken-vc-btn-icon-schedule")
+    /// vcTokenVCBtnIconShareScreen, Value: "vctoken-vc-btn-bg-share-screen"
+    static let vcTokenVCBtnIconShareScreen = UDColor.Name("vctoken-vc-btn-icon-share-screen")
+    /// vcTokenVCBtnIconMinutes, Value: "vctoken-vc-btn-bg-minutes"
+    static let vcTokenVCBtnIconMinutes = UDColor.Name("vctoken-vc-btn-icon-minutes")
+    /// vcTokenVCListIconBgOngoing, Value: "vctoken-vc-list-icon-bg-ongoing"
+    static let vcTokenVCListIconBgOngoing = UDColor.Name("vctoken-vc-list-icon-bg-ongoing")
+    /// vcTokenVCListIconBgOngoingHover, Value: "vctoken-vc-list-icon-bg-ongoing-hover"
+    static let vcTokenVCListIconBgOngoingHover = UDColor.Name("vctoken-vc-list-icon-bg-ongoing-hover")
+    /// vcTokenVCListIconBgUpcoming, Value: "vctoken-vc-list-icon-bg-upcoming"
+    static let vcTokenVCListIconBgUpcoming = UDColor.Name("vctoken-vc-list-icon-bg-upcoming")
+    /// vcTokenVCListIconBgUpcomingHover, Value: "vctoken-vc-list-icon-bg-upcoming-hover"
+    static let vcTokenVCListIconBgUpcomingHover = UDColor.Name("vctoken-vc-list-icon-bg-upcoming-hover")
+
+    // ig new token
+    creatNameExtension
+}
+
+/// VC UDColor Token
+extension UDColor {
+    public static var vcTokenVCBgBody: UIColor {
+      return UDColor.getValueByKey(.vcTokenVCBgBody) ?? UDColor.N100 & UDColor.N00
+    }
+
+    public static var vcTokenVCBgVideoCall: UIColor {
+      return UDColor.getValueByKey(.vcTokenVCBgVideoCall) ?? UDColor.N800 & UDColor.N50
+    }
+
+    public static var vcTokenVCBgMobileShareBar: UIColor {
+      return UDColor.getValueByKey(.vcTokenVCBgMobileShareBar) ?? UDColor.N200 & UDColor.N00
+    }
+
+    public static var vcTokenVCBgFloat: UIColor {
+      return UDColor.getValueByKey(.vcTokenVCBgFloat) ?? UDColor.N200 & UDColor.N100
+    }
+
+    public static var vcTokenVCBgCamOff: UIColor {
+      return UDColor.getValueByKey(.vcTokenVCBgCamOff) ?? UDColor.N300 & UDColor.N50
+    }
+
+    public static var vcTokenVCBtnBgOpacity: UIColor {
+        return UDColor.getValueByKey(.vcTokenVCBtnBgOpacity) ?? UDColor.N00.withAlphaComponent(0.9) & UDColor.N300.withAlphaComponent(0.9)
+    }
+
+    public static var vcTokenVCBtnTextSelected: UIColor {
+        return UDColor.getValueByKey(.vcTokenVCBtnTextSelected) ?? UDColor.primaryContentDefault & UDColor.N900
+    }
+
+    public static var vcTokenVCBtnFillSelected: UIColor {
+        return UDColor.getValueByKey(.vcTokenVCBtnFillSelected) ?? UDColor.primaryContentDefault.withAlphaComponent(0.08) & UDColor.N900.withAlphaComponent(0.12)
+    }
+
+    public static var vcTokenVCBtnIconSelected: UIColor {
+        return UDColor.getValueByKey(.vcTokenVCBtnIconSelected) ?? UDColor.primaryContentDefault & UDColor.N800
+    }
+
+    public static var vcTokenVCBgFloatVideo: UIColor {
+      return UDColor.getValueByKey(.vcTokenVCBgFloatVideo) ?? UDColor.N300 & UDColor.N100
+    }
+
+    public static var vcTokenVCBtnBgFloat: UIColor {
+      return UDColor.getValueByKey(.vcTokenVCBtnBgFloat) ?? UDColor.N00 & UDColor.N300
+    }
+
+    public static var vcTokenVCBtnBgFloatHover: UIColor {
+        return UDColor.getValueByKey(.vcTokenVCBtnBgFloatHover) ?? UDColor.N100 & UDColor.N900.withAlphaComponent(0.2)
+    }
+
+    public static var vcTokenVCBtnBgFloatPressed: UIColor {
+      return UDColor.getValueByKey(.vcTokenVCBtnBgFloatPressed) ?? UDColor.N200 & UDColor.N900.withAlphaComponent(0.3)
+    }
+
+    public static var vcTokenVCBgSubtitle: UIColor {
+      return UDColor.getValueByKey(.vcTokenVCBgSubtitle) ?? UDColor.N00 & UDColor.N50.withAlphaComponent(0.6)
+    }
+
+    public static var vcTokenVCBgCardEnded: UIColor {
+        return UDColor.getValueByKey(.vcTokenVCBgCardEnded) ?? UDColor.N500 & UDColor.N400
+    }
+
+    public static var vcTokenVCFillHover: UIColor {
+      return UDColor.getValueByKey(.vcTokenVCFillHover) ?? UDColor.N900.withAlphaComponent(0.06) & UDColor.N900.withAlphaComponent(0.12)
+    }
+
+    public static var vcTokenVCShadowSm: UIColor {
+      return UDColor.getValueByKey(.vcTokenVCShadowSm) ?? UDColor.N900.withAlphaComponent(0.5) & rgb(0x000000).withAlphaComponent(0.5)
+    }
+
+    public static var vcTokenVCBgCardLeft: UIColor {
+      return UDColor.getValueByKey(.vcTokenVCBgCardLeft) ?? rgb(0x2E374D) & rgb(0x2E374D)
+    }
+
+    public static var vcTokenVCBgCardRight: UIColor {
+      return UDColor.getValueByKey(.vcTokenVCBgCardRight) ?? rgb(0x536080) & rgb(0x536080)
+    }
+
+    public static var vcTokenVCannotateBgRed: UIColor {
+      return UDColor.getValueByKey(.vcTokenVCannotateBgRed) ?? rgb(0xF54A45) & rgb(0xF54A45)
+    }
+
+    public static var vcTokenVCannotateBgYellow: UIColor {
+      return UDColor.getValueByKey(.vcTokenVCannotateBgYellow) ?? rgb(0xFFC60A) & rgb(0xFFC60A)
+    }
+
+    public static var vcTokenVCannotateBgGreen: UIColor {
+      return UDColor.getValueByKey(.vcTokenVCannotateBgGreen) ?? rgb(0x34C724) & rgb(0x34C724)
+    }
+
+    public static var vcTokenVCannotateBgBlue: UIColor {
+      return UDColor.getValueByKey(.vcTokenVCannotateBgBlue) ?? rgb(0x3370FF) & rgb(0x3370FF)
+    }
+
+    public static var vcTokenVCannotateBgPurple: UIColor {
+      return UDColor.getValueByKey(.vcTokenVCannotateBgPurple) ?? rgb(0x7F3BF5) & rgb(0x7F3BF5)
+    }
+
+    public static var vcTokenVCBtnBgNewMeeting: UIColor {
+        return UDColor.getValueByKey(.vcTokenVCBtnBgNewMeeting) ?? UDColor.B100 & UDColor.B200
+    }
+
+    public static var vcTokenVCBtnBgSchedule: UIColor {
+        return UDColor.getValueByKey(.vcTokenVCBtnBgSchedule) ?? UDColor.O100 & UDColor.O200
+    }
+
+    public static var vcTokenVCBtnBgShareScreen: UIColor {
+        return UDColor.getValueByKey(.vcTokenVCBtnBgShareScreen) ?? UDColor.G100 & UDColor.G200
+    }
+
+    public static var vcTokenVCBtnBgMinutes: UIColor {
+        return UDColor.getValueByKey(.vcTokenVCBtnBgMinutes) ?? UDColor.W100 & UDColor.W200
+    }
+
+    public static var vcTokenVCBtnIconNewMeeting: UIColor {
+        return UDColor.getValueByKey(.vcTokenVCBtnIconNewMeeting) ?? UDColor.colorfulBlue & UDColor.N00.alwaysLight
+    }
+
+    public static var vcTokenVCBtnIconSchedule: UIColor {
+      return UDColor.getValueByKey(.vcTokenVCBtnIconSchedule) ?? UDColor.colorfulOrange & UDColor.N00.alwaysLight
+    }
+
+    public static var vcTokenVCBtnIconShareScreen: UIColor {
+      return UDColor.getValueByKey(.vcTokenVCBtnIconShareScreen) ?? UDColor.colorfulGreen & UDColor.N00.alwaysLight
+    }
+
+    public static var vcTokenVCBtnIconMinutes: UIColor {
+      return UDColor.getValueByKey(.vcTokenVCBtnIconMinutes) ?? UDColor.colorfulWathet & UDColor.N00.alwaysLight
+    }
+
+    public static var vcTokenVCListIconBgOngoing: UIColor {
+        return UDColor.getValueByKey(.vcTokenVCListIconBgOngoing) ?? UDColor.G100 & UDColor.G200
+    }
+
+    public static var vcTokenVCListIconBgOngoingHover: UIColor {
+        return UDColor.getValueByKey(.vcTokenVCListIconBgOngoingHover) ?? UDColor.N00 & UDColor.G300
+    }
+
+    public static var vcTokenVCListIconBgUpcoming: UIColor {
+        return UDColor.getValueByKey(.vcTokenVCListIconBgUpcoming) ?? UDColor.B100 & UDColor.B200
+    }
+
+    public static var vcTokenVCListIconBgUpcomingHover: UIColor {
+        return UDColor.getValueByKey(.vcTokenVCListIconBgUpcomingHover) ?? UDColor.N00 & UDColor.B300
+    }
+
+    // ig new token
+    creatToken
+}
+
+extension UDComponentsExtension where BaseType == UIColor {
+    /// vcTokenVCBgBody, Value: UDColor.N100 & UDColor.N50
+    public static var vcTokenVCBgBody: UIColor { return UDColor.vcTokenVCBgBody }
+
+    /// vcTokenVCBgVideoCall, Value: UDColor.N800 & UDColor.N50
+    public static var vcTokenVCBgVideoCall: UIColor { return UDColor.vcTokenVCBgVideoCall }
+
+    /// vcTokenVCBgMobileShareBar, Value: UDColor.N200 & UDColor.N50
+    public static var vcTokenVCBgMobileShareBar: UIColor { return UDColor.vcTokenVCBgMobileShareBar }
+
+    /// vcTokenVCBgFloat, Value: UDColor.N200 & UDColor.N100
+    public static var vcTokenVCBgFloat: UIColor { return UDColor.vcTokenVCBgFloat }
+
+    /// vcTokenVCBgCamOff, Value: UDColor.N300 & UDColor.N50
+    public static var vcTokenVCBgCamOff: UIColor { return UDColor.vcTokenVCBgCamOff }
+
+    /// vcTokenVCBtnBgOpacity, Value: UDColor.N00.withAlphaComponent(0.9) & UDColor.N300.withAlphaComponent(0.9)
+    public static var vcTokenVCBtnBgOpacity: UIColor { return UDColor.vcTokenVCBtnBgOpacity }
+
+    /// vcTokenVCBtnTextSelected, Value: UDColor.N500 & UDColor.N900
+    public static var vcTokenVCBtnTextSelected: UIColor { return UDColor.vcTokenVCBtnTextSelected }
+
+    /// vcTokenVCBtnFillSelected, Value: UDColor.primaryContentDefault.withAlphaComponent(0.08) & UDColor.N900.withAlphaComponent(0.12)
+    public static var vcTokenVCBtnFillSelected: UIColor { return UDColor.vcTokenVCBtnFillSelected }
+
+    /// vcTokenVCBtnIconSelected, Value: UDColor.N500 & UDColor.N800
+    public static var vcTokenVCBtnIconSelected: UIColor { return UDColor.vcTokenVCBtnIconSelected }
+
+    /// vcTokenVCBgFloatVideo, Value: UDColor.N300 & UDColor.N100
+    public static var vcTokenVCBgFloatVideo: UIColor { return UDColor.vcTokenVCBgFloatVideo }
+
+    /// vcTokenVCBtnBgFloat, Value: UDColor.N00 & UDColor.N300
+    public static var vcTokenVCBtnBgFloat: UIColor { return UDColor.vcTokenVCBtnBgFloat }
+
+    /// vcTokenVCBtnBgFloatHover, Value: UDColor.N100 & UDColor.N900.withAlphaComponent(0.2)
+    public static var vcTokenVCBtnBgFloatHover: UIColor { return UDColor.vcTokenVCBtnBgFloatHover }
+
+    /// vcTokenVCBtnBgFloatPressed, Value: UDColor.N200 & UDColor.N900.withAlphaComponent(0.3)
+    public static var vcTokenVCBtnBgFloatPressed: UIColor { return UDColor.vcTokenVCBtnBgFloatPressed }
+
+    /// vcTokenVCBgSubtitle, Value: UDColor.N00 & UDColor.N50.withAlphaComponent(0.6)
+    public static var vcTokenVCBgSubtitle: UIColor { return UDColor.vcTokenVCBgSubtitle }
+
+    /// vcTokenVCBgCardEnded, Value: UDColor.N500 & UDColor.N400
+    public static var vcTokenVCBgCardEnded: UIColor { return UDColor.vcTokenVCBgCardEnded }
+
+    /// vcTokenVCFillHover, Value: UDColor.N900.withAlphaComponent(0.06) & UDColor.N900.withAlphaComponent(0.12)
+    public static var vcTokenVCFillHover: UIColor { return UDColor.vcTokenVCFillHover }
+
+    /// vcTokenVCShadowSm, Value: UDColor.N900.withAlphaComponent(0.5) & rgb(0x000000).withAlphaComponent(0.5)
+    public static var vcTokenVCShadowSm: UIColor { return UDColor.vcTokenVCShadowSm }
+
+    /// vcTokenVCBgCardLeft, Value: rgb(0x2E374D) & rgb(0x2E374D)
+    public static var vcTokenVCBgCardLeft: UIColor { return UDColor.vcTokenVCBgCardLeft }
+
+    /// vcTokenVCBgCardRight, Value: rgb(0x536080) & rgb(0x536080)
+    public static var vcTokenVCBgCardRight: UIColor { return UDColor.vcTokenVCBgCardRight }
+
+    /// vcTokenVCannotateBgRed, Value: rgb(0xF54A45) & rgb(0xF54A45)
+    public static var vcTokenVCannotateBgRed: UIColor { return UDColor.vcTokenVCannotateBgRed }
+
+    /// vcTokenVCannotateBgYellow, Value: rgb(0xFFC60A) & rgb(0xFFC60A)
+    public static var vcTokenVCannotateBgYellow: UIColor { return UDColor.vcTokenVCannotateBgYellow }
+
+    /// vcTokenVCannotateBgGreen, Value: rgb(0x34C724) & rgb(0x34C724)
+    public static var vcTokenVCannotateBgGreen: UIColor { return UDColor.vcTokenVCannotateBgGreen }
+
+    /// vcTokenVCannotateBgBlue, Value: rgb(0x3370FF) & rgb(0x3370FF)
+    public static var vcTokenVCannotateBgBlue: UIColor { return UDColor.vcTokenVCannotateBgBlue }
+
+    /// vcTokenVCannotateBgPurple, Value: rgb(0x7F3BF5) & rgb(0x7F3BF5)
+    public static var vcTokenVCannotateBgPurple: UIColor { return UDColor.vcTokenVCannotateBgPurple }
+
+    /// vcTokenVCBtnBgNewMeeting, Value: UDColor.B100 & UDColor.B200
+    public static var vcTokenVCBtnBgNewMeeting: UIColor { return UDColor.vcTokenVCBtnBgNewMeeting }
+
+    /// vcTokenVCBtnBgSchedule, Value: UDColor.O100 & UDColor.O200
+    public static var vcTokenVCBtnBgSchedule: UIColor { return UDColor.vcTokenVCBtnBgSchedule }
+
+    /// vcTokenVCBtnBgShareScreen, Value: UDColor.G100 & UDColor.G200
+    public static var vcTokenVCBtnBgShareScreen: UIColor { return UDColor.vcTokenVCBtnBgShareScreen }
+
+    /// vcTokenVCBtnBgMinutes, Value: UDColor.W100 & UDColor.W200
+    public static var vcTokenVCBtnBgMinutes: UIColor { return UDColor.vcTokenVCBtnBgMinutes }
+
+    /// vcTokenVCBtnIconNewMeeting, Value: UDColor.colorfulBlue & UDColor.N00
+    public static var vcTokenVCBtnIconNewMeeting: UIColor { return UDColor.vcTokenVCBtnIconNewMeeting }
+
+    /// vcTokenVCBtnIconSchedule, Value: UDColor.colorfulOrange & UDColor.N00
+    public static var vcTokenVCBtnIconSchedule: UIColor { return UDColor.vcTokenVCBtnIconSchedule }
+
+    /// vcTokenVCBtnIconShareScreen, Value: UDColor.colorfulGreen & UDColor.N00
+    public static var vcTokenVCBtnIconShareScreen: UIColor { return UDColor.vcTokenVCBtnIconShareScreen }
+
+    /// vcTokenVCBtnIconMinutes, Value: UDColor.colorfulWathet & UDColor.N00
+    public static var vcTokenVCBtnIconMinutes: UIColor { return UDColor.vcTokenVCBtnIconMinutes }
+
+    /// vcTokenVCListIconBgOngoing, Value: UDColor.G100 & UDColor.G200
+    public static var vcTokenVCListIconBgOngoing: UIColor { return UDColor.vcTokenVCListIconBgOngoing }
+
+    /// vcTokenVCListIconBgOngoingHover, Value: UDColor.N00 & UDColor.G300
+    public static var vcTokenVCListIconBgOngoingHover: UIColor { return UDColor.vcTokenVCListIconBgOngoingHover }
+
+    /// vcTokenVCListIconBgUpcoming, Value: UDColor.B100 & UDColor.B200
+    public static var vcTokenVCListIconBgUpcoming: UIColor { return UDColor.vcTokenVCListIconBgUpcoming }
+
+    /// vcTokenVCListIconBgUpcomingHover, Value: UDColor.primaryOnPrimaryFill & UDColor.B300
+    public static var vcTokenVCListIconBgUpcomingHover: UIColor { return UDColor.vcTokenVCListIconBgUpcomingHover }
+
+    // ig new token
+
+    creatUIColorExtension
+}
+
+public struct ByteViewThemeColor: UDBizColor {
+
+    public init() {}
+
+    public func getValueByToken(_ token: String) -> UIColor? {
+        let vcToken = UDColor.Name(token)
+        switch vcToken {
+        case .vcTokenVCBgBody: return UIColor.ud.vcTokenVCBgBody
+        case .vcTokenVCBgVideoCall: return UIColor.ud.vcTokenVCBgVideoCall
+        case .vcTokenVCBgMobileShareBar: return UIColor.ud.vcTokenVCBgMobileShareBar
+        case .vcTokenVCBgFloat: return UIColor.ud.vcTokenVCBgFloat
+        case .vcTokenVCBgCamOff: return UIColor.ud.vcTokenVCBgCamOff
+        case .vcTokenVCBtnBgOpacity: return UIColor.ud.vcTokenVCBtnBgOpacity
+        case .vcTokenVCBtnTextSelected: return UIColor.ud.vcTokenVCBtnTextSelected
+        case .vcTokenVCBtnFillSelected: return UIColor.ud.vcTokenVCBtnFillSelected
+        case .vcTokenVCBtnIconSelected: return UIColor.ud.vcTokenVCBtnIconSelected
+        case .vcTokenVCBgFloatVideo: return UIColor.ud.vcTokenVCBgFloatVideo
+        case .vcTokenVCBtnBgFloat: return UIColor.ud.vcTokenVCBtnBgFloat
+        case .vcTokenVCBtnBgFloatHover: return UIColor.ud.vcTokenVCBtnBgFloatHover
+        case .vcTokenVCBtnBgFloatPressed: return UIColor.ud.vcTokenVCBtnBgFloatPressed
+        case .vcTokenVCBgSubtitle: return UIColor.ud.vcTokenVCBgSubtitle
+        case .vcTokenVCBgCardEnded: return UIColor.ud.vcTokenVCBgCardEnded
+        case .vcTokenVCFillHover: return UIColor.ud.vcTokenVCFillHover
+        case .vcTokenVCShadowSm: return UIColor.ud.vcTokenVCShadowSm
+        case .vcTokenVCBgCardLeft: return UIColor.ud.vcTokenVCBgCardLeft
+        case .vcTokenVCBgCardRight: return UIColor.ud.vcTokenVCBgCardRight
+        case .vcTokenVCannotateBgRed: return UIColor.ud.vcTokenVCannotateBgRed
+        case .vcTokenVCannotateBgYellow: return UIColor.ud.vcTokenVCannotateBgYellow
+        case .vcTokenVCannotateBgGreen: return UIColor.ud.vcTokenVCannotateBgGreen
+        case .vcTokenVCannotateBgBlue: return UIColor.ud.vcTokenVCannotateBgBlue
+        case .vcTokenVCannotateBgPurple: return UIColor.ud.vcTokenVCannotateBgPurple
+        case .vcTokenVCBtnBgNewMeeting: return UIColor.ud.vcTokenVCBtnBgNewMeeting
+        case .vcTokenVCBtnBgSchedule: return UIColor.ud.vcTokenVCBtnBgSchedule
+        case .vcTokenVCBtnBgShareScreen: return UIColor.ud.vcTokenVCBtnBgShareScreen
+        case .vcTokenVCBtnBgMinutes: return UIColor.ud.vcTokenVCBtnBgMinutes
+        case .vcTokenVCBtnIconNewMeeting: return UIColor.ud.vcTokenVCBtnIconNewMeeting
+        case .vcTokenVCBtnIconSchedule: return UIColor.ud.vcTokenVCBtnIconSchedule
+        case .vcTokenVCBtnIconShareScreen: return UIColor.ud.vcTokenVCBtnIconShareScreen
+        case .vcTokenVCBtnIconMinutes: return UIColor.ud.vcTokenVCBtnIconMinutes
+        case .vcTokenVCListIconBgOngoing: return UIColor.ud.vcTokenVCListIconBgOngoing
+        case .vcTokenVCListIconBgOngoingHover: return UIColor.ud.vcTokenVCListIconBgOngoingHover
+        case .vcTokenVCListIconBgUpcoming: return UIColor.ud.vcTokenVCListIconBgUpcoming
+        case .vcTokenVCListIconBgUpcomingHover: return UIColor.ud.vcTokenVCListIconBgUpcomingHover
+
+        creatThemeColor
+        default: return nil
+        }
+    }
+}

@@ -1,0 +1,50 @@
+{
+  "name": "TYRZApiSDK",
+  "version": "9.6.3",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://github.com/shengzhixiong/TYRZApiSDK",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "shengzhixiong": "shengzhixiong@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:TTIOS/TYRZApiSDK.git",
+    "commit": "64942efb0398fb9c2037c34de1869303eb4104bc"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "vendored_frameworks": "TYRZApiSDK/Classes/TYRZSDK.framework",
+  "ios": {
+    "frameworks": [
+      "CoreTelephony",
+      "SystemConfiguration",
+      "UIKit",
+      "Foundation",
+      "CFNetwork"
+    ],
+    "weak_frameworks": "Network",
+    "libraries": [
+      "z",
+      "sqlite3.0",
+      "c++",
+      "iconv"
+    ]
+  },
+  "_bytebus_platform": {
+    "repo_id": "1066",
+    "app_id": "9999"
+  },
+  "repoId": "1066",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "TYRZApiSDK_POD_VERSION=@\\\"9999_9.6.3\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "TYRZApiSDK_POD_VERSION=@\\\"9999_9.6.3\\\""
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "_bytebus_platform": {
+    "app_id": "9999",
+    "repo_id": "24131"
+  },
+  "authors": {
+    "WangKun": "wangkun@bytedance.com"
+  },
+  "default_subspecs": "Core",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/ugc/BDRuleEngine",
+  "license": {
+    "type": "MIT"
+  },
+  "name": "BDRuleEngine",
+  "platforms": {
+    "ios": "9.0"
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDRuleEngine_POD_VERSION=@\\\"9999_3.3.2.1-bugfix\\\""
+  },
+  "repoId": "24131",
+  "source": {
+    "commit": "7dbc801cd4db1355ac3a8fd0dac9a16a859d35f6",
+    "git": "git@code.byted.org:ugc/BDRuleEngine.git"
+  },
+  "subspecs": [
+    {
+      "dependencies": {
+        "BDRuleEngine/Expression": [],
+        "BDRuleEngine/Fast": [],
+        "BDRuleEngine/Service": [],
+        "ByteDanceKit/Foundation": []
+      },
+      "name": "Core",
+      "public_header_files": "BDRuleEngine/Classes/Public/Core/**/*.h",
+      "source_files": [
+        "BDRuleEngine/Classes/Private/ParameterCenter/**/*",
+        "BDRuleEngine/Classes/Private/RuleExecutor/**/*",
+        "BDRuleEngine/Classes/Private/StrategyCenter/**/*",
+        "BDRuleEngine/Classes/Private/Util/**/*",
+        "BDRuleEngine/Classes/Public/Core/**/*"
+      ]
+    },
+    {
+      "dependencies": {
+        "BDRuleEngine/Service": []
+      },
+      "name": "Expression",
+      "public_header_files": "BDRuleEngine/Classes/Public/Expression/**/*.h",
+      "source_files": [
+        "BDRuleEngine/Classes/Private/Expression/**/*",
+        "BDRuleEngine/Classes/Public/Expression/**/*"
+      ]
+    },
+    {
+      "dependencies": {
+        "BDRuleEngine/Expression": [],
+        "BDRuleEngine/Service": [],
+        "ByteDanceKit/Foundation": []
+      },
+      "name": "Fast",
+      "source_files": "BDRuleEngine/Classes/Private/Fast/**/*"
+    },
+    {
+      "dependencies": {
+        "PNSServiceKit": [],
+        "PNSServiceKit/Protocol": []
+      },
+      "name": "Service",
+      "source_files": "BDRuleEngine/Classes/Private/Services/**/*"
+    },
+    {
+      "dependencies": {
+        "BDRuleEngine/Core": [],
+        "BDRuleEngine/Service": []
+      },
+      "name": "Privacy",
+      "public_header_files": "BDRuleEngine/Classes/Public/Privacy/**/*.h",
+      "source_files": [
+        "BDRuleEngine/Classes/Private/Privacy/**/*",
+        "BDRuleEngine/Classes/Public/Privacy/**/*"
+      ]
+    },
+    {
+      "dependencies": {
+        "ByteDanceKit/Foundation": []
+      },
+      "name": "Debug",
+      "public_header_files": "BDRuleEngine/Classes/Debug/**/*.h",
+      "source_files": "BDRuleEngine/Classes/Debug/**/*"
+    }
+  ],
+  "summary": "framework_summary",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDRuleEngine_POD_VERSION=@\\\"9999_3.3.2.1-bugfix\\\""
+  },
+  "version": "3.3.2.1-bugfix"
+}

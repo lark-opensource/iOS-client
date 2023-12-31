@@ -1,0 +1,2477 @@
+name: git@code.byted.org:lark/iOS-client.git
+all_targets:
+- BroadcastUploadExtension
+- IntentsExtension
+- Lark
+- LarkAppIntents
+- NotificationContentExtension
+- NotificationServiceExtension
+- ShareExtension
+- SmartWidgetExtension
+sources:
+- git@code.byted.org:ee/pods_specs.git
+- git@code.byted.org:iOS_Library/IES-UGC_binary_repo.git
+- git@code.byted.org:iOS_Library/douyin_binary_repo.git
+- git@code.byted.org:iOS_Library/lark_source_repo.git
+- git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+- git@code.byted.org:iOS_Library/privatethird_source_repo.git
+- git@code.byted.org:iOS_Library/publicthird_binary_repo.git
+- git@code.byted.org:iOS_Library/publicthird_source_repo.git
+- git@code.byted.org:iOS_Library/toutiao_source_repo.git
+- git@code.byted.org:ugc/AWEReleaseBinarySpecs.git
+- git@code.byted.org:ugc/AWESpecs.git
+- git@code.byted.org:ugc/UGCSpecs.git
+targets:
+- name: Lark
+  platforms:
+    ios: '12.0'
+  script_phase: null
+  inheritance: complete
+  configuration:
+    dynamic:
+    - name: LarkSQLCipher
+      repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+      target: Lark
+      subspecs:
+      - LarkSQLCipher
+    - name: RustPB
+      repo: git@code.byted.org:iOS_Library/lark_source_repo.git
+      target: Lark
+      subspecs:
+      - RustPB
+      - RustPB/Core
+    - name: RustSDK
+      repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+      target: Lark
+      subspecs:
+      - RustSDK
+      - RustSDK/Core
+    - name: RustSimpleLogSDK
+      repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+      target: Lark
+      subspecs:
+      - RustSimpleLogSDK
+    - name: ByteRtcSDK
+      repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+      target: Lark
+      subspecs:
+      - ByteRtcSDK
+    - name: ServerPB
+      repo: git@code.byted.org:ee/pods_specs.git
+      target: Lark
+      subspecs:
+      - ServerPB
+    - name: LarkFlutterContainer
+      repo: git@code.byted.org:iOS_Library/lark_source_repo.git
+      target: Lark
+      subspecs:
+      - LarkFlutterContainer
+      - LarkFlutterContainer/Core
+      - LarkFlutterContainer/Domestic
+      - LarkFlutterContainer/Domestic/FlutterPluginRegistrant
+      - LarkFlutterContainer/Domestic/bd_connectivity
+      - LarkFlutterContainer/Domestic/bd_vessel
+      - LarkFlutterContainer/Domestic/bd_vessel/bd_vessel_alog
+      - LarkFlutterContainer/Domestic/bd_vessel/bd_vessel_core
+      - LarkFlutterContainer/Domestic/bd_vessel/bd_vessel_domestic
+      - LarkFlutterContainer/Domestic/bd_vessel/bd_vessel_image
+      - LarkFlutterContainer/Domestic/bd_vessel/bd_vessel_monitor
+      - LarkFlutterContainer/Domestic/bd_vessel/bd_vessel_network
+      - LarkFlutterContainer/Domestic/bd_vessel/bd_vessel_router
+      - LarkFlutterContainer/Domestic/bd_webview_flutter
+      - LarkFlutterContainer/Domestic/device_info_plus
+      - LarkFlutterContainer/Domestic/flutter_keyboard_visibility
+      - LarkFlutterContainer/Domestic/geolocator_apple
+      - LarkFlutterContainer/Domestic/lark_flutter_dock
+      - LarkFlutterContainer/Domestic/lark_global_biz_plugin
+      - LarkFlutterContainer/Domestic/lark_log
+      - LarkFlutterContainer/Domestic/meego_account_service
+      - LarkFlutterContainer/Domestic/meego_account_service_interface
+      - LarkFlutterContainer/Domestic/meego_application_service
+      - LarkFlutterContainer/Domestic/meego_application_service_interface
+      - LarkFlutterContainer/Domestic/meego_base_core
+      - LarkFlutterContainer/Domestic/meego_biz_plugin
+      - LarkFlutterContainer/Domestic/meego_boot_loader
+      - LarkFlutterContainer/Domestic/meego_common_ui
+      - LarkFlutterContainer/Domestic/meego_components_all
+      - LarkFlutterContainer/Domestic/meego_data_service
+      - LarkFlutterContainer/Domestic/meego_data_service_interface
+      - LarkFlutterContainer/Domestic/meego_device_real_orientation
+      - LarkFlutterContainer/Domestic/meego_feature_gating
+      - LarkFlutterContainer/Domestic/meego_file_picker
+      - LarkFlutterContainer/Domestic/meego_file_picker/Core
+      - LarkFlutterContainer/Domestic/meego_file_picker/LarkIntegration
+      - LarkFlutterContainer/Domestic/meego_image_gallery_saver
+      - LarkFlutterContainer/Domestic/meego_measurement_service
+      - LarkFlutterContainer/Domestic/meego_measurement_service_interface
+      - LarkFlutterContainer/Domestic/meego_network
+      - LarkFlutterContainer/Domestic/meego_notification_service
+      - LarkFlutterContainer/Domestic/meego_notification_service_interface
+      - LarkFlutterContainer/Domestic/meego_pb
+      - LarkFlutterContainer/Domestic/meego_permission_handler
+      - LarkFlutterContainer/Domestic/meego_permission_handler/Core
+      - LarkFlutterContainer/Domestic/meego_permission_handler/LarkIntegration
+      - LarkFlutterContainer/Domestic/meego_permission_service
+      - LarkFlutterContainer/Domestic/meego_permission_service_interface
+      - LarkFlutterContainer/Domestic/meego_platform_service
+      - LarkFlutterContainer/Domestic/meego_platform_service_interface
+      - LarkFlutterContainer/Domestic/meego_project_service
+      - LarkFlutterContainer/Domestic/meego_project_service_interface
+      - LarkFlutterContainer/Domestic/meego_push
+      - LarkFlutterContainer/Domestic/meego_search_service
+      - LarkFlutterContainer/Domestic/meego_search_service_interface
+      - LarkFlutterContainer/Domestic/meego_storage
+      - LarkFlutterContainer/Domestic/meego_tracker
+      - LarkFlutterContainer/Domestic/meego_view_service
+      - LarkFlutterContainer/Domestic/meego_view_service_interface
+      - LarkFlutterContainer/Domestic/meego_work_item_service
+      - LarkFlutterContainer/Domestic/meego_work_item_service_interface
+      - LarkFlutterContainer/Domestic/package_info
+      - LarkFlutterContainer/Domestic/package_info_plus
+      - LarkFlutterContainer/Domestic/path_provider
+      - LarkFlutterContainer/Domestic/uni_links
+      - LarkFlutterContainer/Domestic/url_launcher_ios
+      - LarkFlutterContainer/Domestic/xg_base_video_player
+      - LarkFlutterContainer/Domestic/xg_orientation
+      - LarkFlutterContainer/Domestic/xg_screen
+      - LarkFlutterContainer/Domestic/xg_volume_watcher
+      - LarkFlutterContainer/Interface
+    - name: TTVideoEditor
+      repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+      target: Lark
+      subspecs:
+      - TTVideoEditor
+      - TTVideoEditor/AnyModule
+      - TTVideoEditor/Core
+      - TTVideoEditor/CrossPlatfromAlgorithmBase
+      - TTVideoEditor/CrossPlatfromBachSDK
+      - TTVideoEditor/CrossPlatfromLensSDK
+      - TTVideoEditor/CrossplatSharedFiles
+      - TTVideoEditor/DecodeBalance
+      - TTVideoEditor/Default
+      - TTVideoEditor/EffectSDK
+      - TTVideoEditor/GLRenderer
+      - TTVideoEditor/HTSPhotoResource
+      - TTVideoEditor/IES2DAnimation
+      - TTVideoEditor/IESBaseUtil
+      - TTVideoEditor/IESMMAudioCommon
+      - TTVideoEditor/IESMMAudioEffect
+      - TTVideoEditor/IESMMAudioProcess
+      - TTVideoEditor/IESMMBingo
+      - TTVideoEditor/IESMMCameraDeviceUtils
+      - TTVideoEditor/IESMMCanvas
+      - TTVideoEditor/IESMMCapture
+      - TTVideoEditor/IESMMEffect
+      - TTVideoEditor/IESMMFFmpeg
+      - TTVideoEditor/IESMMImage
+      - TTVideoEditor/IESMMLogger
+      - TTVideoEditor/IESMMRecordEffectBach
+      - TTVideoEditor/IESMMTracker
+      - TTVideoEditor/IESMMTranscoder
+      - TTVideoEditor/IESMMUnits
+      - TTVideoEditor/IESMMUnitsBase
+      - TTVideoEditor/IESMMUnitsCompiler
+      - TTVideoEditor/IESPhotoEffect
+      - TTVideoEditor/IESVideoAndPic
+      - TTVideoEditor/LVCore
+      - TTVideoEditor/LVCutTemplate
+      - TTVideoEditor/LarkMode
+      - TTVideoEditor/LarkModeAlgorithm
+      - TTVideoEditor/LensSDK
+      - TTVideoEditor/LiveStreamMode
+      - TTVideoEditor/PhotoFaceDetect
+      - TTVideoEditor/RLRenderer
+      - TTVideoEditor/RenderLibCore
+      - TTVideoEditor/RenderLibCoreLV
+      - TTVideoEditor/TE3rdParty_Json
+      - TTVideoEditor/TEBVCParser
+      - TTVideoEditor/TENonARC
+      - TTVideoEditor/TERenderer
+      - TTVideoEditor/TEUtils_LarkEnableException
+      - TTVideoEditor/TEUtils_iOS
+      - TTVideoEditor/TTFFmpegOtherFiles
+      - TTVideoEditor/TTResouce_Monitor
+      - TTVideoEditor/TTVEAlgorithm
+      - TTVideoEditor/TTVEAmazing
+      - TTVideoEditor/TTVEBaseVideoEffect
+      - TTVideoEditor/TTVEBinUnit
+      - TTVideoEditor/TTVECommon
+      - TTVideoEditor/TTVECommonFFmpeg
+      - TTVideoEditor/TTVEDispatch
+      - TTVideoEditor/TTVEEffectFFmpeg
+      - TTVideoEditor/TTVEFrameGenerator
+      - TTVideoEditor/TTVEInput
+      - TTVideoEditor/TTVEModel
+      - TTVideoEditor/TTVEReader
+      - TTVideoEditor/TTVETrace
+      - TTVideoEditor/TTVEUtils
+      - TTVideoEditor/TTVEWrapper
+      - TTVideoEditor/TTVEWriter
+      - TTVideoEditor/TTVideoEffect
+      - TTVideoEditor/VEABUnified
+      - TTVideoEditor/VEAssetMatting
+      - TTVideoEditor/VEAudioProcess
+      - TTVideoEditor/VEBaseDefine
+      - TTVideoEditor/VECameraProcess
+      - TTVideoEditor/VECodec
+      - TTVideoEditor/VECoreEnableException
+      - TTVideoEditor/VECrossplatUtil
+      - TTVideoEditor/VEEditorEnableException
+      - TTVideoEditor/VEEffectProcess
+      - TTVideoEditor/VEEffectSkinTone
+      - TTVideoEditor/VEFFmpeg
+      - TTVideoEditor/VEFFmpegUtils
+      - TTVideoEditor/VEFaceClusting
+      - TTVideoEditor/VEFastcvSDK
+      - TTVideoEditor/VEGifReader
+      - TTVideoEditor/VEInput
+      - TTVideoEditor/VELensSDK
+      - TTVideoEditor/VEMetalBinaryResource
+      - TTVideoEditor/VEModel
+      - TTVideoEditor/VEOutput
+      - TTVideoEditor/VEPolicyAudioWrapper
+      - TTVideoEditor/VEPolicyVideoWrapper
+      - TTVideoEditor/VEPolicyWrapper
+      - TTVideoEditor/VEProcessor
+      - TTVideoEditor/VERecorderBGVideo
+      - TTVideoEditor/VERecorderCommon
+      - TTVideoEditor/VERecorderEnableException
+      - TTVideoEditor/VERecorderMode
+      - TTVideoEditor/VEReverse
+      - TTVideoEditor/VESaftyControl
+      - TTVideoEditor/VEScan
+      - TTVideoEditor/VESession
+      - TTVideoEditor/VEVideoDecoder
+      - TTVideoEditor/ZXing
+      - TTVideoEditor/audiosdk
+  podspecs:
+  - name: ABRInterface
+    version: 2.2.7
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - ABRInterface
+  - name: ADFeelGood
+    version: 2.1.18-alpha.4-lark
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - ADFeelGood
+  - name: AGFX_pub
+    version: 14.5.0.2.1-binary
+    repo: git@code.byted.org:iOS_Library/IES-UGC_binary_repo.git
+    target: Lark
+    subspecs:
+    - AGFX_pub
+    - AGFX_pub/AGFXLib
+    - AGFX_pub/RenderLib
+  - name: AMapFoundation-NO-IDFA
+    version: 1.6.9
+    repo: git@code.byted.org:iOS_Library/publicthird_source_repo.git
+    target: Lark
+    subspecs:
+    - AMapFoundation-NO-IDFA
+  - name: AMapLocation-NO-IDFA
+    version: 2.8.0
+    repo: git@code.byted.org:iOS_Library/publicthird_source_repo.git
+    target: Lark
+    subspecs:
+    - AMapLocation-NO-IDFA
+  - name: AMapSearch-NO-IDFA
+    version: 8.1.0
+    repo: git@code.byted.org:iOS_Library/publicthird_source_repo.git
+    target: Lark
+    subspecs:
+    - AMapSearch-NO-IDFA
+  - name: AWEBaseLib
+    version: 12.2.0.4.1-binary
+    repo: git@code.byted.org:ugc/AWEReleaseBinarySpecs.git
+    target: Lark
+    subspecs:
+    - AWEBaseLib
+  - name: AWEBaseModel
+    version: 12.6.0.7.1-binary
+    repo: git@code.byted.org:ugc/AWEReleaseBinarySpecs.git
+    target: Lark
+    subspecs:
+    - AWEBaseModel
+  - name: AWECloudCommand
+    version: 1.3.9
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - AWECloudCommand
+    - AWECloudCommand/Core
+    - AWECloudCommand/NetDiagnose
+    - AWECloudCommand/Utilities
+  - name: AWELazyRegister
+    version: 11.2.0.51.1-binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - AWELazyRegister
+    - AWELazyRegister/Core
+    - AWELazyRegister/Rename
+  - name: Action
+    version: 4.0.0
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - Action
+  - name: Alamofire
+    version: 4.7.3
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - Alamofire
+  - name: AliyunFaceSDK
+    version: 2.0.1
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - AliyunFaceSDK
+  - name: AppReciableSDK
+    version: 0.1.66
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - AppReciableSDK
+  - name: ArtistOpenPlatformSDK
+    version: 0.0.1-rc.4.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - ArtistOpenPlatformSDK/Core
+    - ArtistOpenPlatformSDK/Effect
+  - name: Aspects
+    version: 1.4.1.1-binary
+    repo: git@code.byted.org:iOS_Library/publicthird_binary_repo.git
+    target: Lark
+    subspecs:
+    - Aspects
+  - name: BDABTestSDK
+    version: 1.0.4-rc.9
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - BDABTestSDK
+    - BDABTestSDK/Core
+  - name: BDALog
+    version: 0.9.1-rc.7.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - BDALog
+  - name: BDAlogProtocol
+    version: 1.3.3.0-rc.0
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - BDAlogProtocol
+  - name: BDAssert
+    version: 2.0.0
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - BDAssert
+    - BDAssert/Core
+  - name: BDDataDecorator
+    version: 2.0.1.1-binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - BDDataDecorator
+    - BDDataDecorator/AES
+    - BDDataDecorator/Data
+  - name: BDDataDecoratorTob
+    version: 1.0.4
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - BDDataDecoratorTob
+    - BDDataDecoratorTob/Data
+  - name: BDFishhook
+    version: 0.2.13-rc.1
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - BDFishhook
+  - name: BDFlutterPluginManager
+    version: 0.1.7
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - BDFlutterPluginManager
+  - name: BDJSBridgeAuthManager
+    version: 1.4.2
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - BDJSBridgeAuthManager/CN
+    - BDJSBridgeAuthManager/Core
+    - BDJSBridgeAuthManager/Rename
+  - name: BDMemoryMatrix
+    version: 0.0.21-rc.1
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - BDMemoryMatrix
+    - BDMemoryMatrix/HMDTracker
+    - BDMemoryMatrix/Memory
+    - BDMemoryMatrix/Memory/Logic
+    - BDMemoryMatrix/Memory/Model
+    - BDMemoryMatrix/Memory/Object
+  - name: BDModel
+    version: 0.1.2
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - BDModel
+  - name: BDMonitorProtocol
+    version: 1.1.1
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - BDMonitorProtocol
+  - name: BDNetworkTag
+    version: 0.3.1
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - BDNetworkTag
+  - name: BDPreloadSDK
+    version: 0.4.10
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - BDPreloadSDK/Core
+    - BDPreloadSDK/WebView
+  - name: BDRuleEngine
+    version: 3.3.2.1-bugfix
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - BDRuleEngine
+    - BDRuleEngine/Core
+    - BDRuleEngine/Debug
+    - BDRuleEngine/Expression
+    - BDRuleEngine/Fast
+    - BDRuleEngine/Privacy
+    - BDRuleEngine/Service
+  - name: BDTicketGuard
+    version: 2.0.2.1-binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - BDTicketGuard
+    - BDTicketGuard/Core
+    - BDTicketGuard/Inner
+  - name: BDTrackerProtocol
+    version: 2.6.12
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - BDTrackerProtocol
+  - name: BDTuring
+    version: 2.2.9-alpha.1-larkbuildfix
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - BDTuring/Core
+    - BDTuring/Host/CN
+    - BDTuring/JSBridge
+    - BDTuring/Localized/EN
+    - BDTuring/Localized/ZH
+    - BDTuring/Network
+    - BDTuring/Settings
+    - BDTuring/TTNet
+    - BDTuring/TTNetProcessor
+    - BDTuring/Utility
+    - BDTuring/View
+  - name: BDUGAccountOnekeyLogin
+    version: 2.1.5
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - BDUGAccountOnekeyLogin
+    - BDUGAccountOnekeyLogin/Base
+    - BDUGAccountOnekeyLogin/Core
+  - name: BDUGContainer
+    version: 1.1.2
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - BDUGContainer
+  - name: BDUGLogger
+    version: 1.1.5
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - BDUGLogger
+    - BDUGLogger/Core
+  - name: BDUGLoggerInterface
+    version: 1.0.3
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - BDUGLoggerInterface
+  - name: BDUGMonitorInterface
+    version: 1.2.2
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - BDUGMonitorInterface
+  - name: BDUGShare
+    version: 2.1.4-rc.12
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - BDUGShare/BDUGShareBasic/BDUGQQShare
+    - BDUGShare/BDUGShareBasic/BDUGUtil
+    - BDUGShare/BDUGShareBasic/BDUGWeChatShare
+    - BDUGShare/BDUGShareBasic/BDUGWeiboShare
+  - name: BDUGTrackerInterface
+    version: 1.2.0
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - BDUGTrackerInterface
+  - name: BDUGUnionSDK
+    version: 3.0.2
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - BDUGUnionSDK
+  - name: BDWebCore
+    version: 2.1.2
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - BDWebCore
+    - BDWebCore/Core
+  - name: BDWebImage
+    version: 1.8.30.1
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - BDWebImage
+    - BDWebImage/BDBase
+    - BDWebImage/Core
+    - BDWebImage/Decoder
+    - BDWebImage/Download
+    - BDWebImage/Download/Chromium
+    - BDWebImage/Download/DownloadBase
+    - BDWebImage/Download/URLSession
+    - BDWebImage/Monitor/Heimdallr
+  - name: BDWebKit
+    version: 2.0.5-douyin
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - BDWebKit
+    - BDWebKit/BlankDetect
+    - BDWebKit/Core
+    - BDWebKit/CrashFix
+    - BDWebKit/Falcon
+    - BDWebKit/Falcon/WebP
+    - BDWebKit/Interceptor
+    - BDWebKit/Offline
+    - BDWebKit/Precreator
+    - BDWebKit/Resource
+    - BDWebKit/SSL
+    - BDWebKit/SecureLink
+    - BDWebKit/TTNet
+  - name: BDXBridgeKit
+    version: 2.6.3-rc.10.1-bugfix
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - BDXBridgeKit
+    - BDXBridgeKit/Containers/Lynx
+    - BDXBridgeKit/Containers/Web
+    - BDXBridgeKit/Core
+    - BDXBridgeKit/Engines/TTBridgeUnifyAdapter/CoreEngine
+    - BDXBridgeKit/Engines/TTBridgeUnifyAdapter/LynxEngine
+    - BDXBridgeKit/Engines/TTBridgeUnifyAdapter/WebEngine
+    - BDXBridgeKit/Methods/Event
+    - BDXBridgeKit/Methods/Info
+    - BDXBridgeKit/Methods/Log
+    - BDXBridgeKit/Methods/Media
+    - BDXBridgeKit/Methods/Network
+    - BDXBridgeKit/Methods/Route
+    - BDXBridgeKit/Methods/Storage
+    - BDXBridgeKit/Methods/UI
+  - name: BDXContainer
+    version: 1.4.7-alpha.31.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - BDXContainer/Base
+    - BDXContainer/Dependency
+    - BDXContainer/Lynx
+    - BDXContainer/Page
+    - BDXContainer/Popup
+    - BDXContainer/Util
+    - BDXContainer/View
+  - name: BDXLynxKit
+    version: 1.4.7-alpha.31.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - BDXLynxKit
+    - BDXLynxKit/LynxKit
+  - name: BDXMonitor
+    version: 1.4.7-alpha.31.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - BDXMonitor
+    - BDXMonitor/Implementations
+  - name: BDXOptimize
+    version: 1.4.7-alpha.31.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - BDXOptimize
+    - BDXOptimize/Prefetch
+  - name: BDXResourceLoader
+    version: 1.4.7-alpha.31.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - BDXResourceLoader
+    - BDXResourceLoader/Resource
+  - name: BDXRouter
+    version: 1.4.7-alpha.31.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - BDXRouter
+    - BDXRouter/Router
+  - name: BDXSchema
+    version: 1.4.7-alpha.31.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - BDXSchema
+    - BDXSchema/Implementations
+  - name: BDXServiceCenter
+    version: 1.4.7-alpha.31.1-bugfix.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - BDXServiceCenter
+    - BDXServiceCenter/Base
+    - BDXServiceCenter/Protocols
+    - BDXServiceCenter/Registry
+  - name: BVCParser
+    version: 0.7.0
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - BVCParser
+    - BVCParser/Core
+    - BVCParser/Header
+  - name: BitableBridge
+    version: 2.0.1
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - BitableBridge
+  - name: BulletX
+    version: 1.4.7-alpha.31.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - BulletX
+    - BulletX/Assembler
+    - BulletX/Bridge
+    - BulletX/Core
+    - BulletX/Dependency
+    - BulletX/ModuleInterface
+    - BulletX/ModuleInterface/Interface
+    - BulletX/ModuleInterface/Model
+  - name: ByteDanceKit
+    version: 2.2.10
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - ByteDanceKit
+    - ByteDanceKit/Foundation
+    - ByteDanceKit/UIKit
+    - ByteDanceKit/Utilities
+  - name: CJPay
+    version: 6.8.8-rc.48
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - CJPay/BDPay
+    - CJPay/ComponentBase
+    - CJPay/Extensions
+    - CJPay/Extensions/ExtensionsBase
+    - CJPay/Extensions/UI
+    - CJPay/Isec
+    - CJPay/KitBase
+    - CJPay/Loading
+    - CJPay/Localized
+    - CJPay/MyBankCard
+    - CJPay/NativeBindCard
+    - CJPay/PayAbilityBase
+    - CJPay/PayCancelRetain
+    - CJPay/PayCore/Base
+    - CJPay/PayManage
+    - CJPay/PayResultGuide
+    - CJPay/PayWebView
+    - CJPay/Resource
+    - CJPay/UserCenter
+    - CJPay/VerifyModules/Biopayment
+    - CJPay/VerifyModules/VerifyModulesBase
+  - name: CJPayDebugTools
+    version: 6.8.4-rc.0
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - CJPayDebugTools
+    - CJPayDebugTools/BaseEnvConfig
+    - CJPayDebugTools/Isec
+    - CJPayDebugTools/PayManageEnvConfig
+  - name: CameraClient
+    version: 19.2.0.35-alpha.70-larktest.1.binary
+    repo: git@code.byted.org:ugc/AWEDebugBinarySpecs.git
+    target: Lark
+    subspecs:
+    - CameraClient
+    - CameraClient/CameraArch
+    - CameraClient/CameraClientSDK/Effect
+    - CameraClient/CameraResourcesLark
+    - CameraClient/Lark
+    - CameraClient/Lynx
+    - CameraClient/MobileInfra
+    - CameraClient/RuntimeDefaultImpl
+    - CameraClient/Security
+  - name: CameraClientModel
+    version: 19.2.0.34-alpha.0-larktest.1.binary
+    repo: git@code.byted.org:ugc/AWEReleaseBinarySpecs.git
+    target: Lark
+    subspecs:
+    - CameraClientModel
+  - name: CocoaAsyncSocket
+    version: 7.6.5
+    repo: git@code.byted.org:iOS_Library/publicthird_source_repo.git
+    target: Lark
+    subspecs:
+    - CocoaAsyncSocket
+  - name: CreationKitArch
+    version: 19.9.4-alpha.0-larktest.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - CreationKitArch
+    - CreationKitArch/CameraArch
+    - CreationKitArch/Models
+  - name: CreationKitBeauty
+    version: 20.1.0-alpha.24-larktest.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - CreationKitBeauty
+    - CreationKitBeauty/Core
+  - name: CreationKitComponents
+    version: 19.9.5-alpha.19-larktest.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - CreationKitComponents
+    - CreationKitComponents/Recorder
+    - CreationKitComponents/Recorder/BeautyPanelComponent
+    - CreationKitComponents/Recorder/BeautyPanelComponent/Core
+    - CreationKitComponents/Recorder/BeautyPanelComponent/Dependencies
+    - CreationKitComponents/Recorder/BeautyPanelComponent/Service
+    - CreationKitComponents/Recorder/Filter
+    - CreationKitComponents/Recorder/Filter/Core
+    - CreationKitComponents/Recorder/Filter/Dependencies
+    - CreationKitComponents/Recorder/Filter/Service
+  - name: CreationKitInfra
+    version: 19.9.6-alpha.0-lark.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - CreationKitInfra
+    - CreationKitInfra/MobileInfra
+  - name: CreationKitRTProtocol
+    version: 19.9.0.4-alpha.5-larktest.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - CreationKitRTProtocol
+    - CreationKitRTProtocol/CameraService
+    - CreationKitRTProtocol/EditService
+  - name: CreativeAlbumKit
+    version: 19.9.6-alpha.1-larktest.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - CreativeAlbumKit
+    - CreativeAlbumKit/Core
+    - CreativeAlbumKit/Default
+    - CreativeAlbumKit/DefaultBundle
+    - CreativeAlbumKit/DefaultLoading
+    - CreativeAlbumKit/DefaultToast
+  - name: CreativeKit
+    version: 19.9.5-alpha.10-larktest.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - CreativeKit
+    - CreativeKit/CameraArch
+    - CreativeKit/Debug
+    - CreativeKit/MobileInfra
+    - CreativeKit/Performance
+  - name: CreativeKitSticker
+    version: 2.0.11.1-binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - CreativeKitSticker
+  - name: DVEFoundationKit
+    version: 0.0.0.77-lark.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - DVEFoundationKit/Adapter
+    - DVEFoundationKit/Core
+  - name: DVETrackKit
+    version: 0.0.0.219-lark.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - DVETrackKit/Adapter
+    - DVETrackKit/Core
+    - DVETrackKit/DVELiteTrack
+  - name: DateToolsSwift
+    version: 5.0.0
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - DateToolsSwift
+  - name: DavinciResource
+    version: 0.0.29-alpha.0
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - DavinciResource
+  - name: DebugRouter
+    version: 2.1.5
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - DebugRouter
+    - DebugRouter/Framework
+    - DebugRouter/Native
+    - DebugRouter/ThirdParty
+    - DebugRouter/ThirdParty/jsoncpp
+  - name: Differentiator
+    version: 4.0.1
+    repo: git@code.byted.org:iOS_Library/publicthird_source_repo.git
+    target: Lark
+    subspecs:
+    - Differentiator
+  - name: DoubleConversion
+    version: 1.1.6
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - DoubleConversion
+  - name: DouyinOpenPlatformSDK
+    version: 5.13.0.3-bugfix.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - DouyinOpenPlatformSDK/Auth
+    - DouyinOpenPlatformSDK/Core
+  - name: EAccountApiSDK
+    version: 1.4.0-alpha.0
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - EAccountApiSDK
+  - name: EffectPlatformSDK
+    version: 2.9.158.1-bugfix
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - EffectPlatformSDK
+    - EffectPlatformSDK/Core
+    - EffectPlatformSDK/ModelDistribute
+  - name: EffectSDK_iOS
+    version: 14.5.0.275-LarkMobile.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - EffectSDK_iOS
+    - EffectSDK_iOS/Core
+    - EffectSDK_iOS/PartModel
+  - name: FBLazyVector
+    version: 0.61.2.6-socket
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - FBLazyVector
+  - name: FBReactNativeSpec
+    version: 0.61.2.6-socket
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - FBReactNativeSpec
+  - name: FBRetainCycleDetector
+    version: 0.2.0-alpha.30-swift
+    repo: git@code.byted.org:iOS_Library/toutiao_source_repo.git
+    target: Lark
+    subspecs:
+    - FBRetainCycleDetector
+  - name: FLAnimatedImage
+    version: 1.0.14
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - FLAnimatedImage
+  - name: FLEX
+    version: 5.22.10
+    repo: git@code.byted.org:iOS_Library/publicthird_source_repo.git
+    target: Lark
+    subspecs:
+    - FLEX
+  - name: FMDB
+    version: 2.7.10
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - FMDB
+    - FMDB/standard
+  - name: FileMD5Hash
+    version: 2.0.0
+    repo: git@code.byted.org:iOS_Library/publicthird_source_repo.git
+    target: Lark
+    subspecs:
+    - FileMD5Hash
+  - name: FlutterChannelTool
+    version: 2.0.0
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - FlutterChannelTool
+  - name: Folly
+    version: 2018.10.22.00
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - Folly
+    - Folly/Default
+  - name: FrameRecover
+    version: 1.28.0.1-binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - FrameRecover
+    - FrameRecover/Log
+    - FrameRecover/Recover
+  - name: Gaia
+    version: 3.1.5
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - Gaia
+  - name: Godzippa
+    version: 2.1.1
+    repo: git@code.byted.org:iOS_Library/publicthird_source_repo.git
+    target: Lark
+    subspecs:
+    - Godzippa
+  - name: HMDGWPASan
+    version: 0.1.0-alpha.14-TTVideo.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - HMDGWPASan
+  - name: HTSServiceKit
+    version: 0.1.3.51.1-binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - HTSServiceKit
+    - HTSServiceKit/Boot
+    - HTSServiceKit/Service
+  - name: HandyJSON
+    version: 5.0.4-beta
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - HandyJSON
+  - name: Heimdallr
+    version: 0.8.45.0-rc.2-Lark
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - Heimdallr
+    - Heimdallr/ALog
+    - Heimdallr/BootingProtect
+    - Heimdallr/CPUException
+    - Heimdallr/ClassCoverage
+    - Heimdallr/CloudCommand
+    - Heimdallr/Core
+    - Heimdallr/CrashCapture
+    - Heimdallr/CrashDetector
+    - Heimdallr/Dart
+    - Heimdallr/DeviceInfo
+    - Heimdallr/GPUUsage
+    - Heimdallr/GWPASan
+    - Heimdallr/HMDANR
+    - Heimdallr/HMDAPPExitReason
+    - Heimdallr/HMDAlogProtocol
+    - Heimdallr/HMDCaptureBacktrace
+    - Heimdallr/HMDConfig
+    - Heimdallr/HMDCoreDump
+    - Heimdallr/HMDCrashPrevent
+    - Heimdallr/HMDDomestic
+    - Heimdallr/HMDFDMonitor
+    - Heimdallr/HMDLaunchOptimizer
+    - Heimdallr/HMDLaunchTracing
+    - Heimdallr/HMDMallocHook
+    - Heimdallr/HMDMetricKit
+    - Heimdallr/HMDOOMCrash
+    - Heimdallr/HMDSession
+    - Heimdallr/HMDSlardarMalloc
+    - Heimdallr/HMDSlardarMalloc/HMDTracker
+    - Heimdallr/HMDSlardarMalloc/NanoOptimize
+    - Heimdallr/HMDSlardarMalloc/ScalableOptimize
+    - Heimdallr/HMDStart
+    - Heimdallr/HMDStore
+    - Heimdallr/HMDThreadMonitor
+    - Heimdallr/HMDWatchDog
+    - Heimdallr/HTTPRequestTracker
+    - Heimdallr/Log
+    - Heimdallr/Mach
+    - Heimdallr/MemoryGraph
+    - Heimdallr/Monitors
+    - Heimdallr/Network
+    - Heimdallr/NetworkTraffic
+    - Heimdallr/OpenTracing
+    - Heimdallr/PrivateServices/DebugLogger
+    - Heimdallr/PrivateServices/Disaster
+    - Heimdallr/PrivateServices/Monitor
+    - Heimdallr/PrivateServices/URLSettings
+    - Heimdallr/PrivateServices/ZipArchive
+    - Heimdallr/Protect
+    - Heimdallr/ProtectCustomCatch
+    - Heimdallr/Runloop
+    - Heimdallr/TTMonitor
+    - Heimdallr/TTNet
+    - Heimdallr/UIFrozen
+    - Heimdallr/UITracker
+    - Heimdallr/Upload
+    - Heimdallr/UserException
+    - Heimdallr/Utility
+    - Heimdallr/WatchdogProtect
+    - Heimdallr/Zombie
+  - name: HeimdallrForExtension
+    version: 0.0.2-alpha.9
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - HeimdallrForExtension/HMDDyldExtension
+  - name: Hermas
+    version: 0.0.5-rc.7
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - Hermas
+    - Hermas/api
+    - Hermas/core
+  - name: Homeric
+    version: 0.2.1170
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - Homeric
+  - name: IESAppLogger_iOS
+    version: 0.1.0.1-binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - IESAppLogger_iOS
+    - IESAppLogger_iOS/CPPInterface
+    - IESAppLogger_iOS/OCInterface
+  - name: IESFoundation
+    version: 1.0.17.1-binary
+    repo: git@code.byted.org:iOS_Library/douyin_binary_repo.git
+    target: Lark
+    subspecs:
+    - IESFoundation
+    - IESFoundation/Core
+    - IESFoundation/Core/Category
+    - IESFoundation/Core/Macro
+  - name: IESGeckoEncrypt
+    version: 0.0.2.1-binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - IESGeckoEncrypt
+    - IESGeckoEncrypt/Core
+  - name: IESGeckoKit
+    version: 3.4.3-alpha.1
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - IESGeckoKit
+    - IESGeckoKit/Config/CN
+    - IESGeckoKit/Core
+    - IESGeckoKit/Downloader
+  - name: IESInject
+    version: 3.11.4-alpha.2
+    repo: git@code.byted.org:ugc/AWESpecs.git
+    target: Lark
+    subspecs:
+    - IESInject
+    - IESInject/Core
+  - name: IESJSBridgeCore
+    version: 2.1.0
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - IESJSBridgeCore/Core
+  - name: IESLiveResourcesButler
+    version: 1.9.4
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - IESLiveResourcesButler
+  - name: IESMetadataStorage
+    version: 1.0.20
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - IESMetadataStorage
+  - name: IESPrefetch
+    version: 1.1.11
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - IESPrefetch
+  - name: IESVideoDetector
+    version: 0.0.6.1-binary
+    repo: git@code.byted.org:iOS_Library/IES-UGC_binary_repo.git
+    target: Lark
+    subspecs:
+    - IESVideoDetector
+  - name: IESWebViewMonitor
+    version: 1.3.21-rc.18-lark
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - IESWebViewMonitor
+    - IESWebViewMonitor/Core
+    - IESWebViewMonitor/CustomInterface
+    - IESWebViewMonitor/CustomInterface/LynxInterface
+    - IESWebViewMonitor/CustomInterface/LynxInterface/LynxFECustomError
+    - IESWebViewMonitor/CustomInterface/WebInterface
+    - IESWebViewMonitor/HybridMonitor
+    - IESWebViewMonitor/Lynx
+    - IESWebViewMonitor/Lynx/LynxBlankDetect
+    - IESWebViewMonitor/Lynx/LynxJSB
+    - IESWebViewMonitor/Lynx/LynxPerf
+    - IESWebViewMonitor/SettingModel
+    - IESWebViewMonitor/WKWebView
+    - IESWebViewMonitor/WKWebView/WebBlankDetect
+    - IESWebViewMonitor/WKWebView/WebCore
+    - IESWebViewMonitor/WKWebView/WebFalcon
+    - IESWebViewMonitor/WKWebView/WebJSB
+    - IESWebViewMonitor/WKWebView/WebPerf
+  - name: JSONModel
+    version: 1.8.0
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - JSONModel
+  - name: JTAppleCalendar
+    version: 7.1.7
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - JTAppleCalendar
+  - name: Jato
+    version: 0.0.5-rc.2
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - Jato/PageIn
+  - name: KVOController
+    version: 1.2.0
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - KVOController
+  - name: KeychainAccess
+    version: 3.1.2
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - KeychainAccess
+  - name: KingfisherWebP
+    version: 0.6.0-lark.0
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - KingfisherWebP
+  - name: LarkMeego
+    version: 7.9.0.2
+    repo: git@code.byted.org:iOS_Library/lark_source_repo.git
+    target: Lark
+    subspecs:
+    - LarkMeego
+    - LarkMeego/Core
+    - LarkMeego/Core/MessengerMod
+    - LarkMeego/Debug
+  - name: LarkMeegoInterface
+    version: 7.8.0.1
+    repo: git@code.byted.org:iOS_Library/lark_source_repo.git
+    target: Lark
+    subspecs:
+    - LarkMeegoInterface
+  - name: LarkMeegoLogger
+    version: 6.4.0.1
+    repo: git@code.byted.org:iOS_Library/lark_source_repo.git
+    target: Lark
+    subspecs:
+    - LarkMeegoLogger
+  - name: LarkMeegoNetClient
+    version: 7.5.0.2
+    repo: git@code.byted.org:iOS_Library/lark_source_repo.git
+    target: Lark
+    subspecs:
+    - LarkMeegoNetClient
+  - name: LarkMeegoProjectBiz
+    version: 6.4.0.1
+    repo: git@code.byted.org:iOS_Library/lark_source_repo.git
+    target: Lark
+    subspecs:
+    - LarkMeegoProjectBiz
+    - LarkMeegoProjectBiz/Core
+    - LarkMeegoProjectBiz/Interface
+  - name: LarkMeegoPush
+    version: 7.5.0.1
+    repo: git@code.byted.org:iOS_Library/lark_source_repo.git
+    target: Lark
+    subspecs:
+    - LarkMeegoPush
+    - LarkMeegoPush/Core
+    - LarkMeegoPush/Facade
+  - name: LarkMeegoStorage
+    version: 6.4.0.1
+    repo: git@code.byted.org:iOS_Library/lark_source_repo.git
+    target: Lark
+    subspecs:
+    - LarkMeegoStorage
+  - name: LarkMeegoStrategy
+    version: 7.7.0.1
+    repo: git@code.byted.org:iOS_Library/lark_source_repo.git
+    target: Lark
+    subspecs:
+    - LarkMeegoStrategy
+  - name: LarkMeegoViewBiz
+    version: 7.9.0.1
+    repo: git@code.byted.org:iOS_Library/lark_source_repo.git
+    target: Lark
+    subspecs:
+    - LarkMeegoViewBiz
+  - name: LarkMeegoWorkItemBiz
+    version: 6.5.0.1
+    repo: git@code.byted.org:iOS_Library/lark_source_repo.git
+    target: Lark
+    subspecs:
+    - LarkMeegoWorkItemBiz
+  - name: LarkRustFG
+    version: 0.0.1
+    repo: git@code.byted.org:iOS_Library/lark_source_repo.git
+    target: Lark
+    subspecs:
+    - LarkRustFG
+    - LarkRustFG/Core
+  - name: LookinServer
+    version: 1.2.4
+    repo: git@code.byted.org:iOS_Library/publicthird_source_repo.git
+    target: Lark
+    subspecs:
+    - LookinServer
+    - LookinServer/Core
+  - name: Lynx
+    version: 2.10.19-lark.1-bugfix
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - Lynx
+    - Lynx/BDConfig/CN
+    - Lynx/BDLynx
+    - Lynx/BDLynx/Component
+    - Lynx/BDLynx/Core
+    - Lynx/BDLynx/Gecko
+    - Lynx/BDLynx/ImageLoader
+    - Lynx/BDLynx/Reporter
+    - Lynx/BDLynx/TTNet
+    - Lynx/BDLynx/Tag
+    - Lynx/BDLynxBridge
+    - Lynx/Framework
+    - Lynx/Inspector
+    - Lynx/JSRuntime
+    - Lynx/Krypton/Core
+    - Lynx/LazyLoad
+    - Lynx/LepusNG
+    - Lynx/NapiBinding
+    - Lynx/NapiBinding/Common
+    - Lynx/NapiBinding/JSC
+    - Lynx/NapiBinding/QuickJS
+    - Lynx/Native
+    - Lynx/Native/amoeba
+    - Lynx/Native/animation
+    - Lynx/Native/base
+    - Lynx/Native/fml
+    - Lynx/Native/lepus
+    - Lynx/Native/parser
+    - Lynx/Native/starlight
+    - Lynx/Native/tasm
+    - Lynx/Native/third_party
+    - Lynx/Native/third_party/modp64
+    - Lynx/Native/third_party/perfetto
+    - Lynx/Native/third_party/rapidjson
+    - Lynx/Native/transforms
+    - Lynx/ReleaseResource
+  - name: LynxDevtool
+    version: 2.10.19-lark.1-bugfix
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - LynxDevtool/DebugResource
+    - LynxDevtool/Framework
+    - LynxDevtool/Krypton
+    - LynxDevtool/LynxCore
+    - LynxDevtool/NapiBinding/Common
+    - LynxDevtool/NapiBinding/QuickJS
+    - LynxDevtool/NapiBinding/V8
+    - LynxDevtool/Native
+    - LynxDevtool/Native/Quickjs
+    - LynxDevtool/Native/Tracing
+    - LynxDevtool/Native/js_debug
+    - LynxDevtool/Native/third_party
+    - LynxDevtool/Native/third_party/krypton
+    - LynxDevtool/Native/third_party/rapidjson
+    - LynxDevtool/NativeScript
+    - LynxDevtool/NativeScript/Core
+    - LynxDevtool/NativeScript/V8
+    - LynxDevtool/RedBoxFramework
+    - LynxDevtool/ThirdParty
+    - LynxDevtool/ThirdParty/fml
+    - LynxDevtool/ThirdParty/jsoncpp
+    - LynxDevtool/ThirdParty/modp64
+    - LynxDevtool/ThirdParty/zlib
+    - LynxDevtool/ThirdPartyCommon
+  - name: MBProgressHUD
+    version: 1.2.0
+    repo: git@code.byted.org:iOS_Library/publicthird_source_repo.git
+    target: Lark
+    subspecs:
+    - MBProgressHUD
+  - name: MDLMediaDataLoader
+    version: 1.1.108.101
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - MDLMediaDataLoader
+  - name: MJExtension
+    version: 3.1.15.7
+    repo: git@code.byted.org:iOS_Library/publicthird_source_repo.git
+    target: Lark
+    subspecs:
+    - MJExtension
+  - name: MJRefresh
+    version: 3.1.16-douyin
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - MJRefresh
+  - name: MailNativeTemplate
+    version: 7.10.0-20231227142936
+    repo: git@code.byted.org:iOS_Library/lark_source_repo.git
+    target: Lark
+    subspecs:
+    - MailNativeTemplate
+  - name: Mantle
+    version: 2.1.2-rc2
+    repo: git@code.byted.org:ugc/AWESpecs.git
+    target: Lark
+    subspecs:
+    - Mantle
+    - Mantle/extobjc
+  - name: Masonry
+    version: 1.1.0
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - Masonry
+  - name: MeegoMod
+    version: 7.9.0.1
+    repo: git@code.byted.org:iOS_Library/lark_source_repo.git
+    target: Lark
+    subspecs:
+    - MeegoMod
+    - MeegoMod/CCMMod
+    - MeegoMod/LarkOpenPlatform
+    - MeegoMod/MessengerMod
+  - name: MemoryGraphCapture
+    version: 1.4.6-rc.1
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - MemoryGraphCapture
+  - name: NLEEditor
+    version: 0.0.0.511-lark.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - NLEEditor/Adapter
+    - NLEEditor/EditorArch
+    - NLEEditor/LiteEditor
+  - name: NLEPlatform
+    version: 2.3.1-alpha.0-lark.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - NLEPlatform
+    - NLEPlatform/Adapter
+    - NLEPlatform/Model
+    - NLEPlatform/NLETemplate
+    - NLEPlatform/Resource
+    - NLEPlatform/TOBAdapter
+  - name: NSObject+Rx
+    version: 5.0.0
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - NSObject+Rx
+  - name: Napi
+    version: 2.0.7.5-bugfix.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - Napi
+    - Napi/Core
+  - name: Objection
+    version: 1.6.1
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - Objection
+  - name: OneKit
+    version: 1.1.30
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - OneKit/BaseKit
+    - OneKit/Reachability
+    - OneKit/Service
+    - OneKit/StartUp
+  - name: PNSServiceKit
+    version: 1.1.16
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - PNSServiceKit
+    - PNSServiceKit/Impls
+    - PNSServiceKit/Impls/BacktraceImpl
+    - PNSServiceKit/Impls/KVStoreImpl
+    - PNSServiceKit/Impls/LogUploaderImpl
+    - PNSServiceKit/Impls/LoggerImpl
+    - PNSServiceKit/Impls/MonitorImpl
+    - PNSServiceKit/Impls/NetworkImpl
+    - PNSServiceKit/Impls/SettingImpl
+    - PNSServiceKit/Impls/TrackerImpl
+    - PNSServiceKit/Impls/UserExceptionImpl
+    - PNSServiceKit/Protocol
+    - PNSServiceKit/Service
+  - name: PocketSVG
+    version: 2.7.0
+    repo: git@code.byted.org:iOS_Library/publicthird_source_repo.git
+    target: Lark
+    subspecs:
+    - PocketSVG
+  - name: Quaterback
+    version: 3.1.0-rc.3
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - Quaterback
+    - Quaterback/Main/Core
+    - Quaterback/Main/Default
+  - name: RCTRequired
+    version: 0.61.2.6-socket
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - RCTRequired
+  - name: RCTTypeSafety
+    version: 0.61.2.6-socket
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - RCTTypeSafety
+  - name: RSSwizzle
+    version: 0.1.2.1-binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - RSSwizzle
+  - name: RangersAppLog
+    version: 6.15.5.1-bugfix
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - RangersAppLog/Core
+    - RangersAppLog/ET
+    - RangersAppLog/Encryptor/VOLC
+    - RangersAppLog/Filter
+  - name: ReSwift
+    version: 6.0.0
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - ReSwift
+  - name: ReachabilitySwift
+    version: 4.3.0
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - ReachabilitySwift
+  - name: React-Core
+    version: 0.61.2.6-socket
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - React-Core
+    - React-Core/CoreModulesHeaders
+    - React-Core/Default
+    - React-Core/DevSupport
+    - React-Core/RCTImageHeaders
+    - React-Core/RCTNetworkHeaders
+    - React-Core/RCTWebSocket
+  - name: React-CoreModules
+    version: 0.61.2.6-socket
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - React-CoreModules
+  - name: React-RCTImage
+    version: 0.61.2.6-socket
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - React-RCTImage
+  - name: React-RCTNetwork
+    version: 0.61.2.6-socket
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - React-RCTNetwork
+  - name: React-cxxreact
+    version: 0.61.2.6-socket
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - React-cxxreact
+  - name: React-jsi
+    version: 0.61.2.6-socket
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - React-jsi
+    - React-jsi/Default
+  - name: React-jsiexecutor
+    version: 0.61.2.6-socket
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - React-jsiexecutor
+  - name: React-jsinspector
+    version: 0.61.2.6-socket
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - React-jsinspector
+  - name: ReactCommon
+    version: 0.61.2.6-socket
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - ReactCommon/jscallinvoker
+    - ReactCommon/turbomodule/core
+  - name: ReactiveObjC
+    version: 3.1.0
+    repo: git@code.byted.org:iOS_Library/publicthird_source_repo.git
+    target: Lark
+    subspecs:
+    - ReactiveObjC
+  - name: RxAutomaton
+    version: 0.4.0
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - RxAutomaton
+  - name: RxCocoa
+    version: 5.1.1
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - RxCocoa
+  - name: RxDataSources
+    version: 4.0.1
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - RxDataSources
+  - name: RxRelay
+    version: 5.1.1
+    repo: git@code.byted.org:iOS_Library/publicthird_source_repo.git
+    target: Lark
+    subspecs:
+    - RxRelay
+  - name: RxSwift
+    version: 5.1.1
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - RxSwift
+  - name: SAMKeychain
+    version: 1.5.2.1-binary
+    repo: git@code.byted.org:iOS_Library/publicthird_binary_repo.git
+    target: Lark
+    subspecs:
+    - SAMKeychain
+  - name: SDWebImage
+    version: 5.11.1
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - SDWebImage
+    - SDWebImage/Core
+  - name: SGPagingView
+    version: 1.7.2
+    repo: git@code.byted.org:iOS_Library/publicthird_source_repo.git
+    target: Lark
+    subspecs:
+    - SGPagingView
+  - name: SQLite.swift
+    version: 0.13.0
+    repo: git@code.byted.org:iOS_Library/publicthird_source_repo.git
+    target: Lark
+    subspecs:
+    - SQLite.swift
+    - SQLite.swift/standard
+  - name: SQLiteMigrationManager.swift
+    version: 0.8.0
+    repo: git@code.byted.org:iOS_Library/publicthird_source_repo.git
+    target: Lark
+    subspecs:
+    - SQLiteMigrationManager.swift
+  - name: SecSDK
+    version: 1.6.2
+    repo: git@code.byted.org:iOS_Library/lark_source_repo.git
+    target: Lark
+    subspecs:
+    - SecSDK
+    - SecSDK/common
+    - SecSDK/ver-pub
+  - name: ShootsAPISocket
+    version: 0.0.2-alpha.0
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - ShootsAPISocket
+  - name: SkeletonView
+    version: 1.4.1
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - SkeletonView
+  - name: SnapKit
+    version: 5.0.1-fork.14
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - SnapKit
+  - name: SocketRocket
+    version: 1.0.0
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - SocketRocket
+  - name: Stinger
+    version: 1.0.5
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - Stinger
+    - Stinger/Core
+    - Stinger/libffi
+  - name: SwiftLint
+    version: 0.51.0
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - SwiftLint
+  - name: SwiftProtobuf
+    version: 1.20.103
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - SwiftProtobuf
+  - name: SwiftyJSON
+    version: 4.1.0
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - SwiftyJSON
+  - name: TSPrivacyKit
+    version: 0.4.0.49-lark
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - TSPrivacyKit/APICustom
+    - TSPrivacyKit/Cache/CacheCore
+    - TSPrivacyKit/Cache/CacheDefault
+    - TSPrivacyKit/Core
+    - TSPrivacyKit/Impls/Consumer
+    - TSPrivacyKit/ModuleInterface
+    - TSPrivacyKit/NetworkCore
+    - TSPrivacyKit/NetworkModuleInterface
+    - TSPrivacyKit/NetworkPipeline/TTNet
+    - TSPrivacyKit/NetworkPipeline/URLProtocol
+    - TSPrivacyKit/Pipelines/Album
+    - TSPrivacyKit/Pipelines/Album/ALAssetsLibrary
+    - TSPrivacyKit/Pipelines/Album/PHAsset
+    - TSPrivacyKit/Pipelines/Album/PHAssetChangeRequest
+    - TSPrivacyKit/Pipelines/Album/PHAssetCollection
+    - TSPrivacyKit/Pipelines/Album/PHCollectionList
+    - TSPrivacyKit/Pipelines/Album/PHImageManager
+    - TSPrivacyKit/Pipelines/Album/PHPhotoLibrary
+    - TSPrivacyKit/Pipelines/Album/PHPickerViewController
+    - TSPrivacyKit/Pipelines/Album/UIImagePickerController
+    - TSPrivacyKit/Pipelines/Audio/AVAudioSession
+    - TSPrivacyKit/Pipelines/Audio/AVCaptureDeviceAudio
+    - TSPrivacyKit/Pipelines/Audio/AudioOutput
+    - TSPrivacyKit/Pipelines/Audio/AudioQueue
+    - TSPrivacyKit/Pipelines/Calendar
+    - TSPrivacyKit/Pipelines/Calendar/EKEvent
+    - TSPrivacyKit/Pipelines/Calendar/EKEventStore
+    - TSPrivacyKit/Pipelines/CallCenter/CTCallCenter
+    - TSPrivacyKit/Pipelines/Clipboard/UIPasteboard
+    - TSPrivacyKit/Pipelines/Contact/CNContactStore
+    - TSPrivacyKit/Pipelines/IDFV/UIDeviceIDFV
+    - TSPrivacyKit/Pipelines/IP/ifaddrs
+    - TSPrivacyKit/Pipelines/Location/CLLocationManagerLocation/Normal
+    - TSPrivacyKit/Pipelines/LockID/LAContext
+    - TSPrivacyKit/Pipelines/Motion/CLLocationManagerMotion
+    - TSPrivacyKit/Pipelines/Motion/CMMotionManager
+    - TSPrivacyKit/Pipelines/Motion/UIDeviceMotion
+    - TSPrivacyKit/Pipelines/Network/CLGeocoder
+    - TSPrivacyKit/Pipelines/Push/UNUserNotificationCenter
+    - TSPrivacyKit/Pipelines/ScreenRecorder/RPSystemBroadcastPickerView
+    - TSPrivacyKit/Pipelines/Video/AVCaptureDeviceVideo
+    - TSPrivacyKit/Pipelines/Video/AVCaptureSession
+    - TSPrivacyKit/Pipelines/Video/AVCaptureStillImageOutput
+    - TSPrivacyKit/Pipelines/Wifi/CaptiveNetwork
+    - TSPrivacyKit/Pipelines/Wifi/NEHotspotNetwork
+    - TSPrivacyKit/TSPKUtil
+  - name: TTAdSplashSDK
+    version: 0.7.26.15-bugfix.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - TTAdSplashSDK/Core
+  - name: TTBridgeUnify
+    version: 5.2.13
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - TTBridgeUnify/Lynx
+    - TTBridgeUnify/TTBridge
+    - TTBridgeUnify/TTBridgeAuthManager
+    - TTBridgeUnify/TTBridgeAuthManager/CN
+    - TTBridgeUnify/TTBridgeAuthManager/Core
+    - TTBridgeUnify/TTBridgeNameDefines
+    - TTBridgeUnify/UnifiedWebView
+    - TTBridgeUnify/WebView
+  - name: TTFFmpeg
+    version: 1.25.108.22-net3
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - TTFFmpeg
+    - TTFFmpeg/libavcodec
+    - TTFFmpeg/libavdevice
+    - TTFFmpeg/libavfilter
+    - TTFFmpeg/libavformat
+    - TTFFmpeg/libavresample
+    - TTFFmpeg/libavutil
+    - TTFFmpeg/libffmpeg
+    - TTFFmpeg/libpostproc
+    - TTFFmpeg/libswresample
+    - TTFFmpeg/libswscale
+  - name: TTKitchen
+    version: 4.3.16
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - TTKitchen/Core
+    - TTKitchen/MMKV
+  - name: TTMLeaksFinder
+    version: 2.1.9-alpha.10-swift
+    repo: git@code.byted.org:iOS_Library/toutiao_source_repo.git
+    target: Lark
+    subspecs:
+    - TTMLeaksFinder
+    - TTMLeaksFinder/Core
+    - TTMLeaksFinder/LeaksTracker
+    - TTMLeaksFinder/UseCount
+  - name: TTMacroManager
+    version: 1.1.0
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - TTMacroManager
+  - name: TTNetworkDownloader
+    version: 1.1.39
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - TTNetworkDownloader
+  - name: TTNetworkManager
+    version: 4.1.137.13-lark
+    repo: git@code.byted.org:iOS_Library/toutiao_source_repo.git
+    target: Lark
+    subspecs:
+    - TTNetworkManager
+    - TTNetworkManager/Core
+  - name: TTNetworkPredict
+    version: 0.5.2
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - TTNetworkPredict/algorithms
+    - TTNetworkPredict/bridge
+    - TTNetworkPredict/common
+    - TTNetworkPredict/interface
+    - TTNetworkPredict/public
+  - name: TTPlayerSDK
+    version: 2.10.108.212-lark
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - TTPlayerSDK
+  - name: TTReachability
+    version: 1.8.6
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - TTReachability
+  - name: TTRoute
+    version: 0.2.33
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - TTRoute
+  - name: TTSVGView
+    version: 0.1.12
+    repo: git@code.byted.org:ugc/UGCSpecs.git
+    target: Lark
+    subspecs:
+    - TTSVGView
+  - name: TTTAttributedLabel
+    version: 2.0.0
+    repo: git@code.byted.org:iOS_Library/publicthird_source_repo.git
+    target: Lark
+    subspecs:
+    - TTTAttributedLabel
+  - name: TTTopSignature
+    version: 0.0.22.1-binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - TTTopSignature
+  - name: TTVideoEngine
+    version: 1.10.108.111-lark
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - TTVideoEngine
+    - TTVideoEngine/Base
+    - TTVideoEngine/CN
+    - TTVideoEngine/NewLogger
+    - TTVideoEngine/OldModel
+    - TTVideoEngine/Private
+    - TTVideoEngine/Public
+    - TTVideoEngine/TraceReport
+  - name: TYRZApiSDK
+    version: 9.6.3
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - TYRZApiSDK
+  - name: TangramComponent
+    version: 0.2.32
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - TangramComponent
+  - name: TangramLayoutKit
+    version: 0.1.26
+    repo: git@code.byted.org:iOS_Library/lark_source_repo.git
+    target: Lark
+    subspecs:
+    - TangramLayoutKit
+  - name: TemplateConsumer
+    version: 0.1.21.1-bugfix.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - TemplateConsumer/Common
+    - TemplateConsumer/Cutsame
+  - name: TencentQQSDK
+    version: 1.1.0-rc.0.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - TencentQQSDK
+  - name: TransBridge-iOS
+    version: 0.1.8
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - TransBridge-iOS
+    - TransBridge-iOS/Channel
+    - TransBridge-iOS/Core
+    - TransBridge-iOS/FlutterMk
+    - TransBridge-iOS/Util
+  - name: UIImageViewAlignedSwift
+    version: 0.6.0
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - UIImageViewAlignedSwift
+  - name: UITextView+Placeholder
+    version: 1.3.1
+    repo: git@code.byted.org:iOS_Library/publicthird_source_repo.git
+    target: Lark
+    subspecs:
+    - UITextView+Placeholder
+  - name: VCBaseKit
+    version: 1.1.0
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - VCBaseKit
+    - VCBaseKit/Core
+  - name: VCNVCloudNetwork
+    version: 5.1.1-net3
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - VCNVCloudNetwork
+    - VCNVCloudNetwork/Core
+  - name: VCPreloadStrategy
+    version: 1.108.2-lark.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - VCPreloadStrategy
+    - VCPreloadStrategy/Base
+    - VCPreloadStrategy/Bridge
+    - VCPreloadStrategy/Center
+    - VCPreloadStrategy/Core
+    - VCPreloadStrategy/Extern
+    - VCPreloadStrategy/PlayRange
+    - VCPreloadStrategy/Settings
+    - VCPreloadStrategy/SmartTask
+  - name: VCVodSettings
+    version: 1.0.0.1-binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - VCVodSettings
+  - name: VideoTemplate
+    version: 4.0.171.6-bugfix.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - VideoTemplate/Core
+    - VideoTemplate/GamePlay
+  - name: WbLib
+    version: 6.2.6
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - WbLib
+  - name: WechatSDK
+    version: 0.3.3
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - WechatSDK
+  - name: WeiboSDK
+    version: 3.3.5
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - WeiboSDK
+  - name: XElement
+    version: 2.10.19-lark.1-bugfix
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - XElement/Core
+    - XElement/ImpressionView
+    - XElement/Input
+    - XElement/Overlay
+    - XElement/Picker
+    - XElement/SVG
+    - XElement/ScrollView
+    - XElement/Swiper
+    - XElement/Text
+  - name: YYText
+    version: 1.0.26
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - YYText
+  - name: Yoga
+    version: 1.9.0
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - Yoga
+  - name: ZstdDecompressKit
+    version: 1.0.3
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - ZstdDecompressKit
+    - ZstdDecompressKit/Compress
+    - ZstdDecompressKit/Decompress
+    - ZstdDecompressKit/libcommon
+  - name: arkcrypto-minigame-iOS
+    version: 0.1.6.5
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - arkcrypto-minigame-iOS
+  - name: audiosdk
+    version: 14.30.2-common.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - audiosdk
+  - name: boost-for-react-native
+    version: 1.63.0
+    repo: git@code.byted.org:iOS_Library/publicthird_source_repo.git
+    target: Lark
+    subspecs:
+    - boost-for-react-native
+  - name: boringssl
+    version: 0.2.3-lark
+    repo: git@code.byted.org:iOS_Library/toutiao_source_repo.git
+    target: Lark
+    subspecs:
+    - boringssl
+    - boringssl/openssl
+  - name: byted_cert
+    version: 4.10.2-alpha.36
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - byted_cert/aliyun
+    - byted_cert/bridgecore
+    - byted_cert/core
+    - byted_cert/crypto
+    - byted_cert/download
+    - byted_cert/lightcore
+    - byted_cert/offline
+  - name: bytedt-ios
+    version: 2.0.3-lark
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - bytedt-ios
+    - bytedt-ios/Core
+  - name: bytenn-ios
+    version: 3.4.81
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - bytenn-ios
+  - name: espresso
+    version: 3.0.1
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - espresso
+  - name: fastcv
+    version: 3.3.2.1-binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - fastcv
+    - fastcv/AwemeMode
+    - fastcv/core
+    - fastcv/cvtColorCPU
+    - fastcv/cvtcolor
+    - fastcv/cvteletype
+    - fastcv/dis
+    - fastcv/exports
+    - fastcv/imagecopy
+    - fastcv/ml
+    - fastcv/morph
+    - fastcv/resize
+    - fastcv/resizeCPU
+    - fastcv/warp
+  - name: gaia_lib_publish
+    version: 14.5.0.1-D.1.binary
+    repo: git@code.byted.org:iOS_Library/IES-UGC_binary_repo.git
+    target: Lark
+    subspecs:
+    - gaia_lib_publish
+    - gaia_lib_publish/Files
+    - gaia_lib_publish/Math
+    - gaia_lib_publish/MemoryManager
+    - gaia_lib_publish/Message
+    - gaia_lib_publish/Network
+    - gaia_lib_publish/Performance
+    - gaia_lib_publish/Text
+    - gaia_lib_publish/Thread
+    - gaia_lib_publish/gaia
+  - name: glog
+    version: 0.3.5
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - glog
+  - name: icu_lark
+    version: 72.1.3
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - icu_lark
+  - name: lens
+    version: 8.5.18-lark.1.binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - lens
+    - lens/LumaDetection
+    - lens/SmartCodec
+    - lens/core
+    - lens/lark
+  - name: libPhoneNumber-iOS
+    version: 0.9.15
+    repo: git@code.byted.org:iOS_Library/publicthird_source_repo.git
+    target: Lark
+    subspecs:
+    - libPhoneNumber-iOS
+  - name: lib_h_dec
+    version: 1.6.207
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - lib_h_dec
+  - name: libextobjc
+    version: 0.4.1
+    repo: git@code.byted.org:iOS_Library/publicthird_source_repo.git
+    target: Lark
+    subspecs:
+    - libextobjc
+    - libextobjc/EXTADT
+    - libextobjc/EXTConcreteProtocol
+    - libextobjc/EXTKeyPathCoding
+    - libextobjc/EXTNil
+    - libextobjc/EXTSafeCategory
+    - libextobjc/EXTScope
+    - libextobjc/EXTSelectorChecking
+    - libextobjc/EXTSynthesize
+    - libextobjc/NSInvocation+EXT
+    - libextobjc/NSMethodSignature+EXT
+    - libextobjc/RuntimeExtensions
+    - libextobjc/UmbrellaHeader
+  - name: libpng
+    version: 1.6.35
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - libpng
+  - name: libttheif_ios
+    version: 1.1.13.1-binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - libttheif_ios
+  - name: libwebp
+    version: 1.3.2
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - libwebp
+    - libwebp/demux
+    - libwebp/mux
+    - libwebp/sharpyuv
+    - libwebp/webp
+  - name: libyuv-iOS
+    version: 1.0.2
+    repo: git@code.byted.org:iOS_Library/publicthird_source_repo.git
+    target: Lark
+    subspecs:
+    - libyuv-iOS
+  - name: lottie-ios
+    version: 2.6.5
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - lottie-ios
+  - name: lottie-lark
+    version: 4.2.7-lark
+    repo: git@code.byted.org:iOS_Library/lark_source_repo.git
+    target: Lark
+    subspecs:
+    - lottie-lark
+  - name: meego_rust_ios
+    version: 0.0.21
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - meego_rust_ios
+    - meego_rust_ios/Core
+  - name: mobilecv2
+    version: 1.8.28
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - mobilecv2
+  - name: nanosvg
+    version: 0.1.10
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - nanosvg
+  - name: nfdsdk
+    version: 2.2.0-lark.nolto
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - nfdsdk
+  - name: oc-opus-codec
+    version: 0.2.9-module
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - oc-opus-codec
+  - name: pop
+    version: 1.0.12.1-binary
+    repo: git@code.byted.org:iOS_Library/publicthird_binary_repo.git
+    target: Lark
+    subspecs:
+    - pop
+  - name: protobuf_lite
+    version: 1.0.4-ttnet3
+    repo: git@code.byted.org:iOS_Library/toutiao_source_repo.git
+    target: Lark
+    subspecs:
+    - protobuf_lite
+  - name: protobuf_pty
+    version: 0.0.3.1-binary
+    repo: git@code.byted.org:iOS_Library/privatethird_binary_repo.git
+    target: Lark
+    subspecs:
+    - protobuf_pty
+  - name: smash
+    version: 9.0.4-alpha.0-lark-stable
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - smash/action_liveness
+    - smash/package
+    - smash/private_utils
+    - smash/qrcode
+    - smash/utils
+  - name: vmsdk
+    version: 2.2.7-lark
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: Lark
+    subspecs:
+    - vmsdk/basic
+    - vmsdk/basic/log
+    - vmsdk/jsbridge
+    - vmsdk/lark_worker
+    - vmsdk/monitor/core
+    - vmsdk/monitor/domestic
+    - vmsdk/napi
+    - vmsdk/napi/core
+    - vmsdk/napi/env
+    - vmsdk/napi/jsc
+    - vmsdk/napi/quickjs
+    - vmsdk/napi/v8
+    - vmsdk/quickjs
+    - vmsdk/quickjs_debugger
+    - vmsdk/quickjs_heapprofiler
+    - vmsdk/umbrella
+  - name: yaml-cpp
+    version: 0.6.2.4
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: Lark
+    subspecs:
+    - yaml-cpp
+- name: ShareExtension
+  platforms:
+    ios: '12.0'
+  script_phase: null
+  inheritance: complete
+  podspecs:
+  - name: icu_lark
+    version: 72.1.3
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: ShareExtension
+    subspecs:
+    - icu_lark
+- name: BroadcastUploadExtension
+  platforms:
+    ios: '12.0'
+  script_phase: null
+  inheritance: complete
+  configuration:
+    dynamic:
+    - name: ByteRtcScreenCapturer
+      repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+      target: BroadcastUploadExtension
+      subspecs:
+      - ByteRtcScreenCapturer
+    - name: RustSimpleLogSDK
+      repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+      target: BroadcastUploadExtension
+      subspecs:
+      - RustSimpleLogSDK
+  podspecs:
+  - name: icu_lark
+    version: 72.1.3
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: BroadcastUploadExtension
+    subspecs:
+    - icu_lark
+- name: NotificationServiceExtension
+  platforms:
+    ios: '12.0'
+  script_phase: null
+  inheritance: complete
+  configuration:
+    dynamic:
+    - name: RustSimpleLogSDK
+      repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+      target: NotificationServiceExtension
+      subspecs:
+      - RustSimpleLogSDK
+  podspecs:
+  - name: HeimdallrForExtension
+    version: 0.0.2-alpha.9
+    repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+    target: NotificationServiceExtension
+    subspecs:
+    - HeimdallrForExtension/HMDDyldExtension
+  - name: icu_lark
+    version: 72.1.3
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: NotificationServiceExtension
+    subspecs:
+    - icu_lark
+- name: NotificationContentExtension
+  platforms:
+    ios: '12.0'
+  script_phase: null
+  inheritance: complete
+  configuration:
+    dynamic:
+    - name: RustSimpleLogSDK
+      repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+      target: NotificationContentExtension
+      subspecs:
+      - RustSimpleLogSDK
+  podspecs:
+  - name: icu_lark
+    version: 72.1.3
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: NotificationContentExtension
+    subspecs:
+    - icu_lark
+- name: SmartWidgetExtension
+  platforms:
+    ios: '12.0'
+  script_phase: null
+  inheritance: complete
+  configuration:
+    dynamic:
+    - name: RustSimpleLogSDK
+      repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+      target: SmartWidgetExtension
+      subspecs:
+      - RustSimpleLogSDK
+  podspecs:
+  - name: icu_lark
+    version: 72.1.3
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: SmartWidgetExtension
+    subspecs:
+    - icu_lark
+- name: IntentsExtension
+  platforms:
+    ios: '12.0'
+  script_phase: null
+  inheritance: complete
+  configuration:
+    dynamic:
+    - name: RustSimpleLogSDK
+      repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+      target: IntentsExtension
+      subspecs:
+      - RustSimpleLogSDK
+  podspecs:
+  - name: icu_lark
+    version: 72.1.3
+    repo: git@code.byted.org:ee/pods_specs.git
+    target: IntentsExtension
+    subspecs:
+    - icu_lark
+- name: LarkAppIntents
+  platforms:
+    ios: '12.0'
+  script_phase: null
+  inheritance: complete
+  configuration:
+    dynamic:
+    - name: RustSimpleLogSDK
+      repo: git@code.byted.org:iOS_Library/privatethird_source_repo.git
+      target: LarkAppIntents
+      subspecs:
+      - RustSimpleLogSDK
+  podspecs: []
+platforms:
+  ios: '12.0'
+configuration: {}
+use_frameworks:
+  CreationKitBeauty: true
+  CreationKitRTProtocol: true
+  DVEFoundationKit: true
+  DouyinOpenPlatformSDK: true
+  NLEEditor: true
+  TTPlayerSDK: true
+  TTVideoEditor: true
+  VCVodSettings: true

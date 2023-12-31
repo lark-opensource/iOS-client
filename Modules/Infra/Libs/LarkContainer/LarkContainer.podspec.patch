@@ -1,0 +1,10 @@
+debug_podfile_content <<-EOF
+  exclude_pods = %w[LarkContainer Swinject]
+  _module_cache.all_modules.each do |m|
+    unless exclude_pods.include? m.name
+      if_pod m.name, path: m.path
+    end
+  end
+EOF
+
+debug_dependency 'Swinject', integration: :local

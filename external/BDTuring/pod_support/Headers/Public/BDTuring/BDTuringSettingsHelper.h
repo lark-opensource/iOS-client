@@ -1,0 +1,1 @@
+../../../../BDTuring/Classes/Settings/BDTuringSettingsHelper.h

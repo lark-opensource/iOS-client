@@ -1,0 +1,1 @@
+../../../../loki_resource/task/FetchEffectsInfoTask.h

@@ -1,0 +1,255 @@
+# coding: utf-8
+
+# @!domain [Pod::Podfile]
+# @!parse
+require 'set'
+# 配置复用
+require_relative '../../bin/lib/lark-project/lib/lark/project/podfile_mixin'
+def lark_check_duplicate_pod_targets(*); end
+# 版本限制和关联依赖复用
+require_relative '../../if_pod'
+# 自动生成 assembly
+require_relative '../../bin/lib/lark-project/lib/lark/project/assembly'
+require_relative '../../bin/lib/lark-project/lib/lark/project/remote_cache'
+require_relative './bin/ruby_script/podfile_tonic.rb'
+require_relative './bin/ruby_script/unit_test_postprocessing.rb'
+require_relative '../../bin/lib/lark-project/lib/lark/project/lark_assert'
+
+if(File.exist?('./.githooks/pre-commit'))
+  `git config core.hooksPath ./.githooks`
+else
+  puts '\033[31mpre-commit hook does not exist!\033[39m'
+  `exit 1`
+end
+
+# 删除本地残留的 .eescaffold 避免影响 eesc 工作
+`eesc_dir=$(git rev-parse --show-toplevel)/Modules/SpaceKit/.eescaffold; ([[ -e $eesc_dir ]] && rm -rf $eesc_dir)`
+
+# 下面这行为M1 arm64的配置，工程将会以M1 原生的编译, 详细见https://bytedance.feishu.cn/wiki/wikcnwks71unvjEFltDHpinn9Yc
+# 需要切回rosetta请手动注释掉
+lark_build_for_all_arch!
+
+# 开启本地源码调试 rust-sdk，可自定义 rust-sdk 根目录 :path 与工程名 :proj_name
+# 说明文档：https://bytedance.larkoffice.com/wiki/K2sywECpki2LC6kCFPrc03mSnXf
+# rust_sdk_local_dev!(:path => '../../../rust-sdk', :proj_name => 'SpaceDemo')
+
+lark_template_common_setup
+
+strict_lock_mode!
+
+try_to_enable_remote_cache(
+  :remote_cache_enable => false, #暂时关闭, 感兴趣同学可以打开
+  :remote_cache_configuration => "Debug", #可选值 Debug, Release
+  :remote_cache_platform => "iphonesimulator", #可选值 iphonesimulator(模拟器)，iphoneos(真机)
+  :repo => "git@code.byted.org:ee/spacekit-ios.git",
+  :primary_branch => "develop",
+  :final_target => "SpaceDemo",
+  :exclude_targets => ['SpaceDemo'],
+  :custom_fingerprint_envs => ["SWIFT_VERSION"],
+  :hummer_tags => {},
+  :scheme_tag => 'Space-test'
+)
+# TODO: test target build failed if use short link
+current_target_definition.set_use_short_link(:all, false)
+
+disable_swiftlint! if respond_to?(:disable_swiftlint!)
+
+if ENV['NEED_RUN_UNIT_TEST'].to_s == 'true'
+  # Disable Swfit assert for runnning unit test
+  assert_dir :none
+end
+
+skModules = Set[
+#请按照字母顺序排序，便于维护
+'CCMMod',
+'SKBitable',
+'SKBrowser',
+'SKCommon',
+'SKComment',
+'SKDoc',
+'SKDrive',
+'SKFoundation',
+'SKInfra',
+'SKMindnote',
+'SKResource',
+'SKSheet',
+'SKSpace',
+'SKUIKit',
+'SKWikiV2',
+'SKWorkspace',
+'SpaceInterface',
+'SpaceKit',
+'SKSlides',
+'LarkAIInfra',
+'LarkDocsIcon'
+]
+
+lark_use_common_binary_config(strategy: :all) do
+  # 这里插入Name可以将某个库切成源码, 无需使用引号，一行一个或者使用空格做分割
+  %W[
+  LarkLocationPicker
+  ].each { |v| source v }
+  skModules.each {|v| source v }
+end
+
+def appPods
+  # demo 依赖注入需要用到的 pod
+  
+  lynxPods
+  pod 'LarkAccountAssembly'
+  pod 'LarkBaseService'
+  pod 'LarkLaunchGuide'
+  pod 'LarkQRCode'
+  pod 'LarkRustClientAssembly'
+  pod 'PassportDebug'
+  pod 'TTKitchen', '4.3.16'
+  pod 'LarkKAFKMS', :subspecs => ['Core']#临时处理dev编译问题
+end
+
+def sdkPods
+
+  lark_main_target_if_pods
+
+  module_list = [
+    'CCM',
+  #  'Messenger',
+  #  'ByteView',
+  #  'Todo',
+  ]
+
+  if module_list.include? 'CCM'
+    pod 'CCMMod', :path => './Bizs/CCMMod/', :inhibit_warnings => false
+    pod 'SKResource', :path => './Libs/SKResource/', :inhibit_warnings => false
+    pod 'SKFoundation', :path => './Libs/SKFoundation/', :inhibit_warnings => false, :testspecs => ['Tests']
+    pod 'SKInfra', :path => './Bizs/SKInfra/', :inhibit_warnings => false
+    pod 'SKUIKit', :path => './Libs/SKUIKit/', :inhibit_warnings => false
+    pod 'SKCommon', :path => './Bizs/SKCommon/', :inhibit_warnings => false, :testspecs => ['Tests']
+    pod 'SKComment', :path => './Bizs/SKComment/', :inhibit_warnings => false, :testspecs => ['Tests']
+    pod 'SpaceKit', :path => './Bizs/SpaceKit/', :inhibit_warnings => false
+    pod 'SKBrowser', :path => './Bizs/SKBrowser/', :inhibit_warnings => false, :testspecs => ['Tests']
+    pod 'SKDoc', :path => './Bizs/SKDoc/', :inhibit_warnings => false, :testspecs => ['Tests']
+    pod 'SKSpace', :path => './Bizs/SKSpace/', :inhibit_warnings => false, :testspecs => ['Tests']
+    pod 'SKDrive', :path => './Bizs/SKDrive/', :inhibit_warnings => false, :testspecs => ['Tests']
+    pod 'SKWikiV2', :path => './Bizs/SKWikiV2/', :inhibit_warnings => false, :testspecs => ['Tests']
+    pod 'SKSheet', :path => './Bizs/SKSheet/', :inhibit_warnings => false, :testspecs => ['Tests']
+    pod 'SKBitable', :path => './Bizs/SKBitable/', :inhibit_warnings => false, :testspecs => ['Tests']
+    pod 'SKMindnote', :path => './Bizs/SKMindnote/', :inhibit_warnings => false
+    pod 'SKPermission', :path => './Bizs/SKPermission/', :inhibit_warnings => false, :testspecs => ['Tests']
+    pod 'SpaceInterface', :path => './Bizs/SpaceInterface/', :inhibit_warnings => false
+    pod 'LarkAIInfra', :path => '../Infra/Bizs/LarkAIInfra', :inhibit_warnings => false, :testspecs => ['Tests']
+    pod 'LarkDocsIcon', :path => '../Infra/Bizs/LarkDocsIcon', :inhibit_warnings => false
+    pod 'SKSlides', :path => './Bizs/SKSlides/', :inhibit_warnings => false
+    pod 'SKWorkspace', :path => './Bizs/SKWorkspace/', :inhibit_warnings => false
+  end
+
+  if module_list.include? 'Messenger'
+    pod 'MessengerMod'
+  end
+
+  if module_list.include? 'ByteView'
+    pod 'ByteViewMod'
+  end
+  
+  if module_list.include? 'Todo'
+    pod 'TodoMod'
+  end
+end
+  
+def debugPods
+  pod 'SwiftLint'
+  pod 'FLEX', :configurations => ['Debug', 'Beta']
+  pod 'MLeaksFinder'
+  pod 'FBRetainCycleDetector'
+  pod 'LookinServer', :configurations => ['Debug']
+  pod 'LarkDebug'
+end
+
+def lynxPods
+  pod 'Lynx', subspecs: %w[Framework Native JSRuntime ReleaseResource BDLynx LepusNG BDConfig/CN NapiBinding]
+  pod 'XElement', subspecs: %w[Swiper Input Picker Text ScrollView SVG]
+  pod 'LynxDevtool', subspecs: %w[Framework DebugResource ThirdPartyCommon Native NativeScript NapiBinding/V8]
+  pod 'TTKitchen', '4.3.16'
+end
+
+def httpStub
+  # 这个比较特殊，如果写在test_spec, hook不到host app的网络
+  pod 'OHHTTPStubs/Swift', '9.0.0'
+end
+target 'SpaceDemo' do
+  httpStub
+  appPods
+  sdkPods
+  debugPods
+end
+
+target 'SpaceDemoSZ' do
+  appPods
+  sdkPods
+  debugPods
+end
+
+# @param installer [Pod::Installer]
+pre_install do |installer|
+  # modify build_settings in pre_install, so cache check will be valid
+  lark_template_common_pre_install installer
+  
+  # additional xcconfigs
+  installer.pod_targets.each do |pod_target|
+    attributes_hash = pod_target.root_spec.attributes_hash
+    pod_target_xcconfig = (attributes_hash['pod_target_xcconfig'] ||= {})
+    # disable OC assert for unit test task
+    if ENV['NEED_RUN_UNIT_TEST'].to_s == 'true'
+      pod_target_xcconfig['ENABLE_NS_ASSERTIONS'] = 'NO'
+    end
+  end
+end
+
+post_install do |installer|
+  lark_template_common_post_install installer
+  # 自动收集 Assembly，生成/更新 BaseAssembly.swift
+  Lark::Project::Assembly.rebuild(installer, use_v2: true)
+
+  # the post installer change won't mark cache invalid, and the results is not full(unless use clean install)
+  # but it can set config by configurations..
+  installer.target_installation_results.pod_target_installation_results.each do |name, result|
+    target = result.native_target
+    release_settings = target.build_settings('Release')
+    release_settings['SWIFT_OPTIMIZATION_LEVEL'] = '-Osize'
+    release_settings['GCC_OPTIMIZATION_LEVEL'] = 'z'
+
+    if ENV['DEBUG_FOR_WEB'] == 'true'
+      debug_settings = target.build_settings('Debug')
+      debug_settings['SWIFT_OPTIMIZATION_LEVEL'] = '-O'
+    end
+
+    if skModules.include? result.target.name
+      target.build_configurations.each do |config|
+        if config.name == 'Beta'
+          config.build_settings['OTHER_SWIFT_FLAGS'] ||= '$(inherited) -DBETA'
+        end
+        if config.name == 'Debug'
+          config.build_settings['OTHER_SWIFT_FLAGS'] ||= '$(inherited) -Xfrontend -warn-long-function-bodies=500'
+        end
+      end
+    end
+  end
+end
+
+# 新增 post_integrate 流程，用于修改 cocoapods 生成的工程
+post_integrate do |installer|
+  podfile_dir = File.dirname(__FILE__)
+  pods_dir = File.expand_path(File.join(podfile_dir, 'Pods'))
+
+  # The project of host app
+  xcodeproj = File.expand_path(File.join(podfile_dir, 'SpaceDemo.xcodeproj'))
+
+  # The build target of host app
+  target = 'SpaceDemo'
+
+  # The build scheme of host app
+  scheme = 'SpaceDemo-Debug'
+
+  executable_path = get_executable_path(xcodeproj, target, 'app')
+  revise_xctest_targets(pods_dir, "$(BUILT_PRODUCTS_DIR)/#{executable_path}")
+  revise_host_project(xcodeproj, target, scheme)
+end

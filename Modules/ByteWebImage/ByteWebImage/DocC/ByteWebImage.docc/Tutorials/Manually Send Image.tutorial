@@ -1,0 +1,68 @@
+@Tutorial(time:  10) {
+    @Intro(title: "手动检查图片") {
+        手动调用内置的检查方法，单独做每个步骤
+    }
+    
+    @Section(title: "步骤介绍") {
+        主要步骤：前置检查、压缩转码、上传、埋点上报。
+        
+        其中，前置检查可以基于 ``ByteWebImage/ImageUploadChecker`` 的能力进行，压缩转码可以基于 ``ByteWebImage/SendImageProcessorImpl`` 的能力进行。
+        
+        上传和埋点上报两个步骤是业务方需要注意，并且自行完成的步骤。
+        
+        @Steps {
+            @Step {
+                前置检查
+                
+                > 前置检查一般会检查三个部分：图片转码后格式、图片文件大小、图片像素大小
+                >
+                > 图片转码后格式：防止上传其他端不能解码的格式，导致裂图
+                >
+                > 图片文件大小、图片像素大小：防止上传端压缩转码多大的图片，导致oom或者crash
+                >
+                > 以上这些都是通过 Setting 配置，可动态调节
+            }
+            
+            @Step {
+                前置检查 - 如果数据源是 `PHAsset`，建议使用 ``ByteWebImage/ImageUploadChecker/getAssetCheckResult(asset:formatOptions:customLimitFileType:customLimitFileSize:customLimitImageSize:)``。
+                
+                @Code(name: "CheckPHAssetImage.swift", file: 02-Manually-Send-Image-01.swift, reset: true)
+            }
+            
+            @Step {
+                前置检查 - 如果数据源是 `Data`，建议使用 ``ByteWebImage/ImageUploadChecker/getDataCheckResult(data:formatOptions:customLimitFileType:customLimitFileSize:customLimitImageSize:)``。
+                
+                @Code(name: "CheckDataImage.swift", file: 02-Manually-Send-Image-02.swift, reset: true)
+            }
+            
+            @Step {
+                前置检查 - 如果数据源是 `UIImage`，建议使用 ``ByteWebImage/ImageUploadChecker/getImageSizeCheckResult(sourceImageType:finalImageType:imageSize:customLimitImageSize:)``。
+                
+                > 因为UIImage已经没有格式和文件大小，所以只比较像素即可。
+                
+                @Code(name: "CheckUIImage.swift", file: 02-Manually-Send-Image-03.swift, reset: true)
+            }
+            
+            @Step {
+                压缩转码
+                
+                当非原图处理图片时，会对图片转码、压缩、降采样，如果发现处理后的图片比处理前体积大500K以上，则会使用处理前的数据返回。
+                同时在这个过程中会通过 `image_compress_dev` 埋点上报结果。
+                
+                @Code(name: "ProcessImage.swift", file: 02-Manually-Send-Image-04.swift, reset: true)
+            }
+            
+            @Step {
+                上传图片
+                
+                通过上一步可以拿到 ``ByteWebImage/ImageProcessResult``，可以通过对压缩结果的判定之后，业务方自行调用上传接口。
+            }
+            
+            @Step {
+                埋点上报
+                
+                为了统计图片上传耗时和错误可感知数据，在上传结束时需要上报 `appr_time_image_upload` 埋点，用于数据监控和[大盘统计](https://data.bytedance.net/tea/app/12/event-analysis/result/146976165?isConfFilter=true)。
+            }
+        }
+    }
+}

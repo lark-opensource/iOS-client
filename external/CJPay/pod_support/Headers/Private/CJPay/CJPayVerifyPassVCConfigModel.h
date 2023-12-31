@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayAbility/VerifyModule/VerifyBase/Passcode/CJPayVerifyPassVCConfigModel.h

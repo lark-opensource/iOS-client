@@ -1,0 +1,184 @@
+{
+    "effect": [
+        {
+            "name": "box1_live",
+            "viewport": [
+                0,
+                0,
+                324,
+                576
+            ],
+            "vertexShader": "vshader_boxblur.vs",
+            "vUniforms": [
+                {
+                    "name": "texBlurWidthOffset",
+                    "type": 3,
+                    "data": [
+                        0.0
+                    ]
+                },
+                {
+                    "name": "texBlurHeightOffset",
+                    "type": 301
+                }
+            ],
+            "fragmentShader": "fshader_boxblur.fs",
+            "fUniforms": [
+                {
+                    "name": "srcImageTex",
+                    "type": 100
+                }
+            ]
+        },
+        {
+            "name": "var_live",
+            "inputEffect": [
+                "box1_live"
+            ],
+            "viewport": [
+                0,
+                0,
+                324,
+                576
+            ],
+            "vertexShader": "vshader_boxblur.vs",
+            "vUniforms": [
+                {
+                    "name": "texBlurWidthOffset",
+                    "type": 300
+                },
+                {
+                    "name": "texBlurHeightOffset",
+                    "type": 3,
+                    "data":[
+                        0.0
+                    ]
+                }
+            ],
+            "fragmentShader": "fshader_var.fs",
+            "fUniforms":[
+                {
+                    "name": "srcImageTex",
+                    "type": 100
+                },
+                {
+                    "name": "blurImageTex",
+                    "type": 1000,
+                    "inputEffectIndex": 0
+                }
+            ]
+        },
+        {
+            "name": "box2_live",
+            "inputEffect": [
+                "var_live"
+            ],
+            "viewport": [
+                0,
+                0,
+                324,
+                576
+            ],
+            "vertexShader": "vshader_boxblur.vs",
+            "vUniforms": [
+                {
+                    "name": "texBlurWidthOffset",
+                    "type": 3,
+                    "data": [
+                        0.0
+                    ]
+                },
+                {
+                    "name": "texBlurHeightOffset",
+                    "type": 301
+                }
+            ],
+            "fragmentShader": "fshader_alpha_boxblur.fs",
+            "fUniforms":[
+                {
+                    "name": "varImageTex",
+                    "type": 1000,
+                    "inputEffectIndex": 0
+                }
+            ]
+        },
+        {
+            "name": "box3_live",
+            "inputEffect":[
+                "box2_live"
+            ],
+            "viewport": [
+                0,
+                0,
+                324,
+                576
+            ],
+            "vertexShader": "vshader_boxblur.vs",
+            "vUniforms": [
+                {
+                    "name": "texBlurWidthOffset",
+                    "type": 300
+                },
+                {
+                    "name": "texBlurHeightOffset",
+                    "type": 3,
+                    "data":[
+                        0.0
+                    ]
+                }
+            ],
+            "fragmentShader": "fshader_alpha_boxblur.fs",
+            "fUniforms":[
+                {
+                    "name": "varImageTex",
+                    "type": 1000,
+                    "inputEffectIndex": 0
+                }
+            ]
+        },
+        {
+            "name": "epm_live",
+            "inputEffect": [
+                "box3_live"
+            ],
+            "vertexShader": "vshader_epm.vs",
+            "vUniforms": [
+                {
+                    "name": "widthOffset",
+                    "type": 300
+                },
+                {
+                    "name": "heightOffset",
+                    "type": 301
+                }
+            ],
+            "fragmentShader": "fshader_epm.fs",
+            "fUniforms": [
+                {
+                    "name": "srcImageTex",
+                    "type": 100
+                },
+                {
+                    "name": "blurImageTex",
+                    "type": 1000,
+                    "inputEffectIndex": 0
+                },
+                {
+                    "name": "blurAlpha",
+                    "type": 3,
+                    "data": [
+                        0.5
+                    ]
+                },
+                {
+                    "name": "sharpen",
+                    "type": 3,
+                    "data": [
+                        0.5
+                    ]
+                }
+            ]
+        }
+    ],
+    "version": 1.0
+}

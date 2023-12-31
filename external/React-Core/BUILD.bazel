@@ -1,0 +1,3498 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "React-Core_pod_hdrs",
+  srcs = [
+    ":React-Core_root_pod_hdrs",
+    ":Default_pod_hdrs",
+    ":DevSupport_pod_hdrs",
+    ":RCTWebSocket_pod_hdrs",
+    ":ARTHeaders_pod_hdrs",
+    ":CoreModulesHeaders_pod_hdrs",
+    ":RCTActionSheetHeaders_pod_hdrs",
+    ":RCTAnimationHeaders_pod_hdrs",
+    ":RCTBlobHeaders_pod_hdrs",
+    ":RCTImageHeaders_pod_hdrs",
+    ":RCTLinkingHeaders_pod_hdrs",
+    ":RCTNetworkHeaders_pod_hdrs",
+    ":RCTPushNotificationHeaders_pod_hdrs",
+    ":RCTSettingsHeaders_pod_hdrs",
+    ":RCTTextHeaders_pod_hdrs",
+    ":RCTVibrationHeaders_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "React-Core_private_includes",
+  include = [
+    "external/React-Core/pod_support/Headers/Private/React-Core/"
+  ],
+  deps = [],
+  external_name = "React-Core"
+)
+gen_includes(
+  name = "React-Core_public_includes",
+  include = [
+    "external/React-Core/pod_support/Headers/Public/React-Core/"
+  ],
+  deps = [],
+  external_name = "React-Core"
+)
+filegroup(
+  name = "_React-Core_hdrs",
+  srcs = [
+    ":React-Core_root_hdrs",
+    ":Default_hdrs",
+    ":DevSupport_hdrs",
+    ":RCTWebSocket_hdrs",
+    ":ARTHeaders_hdrs",
+    ":CoreModulesHeaders_hdrs",
+    ":RCTActionSheetHeaders_hdrs",
+    ":RCTAnimationHeaders_hdrs",
+    ":RCTBlobHeaders_hdrs",
+    ":RCTImageHeaders_hdrs",
+    ":RCTLinkingHeaders_hdrs",
+    ":RCTNetworkHeaders_hdrs",
+    ":RCTPushNotificationHeaders_hdrs",
+    ":RCTSettingsHeaders_hdrs",
+    ":RCTTextHeaders_hdrs",
+    ":RCTVibrationHeaders_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "React-Core_xcode_hmapsource",
+  hdrs = [
+    ":React-Core_root_hdrs",
+    ":CoreModulesHeaders_hdrs",
+    ":Default_hdrs",
+    ":DevSupport_hdrs",
+    ":RCTImageHeaders_hdrs",
+    ":RCTNetworkHeaders_hdrs",
+    ":RCTWebSocket_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "React-Core_xcode_hmap",
+  dep = ":React-Core_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/React-Core/*-bitsky-generated.modulemap", "pod_support/Headers/Public/React-Core/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "React-Core_custom_includes",
+  include = [
+    "external/React-Core/ReactCommon",
+    "external/boost-for-react-native",
+    "external/DoubleConversion",
+    "external/Folly",
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "React-Core",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "React-Core_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":React-Core_xcode_hmap"
+  ],
+  external_name = "React-Core",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "React-Core_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "React-Core_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "React-Core_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "React-Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "React-Core_module_map",
+  module_map = "pod_support/Headers/Public/React-Core/React-Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/React-Core/React-Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "React-Core_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "React-Core_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":React-Core_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":React-Core_private_includes",
+    ":React-Core_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Folly//:Folly_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@React-cxxreact//:React-cxxreact_objc_interface",
+    "@React-jsi//:React-jsi_objc_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_objc_interface",
+    "@Folly//:Folly_swift_interface",
+    "@glog//:glog_swift_interface",
+    "@React-cxxreact//:React-cxxreact_swift_interface",
+    "@React-jsi//:React-jsi_swift_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_swift_interface",
+    ":React-Core_objc_interface",
+    "@Folly//:Folly_module_map",
+    "@glog//:glog_module_map",
+    "@React-cxxreact//:React-cxxreact_module_map",
+    "@React-jsi//:React-jsi_module_map",
+    "@React-jsiexecutor//:React-jsiexecutor_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "React-Core",
+  deps = [
+    ":React-Core_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "React-Core_lib",
+  deps = [
+    ":React-Core"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Default_hdrs",
+  srcs = [
+    "React/Base/RCTAssert.h",
+    "React/Base/RCTBridge+Private.h",
+    "React/Base/RCTBridge.h",
+    "React/Base/RCTBridgeDelegate.h",
+    "React/Base/RCTBridgeMethod.h",
+    "React/Base/RCTBridgeModule.h",
+    "React/Base/RCTBundleURLProvider.h",
+    "React/Base/RCTComponentEvent.h",
+    "React/Base/RCTConvert.h",
+    "React/Base/RCTCxxConvert.h",
+    "React/Base/RCTDefines.h",
+    "React/Base/RCTDisplayLink.h",
+    "React/Base/RCTErrorCustomizer.h",
+    "React/Base/RCTErrorInfo.h",
+    "React/Base/RCTEventDispatcher.h",
+    "React/Base/RCTFrameUpdate.h",
+    "React/Base/RCTImageSource.h",
+    "React/Base/RCTInvalidating.h",
+    "React/Base/RCTJSStackFrame.h",
+    "React/Base/RCTJavaScriptExecutor.h",
+    "React/Base/RCTJavaScriptLoader.h",
+    "React/Base/RCTKeyCommands.h",
+    "React/Base/RCTLog.h",
+    "React/Base/RCTManagedPointer.h",
+    "React/Base/RCTModuleData.h",
+    "React/Base/RCTModuleMethod.h",
+    "React/Base/RCTMultipartDataTask.h",
+    "React/Base/RCTMultipartStreamReader.h",
+    "React/Base/RCTNullability.h",
+    "React/Base/RCTParserUtils.h",
+    "React/Base/RCTPerformanceLogger.h",
+    "React/Base/RCTReloadCommand.h",
+    "React/Base/RCTRootContentView.h",
+    "React/Base/RCTRootView.h",
+    "React/Base/RCTRootViewDelegate.h",
+    "React/Base/RCTRootViewInternal.h",
+    "React/Base/RCTTouchEvent.h",
+    "React/Base/RCTTouchHandler.h",
+    "React/Base/RCTURLRequestDelegate.h",
+    "React/Base/RCTURLRequestHandler.h",
+    "React/Base/RCTUtils.h",
+    "React/Base/RCTVersion.h",
+    "React/Base/RCTWeakProxy.h",
+    "React/Base/Surface/RCTSurface.h",
+    "React/Base/Surface/RCTSurfaceDelegate.h",
+    "React/Base/Surface/RCTSurfaceRootShadowView.h",
+    "React/Base/Surface/RCTSurfaceRootShadowViewDelegate.h",
+    "React/Base/Surface/RCTSurfaceRootView.h",
+    "React/Base/Surface/RCTSurfaceStage.h",
+    "React/Base/Surface/RCTSurfaceView+Internal.h",
+    "React/Base/Surface/RCTSurfaceView.h",
+    "React/Base/Surface/SurfaceHostingView/RCTSurfaceHostingProxyRootView.h",
+    "React/Base/Surface/SurfaceHostingView/RCTSurfaceHostingView.h",
+    "React/Base/Surface/SurfaceHostingView/RCTSurfaceSizeMeasureMode.h",
+    "React/CxxBridge/JSCExecutorFactory.h",
+    "React/CxxBridge/NSDataBigString.h",
+    "React/CxxBridge/RCTCxxBridgeDelegate.h",
+    "React/CxxBridge/RCTMessageThread.h",
+    "React/CxxBridge/RCTObjcExecutor.h",
+    "React/CxxModule/DispatchMessageQueueThread.h",
+    "React/CxxModule/RCTCxxMethod.h",
+    "React/CxxModule/RCTCxxModule.h",
+    "React/CxxModule/RCTCxxUtils.h",
+    "React/CxxModule/RCTNativeModule.h",
+    "React/CxxUtils/RCTFollyConvert.h",
+    "React/Modules/RCTAccessibilityManager.h",
+    "React/Modules/RCTAlertManager.h",
+    "React/Modules/RCTAppState.h",
+    "React/Modules/RCTAsyncLocalStorage.h",
+    "React/Modules/RCTClipboard.h",
+    "React/Modules/RCTDevSettings.h",
+    "React/Modules/RCTDeviceInfo.h",
+    "React/Modules/RCTEventEmitter.h",
+    "React/Modules/RCTI18nManager.h",
+    "React/Modules/RCTI18nUtil.h",
+    "React/Modules/RCTKeyboardObserver.h",
+    "React/Modules/RCTLayoutAnimation.h",
+    "React/Modules/RCTLayoutAnimationGroup.h",
+    "React/Modules/RCTRedBox.h",
+    "React/Modules/RCTRedBoxExtraDataViewController.h",
+    "React/Modules/RCTSourceCode.h",
+    "React/Modules/RCTStatusBarManager.h",
+    "React/Modules/RCTSurfacePresenterStub.h",
+    "React/Modules/RCTTiming.h",
+    "React/Modules/RCTUIManager.h",
+    "React/Modules/RCTUIManagerObserverCoordinator.h",
+    "React/Modules/RCTUIManagerUtils.h",
+    "React/Profiler/RCTFPSGraph.h",
+    "React/Profiler/RCTMacros.h",
+    "React/Profiler/RCTProfile.h",
+    "React/UIUtils/RCTUIUtils.h",
+    "React/Views/RCTActivityIndicatorView.h",
+    "React/Views/RCTActivityIndicatorViewManager.h",
+    "React/Views/RCTAnimationType.h",
+    "React/Views/RCTAutoInsetsProtocol.h",
+    "React/Views/RCTBorderDrawing.h",
+    "React/Views/RCTBorderStyle.h",
+    "React/Views/RCTComponent.h",
+    "React/Views/RCTComponentData.h",
+    "React/Views/RCTConvert+CoreLocation.h",
+    "React/Views/RCTConvert+Transform.h",
+    "React/Views/RCTDatePicker.h",
+    "React/Views/RCTDatePickerManager.h",
+    "React/Views/RCTFont.h",
+    "React/Views/RCTLayout.h",
+    "React/Views/RCTMaskedView.h",
+    "React/Views/RCTMaskedViewManager.h",
+    "React/Views/RCTModalHostView.h",
+    "React/Views/RCTModalHostViewController.h",
+    "React/Views/RCTModalHostViewManager.h",
+    "React/Views/RCTModalManager.h",
+    "React/Views/RCTPicker.h",
+    "React/Views/RCTPickerManager.h",
+    "React/Views/RCTPointerEvents.h",
+    "React/Views/RCTProgressViewManager.h",
+    "React/Views/RCTRefreshControl.h",
+    "React/Views/RCTRefreshControlManager.h",
+    "React/Views/RCTRootShadowView.h",
+    "React/Views/RCTSegmentedControl.h",
+    "React/Views/RCTSegmentedControlManager.h",
+    "React/Views/RCTShadowView+Internal.h",
+    "React/Views/RCTShadowView+Layout.h",
+    "React/Views/RCTShadowView.h",
+    "React/Views/RCTSlider.h",
+    "React/Views/RCTSliderManager.h",
+    "React/Views/RCTSwitch.h",
+    "React/Views/RCTSwitchManager.h",
+    "React/Views/RCTTextDecorationLineType.h",
+    "React/Views/RCTView.h",
+    "React/Views/RCTViewManager.h",
+    "React/Views/RCTWrapperViewController.h",
+    "React/Views/SafeAreaView/RCTSafeAreaShadowView.h",
+    "React/Views/SafeAreaView/RCTSafeAreaView.h",
+    "React/Views/SafeAreaView/RCTSafeAreaViewLocalData.h",
+    "React/Views/SafeAreaView/RCTSafeAreaViewManager.h",
+    "React/Views/ScrollView/RCTScrollContentShadowView.h",
+    "React/Views/ScrollView/RCTScrollContentView.h",
+    "React/Views/ScrollView/RCTScrollContentViewManager.h",
+    "React/Views/ScrollView/RCTScrollView.h",
+    "React/Views/ScrollView/RCTScrollViewManager.h",
+    "React/Views/ScrollView/RCTScrollableProtocol.h",
+    "React/Views/UIView+Private.h",
+    "React/Views/UIView+React.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Default_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/React-Core/React/DispatchMessageQueueThread.h",
+    "pod_support/Headers/Private/React-Core/React/JSCExecutorFactory.h",
+    "pod_support/Headers/Private/React-Core/React/NSDataBigString.h",
+    "pod_support/Headers/Private/React-Core/React/RCTAccessibilityManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTActivityIndicatorView.h",
+    "pod_support/Headers/Private/React-Core/React/RCTActivityIndicatorViewManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTAlertManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTAnimationType.h",
+    "pod_support/Headers/Private/React-Core/React/RCTAppState.h",
+    "pod_support/Headers/Private/React-Core/React/RCTAssert.h",
+    "pod_support/Headers/Private/React-Core/React/RCTAsyncLocalStorage.h",
+    "pod_support/Headers/Private/React-Core/React/RCTAutoInsetsProtocol.h",
+    "pod_support/Headers/Private/React-Core/React/RCTBorderDrawing.h",
+    "pod_support/Headers/Private/React-Core/React/RCTBorderStyle.h",
+    "pod_support/Headers/Private/React-Core/React/RCTBridge+Private.h",
+    "pod_support/Headers/Private/React-Core/React/RCTBridge.h",
+    "pod_support/Headers/Private/React-Core/React/RCTBridgeDelegate.h",
+    "pod_support/Headers/Private/React-Core/React/RCTBridgeMethod.h",
+    "pod_support/Headers/Private/React-Core/React/RCTBridgeModule.h",
+    "pod_support/Headers/Private/React-Core/React/RCTBundleURLProvider.h",
+    "pod_support/Headers/Private/React-Core/React/RCTClipboard.h",
+    "pod_support/Headers/Private/React-Core/React/RCTComponent.h",
+    "pod_support/Headers/Private/React-Core/React/RCTComponentData.h",
+    "pod_support/Headers/Private/React-Core/React/RCTComponentEvent.h",
+    "pod_support/Headers/Private/React-Core/React/RCTConvert+CoreLocation.h",
+    "pod_support/Headers/Private/React-Core/React/RCTConvert+Transform.h",
+    "pod_support/Headers/Private/React-Core/React/RCTConvert.h",
+    "pod_support/Headers/Private/React-Core/React/RCTCxxBridgeDelegate.h",
+    "pod_support/Headers/Private/React-Core/React/RCTCxxConvert.h",
+    "pod_support/Headers/Private/React-Core/React/RCTCxxMethod.h",
+    "pod_support/Headers/Private/React-Core/React/RCTCxxModule.h",
+    "pod_support/Headers/Private/React-Core/React/RCTCxxUtils.h",
+    "pod_support/Headers/Private/React-Core/React/RCTDatePicker.h",
+    "pod_support/Headers/Private/React-Core/React/RCTDatePickerManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTDefines.h",
+    "pod_support/Headers/Private/React-Core/React/RCTDevSettings.h",
+    "pod_support/Headers/Private/React-Core/React/RCTDeviceInfo.h",
+    "pod_support/Headers/Private/React-Core/React/RCTDisplayLink.h",
+    "pod_support/Headers/Private/React-Core/React/RCTErrorCustomizer.h",
+    "pod_support/Headers/Private/React-Core/React/RCTErrorInfo.h",
+    "pod_support/Headers/Private/React-Core/React/RCTEventDispatcher.h",
+    "pod_support/Headers/Private/React-Core/React/RCTEventEmitter.h",
+    "pod_support/Headers/Private/React-Core/React/RCTFPSGraph.h",
+    "pod_support/Headers/Private/React-Core/React/RCTFollyConvert.h",
+    "pod_support/Headers/Private/React-Core/React/RCTFont.h",
+    "pod_support/Headers/Private/React-Core/React/RCTFrameUpdate.h",
+    "pod_support/Headers/Private/React-Core/React/RCTI18nManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTI18nUtil.h",
+    "pod_support/Headers/Private/React-Core/React/RCTImageSource.h",
+    "pod_support/Headers/Private/React-Core/React/RCTInvalidating.h",
+    "pod_support/Headers/Private/React-Core/React/RCTJSStackFrame.h",
+    "pod_support/Headers/Private/React-Core/React/RCTJavaScriptExecutor.h",
+    "pod_support/Headers/Private/React-Core/React/RCTJavaScriptLoader.h",
+    "pod_support/Headers/Private/React-Core/React/RCTKeyCommands.h",
+    "pod_support/Headers/Private/React-Core/React/RCTKeyboardObserver.h",
+    "pod_support/Headers/Private/React-Core/React/RCTLayout.h",
+    "pod_support/Headers/Private/React-Core/React/RCTLayoutAnimation.h",
+    "pod_support/Headers/Private/React-Core/React/RCTLayoutAnimationGroup.h",
+    "pod_support/Headers/Private/React-Core/React/RCTLog.h",
+    "pod_support/Headers/Private/React-Core/React/RCTMacros.h",
+    "pod_support/Headers/Private/React-Core/React/RCTManagedPointer.h",
+    "pod_support/Headers/Private/React-Core/React/RCTMaskedView.h",
+    "pod_support/Headers/Private/React-Core/React/RCTMaskedViewManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTMessageThread.h",
+    "pod_support/Headers/Private/React-Core/React/RCTModalHostView.h",
+    "pod_support/Headers/Private/React-Core/React/RCTModalHostViewController.h",
+    "pod_support/Headers/Private/React-Core/React/RCTModalHostViewManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTModalManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTModuleData.h",
+    "pod_support/Headers/Private/React-Core/React/RCTModuleMethod.h",
+    "pod_support/Headers/Private/React-Core/React/RCTMultipartDataTask.h",
+    "pod_support/Headers/Private/React-Core/React/RCTMultipartStreamReader.h",
+    "pod_support/Headers/Private/React-Core/React/RCTNativeModule.h",
+    "pod_support/Headers/Private/React-Core/React/RCTNullability.h",
+    "pod_support/Headers/Private/React-Core/React/RCTObjcExecutor.h",
+    "pod_support/Headers/Private/React-Core/React/RCTParserUtils.h",
+    "pod_support/Headers/Private/React-Core/React/RCTPerformanceLogger.h",
+    "pod_support/Headers/Private/React-Core/React/RCTPicker.h",
+    "pod_support/Headers/Private/React-Core/React/RCTPickerManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTPointerEvents.h",
+    "pod_support/Headers/Private/React-Core/React/RCTProfile.h",
+    "pod_support/Headers/Private/React-Core/React/RCTProgressViewManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTRedBox.h",
+    "pod_support/Headers/Private/React-Core/React/RCTRedBoxExtraDataViewController.h",
+    "pod_support/Headers/Private/React-Core/React/RCTRefreshControl.h",
+    "pod_support/Headers/Private/React-Core/React/RCTRefreshControlManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTReloadCommand.h",
+    "pod_support/Headers/Private/React-Core/React/RCTRootContentView.h",
+    "pod_support/Headers/Private/React-Core/React/RCTRootShadowView.h",
+    "pod_support/Headers/Private/React-Core/React/RCTRootView.h",
+    "pod_support/Headers/Private/React-Core/React/RCTRootViewDelegate.h",
+    "pod_support/Headers/Private/React-Core/React/RCTRootViewInternal.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSafeAreaShadowView.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSafeAreaView.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSafeAreaViewLocalData.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSafeAreaViewManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTScrollContentShadowView.h",
+    "pod_support/Headers/Private/React-Core/React/RCTScrollContentView.h",
+    "pod_support/Headers/Private/React-Core/React/RCTScrollContentViewManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTScrollView.h",
+    "pod_support/Headers/Private/React-Core/React/RCTScrollViewManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTScrollableProtocol.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSegmentedControl.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSegmentedControlManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTShadowView+Internal.h",
+    "pod_support/Headers/Private/React-Core/React/RCTShadowView+Layout.h",
+    "pod_support/Headers/Private/React-Core/React/RCTShadowView.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSlider.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSliderManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSourceCode.h",
+    "pod_support/Headers/Private/React-Core/React/RCTStatusBarManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSurface.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSurfaceDelegate.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSurfaceHostingProxyRootView.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSurfaceHostingView.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSurfacePresenterStub.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSurfaceRootShadowView.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSurfaceRootShadowViewDelegate.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSurfaceRootView.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSurfaceSizeMeasureMode.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSurfaceStage.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSurfaceView+Internal.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSurfaceView.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSwitch.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSwitchManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTTextDecorationLineType.h",
+    "pod_support/Headers/Private/React-Core/React/RCTTiming.h",
+    "pod_support/Headers/Private/React-Core/React/RCTTouchEvent.h",
+    "pod_support/Headers/Private/React-Core/React/RCTTouchHandler.h",
+    "pod_support/Headers/Private/React-Core/React/RCTUIManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTUIManagerObserverCoordinator.h",
+    "pod_support/Headers/Private/React-Core/React/RCTUIManagerUtils.h",
+    "pod_support/Headers/Private/React-Core/React/RCTUIUtils.h",
+    "pod_support/Headers/Private/React-Core/React/RCTURLRequestDelegate.h",
+    "pod_support/Headers/Private/React-Core/React/RCTURLRequestHandler.h",
+    "pod_support/Headers/Private/React-Core/React/RCTUtils.h",
+    "pod_support/Headers/Private/React-Core/React/RCTVersion.h",
+    "pod_support/Headers/Private/React-Core/React/RCTView.h",
+    "pod_support/Headers/Private/React-Core/React/RCTViewManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTWeakProxy.h",
+    "pod_support/Headers/Private/React-Core/React/RCTWrapperViewController.h",
+    "pod_support/Headers/Private/React-Core/React/UIView+Private.h",
+    "pod_support/Headers/Private/React-Core/React/UIView+React.h",
+    "pod_support/Headers/Public/React-Core/React/RCTAccessibilityManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTActivityIndicatorView.h",
+    "pod_support/Headers/Public/React-Core/React/RCTActivityIndicatorViewManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTAlertManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTAnimationType.h",
+    "pod_support/Headers/Public/React-Core/React/RCTAppState.h",
+    "pod_support/Headers/Public/React-Core/React/RCTAssert.h",
+    "pod_support/Headers/Public/React-Core/React/RCTAsyncLocalStorage.h",
+    "pod_support/Headers/Public/React-Core/React/RCTAutoInsetsProtocol.h",
+    "pod_support/Headers/Public/React-Core/React/RCTBorderDrawing.h",
+    "pod_support/Headers/Public/React-Core/React/RCTBorderStyle.h",
+    "pod_support/Headers/Public/React-Core/React/RCTBridge+Private.h",
+    "pod_support/Headers/Public/React-Core/React/RCTBridge.h",
+    "pod_support/Headers/Public/React-Core/React/RCTBridgeDelegate.h",
+    "pod_support/Headers/Public/React-Core/React/RCTBridgeMethod.h",
+    "pod_support/Headers/Public/React-Core/React/RCTBridgeModule.h",
+    "pod_support/Headers/Public/React-Core/React/RCTBundleURLProvider.h",
+    "pod_support/Headers/Public/React-Core/React/RCTClipboard.h",
+    "pod_support/Headers/Public/React-Core/React/RCTComponent.h",
+    "pod_support/Headers/Public/React-Core/React/RCTComponentData.h",
+    "pod_support/Headers/Public/React-Core/React/RCTComponentEvent.h",
+    "pod_support/Headers/Public/React-Core/React/RCTConvert+CoreLocation.h",
+    "pod_support/Headers/Public/React-Core/React/RCTConvert+Transform.h",
+    "pod_support/Headers/Public/React-Core/React/RCTConvert.h",
+    "pod_support/Headers/Public/React-Core/React/RCTCxxConvert.h",
+    "pod_support/Headers/Public/React-Core/React/RCTDatePicker.h",
+    "pod_support/Headers/Public/React-Core/React/RCTDatePickerManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTDefines.h",
+    "pod_support/Headers/Public/React-Core/React/RCTDevSettings.h",
+    "pod_support/Headers/Public/React-Core/React/RCTDeviceInfo.h",
+    "pod_support/Headers/Public/React-Core/React/RCTDisplayLink.h",
+    "pod_support/Headers/Public/React-Core/React/RCTErrorCustomizer.h",
+    "pod_support/Headers/Public/React-Core/React/RCTErrorInfo.h",
+    "pod_support/Headers/Public/React-Core/React/RCTEventDispatcher.h",
+    "pod_support/Headers/Public/React-Core/React/RCTEventEmitter.h",
+    "pod_support/Headers/Public/React-Core/React/RCTFPSGraph.h",
+    "pod_support/Headers/Public/React-Core/React/RCTFont.h",
+    "pod_support/Headers/Public/React-Core/React/RCTFrameUpdate.h",
+    "pod_support/Headers/Public/React-Core/React/RCTI18nManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTI18nUtil.h",
+    "pod_support/Headers/Public/React-Core/React/RCTImageSource.h",
+    "pod_support/Headers/Public/React-Core/React/RCTInvalidating.h",
+    "pod_support/Headers/Public/React-Core/React/RCTJSStackFrame.h",
+    "pod_support/Headers/Public/React-Core/React/RCTJavaScriptExecutor.h",
+    "pod_support/Headers/Public/React-Core/React/RCTJavaScriptLoader.h",
+    "pod_support/Headers/Public/React-Core/React/RCTKeyCommands.h",
+    "pod_support/Headers/Public/React-Core/React/RCTKeyboardObserver.h",
+    "pod_support/Headers/Public/React-Core/React/RCTLayout.h",
+    "pod_support/Headers/Public/React-Core/React/RCTLayoutAnimation.h",
+    "pod_support/Headers/Public/React-Core/React/RCTLayoutAnimationGroup.h",
+    "pod_support/Headers/Public/React-Core/React/RCTLog.h",
+    "pod_support/Headers/Public/React-Core/React/RCTMacros.h",
+    "pod_support/Headers/Public/React-Core/React/RCTManagedPointer.h",
+    "pod_support/Headers/Public/React-Core/React/RCTMaskedView.h",
+    "pod_support/Headers/Public/React-Core/React/RCTMaskedViewManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTModalHostView.h",
+    "pod_support/Headers/Public/React-Core/React/RCTModalHostViewController.h",
+    "pod_support/Headers/Public/React-Core/React/RCTModalHostViewManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTModalManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTModuleData.h",
+    "pod_support/Headers/Public/React-Core/React/RCTModuleMethod.h",
+    "pod_support/Headers/Public/React-Core/React/RCTMultipartDataTask.h",
+    "pod_support/Headers/Public/React-Core/React/RCTMultipartStreamReader.h",
+    "pod_support/Headers/Public/React-Core/React/RCTNullability.h",
+    "pod_support/Headers/Public/React-Core/React/RCTParserUtils.h",
+    "pod_support/Headers/Public/React-Core/React/RCTPerformanceLogger.h",
+    "pod_support/Headers/Public/React-Core/React/RCTPicker.h",
+    "pod_support/Headers/Public/React-Core/React/RCTPickerManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTPointerEvents.h",
+    "pod_support/Headers/Public/React-Core/React/RCTProfile.h",
+    "pod_support/Headers/Public/React-Core/React/RCTProgressViewManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTRedBox.h",
+    "pod_support/Headers/Public/React-Core/React/RCTRedBoxExtraDataViewController.h",
+    "pod_support/Headers/Public/React-Core/React/RCTRefreshControl.h",
+    "pod_support/Headers/Public/React-Core/React/RCTRefreshControlManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTReloadCommand.h",
+    "pod_support/Headers/Public/React-Core/React/RCTRootContentView.h",
+    "pod_support/Headers/Public/React-Core/React/RCTRootShadowView.h",
+    "pod_support/Headers/Public/React-Core/React/RCTRootView.h",
+    "pod_support/Headers/Public/React-Core/React/RCTRootViewDelegate.h",
+    "pod_support/Headers/Public/React-Core/React/RCTRootViewInternal.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSafeAreaShadowView.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSafeAreaView.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSafeAreaViewLocalData.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSafeAreaViewManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTScrollContentShadowView.h",
+    "pod_support/Headers/Public/React-Core/React/RCTScrollContentView.h",
+    "pod_support/Headers/Public/React-Core/React/RCTScrollContentViewManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTScrollView.h",
+    "pod_support/Headers/Public/React-Core/React/RCTScrollViewManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTScrollableProtocol.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSegmentedControl.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSegmentedControlManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTShadowView+Internal.h",
+    "pod_support/Headers/Public/React-Core/React/RCTShadowView+Layout.h",
+    "pod_support/Headers/Public/React-Core/React/RCTShadowView.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSlider.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSliderManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSourceCode.h",
+    "pod_support/Headers/Public/React-Core/React/RCTStatusBarManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSurface.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSurfaceDelegate.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSurfaceHostingProxyRootView.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSurfaceHostingView.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSurfacePresenterStub.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSurfaceRootShadowView.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSurfaceRootShadowViewDelegate.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSurfaceRootView.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSurfaceSizeMeasureMode.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSurfaceStage.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSurfaceView+Internal.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSurfaceView.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSwitch.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSwitchManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTTextDecorationLineType.h",
+    "pod_support/Headers/Public/React-Core/React/RCTTiming.h",
+    "pod_support/Headers/Public/React-Core/React/RCTTouchEvent.h",
+    "pod_support/Headers/Public/React-Core/React/RCTTouchHandler.h",
+    "pod_support/Headers/Public/React-Core/React/RCTUIManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTUIManagerObserverCoordinator.h",
+    "pod_support/Headers/Public/React-Core/React/RCTUIManagerUtils.h",
+    "pod_support/Headers/Public/React-Core/React/RCTUIUtils.h",
+    "pod_support/Headers/Public/React-Core/React/RCTURLRequestDelegate.h",
+    "pod_support/Headers/Public/React-Core/React/RCTURLRequestHandler.h",
+    "pod_support/Headers/Public/React-Core/React/RCTUtils.h",
+    "pod_support/Headers/Public/React-Core/React/RCTVersion.h",
+    "pod_support/Headers/Public/React-Core/React/RCTView.h",
+    "pod_support/Headers/Public/React-Core/React/RCTViewManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTWeakProxy.h",
+    "pod_support/Headers/Public/React-Core/React/RCTWrapperViewController.h",
+    "pod_support/Headers/Public/React-Core/React/UIView+Private.h",
+    "pod_support/Headers/Public/React-Core/React/UIView+React.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Default_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Default_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Default_module_map",
+  module_map = "pod_support/Headers/Public/React-Core/React-Core_Default-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/React-Core/React-Core_Default-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Default_srcs",
+  srcs = [
+    "React/CxxBridge/JSCExecutorFactory.mm",
+    "React/CxxBridge/NSDataBigString.mm",
+    "React/Modules/RCTAccessibilityManager.m",
+    "React/Views/RCTActivityIndicatorView.m",
+    "React/Views/RCTActivityIndicatorViewManager.m",
+    "React/Modules/RCTAlertManager.m",
+    "React/Modules/RCTAppState.m",
+    "React/Base/RCTAssert.m",
+    "React/Modules/RCTAsyncLocalStorage.m",
+    "React/Views/RCTBorderDrawing.m",
+    "React/Base/RCTBridge.m",
+    "React/Base/RCTBundleURLProvider.m",
+    "React/Modules/RCTClipboard.m",
+    "React/Views/RCTComponentData.m",
+    "React/Base/RCTComponentEvent.m",
+    "React/Views/RCTConvert+CoreLocation.m",
+    "React/Views/RCTConvert+Transform.m",
+    "React/Base/RCTConvert.m",
+    "React/CxxBridge/RCTCxxBridge.mm",
+    "React/Base/RCTCxxConvert.m",
+    "React/CxxModule/RCTCxxMethod.mm",
+    "React/CxxModule/RCTCxxModule.mm",
+    "React/CxxModule/RCTCxxUtils.mm",
+    "React/Views/RCTDatePicker.m",
+    "React/Views/RCTDatePickerManager.m",
+    "React/Modules/RCTDeviceInfo.m",
+    "React/Modules/RCTDevSettings.mm",
+    "React/Base/RCTDisplayLink.m",
+    "React/Base/RCTErrorInfo.m",
+    "React/Base/RCTEventDispatcher.m",
+    "React/Modules/RCTEventEmitter.m",
+    "React/CxxUtils/RCTFollyConvert.mm",
+    "React/Views/RCTFont.mm",
+    "React/Profiler/RCTFPSGraph.m",
+    "React/Base/RCTFrameUpdate.m",
+    "React/Modules/RCTI18nManager.m",
+    "React/Modules/RCTI18nUtil.m",
+    "React/Base/RCTImageSource.m",
+    "React/Base/RCTJavaScriptLoader.mm",
+    "React/Base/RCTJSStackFrame.m",
+    "React/Modules/RCTKeyboardObserver.m",
+    "React/Base/RCTKeyCommands.m",
+    "React/Views/RCTLayout.m",
+    "React/Modules/RCTLayoutAnimation.m",
+    "React/Modules/RCTLayoutAnimationGroup.m",
+    "React/Base/RCTLog.mm",
+    "React/Base/RCTManagedPointer.mm",
+    "React/Views/RCTMaskedView.m",
+    "React/Views/RCTMaskedViewManager.m",
+    "React/CxxBridge/RCTMessageThread.mm",
+    "React/Views/RCTModalHostView.m",
+    "React/Views/RCTModalHostViewController.m",
+    "React/Views/RCTModalHostViewManager.m",
+    "React/Views/RCTModalManager.m",
+    "React/Base/RCTModuleData.mm",
+    "React/Base/RCTModuleMethod.mm",
+    "React/Base/RCTMultipartDataTask.m",
+    "React/Base/RCTMultipartStreamReader.m",
+    "React/CxxModule/RCTNativeModule.mm",
+    "React/CxxBridge/RCTObjcExecutor.mm",
+    "React/Base/RCTParserUtils.m",
+    "React/Profiler/RCTPerfMonitor.m",
+    "React/Base/RCTPerformanceLogger.m",
+    "React/Views/RCTPicker.m",
+    "React/Views/RCTPickerManager.m",
+    "React/Profiler/RCTProfile.m",
+    "React/Profiler/RCTProfileTrampoline-arm.S",
+    "React/Profiler/RCTProfileTrampoline-arm64.S",
+    "React/Profiler/RCTProfileTrampoline-i386.S",
+    "React/Profiler/RCTProfileTrampoline-x86_64.S",
+    "React/Views/RCTProgressViewManager.m",
+    "React/Modules/RCTRedBox.m",
+    "React/Modules/RCTRedBoxExtraDataViewController.m",
+    "React/Views/RCTRefreshControl.m",
+    "React/Views/RCTRefreshControlManager.m",
+    "React/Base/RCTReloadCommand.m",
+    "React/Base/RCTRootContentView.m",
+    "React/Views/RCTRootShadowView.m",
+    "React/Base/RCTRootView.m",
+    "React/Views/SafeAreaView/RCTSafeAreaShadowView.m",
+    "React/Views/SafeAreaView/RCTSafeAreaView.m",
+    "React/Views/SafeAreaView/RCTSafeAreaViewLocalData.m",
+    "React/Views/SafeAreaView/RCTSafeAreaViewManager.m",
+    "React/Views/ScrollView/RCTScrollContentShadowView.m",
+    "React/Views/ScrollView/RCTScrollContentView.m",
+    "React/Views/ScrollView/RCTScrollContentViewManager.m",
+    "React/Views/ScrollView/RCTScrollView.m",
+    "React/Views/ScrollView/RCTScrollViewManager.m",
+    "React/Views/RCTSegmentedControl.m",
+    "React/Views/RCTSegmentedControlManager.m",
+    "React/Views/RCTShadowView+Internal.m",
+    "React/Views/RCTShadowView+Layout.m",
+    "React/Views/RCTShadowView.m",
+    "React/Views/RCTSlider.m",
+    "React/Views/RCTSliderManager.m",
+    "React/Modules/RCTSourceCode.m",
+    "React/Modules/RCTStatusBarManager.m",
+    "React/Base/Surface/RCTSurface.mm",
+    "React/Base/Surface/SurfaceHostingView/RCTSurfaceHostingProxyRootView.mm",
+    "React/Base/Surface/SurfaceHostingView/RCTSurfaceHostingView.mm",
+    "React/Modules/RCTSurfacePresenterStub.m",
+    "React/Base/Surface/RCTSurfaceRootShadowView.m",
+    "React/Base/Surface/RCTSurfaceRootView.mm",
+    "React/Base/Surface/SurfaceHostingView/RCTSurfaceSizeMeasureMode.mm",
+    "React/Base/Surface/RCTSurfaceStage.m",
+    "React/Base/Surface/RCTSurfaceView.mm",
+    "React/Views/RCTSwitch.m",
+    "React/Views/RCTSwitchManager.m",
+    "React/Modules/RCTTiming.m",
+    "React/Base/RCTTouchEvent.m",
+    "React/Base/RCTTouchHandler.m",
+    "React/Modules/RCTUIManager.m",
+    "React/Modules/RCTUIManagerObserverCoordinator.mm",
+    "React/Modules/RCTUIManagerUtils.m",
+    "React/UIUtils/RCTUIUtils.m",
+    "React/Base/RCTUtils.m",
+    "React/Base/RCTVersion.m",
+    "React/Views/RCTView.m",
+    "React/Views/RCTViewManager.m",
+    "React/Base/RCTWeakProxy.m",
+    "React/Views/RCTWrapperViewController.m",
+    "React/Views/UIView+React.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Default_oc",
+  enable_modules = 1,
+  srcs = [
+    "Default_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Default_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":React-Core_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":React-Core_private_includes",
+    ":React-Core_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Folly//:Folly_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@React-cxxreact//:React-cxxreact_objc_interface",
+    "@React-jsi//:React-jsi_objc_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_objc_interface",
+    "@Folly//:Folly_swift_interface",
+    "@glog//:glog_swift_interface",
+    "@React-cxxreact//:React-cxxreact_swift_interface",
+    "@React-jsi//:React-jsi_swift_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_swift_interface",
+    ":Default_objc_interface",
+    "@Folly//:Folly_module_map",
+    "@glog//:glog_module_map",
+    "@React-cxxreact//:React-cxxreact_module_map",
+    "@React-jsi//:React-jsi_module_map",
+    "@React-jsiexecutor//:React-jsiexecutor_module_map"
+  ],
+  per_label_options = [
+    ".*React/Base/RCTAssert.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTBridge.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTBundleURLProvider.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTComponentEvent.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTConvert.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTCxxConvert.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTDisplayLink.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTErrorInfo.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTEventDispatcher.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTFrameUpdate.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTImageSource.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTJSStackFrame.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTJavaScriptLoader.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTKeyCommands.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTLog.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTManagedPointer.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTModuleData.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTModuleMethod.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTMultipartDataTask.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTMultipartStreamReader.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTParserUtils.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTPerformanceLogger.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTReloadCommand.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTRootContentView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTRootView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTTouchEvent.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTTouchHandler.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTUtils.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTVersion.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTWeakProxy.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/Surface/RCTSurface.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/Surface/RCTSurfaceRootShadowView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/Surface/RCTSurfaceRootView.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/Surface/RCTSurfaceStage.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/Surface/RCTSurfaceView.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/Surface/SurfaceHostingView/RCTSurfaceHostingProxyRootView.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/Surface/SurfaceHostingView/RCTSurfaceHostingView.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/Surface/SurfaceHostingView/RCTSurfaceSizeMeasureMode.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/CxxBridge/JSCExecutorFactory.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/CxxBridge/NSDataBigString.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/CxxBridge/RCTCxxBridge.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/CxxBridge/RCTMessageThread.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/CxxBridge/RCTObjcExecutor.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/CxxModule/RCTCxxMethod.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/CxxModule/RCTCxxModule.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/CxxModule/RCTCxxUtils.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/CxxModule/RCTNativeModule.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/CxxUtils/RCTFollyConvert.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTAccessibilityManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTAlertManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTAppState.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTAsyncLocalStorage.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTClipboard.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTDevSettings.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTDeviceInfo.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTEventEmitter.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTI18nManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTI18nUtil.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTKeyboardObserver.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTLayoutAnimation.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTLayoutAnimationGroup.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTRedBox.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTRedBoxExtraDataViewController.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTSourceCode.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTStatusBarManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTSurfacePresenterStub.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTTiming.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTUIManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTUIManagerObserverCoordinator.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTUIManagerUtils.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Profiler/RCTFPSGraph.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Profiler/RCTPerfMonitor.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Profiler/RCTProfile.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Profiler/RCTProfileTrampoline-arm.S@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Profiler/RCTProfileTrampoline-arm64.S@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Profiler/RCTProfileTrampoline-i386.S@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Profiler/RCTProfileTrampoline-x86_64.S@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/UIUtils/RCTUIUtils.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTActivityIndicatorView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTActivityIndicatorViewManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTBorderDrawing.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTComponentData.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTConvert+CoreLocation.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTConvert+Transform.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTDatePicker.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTDatePickerManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTFont.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTLayout.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTMaskedView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTMaskedViewManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTModalHostView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTModalHostViewController.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTModalHostViewManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTModalManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTPicker.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTPickerManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTProgressViewManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTRefreshControl.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTRefreshControlManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTRootShadowView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTSegmentedControl.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTSegmentedControlManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTShadowView+Internal.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTShadowView+Layout.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTShadowView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTSlider.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTSliderManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTSwitch.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTSwitchManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTViewManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTWrapperViewController.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/SafeAreaView/RCTSafeAreaShadowView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/SafeAreaView/RCTSafeAreaView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/SafeAreaView/RCTSafeAreaViewLocalData.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/SafeAreaView/RCTSafeAreaViewManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/ScrollView/RCTScrollContentShadowView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/ScrollView/RCTScrollContentView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/ScrollView/RCTScrollContentViewManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/ScrollView/RCTScrollView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/ScrollView/RCTScrollViewManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/UIView+React.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Default",
+  deps = [
+    ":Default_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Default_lib",
+  deps = [
+    ":Default"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DevSupport_hdrs",
+  srcs = [
+    "React/DevSupport/RCTDevLoadingView.h",
+    "React/DevSupport/RCTDevMenu.h",
+    "React/DevSupport/RCTInspectorDevServerHelper.h",
+    "React/DevSupport/RCTPackagerClient.h",
+    "React/DevSupport/RCTPackagerConnection.h",
+    "React/Inspector/RCTInspector.h",
+    "React/Inspector/RCTInspectorPackagerConnection.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DevSupport_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/React-Core/React/RCTDevLoadingView.h",
+    "pod_support/Headers/Private/React-Core/React/RCTDevMenu.h",
+    "pod_support/Headers/Private/React-Core/React/RCTInspector.h",
+    "pod_support/Headers/Private/React-Core/React/RCTInspectorDevServerHelper.h",
+    "pod_support/Headers/Private/React-Core/React/RCTInspectorPackagerConnection.h",
+    "pod_support/Headers/Private/React-Core/React/RCTPackagerClient.h",
+    "pod_support/Headers/Private/React-Core/React/RCTPackagerConnection.h",
+    "pod_support/Headers/Public/React-Core/React/RCTDevLoadingView.h",
+    "pod_support/Headers/Public/React-Core/React/RCTDevMenu.h",
+    "pod_support/Headers/Public/React-Core/React/RCTInspector.h",
+    "pod_support/Headers/Public/React-Core/React/RCTInspectorDevServerHelper.h",
+    "pod_support/Headers/Public/React-Core/React/RCTInspectorPackagerConnection.h",
+    "pod_support/Headers/Public/React-Core/React/RCTPackagerClient.h",
+    "pod_support/Headers/Public/React-Core/React/RCTPackagerConnection.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DevSupport_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DevSupport_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "DevSupport_module_map",
+  module_map = "pod_support/Headers/Public/React-Core/React-Core_DevSupport-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/React-Core/React-Core_DevSupport-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DevSupport_srcs",
+  srcs = [
+    "React/DevSupport/RCTDevLoadingView.m",
+    "React/DevSupport/RCTDevMenu.m",
+    "React/Inspector/RCTInspector.mm",
+    "React/DevSupport/RCTInspectorDevServerHelper.mm",
+    "React/Inspector/RCTInspectorPackagerConnection.m",
+    "React/DevSupport/RCTPackagerClient.m",
+    "React/DevSupport/RCTPackagerConnection.mm"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DevSupport_oc",
+  enable_modules = 1,
+  srcs = [
+    "DevSupport_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "DevSupport_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":React-Core_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":React-Core_private_includes",
+    ":React-Core_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@React-jsinspector//:React-jsinspector_objc_interface",
+    "@Folly//:Folly_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@React-cxxreact//:React-cxxreact_objc_interface",
+    "@React-jsi//:React-jsi_objc_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_objc_interface",
+    "@React-jsinspector//:React-jsinspector_swift_interface",
+    "@Folly//:Folly_swift_interface",
+    "@glog//:glog_swift_interface",
+    "@React-cxxreact//:React-cxxreact_swift_interface",
+    "@React-jsi//:React-jsi_swift_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_swift_interface",
+    ":DevSupport_objc_interface",
+    "@React-jsinspector//:React-jsinspector_module_map",
+    "@Folly//:Folly_module_map",
+    "@glog//:glog_module_map",
+    "@React-cxxreact//:React-cxxreact_module_map",
+    "@React-jsi//:React-jsi_module_map",
+    "@React-jsiexecutor//:React-jsiexecutor_module_map"
+  ],
+  per_label_options = [
+    ".*React/DevSupport/RCTDevLoadingView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/DevSupport/RCTDevMenu.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/DevSupport/RCTInspectorDevServerHelper.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/DevSupport/RCTPackagerClient.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/DevSupport/RCTPackagerConnection.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Inspector/RCTInspector.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Inspector/RCTInspectorPackagerConnection.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DevSupport",
+  deps = [
+    ":DevSupport_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "DevSupport_lib",
+  deps = [
+    ":DevSupport"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RCTWebSocket_hdrs",
+  srcs = [
+    "Libraries/WebSocket/RCTReconnectingWebSocket.h",
+    "Libraries/WebSocket/RCTSRWebSocket.h",
+    "Libraries/WebSocket/RCTWebSocketExecutor.h",
+    "Libraries/WebSocket/RCTWebSocketModule.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RCTWebSocket_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/React-Core/React/RCTReconnectingWebSocket.h",
+    "pod_support/Headers/Private/React-Core/React/RCTSRWebSocket.h",
+    "pod_support/Headers/Private/React-Core/React/RCTWebSocketExecutor.h",
+    "pod_support/Headers/Private/React-Core/React/RCTWebSocketModule.h",
+    "pod_support/Headers/Public/React-Core/React/RCTReconnectingWebSocket.h",
+    "pod_support/Headers/Public/React-Core/React/RCTSRWebSocket.h",
+    "pod_support/Headers/Public/React-Core/React/RCTWebSocketExecutor.h",
+    "pod_support/Headers/Public/React-Core/React/RCTWebSocketModule.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RCTWebSocket_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RCTWebSocket_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "RCTWebSocket_module_map",
+  module_map = "pod_support/Headers/Public/React-Core/React-Core_RCTWebSocket-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/React-Core/React-Core_RCTWebSocket-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RCTWebSocket_srcs",
+  srcs = [
+    "Libraries/WebSocket/RCTReconnectingWebSocket.m",
+    "Libraries/WebSocket/RCTSRWebSocket.m",
+    "Libraries/WebSocket/RCTWebSocketExecutor.m",
+    "Libraries/WebSocket/RCTWebSocketModule.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RCTWebSocket_oc",
+  enable_modules = 1,
+  srcs = [
+    "RCTWebSocket_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "RCTWebSocket_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":React-Core_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":React-Core_private_includes",
+    ":React-Core_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Folly//:Folly_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@React-cxxreact//:React-cxxreact_objc_interface",
+    "@React-jsi//:React-jsi_objc_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_objc_interface",
+    "@Folly//:Folly_swift_interface",
+    "@glog//:glog_swift_interface",
+    "@React-cxxreact//:React-cxxreact_swift_interface",
+    "@React-jsi//:React-jsi_swift_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_swift_interface",
+    ":RCTWebSocket_objc_interface",
+    "@Folly//:Folly_module_map",
+    "@glog//:glog_module_map",
+    "@React-cxxreact//:React-cxxreact_module_map",
+    "@React-jsi//:React-jsi_module_map",
+    "@React-jsiexecutor//:React-jsiexecutor_module_map"
+  ],
+  per_label_options = [
+    ".*Libraries/WebSocket/RCTReconnectingWebSocket.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*Libraries/WebSocket/RCTSRWebSocket.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*Libraries/WebSocket/RCTWebSocketExecutor.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*Libraries/WebSocket/RCTWebSocketModule.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RCTWebSocket",
+  deps = [
+    ":RCTWebSocket_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "RCTWebSocket_lib",
+  deps = [
+    ":RCTWebSocket"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ARTHeaders_hdrs",
+  srcs = [
+    "Libraries/ART/ARTCGFloatArray.h",
+    "Libraries/ART/ARTContainer.h",
+    "Libraries/ART/ARTGroup.h",
+    "Libraries/ART/ARTNode.h",
+    "Libraries/ART/ARTRenderable.h",
+    "Libraries/ART/ARTShape.h",
+    "Libraries/ART/ARTSurfaceView.h",
+    "Libraries/ART/ARTText.h",
+    "Libraries/ART/ARTTextFrame.h",
+    "Libraries/ART/Brushes/ARTBrush.h",
+    "Libraries/ART/Brushes/ARTLinearGradient.h",
+    "Libraries/ART/Brushes/ARTPattern.h",
+    "Libraries/ART/Brushes/ARTRadialGradient.h",
+    "Libraries/ART/Brushes/ARTSolidColor.h",
+    "Libraries/ART/RCTConvert+ART.h",
+    "Libraries/ART/ViewManagers/ARTGroupManager.h",
+    "Libraries/ART/ViewManagers/ARTNodeManager.h",
+    "Libraries/ART/ViewManagers/ARTRenderableManager.h",
+    "Libraries/ART/ViewManagers/ARTShapeManager.h",
+    "Libraries/ART/ViewManagers/ARTSurfaceViewManager.h",
+    "Libraries/ART/ViewManagers/ARTTextManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ARTHeaders_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ARTHeaders_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ARTHeaders_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ARTHeaders_module_map",
+  module_map = "pod_support/Headers/Public/React-Core/React-Core_ARTHeaders-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/React-Core/React-Core_ARTHeaders-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ARTHeaders_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "ARTHeaders_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":React-Core_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":React-Core_private_includes",
+    ":React-Core_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Folly//:Folly_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@React-cxxreact//:React-cxxreact_objc_interface",
+    "@React-jsi//:React-jsi_objc_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_objc_interface",
+    "@Folly//:Folly_swift_interface",
+    "@glog//:glog_swift_interface",
+    "@React-cxxreact//:React-cxxreact_swift_interface",
+    "@React-jsi//:React-jsi_swift_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_swift_interface",
+    ":ARTHeaders_objc_interface",
+    "@Folly//:Folly_module_map",
+    "@glog//:glog_module_map",
+    "@React-cxxreact//:React-cxxreact_module_map",
+    "@React-jsi//:React-jsi_module_map",
+    "@React-jsiexecutor//:React-jsiexecutor_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ARTHeaders",
+  deps = [
+    ":ARTHeaders_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ARTHeaders_lib",
+  deps = [
+    ":ARTHeaders"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CoreModulesHeaders_hdrs",
+  srcs = [
+    "React/CoreModules/CoreModulesPlugins.h",
+    "React/CoreModules/RCTExceptionsManager.h",
+    "React/CoreModules/RCTImageEditingManager.h",
+    "React/CoreModules/RCTImageLoader.h",
+    "React/CoreModules/RCTImageStoreManager.h",
+    "React/CoreModules/RCTPlatform.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CoreModulesHeaders_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/React-Core/React/CoreModulesPlugins.h",
+    "pod_support/Headers/Private/React-Core/React/RCTExceptionsManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTImageEditingManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTImageLoader.h",
+    "pod_support/Headers/Private/React-Core/React/RCTImageStoreManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTPlatform.h",
+    "pod_support/Headers/Public/React-Core/React/CoreModulesPlugins.h",
+    "pod_support/Headers/Public/React-Core/React/RCTExceptionsManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTImageEditingManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTImageLoader.h",
+    "pod_support/Headers/Public/React-Core/React/RCTImageStoreManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTPlatform.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CoreModulesHeaders_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CoreModulesHeaders_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "CoreModulesHeaders_module_map",
+  module_map = "pod_support/Headers/Public/React-Core/React-Core_CoreModulesHeaders-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/React-Core/React-Core_CoreModulesHeaders-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CoreModulesHeaders_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "CoreModulesHeaders_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":React-Core_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":React-Core_private_includes",
+    ":React-Core_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Folly//:Folly_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@React-cxxreact//:React-cxxreact_objc_interface",
+    "@React-jsi//:React-jsi_objc_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_objc_interface",
+    "@Folly//:Folly_swift_interface",
+    "@glog//:glog_swift_interface",
+    "@React-cxxreact//:React-cxxreact_swift_interface",
+    "@React-jsi//:React-jsi_swift_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_swift_interface",
+    ":CoreModulesHeaders_objc_interface",
+    "@Folly//:Folly_module_map",
+    "@glog//:glog_module_map",
+    "@React-cxxreact//:React-cxxreact_module_map",
+    "@React-jsi//:React-jsi_module_map",
+    "@React-jsiexecutor//:React-jsiexecutor_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CoreModulesHeaders",
+  deps = [
+    ":CoreModulesHeaders_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "CoreModulesHeaders_lib",
+  deps = [
+    ":CoreModulesHeaders"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RCTActionSheetHeaders_hdrs",
+  srcs = [
+    "Libraries/ActionSheetIOS/RCTActionSheetManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RCTActionSheetHeaders_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RCTActionSheetHeaders_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RCTActionSheetHeaders_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "RCTActionSheetHeaders_module_map",
+  module_map = "pod_support/Headers/Public/React-Core/React-Core_RCTActionSheetHeaders-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/React-Core/React-Core_RCTActionSheetHeaders-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RCTActionSheetHeaders_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "RCTActionSheetHeaders_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":React-Core_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":React-Core_private_includes",
+    ":React-Core_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Folly//:Folly_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@React-cxxreact//:React-cxxreact_objc_interface",
+    "@React-jsi//:React-jsi_objc_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_objc_interface",
+    "@Folly//:Folly_swift_interface",
+    "@glog//:glog_swift_interface",
+    "@React-cxxreact//:React-cxxreact_swift_interface",
+    "@React-jsi//:React-jsi_swift_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_swift_interface",
+    ":RCTActionSheetHeaders_objc_interface",
+    "@Folly//:Folly_module_map",
+    "@glog//:glog_module_map",
+    "@React-cxxreact//:React-cxxreact_module_map",
+    "@React-jsi//:React-jsi_module_map",
+    "@React-jsiexecutor//:React-jsiexecutor_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RCTActionSheetHeaders",
+  deps = [
+    ":RCTActionSheetHeaders_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "RCTActionSheetHeaders_lib",
+  deps = [
+    ":RCTActionSheetHeaders"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RCTAnimationHeaders_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RCTAnimationHeaders_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RCTAnimationHeaders_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RCTAnimationHeaders_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "RCTAnimationHeaders_module_map",
+  module_map = "pod_support/Headers/Public/React-Core/React-Core_RCTAnimationHeaders-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/React-Core/React-Core_RCTAnimationHeaders-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RCTAnimationHeaders_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "RCTAnimationHeaders_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":React-Core_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":React-Core_private_includes",
+    ":React-Core_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Folly//:Folly_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@React-cxxreact//:React-cxxreact_objc_interface",
+    "@React-jsi//:React-jsi_objc_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_objc_interface",
+    "@Folly//:Folly_swift_interface",
+    "@glog//:glog_swift_interface",
+    "@React-cxxreact//:React-cxxreact_swift_interface",
+    "@React-jsi//:React-jsi_swift_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_swift_interface",
+    ":RCTAnimationHeaders_objc_interface",
+    "@Folly//:Folly_module_map",
+    "@glog//:glog_module_map",
+    "@React-cxxreact//:React-cxxreact_module_map",
+    "@React-jsi//:React-jsi_module_map",
+    "@React-jsiexecutor//:React-jsiexecutor_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RCTAnimationHeaders",
+  deps = [
+    ":RCTAnimationHeaders_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "RCTAnimationHeaders_lib",
+  deps = [
+    ":RCTAnimationHeaders"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RCTBlobHeaders_hdrs",
+  srcs = [
+    "Libraries/Blob/RCTBlobManager.h",
+    "Libraries/Blob/RCTFileReaderModule.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RCTBlobHeaders_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RCTBlobHeaders_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RCTBlobHeaders_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "RCTBlobHeaders_module_map",
+  module_map = "pod_support/Headers/Public/React-Core/React-Core_RCTBlobHeaders-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/React-Core/React-Core_RCTBlobHeaders-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RCTBlobHeaders_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "RCTBlobHeaders_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":React-Core_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":React-Core_private_includes",
+    ":React-Core_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Folly//:Folly_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@React-cxxreact//:React-cxxreact_objc_interface",
+    "@React-jsi//:React-jsi_objc_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_objc_interface",
+    "@Folly//:Folly_swift_interface",
+    "@glog//:glog_swift_interface",
+    "@React-cxxreact//:React-cxxreact_swift_interface",
+    "@React-jsi//:React-jsi_swift_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_swift_interface",
+    ":RCTBlobHeaders_objc_interface",
+    "@Folly//:Folly_module_map",
+    "@glog//:glog_module_map",
+    "@React-cxxreact//:React-cxxreact_module_map",
+    "@React-jsi//:React-jsi_module_map",
+    "@React-jsiexecutor//:React-jsiexecutor_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RCTBlobHeaders",
+  deps = [
+    ":RCTBlobHeaders_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "RCTBlobHeaders_lib",
+  deps = [
+    ":RCTBlobHeaders"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RCTImageHeaders_hdrs",
+  srcs = [
+    "Libraries/Image/RCTAnimatedImage.h",
+    "Libraries/Image/RCTGIFImageDecoder.h",
+    "Libraries/Image/RCTImageBlurUtils.h",
+    "Libraries/Image/RCTImageCache.h",
+    "Libraries/Image/RCTImageDataDecoder.h",
+    "Libraries/Image/RCTImageLoaderProtocol.h",
+    "Libraries/Image/RCTImageShadowView.h",
+    "Libraries/Image/RCTImageURLLoader.h",
+    "Libraries/Image/RCTImageUtils.h",
+    "Libraries/Image/RCTImageView.h",
+    "Libraries/Image/RCTImageViewManager.h",
+    "Libraries/Image/RCTLocalAssetImageLoader.h",
+    "Libraries/Image/RCTResizeMode.h",
+    "Libraries/Image/RCTUIImageViewAnimated.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RCTImageHeaders_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/React-Core/React/RCTAnimatedImage.h",
+    "pod_support/Headers/Private/React-Core/React/RCTGIFImageDecoder.h",
+    "pod_support/Headers/Private/React-Core/React/RCTImageBlurUtils.h",
+    "pod_support/Headers/Private/React-Core/React/RCTImageCache.h",
+    "pod_support/Headers/Private/React-Core/React/RCTImageDataDecoder.h",
+    "pod_support/Headers/Private/React-Core/React/RCTImageLoaderProtocol.h",
+    "pod_support/Headers/Private/React-Core/React/RCTImageShadowView.h",
+    "pod_support/Headers/Private/React-Core/React/RCTImageURLLoader.h",
+    "pod_support/Headers/Private/React-Core/React/RCTImageUtils.h",
+    "pod_support/Headers/Private/React-Core/React/RCTImageView.h",
+    "pod_support/Headers/Private/React-Core/React/RCTImageViewManager.h",
+    "pod_support/Headers/Private/React-Core/React/RCTLocalAssetImageLoader.h",
+    "pod_support/Headers/Private/React-Core/React/RCTResizeMode.h",
+    "pod_support/Headers/Private/React-Core/React/RCTUIImageViewAnimated.h",
+    "pod_support/Headers/Public/React-Core/React/RCTAnimatedImage.h",
+    "pod_support/Headers/Public/React-Core/React/RCTGIFImageDecoder.h",
+    "pod_support/Headers/Public/React-Core/React/RCTImageBlurUtils.h",
+    "pod_support/Headers/Public/React-Core/React/RCTImageCache.h",
+    "pod_support/Headers/Public/React-Core/React/RCTImageDataDecoder.h",
+    "pod_support/Headers/Public/React-Core/React/RCTImageLoaderProtocol.h",
+    "pod_support/Headers/Public/React-Core/React/RCTImageShadowView.h",
+    "pod_support/Headers/Public/React-Core/React/RCTImageURLLoader.h",
+    "pod_support/Headers/Public/React-Core/React/RCTImageUtils.h",
+    "pod_support/Headers/Public/React-Core/React/RCTImageView.h",
+    "pod_support/Headers/Public/React-Core/React/RCTImageViewManager.h",
+    "pod_support/Headers/Public/React-Core/React/RCTLocalAssetImageLoader.h",
+    "pod_support/Headers/Public/React-Core/React/RCTResizeMode.h",
+    "pod_support/Headers/Public/React-Core/React/RCTUIImageViewAnimated.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RCTImageHeaders_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RCTImageHeaders_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "RCTImageHeaders_module_map",
+  module_map = "pod_support/Headers/Public/React-Core/React-Core_RCTImageHeaders-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/React-Core/React-Core_RCTImageHeaders-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RCTImageHeaders_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "RCTImageHeaders_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":React-Core_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":React-Core_private_includes",
+    ":React-Core_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Folly//:Folly_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@React-cxxreact//:React-cxxreact_objc_interface",
+    "@React-jsi//:React-jsi_objc_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_objc_interface",
+    "@Folly//:Folly_swift_interface",
+    "@glog//:glog_swift_interface",
+    "@React-cxxreact//:React-cxxreact_swift_interface",
+    "@React-jsi//:React-jsi_swift_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_swift_interface",
+    ":RCTImageHeaders_objc_interface",
+    "@Folly//:Folly_module_map",
+    "@glog//:glog_module_map",
+    "@React-cxxreact//:React-cxxreact_module_map",
+    "@React-jsi//:React-jsi_module_map",
+    "@React-jsiexecutor//:React-jsiexecutor_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RCTImageHeaders",
+  deps = [
+    ":RCTImageHeaders_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "RCTImageHeaders_lib",
+  deps = [
+    ":RCTImageHeaders"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RCTLinkingHeaders_hdrs",
+  srcs = [
+    "Libraries/LinkingIOS/RCTLinkingManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RCTLinkingHeaders_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RCTLinkingHeaders_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RCTLinkingHeaders_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "RCTLinkingHeaders_module_map",
+  module_map = "pod_support/Headers/Public/React-Core/React-Core_RCTLinkingHeaders-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/React-Core/React-Core_RCTLinkingHeaders-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RCTLinkingHeaders_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "RCTLinkingHeaders_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":React-Core_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":React-Core_private_includes",
+    ":React-Core_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Folly//:Folly_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@React-cxxreact//:React-cxxreact_objc_interface",
+    "@React-jsi//:React-jsi_objc_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_objc_interface",
+    "@Folly//:Folly_swift_interface",
+    "@glog//:glog_swift_interface",
+    "@React-cxxreact//:React-cxxreact_swift_interface",
+    "@React-jsi//:React-jsi_swift_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_swift_interface",
+    ":RCTLinkingHeaders_objc_interface",
+    "@Folly//:Folly_module_map",
+    "@glog//:glog_module_map",
+    "@React-cxxreact//:React-cxxreact_module_map",
+    "@React-jsi//:React-jsi_module_map",
+    "@React-jsiexecutor//:React-jsiexecutor_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RCTLinkingHeaders",
+  deps = [
+    ":RCTLinkingHeaders_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "RCTLinkingHeaders_lib",
+  deps = [
+    ":RCTLinkingHeaders"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RCTNetworkHeaders_hdrs",
+  srcs = [
+    "Libraries/Network/RCTDataRequestHandler.h",
+    "Libraries/Network/RCTFileRequestHandler.h",
+    "Libraries/Network/RCTHTTPRequestHandler.h",
+    "Libraries/Network/RCTNetInfo.h",
+    "Libraries/Network/RCTNetworkTask.h",
+    "Libraries/Network/RCTNetworking.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RCTNetworkHeaders_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/React-Core/React/RCTDataRequestHandler.h",
+    "pod_support/Headers/Private/React-Core/React/RCTFileRequestHandler.h",
+    "pod_support/Headers/Private/React-Core/React/RCTHTTPRequestHandler.h",
+    "pod_support/Headers/Private/React-Core/React/RCTNetInfo.h",
+    "pod_support/Headers/Private/React-Core/React/RCTNetworkTask.h",
+    "pod_support/Headers/Private/React-Core/React/RCTNetworking.h",
+    "pod_support/Headers/Public/React-Core/React/RCTDataRequestHandler.h",
+    "pod_support/Headers/Public/React-Core/React/RCTFileRequestHandler.h",
+    "pod_support/Headers/Public/React-Core/React/RCTHTTPRequestHandler.h",
+    "pod_support/Headers/Public/React-Core/React/RCTNetInfo.h",
+    "pod_support/Headers/Public/React-Core/React/RCTNetworkTask.h",
+    "pod_support/Headers/Public/React-Core/React/RCTNetworking.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RCTNetworkHeaders_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RCTNetworkHeaders_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "RCTNetworkHeaders_module_map",
+  module_map = "pod_support/Headers/Public/React-Core/React-Core_RCTNetworkHeaders-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/React-Core/React-Core_RCTNetworkHeaders-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RCTNetworkHeaders_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "RCTNetworkHeaders_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":React-Core_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":React-Core_private_includes",
+    ":React-Core_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Folly//:Folly_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@React-cxxreact//:React-cxxreact_objc_interface",
+    "@React-jsi//:React-jsi_objc_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_objc_interface",
+    "@Folly//:Folly_swift_interface",
+    "@glog//:glog_swift_interface",
+    "@React-cxxreact//:React-cxxreact_swift_interface",
+    "@React-jsi//:React-jsi_swift_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_swift_interface",
+    ":RCTNetworkHeaders_objc_interface",
+    "@Folly//:Folly_module_map",
+    "@glog//:glog_module_map",
+    "@React-cxxreact//:React-cxxreact_module_map",
+    "@React-jsi//:React-jsi_module_map",
+    "@React-jsiexecutor//:React-jsiexecutor_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RCTNetworkHeaders",
+  deps = [
+    ":RCTNetworkHeaders_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "RCTNetworkHeaders_lib",
+  deps = [
+    ":RCTNetworkHeaders"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RCTPushNotificationHeaders_hdrs",
+  srcs = [
+    "Libraries/PushNotificationIOS/RCTPushNotificationManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RCTPushNotificationHeaders_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RCTPushNotificationHeaders_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RCTPushNotificationHeaders_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "RCTPushNotificationHeaders_module_map",
+  module_map = "pod_support/Headers/Public/React-Core/React-Core_RCTPushNotificationHeaders-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/React-Core/React-Core_RCTPushNotificationHeaders-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RCTPushNotificationHeaders_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "RCTPushNotificationHeaders_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":React-Core_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":React-Core_private_includes",
+    ":React-Core_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Folly//:Folly_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@React-cxxreact//:React-cxxreact_objc_interface",
+    "@React-jsi//:React-jsi_objc_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_objc_interface",
+    "@Folly//:Folly_swift_interface",
+    "@glog//:glog_swift_interface",
+    "@React-cxxreact//:React-cxxreact_swift_interface",
+    "@React-jsi//:React-jsi_swift_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_swift_interface",
+    ":RCTPushNotificationHeaders_objc_interface",
+    "@Folly//:Folly_module_map",
+    "@glog//:glog_module_map",
+    "@React-cxxreact//:React-cxxreact_module_map",
+    "@React-jsi//:React-jsi_module_map",
+    "@React-jsiexecutor//:React-jsiexecutor_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RCTPushNotificationHeaders",
+  deps = [
+    ":RCTPushNotificationHeaders_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "RCTPushNotificationHeaders_lib",
+  deps = [
+    ":RCTPushNotificationHeaders"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RCTSettingsHeaders_hdrs",
+  srcs = [
+    "Libraries/Settings/RCTSettingsManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RCTSettingsHeaders_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RCTSettingsHeaders_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RCTSettingsHeaders_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "RCTSettingsHeaders_module_map",
+  module_map = "pod_support/Headers/Public/React-Core/React-Core_RCTSettingsHeaders-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/React-Core/React-Core_RCTSettingsHeaders-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RCTSettingsHeaders_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "RCTSettingsHeaders_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":React-Core_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":React-Core_private_includes",
+    ":React-Core_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Folly//:Folly_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@React-cxxreact//:React-cxxreact_objc_interface",
+    "@React-jsi//:React-jsi_objc_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_objc_interface",
+    "@Folly//:Folly_swift_interface",
+    "@glog//:glog_swift_interface",
+    "@React-cxxreact//:React-cxxreact_swift_interface",
+    "@React-jsi//:React-jsi_swift_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_swift_interface",
+    ":RCTSettingsHeaders_objc_interface",
+    "@Folly//:Folly_module_map",
+    "@glog//:glog_module_map",
+    "@React-cxxreact//:React-cxxreact_module_map",
+    "@React-jsi//:React-jsi_module_map",
+    "@React-jsiexecutor//:React-jsiexecutor_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RCTSettingsHeaders",
+  deps = [
+    ":RCTSettingsHeaders_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "RCTSettingsHeaders_lib",
+  deps = [
+    ":RCTSettingsHeaders"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RCTTextHeaders_hdrs",
+  srcs = [
+    "Libraries/Text/BaseText/RCTBaseTextShadowView.h",
+    "Libraries/Text/BaseText/RCTBaseTextViewManager.h",
+    "Libraries/Text/RCTConvert+Text.h",
+    "Libraries/Text/RCTTextAttributes.h",
+    "Libraries/Text/RCTTextTransform.h",
+    "Libraries/Text/RawText/RCTRawTextShadowView.h",
+    "Libraries/Text/RawText/RCTRawTextViewManager.h",
+    "Libraries/Text/Text/NSTextStorage+FontScaling.h",
+    "Libraries/Text/Text/RCTTextShadowView.h",
+    "Libraries/Text/Text/RCTTextView.h",
+    "Libraries/Text/Text/RCTTextViewManager.h",
+    "Libraries/Text/TextInput/Multiline/RCTMultilineTextInputView.h",
+    "Libraries/Text/TextInput/Multiline/RCTMultilineTextInputViewManager.h",
+    "Libraries/Text/TextInput/Multiline/RCTUITextView.h",
+    "Libraries/Text/TextInput/RCTBackedTextInputDelegate.h",
+    "Libraries/Text/TextInput/RCTBackedTextInputDelegateAdapter.h",
+    "Libraries/Text/TextInput/RCTBackedTextInputViewProtocol.h",
+    "Libraries/Text/TextInput/RCTBaseTextInputShadowView.h",
+    "Libraries/Text/TextInput/RCTBaseTextInputView.h",
+    "Libraries/Text/TextInput/RCTBaseTextInputViewManager.h",
+    "Libraries/Text/TextInput/RCTInputAccessoryShadowView.h",
+    "Libraries/Text/TextInput/RCTInputAccessoryView.h",
+    "Libraries/Text/TextInput/RCTInputAccessoryViewContent.h",
+    "Libraries/Text/TextInput/RCTInputAccessoryViewManager.h",
+    "Libraries/Text/TextInput/RCTTextSelection.h",
+    "Libraries/Text/TextInput/Singleline/RCTSinglelineTextInputView.h",
+    "Libraries/Text/TextInput/Singleline/RCTSinglelineTextInputViewManager.h",
+    "Libraries/Text/TextInput/Singleline/RCTUITextField.h",
+    "Libraries/Text/VirtualText/RCTVirtualTextShadowView.h",
+    "Libraries/Text/VirtualText/RCTVirtualTextViewManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RCTTextHeaders_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RCTTextHeaders_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RCTTextHeaders_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "RCTTextHeaders_module_map",
+  module_map = "pod_support/Headers/Public/React-Core/React-Core_RCTTextHeaders-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/React-Core/React-Core_RCTTextHeaders-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RCTTextHeaders_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "RCTTextHeaders_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":React-Core_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":React-Core_private_includes",
+    ":React-Core_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Folly//:Folly_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@React-cxxreact//:React-cxxreact_objc_interface",
+    "@React-jsi//:React-jsi_objc_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_objc_interface",
+    "@Folly//:Folly_swift_interface",
+    "@glog//:glog_swift_interface",
+    "@React-cxxreact//:React-cxxreact_swift_interface",
+    "@React-jsi//:React-jsi_swift_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_swift_interface",
+    ":RCTTextHeaders_objc_interface",
+    "@Folly//:Folly_module_map",
+    "@glog//:glog_module_map",
+    "@React-cxxreact//:React-cxxreact_module_map",
+    "@React-jsi//:React-jsi_module_map",
+    "@React-jsiexecutor//:React-jsiexecutor_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RCTTextHeaders",
+  deps = [
+    ":RCTTextHeaders_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "RCTTextHeaders_lib",
+  deps = [
+    ":RCTTextHeaders"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RCTVibrationHeaders_hdrs",
+  srcs = [
+    "Libraries/Vibration/RCTVibration.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RCTVibrationHeaders_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RCTVibrationHeaders_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RCTVibrationHeaders_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "RCTVibrationHeaders_module_map",
+  module_map = "pod_support/Headers/Public/React-Core/React-Core_RCTVibrationHeaders-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/React-Core/React-Core_RCTVibrationHeaders-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RCTVibrationHeaders_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "RCTVibrationHeaders_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":React-Core_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":React-Core_private_includes",
+    ":React-Core_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Folly//:Folly_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@React-cxxreact//:React-cxxreact_objc_interface",
+    "@React-jsi//:React-jsi_objc_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_objc_interface",
+    "@Folly//:Folly_swift_interface",
+    "@glog//:glog_swift_interface",
+    "@React-cxxreact//:React-cxxreact_swift_interface",
+    "@React-jsi//:React-jsi_swift_interface",
+    "@React-jsiexecutor//:React-jsiexecutor_swift_interface",
+    ":RCTVibrationHeaders_objc_interface",
+    "@Folly//:Folly_module_map",
+    "@glog//:glog_module_map",
+    "@React-cxxreact//:React-cxxreact_module_map",
+    "@React-jsi//:React-jsi_module_map",
+    "@React-jsiexecutor//:React-jsiexecutor_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RCTVibrationHeaders",
+  deps = [
+    ":RCTVibrationHeaders_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "RCTVibrationHeaders_lib",
+  deps = [
+    ":RCTVibrationHeaders"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_React-Core_module_map",
+  module_map = "@React-Core//:pod_support/Headers/Public/React-Core/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@React-Core//:pod_support/Headers/Public/React-Core/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_React-Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@React-Core//:CoreModulesHeaders_objc_interface", "@React-Core//:Default_objc_interface", "@React-Core//:DevSupport_objc_interface", "@React-Core//:RCTImageHeaders_objc_interface", "@React-Core//:RCTNetworkHeaders_objc_interface", "@React-Core//:RCTWebSocket_objc_interface", "@React-Core//:React-Core_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_React-Core",
+  target_name = "Lark",
+  module_name = "React",
+  hdrs = ["@React-Core//:CoreModulesHeaders_pod_hdrs", "@React-Core//:Default_pod_hdrs", "@React-Core//:DevSupport_pod_hdrs", "@React-Core//:RCTImageHeaders_pod_hdrs", "@React-Core//:RCTNetworkHeaders_pod_hdrs", "@React-Core//:RCTWebSocket_pod_hdrs", "@React-Core//:React-Core_root_pod_hdrs"],
+  srcs = ["@React-Core//:Default_srcs", "@React-Core//:DevSupport_srcs", "@React-Core//:RCTWebSocket_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["Folly", "glog", "React-cxxreact", "React-jsi", "React-jsiexecutor", "React-jsinspector"],
+  per_label_options = [".*React/Base/RCTAssert.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTBridge.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTBundleURLProvider.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTComponentEvent.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTConvert.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTCxxConvert.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTDisplayLink.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTErrorInfo.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTEventDispatcher.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTFrameUpdate.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTImageSource.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTJSStackFrame.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTJavaScriptLoader.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTKeyCommands.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTLog.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTManagedPointer.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTModuleData.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTModuleMethod.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTMultipartDataTask.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTMultipartStreamReader.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTParserUtils.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTPerformanceLogger.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTReloadCommand.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTRootContentView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTRootView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTTouchEvent.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTTouchHandler.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTUtils.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTVersion.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/RCTWeakProxy.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/Surface/RCTSurface.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/Surface/RCTSurfaceRootShadowView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/Surface/RCTSurfaceRootView.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/Surface/RCTSurfaceStage.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/Surface/RCTSurfaceView.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/Surface/SurfaceHostingView/RCTSurfaceHostingProxyRootView.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/Surface/SurfaceHostingView/RCTSurfaceHostingView.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Base/Surface/SurfaceHostingView/RCTSurfaceSizeMeasureMode.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/CxxBridge/JSCExecutorFactory.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/CxxBridge/NSDataBigString.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/CxxBridge/RCTCxxBridge.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/CxxBridge/RCTMessageThread.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/CxxBridge/RCTObjcExecutor.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/CxxModule/RCTCxxMethod.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/CxxModule/RCTCxxModule.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/CxxModule/RCTCxxUtils.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/CxxModule/RCTNativeModule.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/CxxUtils/RCTFollyConvert.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTAccessibilityManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTAlertManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTAppState.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTAsyncLocalStorage.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTClipboard.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTDevSettings.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTDeviceInfo.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTEventEmitter.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTI18nManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTI18nUtil.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTKeyboardObserver.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTLayoutAnimation.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTLayoutAnimationGroup.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTRedBox.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTRedBoxExtraDataViewController.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTSourceCode.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTStatusBarManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTSurfacePresenterStub.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTTiming.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTUIManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTUIManagerObserverCoordinator.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Modules/RCTUIManagerUtils.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Profiler/RCTFPSGraph.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Profiler/RCTPerfMonitor.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Profiler/RCTProfile.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Profiler/RCTProfileTrampoline-arm.S@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Profiler/RCTProfileTrampoline-arm64.S@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Profiler/RCTProfileTrampoline-i386.S@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Profiler/RCTProfileTrampoline-x86_64.S@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/UIUtils/RCTUIUtils.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTActivityIndicatorView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTActivityIndicatorViewManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTBorderDrawing.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTComponentData.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTConvert+CoreLocation.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTConvert+Transform.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTDatePicker.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTDatePickerManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTFont.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTLayout.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTMaskedView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTMaskedViewManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTModalHostView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTModalHostViewController.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTModalHostViewManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTModalManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTPicker.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTPickerManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTProgressViewManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTRefreshControl.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTRefreshControlManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTRootShadowView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTSegmentedControl.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTSegmentedControlManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTShadowView+Internal.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTShadowView+Layout.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTShadowView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTSlider.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTSliderManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTSwitch.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTSwitchManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTViewManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/RCTWrapperViewController.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/SafeAreaView/RCTSafeAreaShadowView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/SafeAreaView/RCTSafeAreaView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/SafeAreaView/RCTSafeAreaViewLocalData.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/SafeAreaView/RCTSafeAreaViewManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/ScrollView/RCTScrollContentShadowView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/ScrollView/RCTScrollContentView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/ScrollView/RCTScrollContentViewManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/ScrollView/RCTScrollView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/ScrollView/RCTScrollViewManager.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Views/UIView+React.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/DevSupport/RCTDevLoadingView.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/DevSupport/RCTDevMenu.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/DevSupport/RCTInspectorDevServerHelper.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/DevSupport/RCTPackagerClient.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/DevSupport/RCTPackagerConnection.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Inspector/RCTInspector.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*React/Inspector/RCTInspectorPackagerConnection.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*Libraries/WebSocket/RCTReconnectingWebSocket.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*Libraries/WebSocket/RCTSRWebSocket.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*Libraries/WebSocket/RCTWebSocketExecutor.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*Libraries/WebSocket/RCTWebSocketModule.m@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation"],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "React_Core_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "React_Core_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["JavaScriptCore"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = ["stdc++"],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "React_Core_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "React_Core_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "React_Core_dynamic", False),
+  tags = getattr(defs_external_objc_library, "React_Core_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("React_Core", {}),
+  visibility = ["//visibility:public"],
+)

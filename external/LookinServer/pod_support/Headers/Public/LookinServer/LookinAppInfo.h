@@ -1,0 +1,1 @@
+../../../../Src/Main/Shared/LookinAppInfo.h

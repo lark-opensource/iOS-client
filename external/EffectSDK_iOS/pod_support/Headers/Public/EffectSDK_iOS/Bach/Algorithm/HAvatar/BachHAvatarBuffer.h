@@ -1,0 +1,1 @@
+../../../../../../../libEffectSDK/inc/Bach/Algorithm/HAvatar/BachHAvatarBuffer.h

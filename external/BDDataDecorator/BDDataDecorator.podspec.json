@@ -1,0 +1,78 @@
+{
+  "name": "BDDataDecorator",
+  "version": "2.0.1.1-binary",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/iOS_Library/BDDataDecorator",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "duanwenbin": "duanwenbin@bytedance.com"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/9999/BDDataDecorator/2.0.1.1-binary/BDDataDecorator.framework.zip"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "requires_arc": true,
+  "static_framework": true,
+  "subspecs": [
+    {
+      "name": "Data",
+      "vendored_libraries": "BDDataDecorator/Base/*.a",
+      "source_files": [
+        "BDDataDecorator/Data/**/*.{h,m,c}",
+        "BDDataDecorator/Base/**/*.{h,m,c}"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Data_*awesome_*.a"
+      },
+      "preserve_paths": [
+        "**/*.bwp"
+      ]
+    },
+    {
+      "name": "AES",
+      "source_files": "BDDataDecorator/AES/**/*.{h,m,c}",
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_AES_*awesome_*.a"
+      },
+      "preserve_paths": [
+        "**/*.bwp"
+      ]
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "4396",
+    "app_id": "9999"
+  },
+  "repoId": "4396",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDDataDecorator_POD_VERSION=@\\\"9999_2.0.1\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDDataDecorator_POD_VERSION=@\\\"9999_2.0.1\\\""
+  },
+  "ios": {
+    "frameworks": [
+      "UIKit",
+      "Foundation",
+      "JavaScriptCore"
+    ]
+  },
+  "prepare_command": "curl https://code.byted.org/wusizhen.arch/script/raw/master/awesomecommand.sh | bash ;",
+  "source_code": {
+    "git": "git@code.byted.org:iOS_Library/BDDataDecorator.git",
+    "commit": "9596db4"
+  },
+  "default_subspecs": [
+    "Data"
+  ],
+  "preserve_paths": [
+    "**/*.bwp"
+  ]
+}

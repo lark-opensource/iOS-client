@@ -1,0 +1,50 @@
+# Uncomment the next line to define a global platform for your project
+platform :ios, '11.0'
+
+source 'git@code.byted.org:ee/pods_specs.git'
+source 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+source 'git@code.byted.org:iOS_Library/publicthird_source_repo.git'
+source 'git@code.byted.org:iOS_Library/privatethird_source_repo.git'
+source 'git@code.byted.org:iOS_Library/privatethird_source_repo.git'
+
+def pods
+  pod 'LarkLocalizations', :path => '../../../../../Infra/Libs/LarkLocalizations'
+  pod 'LarkModel', :subspecs => ['Base'], :path => '../../../../../Infra/Libs/LarkModel'
+  pod 'UniverseDesignIcon', :path => '../../../../../../Modules/Universe/Components/UniverseDesignIcon'
+  pod 'UniverseDesignColor', :path => '../../../../../../Modules/Universe/Components/UniverseDesignColor'
+  pod 'FigmaKit', :path => '../../../../../../Modules/Infra/Libs/UI/FigmaKit'
+  pod 'UniverseDesignFont', :path => '../../../../../../Modules/Universe/Components/UniverseDesignFont'
+  pod 'UniverseDesignTheme', :path => '../../../../../../Modules/Universe/Components/UniverseDesignTheme'
+  pod 'LarkContactComponent', :subspecs => ['Utils'], :path => '../../../../../Infra/Bizs/LarkContactComponent'
+  pod 'LarkRichTextCore', :subspecs => ['Base'], :path => '../../../../../Infra/Libs/LarkRichTextCore'
+end
+
+target 'LarkListItemDemo' do
+  # Comment the next line if you don't want to use dynamic frameworks
+  use_frameworks!
+
+  pod 'LookinServer'
+  pod 'LarkListItem', :subspecs => ['Cell'], :path => '../'
+  pods
+
+end
+
+target 'UnitTests' do
+  use_frameworks!
+  pod 'LarkListItem', :subspecs => ['Core'], :path => '../'
+  pods
+end
+
+target 'ViewTests' do
+  use_frameworks!
+  pod 'iOSSnapshotTestCase', '6.2.0'
+  pod 'LarkListItem', :subspecs => ['Cell'], :path => '../'
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '11.0'
+    end
+  end
+end

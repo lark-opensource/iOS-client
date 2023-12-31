@@ -1,0 +1,45 @@
+{
+  "name": "protobuf_lite",
+  "version": "1.0.4-ttnet3",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/TTIOS/chromium_android/tree/ttnet/third_party/protobuf",
+  "license": "MIT",
+  "authors": {
+    "gaohaidong": "gaohaidong@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:TTIOS/tt_pods_protobuf_lite.git",
+    "commit": "8838773ff529f81e6a3eaa628a6ad70d98101568"
+  },
+  "platforms": {
+    "ios": null
+  },
+  "preserve_paths": [
+    "include/*",
+    "include/**/*",
+    "libprotobuf-lite.a"
+  ],
+  "ios": {
+    "vendored_libraries": "libprotobuf-lite.a"
+  },
+  "libraries": "protobuf-lite",
+  "xcconfig": {
+    "USE_HEADERMAP": "NO",
+    "HEADER_SEARCH_PATHS": "$(inherited) \"${PODS_ROOT}/protobuf_lite/include\"",
+    "ALWAYS_SEARCH_USER_PATHS": "NO"
+  },
+  "_bytebus_platform": {
+    "repo_id": "809",
+    "app_id": "13"
+  },
+  "repoId": "809",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "protobuf_lite_POD_VERSION=@\\\"13_1.0.4-ttnet3\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "protobuf_lite_POD_VERSION=@\\\"13_1.0.4-ttnet3\\\""
+  }
+}

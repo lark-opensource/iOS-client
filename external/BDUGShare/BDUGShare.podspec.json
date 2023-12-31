@@ -1,0 +1,640 @@
+{
+  "_bytebus_platform": {
+    "app_id": "9999",
+    "repo_id": "1379"
+  },
+  "authors": {
+    "xunianqiang": "xunianqiang@bytedance.com"
+  },
+  "dependencies": {
+    "BDUGContainer": [],
+    "BDUGLoggerInterface": [],
+    "BDUGMonitorInterface": [
+      "~\u003e 1.2.1"
+    ],
+    "BDUGTrackerInterface": [],
+    "ByteDanceKit/Foundation": [
+      "\u003e= 2.0.0"
+    ],
+    "ByteDanceKit/UIKit": [
+      "\u003e= 2.0.0"
+    ],
+    "Gaia": [],
+    "TTNetworkManager": []
+  },
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/growth_client/BDUGShare",
+  "license": {
+    "type": "MIT"
+  },
+  "name": "BDUGShare",
+  "platforms": {
+    "ios": "8.0"
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDUGShare_POD_VERSION=@\\\"9999_2.1.4-rc.12\\\""
+  },
+  "prefix_header_contents": [
+    "#import \u003cBDUGLoggerInterface/BDUGLoggerInterface.h\u003e",
+    "#import \u003cBDUGTrackerInterface/BDUGTrackerInterface.h\u003e",
+    "#import \u003cBDUGMonitorInterface/BDUGMonitorInterface.h\u003e",
+    "#import \"BDUGShareEventManager.h\""
+  ],
+  "repoId": "1379",
+  "source": {
+    "commit": "2e01fdf12c7078a937885f53b9a57e411b748e0e",
+    "git": "git@code.byted.org:growth_client/BDUGShare.git"
+  },
+  "subspecs": [
+    {
+      "name": "BDUGShareUI",
+      "subspecs": [
+        {
+          "name": "Core",
+          "source_files": "BDUGShare/Classes/BDUGShareUI/Core/**/*.{h,m}"
+        },
+        {
+          "name": "DialogCore",
+          "resource_bundles": {
+            "BDUGShareDialogResource": [
+              "BDUGShare/Classes/BDUGShareUI/DialogCore/BDUGShareDialogResource.xcassets"
+            ]
+          },
+          "source_files": "BDUGShare/Classes/BDUGShareUI/DialogCore/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "Aspects": [],
+            "BDUGShare/BDUGShareUI/Core": []
+          },
+          "name": "Panel",
+          "source_files": "BDUGShare/Classes/BDUGShareUI/Panel/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareUI/Core": [],
+            "BDUGShare/BDUGShareUI/DialogCore": [],
+            "BDWebImage/Core": []
+          },
+          "name": "Token",
+          "subspecs": [
+            {
+              "dependencies": {
+                "BDUGShare/BDUGShareBasic/BDUGImageShare": [],
+                "BDUGShare/BDUGShareUI/Token/TextToken": []
+              },
+              "name": "ImageToken",
+              "source_files": "BDUGShare/Classes/BDUGShareUI/Token/ImageToken/**/*.{h,m}"
+            },
+            {
+              "dependencies": {
+                "BDUGShare/BDUGShareBasic/BDUGTokenShare": []
+              },
+              "name": "TextToken",
+              "resource_bundles": {
+                "BDUGShareTokenResource": [
+                  "BDUGShare/Classes/BDUGShareUI/Token/TextToken/BDUGShareTokenResource.xcassets"
+                ]
+              },
+              "source_files": "BDUGShare/Classes/BDUGShareUI/Token/TextToken/**/*.{h,m}"
+            }
+          ]
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareUI/Core": [],
+            "BDUGShare/BDUGShareUI/DialogCore": []
+          },
+          "name": "Video",
+          "source_files": "BDUGShare/Classes/BDUGShareUI/Video/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareUI/Core": []
+          },
+          "name": "Loading",
+          "resource_bundles": {
+            "BDUGShareLoadingResource": [
+              "BDUGShare/Classes/BDUGShareUI/Loading/BDUGShareLoadingResource.xcassets"
+            ]
+          },
+          "source_files": "BDUGShare/Classes/BDUGShareUI/Loading/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "Aspects": [],
+            "BDUGShare/BDUGShareUI/Core": []
+          },
+          "name": "ImagePanel",
+          "source_files": "BDUGShare/Classes/BDUGShareUI/ImagePanel/**/*.{h,m}"
+        }
+      ]
+    },
+    {
+      "name": "BDUGShareBusiness",
+      "subspecs": [
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGQQShare": [],
+            "BDUGShare/BDUGShareBusiness/BDUGActivity": []
+          },
+          "name": "BDUGShareQQBusiness",
+          "resource_bundles": {
+            "BDUGShareQQResource": [
+              "BDUGShare/Classes/BDUGShareBusiness/BDUGShareQQ/Resources/*.png"
+            ]
+          },
+          "resources": "BDUGShareBusiness/BDUGShareQQ/BDUGShareQQ.xcassets",
+          "source_files": "BDUGShare/Classes/BDUGShareBusiness/BDUGShareQQ/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGWeChatShare": [],
+            "BDUGShare/BDUGShareBusiness/BDUGActivity": []
+          },
+          "name": "BDUGShareWeChatBusiness",
+          "resource_bundles": {
+            "BDUGShareWechatResource": [
+              "BDUGShare/Classes/BDUGShareBusiness/BDUGShareWeChat/Resources/*.png"
+            ]
+          },
+          "resources": "BDUGShareBusiness/BDUGShareWeChat/BDUGShareWeChat.xcassets",
+          "source_files": "BDUGShare/Classes/BDUGShareBusiness/BDUGShareWeChat/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGAliShare": [],
+            "BDUGShare/BDUGShareBusiness/BDUGActivity": []
+          },
+          "name": "BDUGShareAliBusiness",
+          "resource_bundles": {
+            "BDUGShareAliResource": [
+              "BDUGShare/Classes/BDUGShareBusiness/BDUGShareZhiFuBao/Resources/*.png"
+            ]
+          },
+          "resources": "BDUGShareBusiness/BDUGShareZhiFuBao/BDUGShareZhiFuBao.xcassets",
+          "source_files": "BDUGShare/Classes/BDUGShareBusiness/BDUGShareZhiFuBao/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGMailShare": [],
+            "BDUGShare/BDUGShareBusiness/BDUGActivity": []
+          },
+          "name": "BDUGShareEmailBusiness",
+          "resource_bundles": {
+            "BDUGShareEmailResource": [
+              "BDUGShare/Classes/BDUGShareBusiness/BDUGShareEmail/Resources/*.png"
+            ]
+          },
+          "resources": "BDUGShareBusiness/BDUGShareEmail/BDUGShareEmail.xcassets",
+          "source_files": "BDUGShare/Classes/BDUGShareBusiness/BDUGShareEmail/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGMessageShare": [],
+            "BDUGShare/BDUGShareBusiness/BDUGActivity": []
+          },
+          "name": "BDUGShareSMSBusiness",
+          "resource_bundles": {
+            "BDUGShareSMSResource": [
+              "BDUGShare/Classes/BDUGShareBusiness/BDUGShareSMS/Resources/*.png"
+            ]
+          },
+          "resources": "BDUGShareBusiness/BDUGShareSMS/BDUGShareSMS.xcassets",
+          "source_files": "BDUGShare/Classes/BDUGShareBusiness/BDUGShareSMS/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGDingTalkShare": [],
+            "BDUGShare/BDUGShareBusiness/BDUGActivity": []
+          },
+          "name": "BDUGShareDingTalkBusiness",
+          "resource_bundles": {
+            "BDUGShareDingtalkResource": [
+              "BDUGShare/Classes/BDUGShareBusiness/BDUGShareDingTalk/Resources/*.png"
+            ]
+          },
+          "resources": "BDUGShareBusiness/BDUGShareDingTalk/BDUGShareDingTalk.xcassets",
+          "source_files": "BDUGShare/Classes/BDUGShareBusiness/BDUGShareDingTalk/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBusiness/BDUGActivity": []
+          },
+          "name": "BDUGShareCopyBusiness",
+          "resource_bundles": {
+            "BDUGShareCopyResource": [
+              "BDUGShare/Classes/BDUGShareBusiness/BDUGShareCopy/Resources/*.png"
+            ]
+          },
+          "resources": "BDUGShareBusiness/BDUGShareCopy/BDUGShareCopy.xcassets",
+          "source_files": "BDUGShare/Classes/BDUGShareBusiness/BDUGShareCopy/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGSystemShare": [],
+            "BDUGShare/BDUGShareBusiness/BDUGActivity": []
+          },
+          "name": "BDUGShareSystemBusiness",
+          "resource_bundles": {
+            "BDUGShareSystemResource": [
+              "BDUGShare/Classes/BDUGShareBusiness/BDUGShareSystem/Resources/*.png"
+            ]
+          },
+          "resources": "BDUGShareBusiness/BDUGShareSystem/BDUGShareSystem.xcassets",
+          "source_files": "BDUGShare/Classes/BDUGShareBusiness/BDUGShareSystem/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGWeiboShare": [],
+            "BDUGShare/BDUGShareBusiness/BDUGActivity": []
+          },
+          "name": "BDUGShareWeiboBusiness",
+          "resource_bundles": {
+            "BDUGShareWeiboResource": [
+              "BDUGShare/Classes/BDUGShareBusiness/BDUGShareWeibo/Resources/*.png"
+            ]
+          },
+          "resources": "BDUGShareBusiness/BDUGShareWeibo/BDUGShareWeibo.xcassets",
+          "source_files": "BDUGShare/Classes/BDUGShareBusiness/BDUGShareWeibo/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGRocketShare": [],
+            "BDUGShare/BDUGShareBusiness/BDUGActivity": []
+          },
+          "name": "BDUGShareRocketBusiness",
+          "resource_bundles": {
+            "BDUGShareRocketResource": [
+              "BDUGShare/Classes/BDUGShareBusiness/BDUGShareRocket/Resources/*.png"
+            ]
+          },
+          "source_files": "BDUGShare/Classes/BDUGShareBusiness/BDUGShareRocket/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGSystemShare": [],
+            "BDUGShare/BDUGShareBasic/BDUGUtil": [],
+            "BDUGShare/BDUGShareBasic/BDUGVideoImageShare": []
+          },
+          "name": "BDUGActivity",
+          "public_header_files": [
+            "BDUGShareBusiness/BDUGShareAdapterService/BDUGShareAdapterSetting.h",
+            "BDUGShareBusiness/BDUGShareProtocol/*.{h}",
+            "BDUGShareBusiness/BDUGShareManager/*.{h}"
+          ],
+          "source_files": [
+            "BDUGShare/Classes/BDUGShareBusiness/BDUGShareProtocol/**/*.{h,m}",
+            "BDUGShare/Classes/BDUGShareBusiness/BDUGShareManager/**/*.{h,m}",
+            "BDUGShare/Classes/BDUGShareBusiness/BDUGShareUtil/**/*.{h,m}",
+            "BDUGShare/Classes/BDUGShareBusiness/BDUGShareAdapterService/**/*.{h,m}"
+          ]
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGAwemeShare": [],
+            "BDUGShare/BDUGShareBusiness/BDUGActivity": []
+          },
+          "name": "BDUGShareAwemeBusiness",
+          "resource_bundles": {
+            "BDUGShareAwemeResource": [
+              "BDUGShare/Classes/BDUGShareBusiness/BDUGShareAweme/Resources/*.png"
+            ]
+          },
+          "source_files": "BDUGShare/Classes/BDUGShareBusiness/BDUGShareAweme/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGWhatsAppShare": [],
+            "BDUGShare/BDUGShareBusiness/BDUGActivity": []
+          },
+          "name": "BDUGShareWhatsAppBusiness",
+          "resource_bundles": {
+            "BDUGShareWhatsAppResource": [
+              "BDUGShare/Classes/BDUGShareBusiness/BDUGShareWhatsApp/Resources/*.png"
+            ]
+          },
+          "source_files": "BDUGShare/Classes/BDUGShareBusiness/BDUGShareWhatsApp/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGInstagramShare": [],
+            "BDUGShare/BDUGShareBusiness/BDUGActivity": []
+          },
+          "name": "BDUGShareInstagramBusiness",
+          "resource_bundles": {
+            "BDUGShareInstagramResource": [
+              "BDUGShare/Classes/BDUGShareBusiness/BDUGShareInstagram/Resources/*.png"
+            ]
+          },
+          "source_files": "BDUGShare/Classes/BDUGShareBusiness/BDUGShareInstagram/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGTiktokShare": [],
+            "BDUGShare/BDUGShareBusiness/BDUGActivity": []
+          },
+          "name": "BDUGShareTiktokBusiness",
+          "resource_bundles": {
+            "BDUGShareTiktokResource": [
+              "BDUGShare/Classes/BDUGShareBusiness/BDUGShareTiktok/Resources/*.png"
+            ]
+          },
+          "source_files": "BDUGShare/Classes/BDUGShareBusiness/BDUGShareTiktok/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGLineShare": [],
+            "BDUGShare/BDUGShareBasic/BDUGVideoImageShare": [],
+            "BDUGShare/BDUGShareBusiness/BDUGActivity": []
+          },
+          "name": "BDUGShareLineBusiness",
+          "resource_bundles": {
+            "BDUGShareLineResource": [
+              "BDUGShare/Classes/BDUGShareBusiness/BDUGShareLine/Resources/*.png"
+            ]
+          },
+          "source_files": "BDUGShare/Classes/BDUGShareBusiness/BDUGShareLine/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGKakaoTalkShare": [],
+            "BDUGShare/BDUGShareBasic/BDUGVideoImageShare": [],
+            "BDUGShare/BDUGShareBusiness/BDUGActivity": []
+          },
+          "name": "BDUGShareKakaoTalkBusiness",
+          "resource_bundles": {
+            "BDUGShareKakaoResource": [
+              "BDUGShare/Classes/BDUGShareBusiness/BDUGShareKakaoTalk/Resources/*.png"
+            ]
+          },
+          "source_files": "BDUGShare/Classes/BDUGShareBusiness/BDUGShareKakaoTalk/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGMayaShare": [],
+            "BDUGShare/BDUGShareBasic/BDUGVideoImageShare": [],
+            "BDUGShare/BDUGShareBusiness/BDUGActivity": []
+          },
+          "name": "BDUGShareMayaBusiness",
+          "resource_bundles": {
+            "BDUGShareMayaResource": [
+              "BDUGShare/Classes/BDUGShareBusiness/BDUGShareMaya/Resources/*.png"
+            ]
+          },
+          "source_files": "BDUGShare/Classes/BDUGShareBusiness/BDUGShareMaya/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGToutiaoShare": [],
+            "BDUGShare/BDUGShareBasic/BDUGVideoImageShare": [],
+            "BDUGShare/BDUGShareBusiness/BDUGActivity": []
+          },
+          "name": "BDUGShareToutiaoBusiness",
+          "resource_bundles": {
+            "BDUGShareToutiaoResource": [
+              "BDUGShare/Classes/BDUGShareBusiness/BDUGShareToutiao/Resources/*.png"
+            ]
+          },
+          "source_files": "BDUGShare/Classes/BDUGShareBusiness/BDUGShareToutiao/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGImageShare": [],
+            "BDUGShare/BDUGShareBusiness/BDUGActivity": []
+          },
+          "name": "BDUGShareImageShareBusiness",
+          "source_files": "BDUGShare/Classes/BDUGShareBusiness/BDUGShareImageShare/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGLarkShare": [],
+            "BDUGShare/BDUGShareBusiness/BDUGActivity": []
+          },
+          "name": "BDUGShareLarkBusiness",
+          "resource_bundles": {
+            "BDUGShareLarkResource": [
+              "BDUGShare/Classes/BDUGShareBusiness/BDUGShareLark/Resources/*.png"
+            ]
+          },
+          "source_files": "BDUGShare/Classes/BDUGShareBusiness/BDUGShareLark/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGUtil": [],
+            "BDUGShare/BDUGShareBusiness/BDUGActivity": []
+          },
+          "name": "BGUGShareAdditionalPanel",
+          "source_files": "BDUGShare/Classes/BDUGShareBusiness/BGUGShareAdditionalPanel/**/*.{h,m}"
+        }
+      ]
+    },
+    {
+      "name": "BDUGShareBasic",
+      "subspecs": [
+        {
+          "name": "BDUGUtil",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/Util/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGUtil": [],
+            "TencentQQSDK": [
+              "\u003e=1.0.0-rc.1"
+            ]
+          },
+          "name": "BDUGQQShare",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/QQShare/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGUtil": [],
+            "WechatSDK": [
+              "\u003e=0.2.0"
+            ]
+          },
+          "name": "BDUGWeChatShare",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/WeChatShare/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDAlipayShareSDK": [],
+            "BDUGShare/BDUGShareBasic/BDUGUtil": []
+          },
+          "name": "BDUGAliShare",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/AliShare/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDDingTalkShareSDK": [],
+            "BDUGShare/BDUGShareBasic/BDUGUtil": []
+          },
+          "name": "BDUGDingTalkShare",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/DingTalkShare/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGUtil": []
+          },
+          "frameworks": "MessageUI",
+          "name": "BDUGMailShare",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/MailShare/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGUtil": []
+          },
+          "frameworks": "MessageUI",
+          "name": "BDUGMessageShare",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/MessageShare/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBusiness/BDUGActivity": [],
+            "TTImage/Model": []
+          },
+          "name": "BDUGTokenShare",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/TokenShare/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGImageMark": [],
+            "BDUGShare/BDUGShareBasic/BDUGImageAnalysis": [],
+            "BDUGShare/BDUGShareBasic/BDUGTokenShare": [],
+            "BDUGShare/BDUGShareBusiness/BDUGActivity": [],
+            "BDWebImage/Core": []
+          },
+          "name": "BDUGImageShare",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/ImageMarkShare/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGImageAnalysis": [],
+            "TTScanQrCode/QrCode": [
+              "\u003e=0.4.0"
+            ]
+          },
+          "name": "BDUGImageQRCode",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/QRCodeImage/**/*.{h,m}"
+        },
+        {
+          "name": "BDUGImageAnalysis",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/ImageAnalysts/**/*.{h,m}"
+        },
+        {
+          "name": "BDUGSystemShare",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/SystemShare/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGUtil": [],
+            "RocketShareSDK": [],
+            "RocketShareSDK/Internal": []
+          },
+          "name": "BDUGRocketShare",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/RocketShare/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGUtil": [],
+            "WeiboSDK": [
+              "3.3.5"
+            ]
+          },
+          "name": "BDUGWeiboShare",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/WeiboShare/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDWebImage/Core": []
+          },
+          "name": "BDUGVideoImageShare",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/VideoShare/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGUtil": [],
+            "TikTokOpenPlatformSDK": [
+              "~\u003e 3.0.0"
+            ]
+          },
+          "name": "BDUGAwemeShare",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/AwemeShare/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGSystemShare": [],
+            "BDUGShare/BDUGShareBasic/BDUGUtil": []
+          },
+          "name": "BDUGWhatsAppShare",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/WhatsAppShare/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGSystemShare": [],
+            "BDUGShare/BDUGShareBasic/BDUGUtil": []
+          },
+          "name": "BDUGInstagramShare",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/InstagramShare/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGUtil": [],
+            "TikTokOpenPlatformSDK": []
+          },
+          "name": "BDUGTiktokShare",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/TiktokShare/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGUtil": []
+          },
+          "name": "BDUGLineShare",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/LineShare/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGKakaoTalk/KakaoLink": [],
+            "BDUGKakaoTalk/KakaoOpenSDK": [],
+            "BDUGShare/BDUGShareBasic/BDUGUtil": []
+          },
+          "name": "BDUGKakaoTalkShare",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/KakaoTalkShare/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGUtil": [],
+            "MYShareSDK": []
+          },
+          "name": "BDUGMayaShare",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/MayaShare/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGUtil": [],
+            "WeitoutiaoShareSDK": []
+          },
+          "name": "BDUGToutiaoShare",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/ToutiaoShare/**/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDUGShare/BDUGShareBasic/BDUGUtil": [],
+            "LarkOpenShareSDK": [
+              "~\u003e1.0.2"
+            ]
+          },
+          "name": "BDUGLarkShare",
+          "source_files": "BDUGShare/Classes/BDUGShareBasic/LarkShare/**/*.{h,m}"
+        }
+      ]
+    }
+  ],
+  "summary": "framework_summary",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDUGShare_POD_VERSION=@\\\"9999_2.1.4-rc.12\\\""
+  },
+  "version": "2.1.4-rc.12"
+}

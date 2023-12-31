@@ -1,0 +1,213 @@
+{
+  "_bytebus_platform": {
+    "app_id": "9999",
+    "repo_id": "8401"
+  },
+  "authors": {
+    "hulizhen": "hulizhen@bytedance.com"
+  },
+  "default_subspecs": [
+    "Core",
+    "Containers/Web",
+    "Containers/Lynx",
+    "Engines/TTBridgeUnifyAdapter/WebEngine",
+    "Engines/TTBridgeUnifyAdapter/LynxEngine"
+  ],
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/ugc/BDXBridgeKit",
+  "license": {
+    "type": "MIT"
+  },
+  "name": "BDXBridgeKit",
+  "platforms": {
+    "ios": "9.0"
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\""
+  },
+  "repoId": "8401",
+  "source": {
+    "commit": "ca587637e1886ba637652d0ef12ab10cf1fd5db1",
+    "git": "git@code.byted.org:bytedance/hybrid-x.git"
+  },
+  "subspecs": [
+    {
+      "dependencies": {
+        "BDAlogProtocol": [],
+        "BDAssert": [],
+        "BDXServiceCenter": [],
+        "ByteDanceKit/Foundation": [],
+        "ByteDanceKit/UIKit": [],
+        "Mantle": []
+      },
+      "name": "Core",
+      "private_header_files": "BDXBridgeKit/Classes/Core/*+Internal.h",
+      "source_files": "BDXBridgeKit/Classes/Core/**/*.{h,m}"
+    },
+    {
+      "dependencies": {
+        "BDXBridgeKit/Core": []
+      },
+      "name": "Containers",
+      "subspecs": [
+        {
+          "name": "Web",
+          "source_files": "BDXBridgeKit/Classes/Containers/Web/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "Lynx/Framework": []
+          },
+          "name": "Lynx",
+          "source_files": "BDXBridgeKit/Classes/Containers/Lynx/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "React": []
+          },
+          "name": "RN",
+          "source_files": "BDXBridgeKit/Classes/Containers/RN/*.{h,m}"
+        }
+      ]
+    },
+    {
+      "dependencies": {
+        "BDXBridgeKit/Core": []
+      },
+      "name": "Engines",
+      "subspecs": [
+        {
+          "name": "TTBridgeUnifyAdapter",
+          "subspecs": [
+            {
+              "dependencies": {
+                "TTBridgeUnify/TTBridge": [
+                  "\u003e=5.2.4"
+                ]
+              },
+              "name": "CoreEngine",
+              "source_files": "BDXBridgeKit/Classes/Engines/TTBridgeUnifyAdapter/*.{h,m}"
+            },
+            {
+              "dependencies": {
+                "BDXBridgeKit/Engines/TTBridgeUnifyAdapter/CoreEngine": [],
+                "TTBridgeUnify/UnifiedWebView": []
+              },
+              "name": "WebEngine"
+            },
+            {
+              "dependencies": {
+                "BDXBridgeKit/Engines/TTBridgeUnifyAdapter/CoreEngine": [],
+                "TTBridgeUnify/Lynx": []
+              },
+              "name": "LynxEngine"
+            },
+            {
+              "dependencies": {
+                "BDXBridgeKit/Engines/TTBridgeUnifyAdapter/CoreEngine": [],
+                "TTBridgeUnify/React": []
+              },
+              "name": "RNEngine",
+              "source_files": "BDXBridgeKit/Classes/Engines/TTBridgeUnifyAdapter/RN/*.{h,m}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "dependencies": {
+        "BDXBridgeKit/Core": []
+      },
+      "name": "Methods",
+      "subspecs": [
+        {
+          "name": "Framework",
+          "source_files": "BDXBridgeKit/Classes/Methods/Framework/*.{h,m}"
+        },
+        {
+          "name": "Event",
+          "private_header_files": "BDXBridgeKit/Classes/Methods/Event/*+Internal.h",
+          "source_files": "BDXBridgeKit/Classes/Methods/Event/*.{h,m}"
+        },
+        {
+          "frameworks": "MessageUI",
+          "name": "System",
+          "subspecs": [
+            {
+              "name": "SystemBase",
+              "source_files": "BDXBridgeKit/Classes/Methods/System/*.{h,m}"
+            },
+            {
+              "name": "SystemSecure",
+              "source_files": "BDXBridgeKit/Classes/Methods/System/Secure/*.{h,m}"
+            }
+          ]
+        },
+        {
+          "frameworks": "EventKit",
+          "name": "Calendar",
+          "source_files": "BDXBridgeKit/Classes/Methods/Calendar/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "TTNetworkManager": [],
+            "TTReachability": []
+          },
+          "name": "Network",
+          "source_files": "BDXBridgeKit/Classes/Methods/Network/*.{h,m}"
+        },
+        {
+          "name": "Storage",
+          "source_files": "BDXBridgeKit/Classes/Methods/Storage/*.{h,m}"
+        },
+        {
+          "name": "Account",
+          "source_files": "BDXBridgeKit/Classes/Methods/Account/*.{h,m}"
+        },
+        {
+          "name": "Log",
+          "source_files": "BDXBridgeKit/Classes/Methods/Log/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "BDTrackerProtocol": [],
+            "TTReachability": []
+          },
+          "name": "Info",
+          "source_files": "BDXBridgeKit/Classes/Methods/Info/*.{h,m}"
+        },
+        {
+          "dependencies": {
+            "TTNetworkManager": [],
+            "TTReachability": []
+          },
+          "name": "Media",
+          "source_files": "BDXBridgeKit/Classes/Methods/Media/*.{h,m}"
+        },
+        {
+          "name": "Route",
+          "source_files": "BDXBridgeKit/Classes/Methods/Route/*.{h,m}"
+        },
+        {
+          "name": "UI",
+          "source_files": "BDXBridgeKit/Classes/Methods/UI/*.{h,m}"
+        },
+        {
+          "name": "Open",
+          "source_files": "BDXBridgeKit/Classes/Methods/Open/*.{h,m}"
+        },
+        {
+          "name": "Development",
+          "source_files": "BDXBridgeKit/Classes/Methods/Development/*.{h,m}"
+        }
+      ]
+    }
+  ],
+  "summary": "framework_summary",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDXBridgeKit_POD_VERSION=@\\\"9999_2.6.3-rc.10.1-bugfix\\\""
+  },
+  "version": "2.6.3-rc.10.1-bugfix"
+}

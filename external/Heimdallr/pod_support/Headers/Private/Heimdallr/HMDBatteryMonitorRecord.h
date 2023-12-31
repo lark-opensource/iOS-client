@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/Monitors/Common/Public/Record/HMDBatteryMonitorRecord.h

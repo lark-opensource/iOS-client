@@ -1,0 +1,1 @@
+../../../../HTSServiceKit/Classes/Service/HTSMacro.h

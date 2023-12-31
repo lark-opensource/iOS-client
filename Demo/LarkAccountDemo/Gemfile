@@ -1,0 +1,64 @@
+# frozen_string_literal: true
+
+# Ensure this file is checked in to source control!
+
+source 'https://rubygems.byted.org'
+
+cocoapods_version = '1.11.2'
+
+###### 我们自己的gem
+if lark_pipeline_worksapce = ENV['LARK_PIPELINE_WORKSPACE']
+  require File.realpath(File.expand_path(File.join(lark_pipeline_worksapce, 'scripts/local_gems.rb')))
+  LarkPipeline::Rakefile::ComponentManager.instance.components.each do |com|
+    gem com.name, path: com.workspace
+  end
+  gem 'pry-byebug'
+  require 'pry-byebug'
+else
+  gem 'EEScaffold'
+  gem 'lark_mod_manager'
+end
+
+# you can use ref: "sha" to specify commit dependency
+gem 'lark-project', git: 'git@code.byted.org:lark/ios-lark-project-mirror.git', branch: 'develop'
+# 使用共享缓存, 暂时用这个环境变量控制开关做测试
+ENV['COCOAPODS_SHARED_CACHE'] ||= 'true'
+
+###### 公司提供的Gem
+gem 'seer-hummer-apm', '~> 0.0.17' # pod和编译数据收集 https://bytedance.feishu.cn/wiki/wikcnFXcOTwnGkUJQNYyv7NQkkg
+gem 'seer-optimize', '1.0.1.alpha.1' # pod install 提速,remove cocoapods-amicable https://bytedance.feishu.cn/docs/doccnFTUeA1JqmFAf5MhTcPwWob#90AEaL
+
+# 使用RR_ENABLE=true 开启云端判决
+# 使用RR_CDN_SOURCE=true 开启CDN
+# if !ENV['WORKFLOW_JOB_ID'].nil? and ENV['RR_ENABLE'].nil? and ENV['RR_CDN_SOURCE'].nil?
+#   # 在CI环境上灰度云端构建功能
+#   case rand(3)
+#   when 0 then ENV['RR_ENABLE'] = 'true'
+#   when 1 then ENV['RR_CDN_SOURCE'] = 'true'
+#   end
+# end
+
+gem "cocoapods-remote-resolve", ENV['BITS_BITNEST_VERSION'] || '>= 0.1.2'
+
+# 使用COCOAPODS_INTEGRATE_SPECIFIC_TARGETS=true 开启
+# ENV['COCOAPODS_INTEGRATE_SPECIFIC_TARGETS'] ||= 'true'
+ENV['COCOAPODS_TARGETS'] ||= 'LarkAccountDemo'
+ENV['COCOAPODS_CONFIGURATIONS'] ||= "Debug"
+
+###### 第三方使用的Gem
+gem 'cocoapods', cocoapods_version # 保证Bundle执行的和本地Podfile兼容
+# gem 'cocoapods-amicable', '~> 0.3.0' # pod 1.7.0需要0.3.0以上, 用于去掉Podfile Checksum
+gem 'xcode-build-times' # 用于收集build时间，fastlane
+
+###### 间接依赖降级
+gem 'ffi', '1.14.0'
+gem 'mimemagic', '= 0.3.5'
+gem 'xcpretty', '0.3.1.1' # xcpretty 0.3.1.2 和 ruby 2.6.5 不兼容，导致 $HOME/.rbenv/versions/2.6.5/lib/ruby/gems/2.6.0/gems/xcpretty-0.3.1.2/lib/xcpretty/printer.rb:35:in `pretty_print': undefined method `empty?' for nil:NilClass (NoMethodError) # rubocop:disable all
+
+###### fastlane的依赖
+plugins_path = File.join(File.dirname(__FILE__), 'fastlane', 'Pluginfile')
+eval_gemfile(plugins_path) if File.exist?(plugins_path)
+
+###### Config
+# 隔离cocoapod缓存环境. cocoapod发现版本不一样会清缓存，这样多个版本混用时会互相清楚，造成并发问题。
+ENV['CP_CACHE_DIR'] = File.join(Dir.home, 'Library/Caches/CocoaPods', cocoapods_version)

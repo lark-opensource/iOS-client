@@ -1,0 +1,1 @@
+../../../../TSPrivacyKit/Classes/Custom/Subscriber/TSPKIgnoreDetectSubscriber.h

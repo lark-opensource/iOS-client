@@ -1,0 +1,170 @@
+{
+  "name": "Quaterback",
+  "version": "3.1.0-rc.3",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://bits.bytedance.net/bytebus/components/components/detail/4481?appId=9999",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "柳祚鹏": "hubo.christyhong@bytedance.com"
+  },
+  "source": {
+    "http": "http://tosv.byted.org/obj/iosbinary/archive_source/9999/Quaterback/3.1.0-rc.3/Quaterback.zip"
+  },
+  "platforms": {
+    "ios": "7.0"
+  },
+  "static_framework": true,
+  "libraries": [
+    "m",
+    "z",
+    "c++"
+  ],
+  "frameworks": [
+    "Foundation",
+    "UIKit",
+    "CoreMedia",
+    "CoreGraphics"
+  ],
+  "pod_target_xcconfig": {
+    "OTHER_CPLUSPLUSFLAGS": "-fno-c++-static-destructors",
+    "DEFINES_MODULE": "YES",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "Quaterback_POD_VERSION=@\\\"9999_3.1.0-rc.3\\\""
+  },
+  "dependencies": {
+    "TTNetworkManager": []
+  },
+  "default_subspecs": [
+    "Main/Core",
+    "Main/Default"
+  ],
+  "requires_arc": true,
+  "subspecs": [
+    {
+      "name": "BDSSZipArchive",
+      "source_files": "BDDynamically/Classes/Libs/zip/**/*.{h,hpp,c,cc,cpp,m,mm}",
+      "private_header_files": "BDDynamically/Classes/Libs/zip/**/*.{h,hpp}"
+    },
+    {
+      "name": "Main",
+      "dependencies": {
+        "SSZipArchive": [],
+        "BDAlogProtocol": []
+      },
+      "subspecs": [
+        {
+          "name": "Core",
+          "source_files": "BDDynamically/Classes/Core/**/*.{h,hpp,c,cc,cpp,m,mm}",
+          "private_header_files": "BDDynamically/Classes/Core/private/*.{h,hpp}",
+          "public_header_files": "BDDynamically/Classes/Core/public/*.{h,hpp}",
+          "vendored_frameworks": "BDDynamically/Frameworks/Common/Release/*.framework"
+        },
+        {
+          "name": "Aweme",
+          "source_files": "BDDynamically/Classes/Aweme/*.{h,m}",
+          "prefix_header_contents": "#import \"BDDDYAWEHeader.h\""
+        },
+        {
+          "name": "HotSoon",
+          "source_files": [
+            "BDDynamically/Classes/HotSoon/*.{h}",
+            "BDDynamically/Classes/Base/*.{h,m,mm}"
+          ],
+          "prefix_header_contents": "#import \"BDDDYHTSHeader.h\""
+        },
+        {
+          "name": "News",
+          "source_files": [
+            "BDDynamically/Classes/News/*.{h}",
+            "BDDynamically/Classes/Base/*.{h,m,mm}"
+          ],
+          "prefix_header_contents": "#import \"BDDDYNewsHeader.h\""
+        },
+        {
+          "name": "Default",
+          "source_files": [
+            "BDDynamically/Classes/HotSoon/*.{h}",
+            "BDDynamically/Classes/Base/*.{h,m,mm}"
+          ],
+          "prefix_header_contents": "#import \"BDDDYHTSHeader.h\""
+        }
+      ]
+    },
+    {
+      "name": "mPaaS",
+      "subspecs": [
+        {
+          "name": "Task",
+          "frameworks": "Foundation",
+          "dependencies": {
+            "BDStartUp/Base": [],
+            "BDAlogProtocol": [
+              ">= 1.0.2"
+            ],
+            "BDTrackerProtocol": [
+              ">= 2.5.0"
+            ],
+            "Quaterback/Main/Core": [],
+            "Quaterback/Main/Default": []
+          },
+          "source_files": "mPaaS/Tasks/**/*.{h,m,c}",
+          "public_header_files": "mPaaS/Tasks/**/*.h"
+        },
+        {
+          "name": "CN",
+          "frameworks": "Foundation",
+          "dependencies": {
+            "Quaterback/mPaaS/Task": []
+          },
+          "source_files": "mPaaS/CN/**/*.{h,m,c}",
+          "public_header_files": "mPaaS/CN/**/*.h"
+        },
+        {
+          "name": "VA",
+          "frameworks": "Foundation",
+          "dependencies": {
+            "Quaterback/mPaaS/Task": []
+          },
+          "source_files": "mPaaS/VA/**/*.{h,m,c}",
+          "public_header_files": "mPaaS/VA/**/*.h"
+        },
+        {
+          "name": "SG",
+          "frameworks": "Foundation",
+          "dependencies": {
+            "Quaterback/mPaaS/Task": []
+          },
+          "source_files": "mPaaS/SG/**/*.{h,m,c}",
+          "public_header_files": "mPaaS/SG/**/*.h"
+        },
+        {
+          "name": "Debug",
+          "frameworks": "Foundation",
+          "dependencies": {
+            "BDStartUp/Debug": [],
+            "Quaterback/mPaaS/Task": []
+          },
+          "source_files": "mPaaS/InHouse/**/*.{h,m,c}",
+          "public_header_files": "mPaaS/InHouse/**/*.h"
+        }
+      ]
+    }
+  ],
+  "commit": "2e7ada78a92d89101a32c57034f9ad1358ce133b\n",
+  "source_code": {
+    "git": "git@code.byted.org:iOS_Library/BDDynamically.git",
+    "commit": "2e7ada78a92d89101a32c57034f9ad1358ce133b"
+  },
+  "_bytebus_platform": {
+    "repo_id": "4481",
+    "app_id": "9999"
+  },
+  "repoId": "4481",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "Quaterback_POD_VERSION=@\\\"9999_3.1.0-rc.3\\\""
+  }
+}

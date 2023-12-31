@@ -1,0 +1,61 @@
+{
+    "effect": {
+      "coexistScene": {
+        "allowList": ["*"]
+      },
+        "Link": [
+            {
+                "exclusiveScene": [
+                    {
+                      "sceneKey": "FaceDeformation/FaceALL",
+                      "tagName": [
+                        "DISTORTION_FACEU_FAR_EYE",
+                        "DISTORTION_FACEU_ZOOM_NOSE",
+                        "DISTORTION_FACEU_MOVE_MOUTH",
+                        "DISTORTION_FACEU_ZOOM_FACE",
+                        "DISTORTION_FACEU_CUT_FACE",
+                        "DISTORTION_FACEU_SMALL_FACE",
+                        "DISTORTION_FACEU_ZOOM_CHEEK_BONE",
+                        "DISTORTION_FACEU_POINTY_CHIN"
+                      ],
+                      "composerKey": [
+                        "Face_ALL"
+                      ],
+                      "priority": 1000
+                    },
+                    {
+                      "sceneKey": "FaceDeformation/Eye",
+                      "tagName": [
+                        "DISTORTION_FACEU_ZOOM_EYE"
+                      ],
+                      "composerKey": [
+                        "Eye_ALL"
+                      ],
+                      "priority": 1000
+                    }
+                  ],
+                "type": "FaceDistortionFaceu",
+                "zorder": 3002,
+                "path": "distortionFaceu_test/",
+                "extra": {
+                    "composer_param": [
+                        {
+                            "name":"facenature",
+                            "key":"Face_ALL",
+                            "default_value":0.0,
+                            "allow_negative": false
+                        },
+                        {
+                          "name":"eye",
+                          "key":"Eye_ALL",
+                          "default_value":0.0,
+                          "allow_negative": false
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "name": "hotsoon_facereshapev3_96F16129-B7C9-4BAC-BD87-E490C34EE864",
+    "version": "5.5.0"
+}

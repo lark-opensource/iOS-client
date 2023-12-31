@@ -1,0 +1,17 @@
+stages:
+  - test
+
+before_script:
+  - swift -version
+
+after_script:
+  - swift -version
+
+check:
+  stage: test
+  script:
+    - swift test -c release -Xcc -Wunguarded-availability
+    - swift test -c release -Xswiftc -DOPENCOMBINE_COMPATIBILITY_TEST
+  except:
+    - master
+    - tags

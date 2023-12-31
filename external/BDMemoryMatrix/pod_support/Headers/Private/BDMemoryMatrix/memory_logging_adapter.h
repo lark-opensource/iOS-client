@@ -1,0 +1,1 @@
+../../../../BDMemoryMatrix/Classes/Memory/MemoryLogger/memory_logging_adapter.h

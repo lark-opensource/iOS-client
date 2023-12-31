@@ -1,0 +1,447 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "SGPagingView_pod_hdrs",
+  srcs = [
+    ":SGPagingView_root_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "SGPagingView_private_includes",
+  include = [
+    "external/SGPagingView/pod_support/Headers/Private/SGPagingView/"
+  ],
+  deps = [],
+  external_name = "SGPagingView"
+)
+gen_includes(
+  name = "SGPagingView_public_includes",
+  include = [
+    "external/SGPagingView/pod_support/Headers/Public/SGPagingView/"
+  ],
+  deps = [],
+  external_name = "SGPagingView"
+)
+filegroup(
+  name = "_SGPagingView_hdrs",
+  srcs = [
+    ":SGPagingView_root_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "SGPagingView_xcode_hmapsource",
+  hdrs = [
+    ":_SGPagingView_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "SGPagingView_xcode_hmap",
+  dep = ":SGPagingView_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/SGPagingView/*-bitsky-generated.modulemap", "pod_support/Headers/Public/SGPagingView/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "SGPagingView_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "SGPagingView",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "SGPagingView_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":SGPagingView_xcode_hmap"
+  ],
+  external_name = "SGPagingView",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SGPagingView_root_hdrs",
+  srcs = [
+    "SGPagingView/Category/UIButton+SGPagingView.h",
+    "SGPagingView/Category/UIView+SGPagingView.h",
+    "SGPagingView/Controller/SGPagingViewPopGestureVC.h",
+    "SGPagingView/SGPageContent/SGPageContentCollectionView.h",
+    "SGPagingView/SGPageContent/SGPageContentScrollView.h",
+    "SGPagingView/SGPageTitle/SGPageTitleView.h",
+    "SGPagingView/SGPageTitle/SGPageTitleViewConfigure.h",
+    "SGPagingView/SGPagingView.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SGPagingView_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/SGPagingView/SGPageContentCollectionView.h",
+    "pod_support/Headers/Private/SGPagingView/SGPageContentScrollView.h",
+    "pod_support/Headers/Private/SGPagingView/SGPageTitleView.h",
+    "pod_support/Headers/Private/SGPagingView/SGPageTitleViewConfigure.h",
+    "pod_support/Headers/Private/SGPagingView/SGPagingView.h",
+    "pod_support/Headers/Private/SGPagingView/SGPagingViewPopGestureVC.h",
+    "pod_support/Headers/Private/SGPagingView/UIButton+SGPagingView.h",
+    "pod_support/Headers/Private/SGPagingView/UIView+SGPagingView.h",
+    "pod_support/Headers/Public/SGPagingView/SGPageContentCollectionView.h",
+    "pod_support/Headers/Public/SGPagingView/SGPageContentScrollView.h",
+    "pod_support/Headers/Public/SGPagingView/SGPageTitleView.h",
+    "pod_support/Headers/Public/SGPagingView/SGPageTitleViewConfigure.h",
+    "pod_support/Headers/Public/SGPagingView/SGPagingView.h",
+    "pod_support/Headers/Public/SGPagingView/SGPagingViewPopGestureVC.h",
+    "pod_support/Headers/Public/SGPagingView/UIButton+SGPagingView.h",
+    "pod_support/Headers/Public/SGPagingView/UIView+SGPagingView.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SGPagingView_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SGPagingView_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "SGPagingView_module_map",
+  module_map = "pod_support/Headers/Public/SGPagingView/SGPagingView-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/SGPagingView/SGPagingView-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "SGPagingView_root_srcs",
+  srcs = [
+    "SGPagingView/SGPageContent/SGPageContentCollectionView.m",
+    "SGPagingView/SGPageContent/SGPageContentScrollView.m",
+    "SGPagingView/SGPageTitle/SGPageTitleView.m",
+    "SGPagingView/SGPageTitle/SGPageTitleViewConfigure.m",
+    "SGPagingView/Controller/SGPagingViewPopGestureVC.m",
+    "SGPagingView/Category/UIButton+SGPagingView.m",
+    "SGPagingView/Category/UIView+SGPagingView.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "SGPagingView_oc",
+  enable_modules = 1,
+  srcs = [
+    "SGPagingView_root_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "SGPagingView_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":SGPagingView_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":SGPagingView_private_includes",
+    ":SGPagingView_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":SGPagingView_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DSGPagingView_POD_VERSION=@\\\"8888_1.7.2\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "SGPagingView",
+  deps = [
+    ":SGPagingView_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "SGPagingView_lib",
+  deps = [
+    ":SGPagingView"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_SGPagingView_module_map",
+  module_map = "@SGPagingView//:pod_support/Headers/Public/SGPagingView/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@SGPagingView//:pod_support/Headers/Public/SGPagingView/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_SGPagingView_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@SGPagingView//:SGPagingView_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_SGPagingView",
+  target_name = "Lark",
+  module_name = "SGPagingView",
+  hdrs = ["@SGPagingView//:SGPagingView_root_pod_hdrs"],
+  srcs = ["@SGPagingView//:SGPagingView_root_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DSGPagingView_POD_VERSION=@\\\"8888_1.7.2\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "SGPagingView_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "SGPagingView_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "SGPagingView_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "SGPagingView_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "SGPagingView_dynamic", False),
+  tags = getattr(defs_external_objc_library, "SGPagingView_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("SGPagingView", {}),
+  visibility = ["//visibility:public"],
+)

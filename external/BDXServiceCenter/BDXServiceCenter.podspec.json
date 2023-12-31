@@ -1,0 +1,107 @@
+{
+  "authors": {
+    "fulei.bill": "fulei.bill@bytedance.com"
+  },
+  "binary_type": "rock",
+  "default_subspecs": [
+    "Base",
+    "Protocols",
+    "Registry"
+  ],
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://code.byted.org/ugc/Bullet",
+  "license": {
+    "file": "LICENSE",
+    "type": "MIT"
+  },
+  "name": "BDXServiceCenter",
+  "package_env": {
+    "id": null,
+    "xcode": "Xcode 13.0\nBuild version 13A233\n"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "preserve_paths": [
+    "rock_document/**/*.{h,m,mm,cpp,hpp,swift}",
+    "rock_document/rock-document-files.txt"
+  ],
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/aweme-rock/rock_binary/privatethird_binary_repo/BDXServiceCenter/1.4.7-alpha.31.1-bugfix.1.binary/1658494636/BDXServiceCenter.tar.xz"
+  },
+  "source_code": {
+    "commit": "c1be07afc65f797b8c881f650f2df5ea7fd171b4",
+    "git": "git@code.byted.org:ugc/Bullet.git"
+  },
+  "subspecs": [
+    {
+      "dependencies": {
+        "ByteDanceKit": [],
+        "ByteDanceKit/UIKit": [],
+        "Mantle": []
+      },
+      "exclude_files": [],
+      "ios": {
+        "vendored_libraries": [
+          "XService/BDXServiceCenter/Classes/Base/**/*.o",
+          "libBDXServiceCenter-62ed711.a"
+        ]
+      },
+      "name": "Base",
+      "prefix_header_file": "XService/BDXServiceCenter/Classes/PrefixHeader.pch",
+      "source_files": "XService/BDXServiceCenter/Classes/Base/**/*.{h,m,mm,c}",
+      "vendored_libraries": [
+        "XService/BDXServiceCenter/Classes/Base/**/*.o"
+      ]
+    },
+    {
+      "dependencies": {
+        "BDXServiceCenter/Base": [],
+        "Mantle": []
+      },
+      "exclude_files": [],
+      "ios": {
+        "vendored_libraries": [
+          "XService/BDXServiceCenter/Classes/Protocols/**/*.o",
+          "libBDXServiceCenter-c2d432b.a"
+        ]
+      },
+      "name": "Protocols",
+      "prefix_header_file": "XService/BDXServiceCenter/Classes/PrefixHeader.pch",
+      "source_files": "XService/BDXServiceCenter/Classes/Protocols/**/*.{h,m,mm,c}",
+      "vendored_libraries": [
+        "XService/BDXServiceCenter/Classes/Protocols/**/*.o"
+      ]
+    },
+    {
+      "dependencies": {
+        "BDXServiceCenter/Base": [],
+        "BDXServiceCenter/Protocols": [],
+        "Mantle": []
+      },
+      "exclude_files": [],
+      "ios": {
+        "vendored_libraries": [
+          "XService/BDXServiceCenter/Classes/Registry/**/*.o",
+          "libBDXServiceCenter-032c5d3.a"
+        ]
+      },
+      "name": "Registry",
+      "prefix_header_file": "XService/BDXServiceCenter/Classes/PrefixHeader.pch",
+      "source_files": "XService/BDXServiceCenter/Classes/Registry/**/*.{h,m,mm,c}",
+      "vendored_libraries": [
+        "XService/BDXServiceCenter/Classes/Registry/**/*.o"
+      ]
+    },
+    {
+      "dependencies": {
+        "Mantle": []
+      },
+      "name": "Utils",
+      "prefix_header_file": "XService/BDXServiceCenter/Classes/PrefixHeader.pch",
+      "source_files": "XService/BDXServiceCenter/Classes/Utils/**/*.{h,m,mm,c}"
+    }
+  ],
+  "summary": "A short description of BDXServiceCenter.",
+  "version": "1.4.7-alpha.31.1-bugfix.1.binary"
+}

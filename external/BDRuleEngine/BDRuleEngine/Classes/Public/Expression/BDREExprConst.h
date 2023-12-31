@@ -1,0 +1,24 @@
+//
+//  BDREExprConst.h
+//  BDRuleEngine-Expression
+//
+//  Created by Chengmin Zhang on 2022/7/14.
+//
+
+#import <Foundation/Foundation.h>
+
+FOUNDATION_EXPORT NSErrorDomain const BDExpressionErrorDomain;
+
+typedef NS_ENUM(NSUInteger, BDREExprErrorCode) {
+    BDREEXPRUNKNOWN_CAUSE       = 100,
+    BDREEXPRINVALID_PARAMS      = 101,
+    BDREEXPRUNKNOWN_OPERATOR    = 102,
+    BDREEXPRUNKNOWN_FUNCTION    = 103,
+    BDREEXPRUNKNOWN_IDENTIFIER  = 104,
+    BDREEXPRPARAM_NUM_NOT_MATCH = 105,
+    BDREEXPRINVALID_IDENTIFIER  = 106,
+    BDREEXPRINVALID_EXPRESS     = 107,
+    BDREEXPRNONVALUE_IDENTIFIER = 108,
+    BDREEXPRRESVALUE_NOTNUM     = 109,
+    BDREEXPRRESVALUE_NILRES     = 110
+};

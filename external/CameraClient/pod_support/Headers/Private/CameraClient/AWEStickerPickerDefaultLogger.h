@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraClientSDK/Effect/Extend/Log/AWEStickerPickerDefaultLogger.h

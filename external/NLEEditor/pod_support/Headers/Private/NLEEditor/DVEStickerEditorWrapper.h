@@ -1,0 +1,1 @@
+../../../../NLEEditor/Classes/EditorArch/EditorCore/Editor/Sticker/DVEStickerEditorWrapper.h

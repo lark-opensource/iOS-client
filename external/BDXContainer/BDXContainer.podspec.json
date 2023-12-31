@@ -1,0 +1,229 @@
+{
+  "name": "BDXContainer",
+  "version": "1.4.7-alpha.31.1.binary",
+  "summary": "A short description of BDXContainer.",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://code.byted.org/ugc/Bullet",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "fulei.bill": "fulei.bill@bytedance.com"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/aweme-rock/rock_binary/privatethird_binary_repo/BDXContainer/1.4.7-alpha.31.1.binary/1648210869/BDXContainer.tar.xz"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "default_subspecs": [
+    "Base",
+    "View",
+    "Page",
+    "Popup",
+    "Util",
+    "Lynx",
+    "Web"
+  ],
+  "preserve_paths": [
+    "rock_document/**/*.{h,m,mm,cpp,hpp,swift}",
+    "rock_document/rock-document-files.txt"
+  ],
+  "source_code": {
+    "git": "git@code.byted.org:ugc/Bullet.git",
+    "commit": "84f13e4c033e639be1ec04200eab42b35427f072"
+  },
+  "binary_type": "rock",
+  "package_env": {
+    "id": null,
+    "xcode": "Xcode 13.0\nBuild version 13A233\n"
+  },
+  "subspecs": [
+    {
+      "name": "Dependency",
+      "dependencies": {
+        "Lynx/Framework": [
+
+        ],
+        "BDXServiceCenter": [
+          "~> 1.4.0"
+        ],
+        "BDXBridgeKit": [
+
+        ],
+        "KVOController": [
+
+        ],
+        "BulletX/Core": [
+
+        ],
+        "BulletX/Assembler": [
+
+        ],
+        "Masonry": [
+
+        ]
+      }
+    },
+    {
+      "name": "Base",
+      "dependencies": {
+        "BDXContainer/Dependency": [
+
+        ]
+      },
+      "source_files": "XService/BDXContainer/Classes/Base/**/*.{h,m,mm,c}",
+      "vendored_libraries": [
+        "XService/BDXContainer/Classes/Base/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "XService/BDXContainer/Classes/Base/**/*.o",
+          "libBDXContainer-ac8e653.a"
+        ]
+      }
+    },
+    {
+      "name": "Lynx",
+      "dependencies": {
+        "BDXLynxKit": [
+
+        ]
+      }
+    },
+    {
+      "name": "Web",
+      "dependencies": {
+        "BDXWebKit": [
+
+        ]
+      }
+    },
+    {
+      "name": "View",
+      "dependencies": {
+        "Mantle": [
+
+        ],
+        "BDXContainer/Dependency": [
+
+        ],
+        "BDXContainer/Base": [
+
+        ]
+      },
+      "source_files": "XService/BDXContainer/Classes/View/**/*.{h,m,mm,c}",
+      "prefix_header_file": "XService/BDXContainer/Classes/PrefixHeader.pch",
+      "vendored_libraries": [
+        "XService/BDXContainer/Classes/View/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "XService/BDXContainer/Classes/View/**/*.o",
+          "libBDXContainer-c225730.a"
+        ]
+      }
+    },
+    {
+      "name": "Page",
+      "dependencies": {
+        "Mantle": [
+
+        ],
+        "BDXContainer/View": [
+
+        ],
+        "BDXContainer/Util": [
+
+        ]
+      },
+      "source_files": [
+        "XService/BDXContainer/Classes/Page/**/*.{h,m,mm,c}",
+        "rock_dummy/rock_dummy_f6d71df.m"
+      ],
+      "prefix_header_file": "XService/BDXContainer/Classes/PrefixHeader.pch",
+      "resource_bundles": {
+        "pageResource": [
+          "XService/BDXContainer/Classes/Page/page.xcassets"
+        ]
+      },
+      "vendored_libraries": [
+        "XService/BDXContainer/Classes/Page/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "XService/BDXContainer/Classes/Page/**/*.o",
+          "libBDXContainer-f6d71df.a"
+        ]
+      }
+    },
+    {
+      "name": "Popup",
+      "dependencies": {
+        "Mantle": [
+
+        ],
+        "BDXContainer/View": [
+
+        ]
+      },
+      "source_files": "XService/BDXContainer/Classes/Popup/**/*.{h,m,mm,c}",
+      "prefix_header_file": "XService/BDXContainer/Classes/PrefixHeader.pch",
+      "private_header_files": "XService/BDXContainer/Classes/Popup/BDXPopupViewController+Private.h",
+      "vendored_libraries": [
+        "XService/BDXContainer/Classes/Popup/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "XService/BDXContainer/Classes/Popup/**/*.o",
+          "libBDXContainer-228cdf3.a"
+        ]
+      }
+    },
+    {
+      "name": "Util",
+      "source_files": "XService/BDXContainer/Classes/Util/**/*.{h,m,mm,c}",
+      "vendored_libraries": [
+        "XService/BDXContainer/Classes/Util/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "XService/BDXContainer/Classes/Util/**/*.o",
+          "libBDXContainer-2eb1206.a"
+        ]
+      }
+    },
+    {
+      "name": "Debug",
+      "dependencies": {
+        "BulletX/Assembler": [
+          "~> 1.4.0"
+        ]
+      },
+      "source_files": "XService/BDXContainer/Classes/Debug/**/*.{h,m,mm}",
+      "private_header_files": "XService/BDXContainer/Classes/Debug/**/*.{h,m,mm}",
+      "vendored_libraries": [
+        "XService/BDXContainer/Classes/Debug/**/*.o"
+      ],
+      "exclude_files": [
+
+      ]
+    }
+  ]
+}

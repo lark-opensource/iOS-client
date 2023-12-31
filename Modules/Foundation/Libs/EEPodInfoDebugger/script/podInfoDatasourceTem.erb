@@ -1,0 +1,17 @@
+// Warning: Do Not Edit It!
+// 这个文件用来作为debuginfo的数据源（直接生成swift形式的，目前使用的是生成json资源呢文件）
+// liutefeng@bytedance.com
+
+import Foundation
+
+// swiftlint:disable all
+class DebugPodInfosDataSource: DebugInfoDataSource {
+    var podVersionInfos: [(String, String)] {
+        return [
+          <%- for pair in @infos -%>
+            ("<%= pair.name %>", "<%= pair.version %>"),
+          <%- end -%>
+        ]
+    }
+}
+// swiftlint:enable all

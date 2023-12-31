@@ -1,0 +1,1 @@
+../../../../CameraClient/MVPComponents/Recorder/Redpacket/Models/IESEffectModel+ACCRedpacket.h

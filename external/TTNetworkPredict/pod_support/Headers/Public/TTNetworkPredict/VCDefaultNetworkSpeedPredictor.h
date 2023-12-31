@@ -1,0 +1,1 @@
+../../../../ios/TTNetworkPredictModule/imp/VCDefaultNetworkSpeedPredictor.h

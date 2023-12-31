@@ -1,0 +1,1 @@
+../../../../ReactiveObjC/UITableViewHeaderFooterView+RACSignalSupport.h

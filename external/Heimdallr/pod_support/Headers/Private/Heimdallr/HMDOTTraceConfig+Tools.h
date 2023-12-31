@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/OpenTracing/Common/Private/HMDOTTraceConfig+Tools.h

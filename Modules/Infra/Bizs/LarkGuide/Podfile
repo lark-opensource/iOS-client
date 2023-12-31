@@ -1,0 +1,47 @@
+# Uncomment the next line to define a global platform for your project
+platform :ios, '11.0'
+
+# source 'https://github.com/CocoaPods/Specs.git'
+#source 'ssh://git.byted.org:29418/ee/lark/ios/LarkSpecRepo'
+source 'git@code.byted.org:ee/pods_specs.git'
+source 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+source 'git@code.byted.org:ugc/UGCSpecs.git'
+source 'git@code.byted.org:TTVideo/ttvideo-pods.git'
+source 'git@code.byted.org:iOS_Library/privatethird_source_repo.git'
+source 'git@code.byted.org:lab-cv/Specs.git'
+source 'git@code.byted.org:caijing_ios/cj_pods_specs.git'
+source 'git@code.byted.org:iOS_Library/publicthird_binary_repo.git'
+
+
+target 'LarkGuideDemo' do
+  # Comment the next line if you're not using Swift and don't want to use dynamic frameworks
+  use_frameworks!
+  
+  # Pods for LarkGuideDemo
+  pod 'EEImageService', "0.23.35"
+  pod 'KingfisherWebP', "0.6.0-lark.0"
+  pod 'LarkUIKit', '100.13.94'
+  pod 'LarkGuideUI', :path => '../../Libs/UI/LarkGuideUI'
+  pod 'LarkGuide', :path => './'
+  pod 'LarkRustClient', '3.42.15'
+  pod 'RustPB', '4.1.0-alpha.160-alpha'
+  pod 'ThreadSafeDataStructure', '0.5.1'
+
+end
+
+pre_install do |installer|
+  force_use_static_framwork installer
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['SWIFT_VERSION'] = '5'
+      config.build_settings["IPHONEOS_DEPLOYMENT_TARGET"] = "11.0"
+      config.build_settings['WARNING_CFLAGS'] ||= ''
+      config.build_settings['WARNING_CFLAGS'] += ' -Wno-nullability-completeness -Wno-nonnull'
+      config.build_settings['OTHER_SWIFT_FLAGS'] ||= ''
+      config.build_settings['OTHER_SWIFT_FLAGS'] += ' -Xcc -Wno-nullability-completeness'
+    end
+  end
+end

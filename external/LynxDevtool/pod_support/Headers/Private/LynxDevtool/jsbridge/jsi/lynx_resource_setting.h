@@ -1,0 +1,1 @@
+../../../../../../Lynx/jsbridge/jsi/lynx_resource_setting.h

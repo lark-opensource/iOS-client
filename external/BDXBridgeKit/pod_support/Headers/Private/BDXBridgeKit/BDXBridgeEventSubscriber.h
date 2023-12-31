@@ -1,0 +1,1 @@
+../../../../BDXBridgeKit/Classes/Core/Event/BDXBridgeEventSubscriber.h

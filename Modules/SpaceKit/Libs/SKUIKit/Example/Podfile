@@ -1,0 +1,159 @@
+platform :ios, '11.0'
+inhibit_all_warnings!
+use_frameworks!
+disable_swiftlint!
+
+install! 'cocoapods',
+	:deterministic_uuids => false,
+	:warn_for_multiple_pod_sources => false,
+	:generate_multiple_pod_projects => true,
+	:incremental_installation => true
+
+# make ours main source first
+source 'git@code.byted.org:ee/pods_specs.git'
+
+# old bd extension sources
+source 'git@code.byted.org:iOS_Library/privatethird_binary_repo.git'
+source 'git@code.byted.org:iOS_Library/privatethird_source_repo.git'
+source 'git@code.byted.org:iOS_Library/toutiao_source_repo.git'
+source 'git@code.byted.org:TTVideo/ttvideo-pods.git'
+source 'git@code.byted.org:iOS_Library/publicthird_binary_repo.git'
+source 'git@code.byted.org:iOS_Library/publicthird_source_repo.git'
+source 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+
+# ours custom sources
+source 'https://cdn.cocoapods.org/'
+source 'git@code.byted.org:caijing_ios/cj_pods_specs.git'
+
+def appPods
+	pod 'SKUIKit', :path => '../'
+end
+
+def sdkPods
+	pod 'LarkUIKit', '1.19.8'
+	pod 'ReachabilitySwift', '4.3.0'
+	pod 'Alamofire', :git=>'git@code.byted.org:ee/AlamofireForFeishu.git',:commit=>'af76584'
+	pod 'IESGeckoKit', '0.5.3-rc.3.1.binary', :subspecs => ['Debug']
+	pod 'OfflineResourceManager', '0.1.4'
+	pod 'SKFoundation', :path => '../../SKFoundation/'
+	pod 'JTAppleCalendar', '7.1.7'
+	pod 'EEImageService', '0.7.3'
+	pod 'Kingfisher', '5.3.1-lark.5'
+	pod 'KingfisherWebP', '0.6.0-lark.0'
+end
+
+target 'SKUIKit_Tests' do
+	appPods
+	sdkPods
+end
+
+pre_install do |installer|
+	force_use_static_framwork installer, except: ['SuiteCodable']
+
+	# fix: add search path for these cross module include headers
+	should_fix_include_headers = {
+		'TTVideoEngine' => ['TTPlayerSDK', 'TTVideoSetting'],
+		'AFgzipRequestSerializer' => ['AFNetworking', 'Godzippa'],
+		'TTNetworkManager' => ['AFNetworking', 'Godzippa'],
+		'QRCode' => ['smash'],
+		'Heimdallr' => ['BDAlogProtocol', 'TTMacroManager'],
+	}
+
+	fix_modular_include = Set[
+		'TTNetworkManager',
+		'BDUGShare',
+		'QRCode',
+	]
+
+	# @type [Hash{String => Pod::PodTarget}]
+	pod_targets_by_name = installer.pod_targets.group_by(&:pod_name)
+	header_search_paths_of_pods = lambda do |pod_target|
+		return unless config = should_fix_include_headers[pod_target.name]
+		# use true to represent all dependency
+		included_targets = case config
+			when true then pod_target.recursive_dependent_targets
+			when Hash then
+				pod_targets_by_name.values_at(*config[:recursive]).compact.flatten(1)
+					.flat_map {|pt| [pt] + pt.recursive_dependent_targets}
+					.uniq
+			when Array then
+				pod_targets_by_name.values_at(*config).compact.flatten(1)
+			else
+				raise "unsupported"
+			end
+		return nil if included_targets.empty?
+
+		headers = []
+		# @param pt [Pod::PodTarget]
+		included_targets.each do |pt|
+			if pt.requires_frameworks? && pt.should_build?
+				headers.push pt.build_settings.framework_header_search_path
+			else
+				# the above code use direct include header, not <module/header.h>
+				headers.push "${PODS_ROOT}/Headers/Public"
+				headers.push "${PODS_ROOT}/Headers/Public/#{pt.pod_name}"
+				# append vendored frameworks header
+				headers.concat(pt.build_settings.file_accessors.flat_map(&:vendored_frameworks).map { |f|
+					File.join '${PODS_ROOT}', f.relative_path_from(pt.sandbox.root), "Headers"
+				})
+			end
+		end
+		headers.uniq
+	end
+
+		# lint: if generate multiple scoped pod_target, downstream pod don't know choose which
+	duplicate_pod_targets = pod_targets_by_name.values.select { |a| a.length > 1 }
+	duplicate_pod_targets.each do |a|
+		Pod::UI.warn "Duplicate Pod target with different subspecs, defined in:"
+		a.each do |pod_target|
+			Pod::UI.warn "  - #{pod_target.name}(#{pod_target.specs.map(&:name).join(", ")}) contained in: #{pod_target.target_definitions.map(&:name).join(', ')}"
+		end
+	end
+	raise "Currently Not Support Duplicate Pod Targets" unless duplicate_pod_targets.empty?
+
+	installer.pod_targets.each do |pod_target|
+		attributes_hash = pod_target.root_spec.attributes_hash
+		pod_target_xcconfig = (attributes_hash['pod_target_xcconfig'] ||= {})
+
+		pod_target_xcconfig['SWIFT_VERSION'] = '5.1'
+		pod_target_xcconfig['IPHONEOS_DEPLOYMENT_TARGET'] = '11.0'
+		pod_target_xcconfig['WARNING_CFLAGS'] ||= '-Wno-nonnull -Wno-nullability -Wno-nullability-declspec -Wno-nullability-extension -Wno-nullability-completeness -Wno-nullable-to-nonnull-conversion -Wno-nullability-completeness-on-arrays -Wno-nullability-inferred-on-nested-type'
+		pod_target_xcconfig['CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED'] = 'NO'
+		pod_target_xcconfig['CLANG_WARN_DOCUMENTATION_COMMENTS'] = 'NO'
+		# pod_target_xcconfig['SWIFT_WHOLE_MODULE_OPTIMIZATION'] ||= "YES"
+
+		# if ($enable_module_stability_list.include? pod_target.name)
+		# 	pod_target_xcconfig['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
+		# end
+
+		if headers = header_search_paths_of_pods[pod_target]
+			pod_target_xcconfig['SYSTEM_HEADER_SEARCH_PATHS'] = headers.join(' ')
+		end
+
+		if fix_modular_include.include? pod_target.name
+			pod_target_xcconfig['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = "YES"
+			# CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES 只对objc生效，swift需要额外参数禁掉error
+			pod_target_xcconfig['OTHER_SWIFT_FLAGS'] ||= ' -Xcc -Wno-error=non-modular-include-in-framework-module'
+		end
+
+		if pod_target.name != 'DocsSDK'
+			pod_target_xcconfig['GCC_WARN_INHIBIT_ALL_WARNINGS'] = 'YES'
+			pod_target_xcconfig['SWIFT_SUPPRESS_WARNINGS'] = 'YES'
+		end
+	end
+end
+
+post_install do |installer|
+	installer.target_installation_results.pod_target_installation_results.each do |name, result|
+		pod_target = result.target
+		target = result.native_target
+		target.build_configurations.each do |config|
+			if config.name == 'Debug'
+				config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf'
+			else
+				config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
+			end
+			config.build_settings['ENABLE_BITCODE'] = 'NO'
+		end
+	end
+end

@@ -1,0 +1,67 @@
+{
+  "name": "AWECloudCommand",
+  "version": "1.3.9",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/ugc/AWECloudCommand",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "Fang Wei": "fangwei.02@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:ugc/AWECloudCommand.git",
+    "commit": "372beea7ce4f1356d4636ff985d738dce57b8007"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "libraries": "resolv",
+  "default_subspecs": [
+    "Core",
+    "NetDiagnose",
+    "Utilities"
+  ],
+  "subspecs": [
+    {
+      "name": "Core",
+      "source_files": "AWECloudCommand/Classes/Core/**/*.{h,m}",
+      "public_header_files": "AWECloudCommand/Classes/Core/**/*.h",
+      "dependencies": {
+        "AWECloudCommand/Utilities": [],
+        "AWECloudCommand/NetDiagnose": [],
+        "SSZipArchive": [],
+        "BDNetworkTag": [
+          ">= 0.2.0"
+        ]
+      }
+    },
+    {
+      "name": "NetDiagnose",
+      "source_files": "AWECloudCommand/Classes/NetDiagnose/**/*.{h,m}",
+      "public_header_files": "AWECloudCommand/Classes/NetDiagnose/**/*.h",
+      "dependencies": {
+        "AWECloudCommand/Utilities": []
+      }
+    },
+    {
+      "name": "Utilities",
+      "source_files": "AWECloudCommand/Classes/Utilities/**/*.{h,m}",
+      "public_header_files": "AWECloudCommand/Classes/Utilities/**/*.h"
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "918",
+    "app_id": "9999"
+  },
+  "repoId": "918",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "AWECloudCommand_POD_VERSION=@\\\"9999_1.3.9\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "AWECloudCommand_POD_VERSION=@\\\"9999_1.3.9\\\""
+  }
+}

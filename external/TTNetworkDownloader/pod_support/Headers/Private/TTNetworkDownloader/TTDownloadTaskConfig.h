@@ -1,0 +1,1 @@
+../../../../TTNetworkDownloader/Classes/TTDownload/DownloadConfig/TTDownloadTaskConfig.h

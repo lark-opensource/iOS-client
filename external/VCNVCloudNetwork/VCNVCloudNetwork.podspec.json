@@ -1,0 +1,46 @@
+{
+  "authors": {
+    "taohaiqing": "taohaiqing@bytedance.com"
+  },
+  "default_subspecs": "Core",
+  "dependencies": {
+    "boringssl": [
+      "~\u003e 0.1"
+    ]
+  },
+  "description": "vcnvcloudnetwork",
+  "homepage": "https://code.byted.org/ttmp/network",
+  "license": "MIT",
+  "name": "VCNVCloudNetwork",
+  "platforms": {
+    "ios": "8.0"
+  },
+  "pod_target_xcconfig": {
+    "ENABLE_BITCODE": "YES"
+  },
+  "requires_arc": true,
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/custombinary/2020092954/VCNVCloudNetwork/5.1.1-net3/VCNVCloudNetwork.zip"
+  },
+  "source_code": {
+    "commit": "a108754",
+    "git": "git@code.byted.org:ttmp/network.git"
+  },
+  "static_framework": true,
+  "subspecs": [
+    {
+      "name": "Core",
+      "vendored_libraries": "products/lib/*.a"
+    },
+    {
+      "name": "Header",
+      "source_files": "products/libvcn/**/*.{h}"
+    }
+  ],
+  "summary": "vcloud network",
+  "version": "5.1.1-net3",
+  "xcconfig": {
+    "ALWAYS_SEARCH_USER_PATHS": "NO",
+    "USE_HEADERMAP": "NO"
+  }
+}

@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraClientSDK/Effect/Core/Model/AWEStickerPickerModel+Favorite.h

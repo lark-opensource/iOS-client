@@ -1,0 +1,1 @@
+../../../../CameraClient/MobileInfra/Service/UI/ACCSelectedAssetsViewProtocol.h

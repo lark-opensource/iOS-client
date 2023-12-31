@@ -1,0 +1,13 @@
+# Copyright 2022 The Lynx Authors. All rights reserved.
+import("//LynxDevtool/devtool.gni")
+
+devtool_base_shared_sources = [
+  "file_stream.cc",
+  "file_stream.h",
+  "mouse_event.h",
+  "screen_metadata.h",
+]
+
+devtool_source_set("base") {
+  sources = devtool_base_shared_sources
+}

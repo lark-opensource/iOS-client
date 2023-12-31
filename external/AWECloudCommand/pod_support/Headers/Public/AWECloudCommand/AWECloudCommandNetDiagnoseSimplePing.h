@@ -1,0 +1,1 @@
+../../../../AWECloudCommand/Classes/NetDiagnose/AWECloudCommandNetDiagnoseSimplePing.h

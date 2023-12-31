@@ -1,0 +1,1 @@
+../../../../TransBridge-iOS/Classes/Channel/BDFlutterProtocol.h

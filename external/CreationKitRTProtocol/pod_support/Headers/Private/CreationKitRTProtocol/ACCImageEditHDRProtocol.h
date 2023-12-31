@@ -1,0 +1,1 @@
+../../../../RuntimeProtocol/EditService/Protocol/ImageAlbum/ACCImageEditHDRProtocol.h

@@ -1,0 +1,1 @@
+../../../../DVETrackKit/Classes/Utils/DVEVideoThumbnailTask.h

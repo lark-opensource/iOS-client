@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_effect_algorithm_rect_doc_det_api.h

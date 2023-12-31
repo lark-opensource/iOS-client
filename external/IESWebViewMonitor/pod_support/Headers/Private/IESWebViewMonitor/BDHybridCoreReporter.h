@@ -1,0 +1,1 @@
+../../../../IESWebViewMonitor/Classes/Core/BDHybridCoreReporter.h

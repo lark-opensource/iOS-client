@@ -1,0 +1,1 @@
+../../../../Beauty/Controller/AWEComposerBeautyViewController.h

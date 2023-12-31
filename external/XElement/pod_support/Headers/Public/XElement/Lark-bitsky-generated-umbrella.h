@@ -1,0 +1,77 @@
+#ifdef __OBJC__
+#import <UIKit/UIKit.h>
+#else
+#ifndef FOUNDATION_EXPORT
+#if defined(__cplusplus)
+#define FOUNDATION_EXPORT extern "C"
+#else
+#define FOUNDATION_EXPORT extern
+#endif
+#endif
+#endif
+
+#import "BDXElementAdapter.h"
+#import "BDXElementLivePlayerDelegate.h"
+#import "BDXElementMonitorDelegate.h"
+#import "BDXElementNetworkDelegate.h"
+#import "BDXElementReportDelegate.h"
+#import "BDXElementResourceManager.h"
+#import "BDXElementToastDelegate.h"
+#import "BDXElementVolumeDelegate.h"
+#import "BDXHybridUI.h"
+#import "LynxUI+BDXLynx.h"
+#import "UIView+BDXElementNativeView.h"
+#import "BDXLynxImpressionView.h"
+#import "BDXExpandLynxInput.h"
+#import "BDXExpandLynxTextArea.h"
+#import "BDXLynxDialerKeyListener.h"
+#import "BDXLynxDigitKeyListener.h"
+#import "BDXLynxInput.h"
+#import "BDXLynxInputBracketRichTextFormater.h"
+#import "BDXLynxInputEmojiFormater.h"
+#import "BDXLynxInputShadowNode.h"
+#import "BDXLynxInputUtils.h"
+#import "BDXLynxKeyListener.h"
+#import "BDXLynxNumberKeyListener.h"
+#import "BDXLynxTextArea.h"
+#import "BDXLynxTextAreaShadowNode.h"
+#import "BDXLynxTextKeyListener.h"
+#import "BDXLynxTextView.h"
+#import "InputType.h"
+#import "BDXExpandLynxOverlayView.h"
+#import "BDXLynxOverlayGlobalManager.h"
+#import "BDXLynxOverlayLight.h"
+#import "BDXLynxOverlayLightContainer.h"
+#import "BDXLynxOverlayView.h"
+#import "BDPickerSource.h"
+#import "BDXExpandLynxUIPicker.h"
+#import "BDXLynxUIPicker.h"
+#import "BDXPickerSheetView.h"
+#import "BDXLynxSvgView.h"
+#import "BDXLynxBounceView.h"
+#import "BDXLynxScrollView.h"
+#import "BDXExpandLynxSwiperItem.h"
+#import "BDXExpandLynxSwiperView.h"
+#import "BDXLynxSwiperCellLayout.h"
+#import "BDXLynxSwiperCollectionView.h"
+#import "BDXLynxSwiperItem.h"
+#import "BDXLynxSwiperPageView.h"
+#import "BDXLynxSwiperSlideControl.h"
+#import "BDXLynxSwiperView.h"
+#import "BDXLynxSwpierCell.h"
+#import "LynxSwiperShadowNode.h"
+#import "BDXBracketRichTextFormater.h"
+#import "BDXLynxAbstractTextShadowNode.h"
+#import "BDXLynxInlineElement.h"
+#import "BDXLynxInlineEventTarget.h"
+#import "BDXLynxInlineImageShadowNode.h"
+#import "BDXLynxInlineTextShadowNode.h"
+#import "BDXLynxInlineTruncationShadowNode.h"
+#import "BDXLynxRichTextStyle.h"
+#import "BDXLynxTextShadowNode.h"
+#import "BDXLynxTextUI.h"
+#import "BDXLynxVarietyTextShadowNode.h"
+#import "BDXRichTextFormater.h"
+
+FOUNDATION_EXPORT double XElementVersionNumber;
+FOUNDATION_EXPORT const unsigned char XElementVersionString[];

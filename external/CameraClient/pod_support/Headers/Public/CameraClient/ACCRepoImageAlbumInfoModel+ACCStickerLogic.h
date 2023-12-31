@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/Common/PublishRepository/Repo/BasicRepo/ACCRepoImageAlbumInfoModel+ACCStickerLogic.h

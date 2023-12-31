@@ -1,0 +1,1 @@
+../../../../CreativeKit/CameraArch/Tools/Resource/UIColor+CameraClientResource.h

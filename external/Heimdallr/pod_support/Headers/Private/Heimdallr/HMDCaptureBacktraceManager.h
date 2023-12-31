@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/HMDCaptureBacktrace/Common/Private/HMDCaptureBacktraceManager.h

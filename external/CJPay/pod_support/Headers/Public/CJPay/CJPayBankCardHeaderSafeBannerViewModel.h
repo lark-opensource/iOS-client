@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayAbility/MyBankCard/Model/CJPayBankCardHeaderSafeBannerViewModel.h

@@ -1,0 +1,1 @@
+../../../../EffectPlatformSDK/Core/Utils/NSDictionary+EffectPlatfromUtils.h

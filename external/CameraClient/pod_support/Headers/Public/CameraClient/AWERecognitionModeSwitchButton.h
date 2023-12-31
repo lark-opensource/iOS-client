@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/Record/View/Recognition/AWERecognitionModeSwitchButton.h

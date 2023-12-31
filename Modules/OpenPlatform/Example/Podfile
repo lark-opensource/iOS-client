@@ -1,0 +1,173 @@
+# rubocop:disable all
+# @!domain [Pod::Podfile]
+
+# @!parse
+#  require 'cocoapods'
+require 'EEScaffold'
+
+plugin 'cocoapods-monitor'
+
+strict_lock_mode!
+
+`git config core.hooksPath hooks`
+
+# 配置复用
+require_relative '../../../bin/lib/lark-project/lib/lark/project/podfile_mixin'
+# 版本限制和关联依赖复用
+require_relative '../../../if_pod'
+# 自动生成 assembly
+require_relative '../../../bin/lib/lark-project/lib/lark/project/assembly'
+# assembly内容修改
+require_relative '../scripts/assembly'
+# lark 单测assert禁用脚本
+require_relative '../../../bin/lib/lark-project/lib/lark/project/lark_assert'
+
+require File.dirname(__FILE__) + '/../scripts/unit_test_post_install'
+
+# 下面这行为M1 arm64的配置，取消注释后工程将会以M1 原生的编译, 详细见https://bytedance.feishu.cn/wiki/wikcnwks71unvjEFltDHpinn9Yc
+lark_build_for_all_arch!
+
+lark_template_common_setup
+
+disable_swiftlint!
+
+# LarkOpenPlatform 的依赖较多，此开关用于隔离
+enable_openplatform = false
+enable_workplace = false
+
+dev_pods = %w[
+  Blockit
+  ECOInfra
+  ECOProbe
+  EcosystemWeb
+  EEMicroAppSDK
+  LarkAppLinkSDK
+  LarkJSEngine
+  LarkMicroApp
+  LarkOpenAPIModel
+  LarkOpenPluginManager
+  LarkOPInterface
+  LarkTabMicroApp
+  LarkWebViewContainer
+  OPBlock
+  OPBlockInterface
+  OPFoundation
+  OPGadget
+  OPJSEngine
+  OPPlugin
+  OPPluginBiz
+  OPPluginManagerAdapter
+  OPSDK
+  OPWebApp
+  OPDynamicComponent
+  TTMicroApp
+  WebBrowser
+  LarkSetting
+  LarkWebviewNativeComponent
+  LarkCoreLocation
+  OPUnitTestFoundation
+]
+
+workplace_pods = %w[
+  WorkplaceMod
+  LarkWorkplace
+  LarkWorkplaceModel
+]
+
+openplatform_pods = %w[
+  LarkOpenPlatformAssembly
+  LarkOpenPlatform
+  LarkAppStateSDK
+]
+
+lark_use_common_binary_config(strategy: :all) do
+  # 这里插入Name可以将某个库切成源码, 无需使用引号，一行一个或者使用空格做分割
+  %W[
+   OPUnitTestFoundation
+  ].each { |v| source v }
+  dev_pods.each { |v| source v }
+  workplace_pods.each { |v| source v }  if enable_workplace
+  openplatform_pods.each { |v| source v }  if enable_openplatform
+end
+if ENV['NEED_RUN_UNIT_TEST'].to_s == 'true'
+  # Disable assert for runnning unit test
+  assert_dir :none
+end
+#target 'EcosystemTests' do
+#  pod 'OPUnitTestFoundation', :inhibit_warnings => false
+#end
+
+target 'Ecosystem' do
+  lark_main_target_if_pods
+  pod 'LarkKAFKMS', :subspecs => ['Core'] # RustSDK 依赖，但是未在 podspec 中添加，这里临时添加下
+  
+  pod 'LarkSetting', :path => '../Modules/Infra/Libs/LarkSetting'
+  pod 'LarkFeatureGating', :path => '../Modules/Infra/Libs/LarkFeatureGating'
+  
+  # paste protect , use specific version for now
+  pod 'vmsdk', '2.2.7-lark'
+  
+  pod 'PassportDebug'
+  pod 'LarkAccountAssembly'
+  pod 'LarkBaseService'
+  pod 'SwiftLint', :configurations => ['Debug']
+  pod 'LookinServer', :configurations => ['Debug']
+  pod 'Lynx', :subspecs => ['Inspector']
+
+  dev_pods.each { |v|
+    if %w[
+      LarkOpenAPIModel
+      LarkOpenPluginManager
+      OPSDK
+      TTMicroApp
+      OPGadget
+      OPPlugin
+      OPGadget
+      ECOInfra
+      EcosystemWeb
+      WebBrowser
+    ].include?(v)
+      pod v, :testspecs => ['Tests'], :inhibit_warnings => false 
+    else
+      pod v, :inhibit_warnings => false 
+    end
+  }
+  workplace_pods.each { |v| pod v, :inhibit_warnings => false } if enable_workplace
+  openplatform_pods.each { |v| pod v, :inhibit_warnings => false } if enable_openplatform
+end
+
+# @param installer [Pod::Installer]
+pre_install do |installer|
+  # modify build_settings in pre_install, so cache check will be valid
+  lark_template_common_pre_install installer
+
+  # additional xcconfigs
+  installer.pod_targets.each do |pod_target|
+    attributes_hash = pod_target.root_spec.attributes_hash
+    pod_target_xcconfig = (attributes_hash['pod_target_xcconfig'] ||= {})
+    # disable oc assert for unit test task
+    if ENV['NEED_RUN_UNIT_TEST'].to_s == 'true'
+      pod_target_xcconfig['ENABLE_NS_ASSERTIONS'] = 'NO'
+    end
+  end
+end
+
+post_install do |installer|
+  lark_template_common_post_install installer
+
+  # 自动收集 Assembly，生成/更新 BaseAssembly.swift
+  Lark::Project::Assembly.rebuild(installer)
+  
+  # 修改BaseAssembly.swift, 添加Test宏
+  Ecosystem::Project::Assembly.addUnitTestMacro(installer)
+  custom_unit_test_search_paths(installer)
+end
+
+post_integrate do |installer|
+  executable_path = get_executable_path('Ecosystem.xcodeproj', 'Ecosystem', 'app')
+  pods_dir = File.expand_path(File.join(File.dirname(__FILE__), 'Pods'))
+  custom_unit_test_target_host_app_path(pods_dir, "$(BUILT_PRODUCTS_DIR)/#{executable_path}")
+end
+
+# Podfile结束eval前需要执行的一些代码，目前是引用if_pod的集成需要延后生效
+flush_defer_actions!

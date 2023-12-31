@@ -1,0 +1,118 @@
+@startuml LarkAvatarLayered
+
+package "LarkAvatar业务层" {
+  [LarkAvatarView] - LarkBaseAvatar
+  [AvatarProps]
+  [BadgeProps]
+  [MiniIconProps]
+}
+
+package "LarkBaseAvatar" {
+  [BadgeView]
+  [AvatarView]
+}
+
+@enduml
+
+@startuml LarkAvatarView
+
+enum MiniIconType {
+    UNKNOWN,
+    DYNAMIC,
+    CHAT,
+    THRED,
+    TOPIC,
+    PPT,
+    DOCS,
+    SHEET,
+    MINDNOTE,
+    TABLE,
+    MICROAPP
+}
+
+interface ILarkAvatarMiniIconModel {
+    var type: MiniIconType
+    var iconKey: String?
+    var icon: Image?
+    var iconUrl: String?
+}
+
+interface ILarkAvatarBadgeModel {
+    var badgeCount: Int
+    var isDone: Boolean
+    var isRemind: Boolean
+    var isAt: Boolean
+    var isStrongBadgeRemind: Boolean
+}
+
+interface ILarkAvatarModel {
+    var avatarKey: String?
+    var placeHolder: Image?
+    var isUrgent: Bool
+    var badge: ILarkAvatarBadgeModel?
+    var icon: ILarkAvatarMiniIconModel?
+}
+
+class LarkAvatarView {
+    - avatarView: LarkCommonAvatarView
+    + setImage(Image, Placeholder)
+    + setKey(String, Placeholder)
+    + setUrl(Url, Placeholder)
+    + set(ILarkAvatarBadgeModel, ILarkAvatarMiniIconModel?)
+}
+
+enum BadgeType {
+    string,
+    icon
+}
+
+interface Border {
+    width: Float
+    color: Color
+}
+
+interface Badge {
+    type: BadgeType
+    text: String?
+    icon: Image?
+    border: Border?
+    textColor: Color?
+    backgroundColor: Color?
+}
+
+class LarkCommonAvatarView {
+    + border: Image?
+    + image: Image?
+    + topRightBadge: Badge?
+    + bottomRightBadge: Badge?
+}
+
+LarkAvatarView --> LarkCommonAvatarView
+LarkCommonAvatarView --> Badge
+Badge --> Border
+Badge --> BadgeType
+LarkAvatarView --> ILarkAvatarModel
+ILarkAvatarModel --> ILarkAvatarBadgeModel
+ILarkAvatarModel --> ILarkAvatarMiniIconModel
+ILarkAvatarMiniIconModel --> MiniIconType
+
+
+@enduml
+
+@startuml LarkTags
+
+interface LarkTagsModel {
+    isDepartment: Boolean
+}
+
+interface LarkCommonTagModel {
+    icon: Image?
+    iconKey: String?
+    iconUrl: String?
+}
+
+interface LarkCommonTagsModel {
+    Array<LarkCommonTagModel> models
+}
+
+@enduml

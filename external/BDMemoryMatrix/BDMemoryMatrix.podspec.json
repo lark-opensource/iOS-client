@@ -1,0 +1,117 @@
+{
+  "name": "BDMemoryMatrix",
+  "version": "0.0.21-rc.1",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/ugc/BDMemoryMatrix",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "dengzhuli": "dengzhuli@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:ugc/BDMemoryMatrix.git",
+    "commit": "fd4a25e61164ea3ea6866e1420a32151d68e7e81"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "libraries": [
+    "z",
+    "c++"
+  ],
+  "pod_target_xcconfig": {
+    "OTHER_CPLUSPLUSFLAGS": "-fno-c++-static-destructors",
+    "CLANG_ENABLE_MODULES": "NO",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDMemoryMatrix_POD_VERSION=@\\\"9999_0.0.21-rc.1\\\"",
+    "GCC_PREPROCESSOR_DEFINITIONS[config=Release]": "$(inherited) NDEBUG=1"
+  },
+  "subspecs": [
+    {
+      "name": "HMDTracker",
+      "source_files": "BDMemoryMatrix/Classes/HMDTracker/**/*.{h,c,m,mm}",
+      "private_header_files": "BDMemoryMatrix/Classes/HMDTracker/Private/**/*.h",
+      "public_header_files": "BDMemoryMatrix/Classes/HMDTracker/Public/**/*.h",
+      "requires_arc": true,
+      "dependencies": {
+        "Heimdallr/Core": [
+          ">= 0.8.41.0-rc.0",
+          "< 0.9.0.0-alpha.0"
+        ],
+        "Heimdallr/Mach": [
+          ">= 0.8.41.0-rc.0",
+          "< 0.9.0.0-alpha.0"
+        ],
+        "Heimdallr/HMDAPPExitReason": [
+          ">= 0.8.41.0-rc.0",
+          "< 0.9.0.0-alpha.0"
+        ],
+        "Heimdallr/CrashDetector": [
+          ">= 0.8.41.0-rc.0",
+          "< 0.9.0.0-alpha.0"
+        ],
+        "BDMemoryMatrix/Memory": [],
+        "SSZipArchive": [],
+        "Heimdallr/UITracker": [
+          ">= 0.8.41.0-rc.0",
+          "< 0.9.0.0-alpha.0"
+        ],
+        "Heimdallr/ALog": [
+          ">= 0.8.41.0-rc.0",
+          "< 0.9.0.0-alpha.0"
+        ],
+        "BDAlogProtocol": [
+          ">=1.3.2.1-bugfix"
+        ]
+      }
+    },
+    {
+      "name": "Memory",
+      "subspecs": [
+        {
+          "name": "Model",
+          "requires_arc": false,
+          "source_files": "BDMemoryMatrix/Classes/Memory/MemoryAdapter/mrc/MMMatrixBaseModel.{h,mm}",
+          "private_header_files": "BDMemoryMatrix/Classes/Memory/MemoryAdapter/mrc/MMMatrixBaseModel.h"
+        },
+        {
+          "name": "Logic",
+          "requires_arc": true,
+          "source_files": "BDMemoryMatrix/Classes/Memory/**/*.{h,m,mm,c,cpp}",
+          "exclude_files": [
+            "BDMemoryMatrix/Classes/Memory/MemoryAdapter/mrc/MMMatrixBaseModel.{h,mm}",
+            "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/nsobject_hook.{h,mm}"
+          ],
+          "private_header_files": "BDMemoryMatrix/Classes/Memory/**/*.h",
+          "dependencies": {
+            "BDMemoryMatrix/Memory/Model": [],
+            "Heimdallr/Mach": [
+              ">= 0.8.41.0-rc.0",
+              "< 0.9.0.0-alpha.0"
+            ]
+          }
+        },
+        {
+          "name": "Object",
+          "requires_arc": false,
+          "source_files": "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/nsobject_hook.{h,mm}",
+          "private_header_files": "BDMemoryMatrix/Classes/Memory/MemoryLogger/ObjectEvent/nsobject_hook.h",
+          "dependencies": {
+            "BDMemoryMatrix/Memory/Logic": []
+          }
+        }
+      ]
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "29648",
+    "app_id": "9999"
+  },
+  "repoId": "29648",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDMemoryMatrix_POD_VERSION=@\\\"9999_0.0.21-rc.1\\\""
+  }
+}

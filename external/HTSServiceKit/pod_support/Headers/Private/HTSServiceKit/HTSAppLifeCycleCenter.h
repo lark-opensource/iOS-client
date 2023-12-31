@@ -1,0 +1,1 @@
+../../../../HTSServiceKit/Classes/LifeCircle/HTSAppLifeCycleCenter.h

@@ -1,0 +1,1 @@
+../../../../Beauty/Model/AWEComposerBeautyEffectKeys.h

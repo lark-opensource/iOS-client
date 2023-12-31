@@ -1,0 +1,1 @@
+../../../../BDWebImage/Classes/Decoder/Public/BDAnimatedImagePlayer.h

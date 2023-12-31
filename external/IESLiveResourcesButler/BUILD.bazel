@@ -1,0 +1,523 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "IESLiveResourcesButler_pod_hdrs",
+  srcs = [
+    ":IESLiveResourcesButler_root_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "IESLiveResourcesButler_private_includes",
+  include = [
+    "external/IESLiveResourcesButler/pod_support/Headers/Private/IESLiveResourcesButler/"
+  ],
+  deps = [],
+  external_name = "IESLiveResourcesButler"
+)
+gen_includes(
+  name = "IESLiveResourcesButler_public_includes",
+  include = [
+    "external/IESLiveResourcesButler/pod_support/Headers/Public/IESLiveResourcesButler/"
+  ],
+  deps = [],
+  external_name = "IESLiveResourcesButler"
+)
+filegroup(
+  name = "_IESLiveResourcesButler_hdrs",
+  srcs = [
+    ":IESLiveResourcesButler_root_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "IESLiveResourcesButler_xcode_hmapsource",
+  hdrs = [
+    ":_IESLiveResourcesButler_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "IESLiveResourcesButler_xcode_hmap",
+  dep = ":IESLiveResourcesButler_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/IESLiveResourcesButler/*-bitsky-generated.modulemap", "pod_support/Headers/Public/IESLiveResourcesButler/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "IESLiveResourcesButler_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "IESLiveResourcesButler",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "IESLiveResourcesButler_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":IESLiveResourcesButler_xcode_hmap"
+  ],
+  external_name = "IESLiveResourcesButler",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "IESLiveResourcesButler_root_hdrs",
+  srcs = [
+    "IESLiveResourcesButler/Classes/AssetTypes/IESLiveResouceBundle+Color.h",
+    "IESLiveResourcesButler/Classes/AssetTypes/IESLiveResouceBundle+Image.h",
+    "IESLiveResourcesButler/Classes/AssetTypes/IESLiveResouceBundle+KeyValue.h",
+    "IESLiveResourcesButler/Classes/AssetTypes/IESLiveResouceBundle+PageUrl.h",
+    "IESLiveResourcesButler/Classes/AssetTypes/IESLiveResouceBundle+String.h",
+    "IESLiveResourcesButler/Classes/AssetTypes/IESLiveResouceHTMLParser.h",
+    "IESLiveResourcesButler/Classes/AssetTypes/IESLiveResouceManagerForFile.h",
+    "IESLiveResourcesButler/Classes/AssetTypes/IESLiveResouceManagerForImage.h",
+    "IESLiveResourcesButler/Classes/AssetTypes/IESLiveResouceManagerForKeyValue.h",
+    "IESLiveResourcesButler/Classes/AssetTypes/IESLiveResouceManagerForString.h",
+    "IESLiveResourcesButler/Classes/AssetTypes/IESLiveResourceBundle+File.h",
+    "IESLiveResourcesButler/Classes/AssetTypes/NSString+IESLiveResouceBundle.h",
+    "IESLiveResourcesButler/Classes/AssetTypes/Style/IESLiveResouceBundle+Style.h",
+    "IESLiveResourcesButler/Classes/AssetTypes/Style/IESLiveResouceManagerForStyle.h",
+    "IESLiveResourcesButler/Classes/AssetTypes/Style/IESLiveResouceStyleModel.h",
+    "IESLiveResourcesButler/Classes/AssetTypes/Style/UIButton+IESLiveResouceStyle.h",
+    "IESLiveResourcesButler/Classes/AssetTypes/Style/UILabel+IESLiveResouceStyle.h",
+    "IESLiveResourcesButler/Classes/AssetTypes/Style/UIView+IESLiveResouceStyle.h",
+    "IESLiveResourcesButler/Classes/Core/IESLiveResouceBundle.h",
+    "IESLiveResourcesButler/Classes/Core/IESLiveResouceManager.h",
+    "IESLiveResourcesButler/Classes/Helper/IESLiveResouceBundle+Hooker.h",
+    "IESLiveResourcesButler/Classes/Helper/IESLiveResouceBundle+Loader.h",
+    "IESLiveResourcesButler/Classes/Helper/IESLiveResouceBundle+Switcher.h",
+    "IESLiveResourcesButler/Classes/Helper/IESLiveResouceBundleAdjunct.h",
+    "IESLiveResourcesButler/Classes/Helper/IESLiveResouceBundleGroup.h",
+    "IESLiveResourcesButler/Classes/Helper/IESLiveResouceBundleSwitchButton.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "IESLiveResourcesButler_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/IESLiveResourcesButler/IESLiveResouceBundle+Color.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/IESLiveResouceBundle+Hooker.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/IESLiveResouceBundle+Image.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/IESLiveResouceBundle+KeyValue.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/IESLiveResouceBundle+Loader.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/IESLiveResouceBundle+PageUrl.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/IESLiveResouceBundle+String.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/IESLiveResouceBundle+Style.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/IESLiveResouceBundle+Switcher.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/IESLiveResouceBundle.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/IESLiveResouceBundleAdjunct.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/IESLiveResouceBundleGroup.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/IESLiveResouceBundleSwitchButton.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/IESLiveResouceHTMLParser.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/IESLiveResouceManager.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/IESLiveResouceManagerForFile.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/IESLiveResouceManagerForImage.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/IESLiveResouceManagerForKeyValue.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/IESLiveResouceManagerForString.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/IESLiveResouceManagerForStyle.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/IESLiveResouceStyleModel.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/IESLiveResourceBundle+File.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/NSString+IESLiveResouceBundle.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/UIButton+IESLiveResouceStyle.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/UILabel+IESLiveResouceStyle.h",
+    "pod_support/Headers/Private/IESLiveResourcesButler/UIView+IESLiveResouceStyle.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResouceBundle+Color.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResouceBundle+Hooker.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResouceBundle+Image.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResouceBundle+KeyValue.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResouceBundle+Loader.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResouceBundle+PageUrl.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResouceBundle+String.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResouceBundle+Style.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResouceBundle+Switcher.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResouceBundle.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResouceBundleAdjunct.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResouceBundleGroup.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResouceBundleSwitchButton.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResouceHTMLParser.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResouceManager.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResouceManagerForFile.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResouceManagerForImage.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResouceManagerForKeyValue.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResouceManagerForString.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResouceManagerForStyle.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResouceStyleModel.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResourceBundle+File.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/NSString+IESLiveResouceBundle.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/UIButton+IESLiveResouceStyle.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/UILabel+IESLiveResouceStyle.h",
+    "pod_support/Headers/Public/IESLiveResourcesButler/UIView+IESLiveResouceStyle.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "IESLiveResourcesButler_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "IESLiveResourcesButler_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "IESLiveResourcesButler_module_map",
+  module_map = "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResourcesButler-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/IESLiveResourcesButler/IESLiveResourcesButler-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "IESLiveResourcesButler_root_srcs",
+  srcs = [
+    "IESLiveResourcesButler/Classes/AssetTypes/IESLiveResouceBundle+Color.m",
+    "IESLiveResourcesButler/Classes/Helper/IESLiveResouceBundle+Hooker.m",
+    "IESLiveResourcesButler/Classes/AssetTypes/IESLiveResouceBundle+Image.m",
+    "IESLiveResourcesButler/Classes/AssetTypes/IESLiveResouceBundle+KeyValue.m",
+    "IESLiveResourcesButler/Classes/Helper/IESLiveResouceBundle+Loader.m",
+    "IESLiveResourcesButler/Classes/AssetTypes/IESLiveResouceBundle+PageUrl.m",
+    "IESLiveResourcesButler/Classes/AssetTypes/IESLiveResouceBundle+String.m",
+    "IESLiveResourcesButler/Classes/AssetTypes/Style/IESLiveResouceBundle+Style.m",
+    "IESLiveResourcesButler/Classes/Helper/IESLiveResouceBundle+Switcher.m",
+    "IESLiveResourcesButler/Classes/Core/IESLiveResouceBundle.m",
+    "IESLiveResourcesButler/Classes/Helper/IESLiveResouceBundleAdjunct.m",
+    "IESLiveResourcesButler/Classes/Helper/IESLiveResouceBundleGroup.m",
+    "IESLiveResourcesButler/Classes/Helper/IESLiveResouceBundleSwitchButton.m",
+    "IESLiveResourcesButler/Classes/AssetTypes/IESLiveResouceHTMLParser.m",
+    "IESLiveResourcesButler/Classes/Core/IESLiveResouceManager.m",
+    "IESLiveResourcesButler/Classes/AssetTypes/IESLiveResouceManagerForFile.m",
+    "IESLiveResourcesButler/Classes/AssetTypes/IESLiveResouceManagerForImage.m",
+    "IESLiveResourcesButler/Classes/AssetTypes/IESLiveResouceManagerForKeyValue.m",
+    "IESLiveResourcesButler/Classes/AssetTypes/IESLiveResouceManagerForString.m",
+    "IESLiveResourcesButler/Classes/AssetTypes/Style/IESLiveResouceManagerForStyle.m",
+    "IESLiveResourcesButler/Classes/AssetTypes/Style/IESLiveResouceStyleModel.m",
+    "IESLiveResourcesButler/Classes/AssetTypes/IESLiveResourceBundle+File.m",
+    "IESLiveResourcesButler/Classes/AssetTypes/NSString+IESLiveResouceBundle.m",
+    "IESLiveResourcesButler/Classes/AssetTypes/Style/UIButton+IESLiveResouceStyle.m",
+    "IESLiveResourcesButler/Classes/AssetTypes/Style/UILabel+IESLiveResouceStyle.m",
+    "IESLiveResourcesButler/Classes/AssetTypes/Style/UIView+IESLiveResouceStyle.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "IESLiveResourcesButler_oc",
+  enable_modules = 1,
+  srcs = [
+    "IESLiveResourcesButler_root_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "IESLiveResourcesButler_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_dylibs = [
+    "xml2"
+  ],
+  deps = [
+    ":IESLiveResourcesButler_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":IESLiveResourcesButler_private_includes",
+    ":IESLiveResourcesButler_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":IESLiveResourcesButler_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DIESLiveResourcesButler_POD_VERSION=@\\\"9999_1.9.4\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "IESLiveResourcesButler",
+  deps = [
+    ":IESLiveResourcesButler_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "IESLiveResourcesButler_lib",
+  deps = [
+    ":IESLiveResourcesButler"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_IESLiveResourcesButler_module_map",
+  module_map = "@IESLiveResourcesButler//:pod_support/Headers/Public/IESLiveResourcesButler/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@IESLiveResourcesButler//:pod_support/Headers/Public/IESLiveResourcesButler/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_IESLiveResourcesButler_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@IESLiveResourcesButler//:IESLiveResourcesButler_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_IESLiveResourcesButler",
+  target_name = "Lark",
+  module_name = "IESLiveResourcesButler",
+  hdrs = ["@IESLiveResourcesButler//:IESLiveResourcesButler_root_pod_hdrs"],
+  srcs = ["@IESLiveResourcesButler//:IESLiveResourcesButler_root_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DIESLiveResourcesButler_POD_VERSION=@\\\"9999_1.9.4\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "IESLiveResourcesButler_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "IESLiveResourcesButler_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = ["xml2"],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "IESLiveResourcesButler_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "IESLiveResourcesButler_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "IESLiveResourcesButler_dynamic", False),
+  tags = getattr(defs_external_objc_library, "IESLiveResourcesButler_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("IESLiveResourcesButler", {}),
+  visibility = ["//visibility:public"],
+)

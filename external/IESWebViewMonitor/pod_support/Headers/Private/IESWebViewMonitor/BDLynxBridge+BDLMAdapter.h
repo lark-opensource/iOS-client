@@ -1,0 +1,1 @@
+../../../../IESWebViewMonitor/Classes/LynxJSB/BDLynxBridge+BDLMAdapter.h

@@ -1,0 +1,64 @@
+# rubocop:disable all
+# @!domain [Pod::Podfile]
+
+# @!parse
+#  require 'cocoapods'
+`git config core.hooksPath hooks`
+
+# 配置复用
+require 'lark/project/podfile_mixin'
+# 版本限制和关联依赖复用
+require 'lark/project/if_pod'
+
+lark_template_common_setup
+# 启用严格的锁定模式，避免意外解锁。多仓同步也会使用这个strict.lock文件
+strict_lock_mode!
+
+disable_swiftlint! if respond_to?(:disable_swiftlint!)
+
+lark_use_common_binary_config(strategy: :all) do
+  # additional binary config
+end
+
+target 'LarkNavigationDemo' do
+  # 使用主仓的组件版本限制和关联依赖。
+  # Podfile里定义的版本或者关联依赖，可以覆盖从主仓继承的
+  # 也可以使用disable_if_pod("pod1", "pod2"), 显示的禁用某一个组件的配置
+  # lark_main_target_if_pods
+  # 其他需要添加的pod dependency
+  projects_path = '/Users/Saafo/Documents/Coding/messenger-mbox'
+
+  pod 'LarkLaunchGuide'
+  pod 'LarkLeanMode'
+  pod 'LarkFeatureGating'
+  pod 'LarkSetting', :subspecs => ['Core', 'LarkAssemble']
+  pod 'LarkNavigation', :path => "#{projects_path}/ios-infra/Libs/LarkNavigation"
+  pod 'RangersAppLog', :subspecs => ['Core', 'ET', 'Filter', 'OneKit']
+  pod 'ByteWebImage', :subspecs => ['Core', 'Lark']#, path: "#{projects_path}/ByteWebImage/ByteWebImage"
+  pod 'LarkKeyCommandKit', :subspecs => ['Core', 'Extensions']
+  pod 'LarkAccount', :subspecs => ['Core', 'Authorization', 'IDP', 'RustPlugin', 'NativePlugin', 'OneKeyLogin', 'BootManager']
+  pod 'LarkAccountInterface'
+  pod 'LarkUIKit'
+  pod 'LarkRustClientAssembly'
+  pod 'LarkMine'
+  pod 'LarkSDK'
+end
+
+# @param installer [Pod::Installer]
+pre_install do |installer|
+  lark_template_common_pre_install installer
+
+  # installer.pod_targets.each do |pod_target|
+  #   attributes_hash = pod_target.root_spec.attributes_hash
+  #   pod_target_xcconfig = (attributes_hash['pod_target_xcconfig'] ||= {})
+  #   # additional xcconfig
+  # end
+end
+
+# @param installer [Pod::Installer]
+post_install do |installer|
+  lark_template_common_post_install installer
+end
+
+# Podfile结束eval前需要执行的一些代码，目前是引用if_pod的集成需要延后生效
+flush_defer_actions!

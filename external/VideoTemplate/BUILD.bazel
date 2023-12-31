@@ -1,0 +1,1503 @@
+load('@build_bazel_rules_apple//apple:resources.bzl', 'apple_resource_bundle', 'gen_bundle_plist')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "VideoTemplate_pod_hdrs",
+  srcs = [
+    ":VideoTemplate_root_pod_hdrs",
+    ":Core_pod_hdrs",
+    ":GamePlay_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "VideoTemplate_private_includes",
+  include = [
+    "external/VideoTemplate/pod_support/Headers/Private/VideoTemplate/"
+  ],
+  deps = [],
+  external_name = "VideoTemplate"
+)
+gen_includes(
+  name = "VideoTemplate_public_includes",
+  include = [
+    "external/VideoTemplate/pod_support/Headers/Public/VideoTemplate/"
+  ],
+  deps = [],
+  external_name = "VideoTemplate"
+)
+filegroup(
+  name = "_VideoTemplate_hdrs",
+  srcs = [
+    ":VideoTemplate_root_hdrs",
+    ":Core_hdrs",
+    ":GamePlay_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "VideoTemplate_xcode_hmapsource",
+  hdrs = [
+    ":VideoTemplate_root_hdrs",
+    ":Core_hdrs",
+    ":GamePlay_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "VideoTemplate_xcode_hmap",
+  dep = ":VideoTemplate_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/VideoTemplate/*-bitsky-generated.modulemap", "pod_support/Headers/Public/VideoTemplate/*-bitsky-generated-umbrella.h"]))
+gen_bundle_plist(
+  name = "GEN_VideoTemplate_Plist",
+  bundle_name = "VideoTemplate",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "4.0.171",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "VideoTemplate_Core_VideoTemplate",
+  bundle_name = "VideoTemplate",
+  infoplists = [
+    ":GEN_VideoTemplate_Plist"
+  ],
+  resources = [
+    "Assets/voice_effect.plist"
+  ],
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "VideoTemplate_Core_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libVideoTemplate_Core_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "VideoTemplate_GamePlay_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libVideoTemplate_GamePlay_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "VideoTemplate_custom_includes",
+  include = [
+    "external/VideoTemplate/thirdparty",
+    "external/VideoTemplate/cut/include",
+    "external/VideoTemplate/cut/src",
+    "external/VideoTemplate/cut_ios/Classes",
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "VideoTemplate",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "VideoTemplate_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":VideoTemplate_xcode_hmap"
+  ],
+  external_name = "VideoTemplate",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "VideoTemplate_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "VideoTemplate_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "VideoTemplate_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "VideoTemplate_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "VideoTemplate_module_map",
+  module_map = "pod_support/Headers/Public/VideoTemplate/VideoTemplate-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/VideoTemplate/VideoTemplate-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "VideoTemplate_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "VideoTemplate_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":VideoTemplate_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":VideoTemplate_private_includes",
+    ":VideoTemplate_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":VideoTemplate_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DVideoTemplate_POD_VERSION=@\\\"9999_4.0.171.6-bugfix\\\"",
+    "-lc++",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "VideoTemplate",
+  deps = [
+    ":VideoTemplate_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "VideoTemplate_lib",
+  deps = [
+    ":VideoTemplate"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [
+    "cut/include/asve/FileSystem.h",
+    "cut/include/cdom/ModelType.h",
+    "cut/include/cut/ComLogger.h",
+    "cut/include/cut/ComObj.h",
+    "cut/include/cut/ComVEEditor.h",
+    "cut/include/cut/VEEditorPlayer.h",
+    "cut/include/cut/VideoData.h",
+    "cut/include/cut/param/InfoStickerBorderInfo.h",
+    "cut/include/cut/param/filter/LVVECanvasFilterParam.h",
+    "cut/src/executor/CountDownLatch.h",
+    "cut/src/executor/Executor.h",
+    "cut/src/global/TemplateGlobal.h",
+    "cut/src/player/DefaultResourceFetcher.h",
+    "cut/src/player/ResourceEffectCoder.h",
+    "cut/src/player/ResourceFetcher.h",
+    "cut/src/player/ResourceVideoCoder.h",
+    "cut/src/player/TemplateError.h",
+    "cut/src/player/TemplateException.h",
+    "cut/src/player/TemplateInfoListener.h",
+    "cut/src/player/TemplatePlayer.h",
+    "cut/src/resource/DecodeFunction.h",
+    "cut/src/resource/DispathMaterialFunction.h",
+    "cut/src/resource/DownloadFunction.h",
+    "cut/src/resource/FetchEffectFunction.h",
+    "cut/src/resource/FetchVideoFunction.h",
+    "cut/src/resource/FontItem.h",
+    "cut/src/resource/ProjectEditor.h",
+    "cut/src/resource/ProjectPreSuccessFunction.h",
+    "cut/src/resource/ResourceStreamContext.h",
+    "cut/src/resource/TemplateSource.h",
+    "cut/src/resource/TemplateSourceObserver.h",
+    "cut/src/resource/UnZipFunction.h",
+    "cut/src/resource/UpgradeFunction.h",
+    "cut/src/stream/Stream.h",
+    "cut/src/stream/StreamCallback.h",
+    "cut/src/stream/StreamContext.h",
+    "cut/src/stream/StreamFunction.h",
+    "cut/src/stream/StreamParallelAndFunction.h",
+    "cut/src/stream/StreamSerialAndFunction.h",
+    "cut/src/utils/CanvasConfigUtils.h",
+    "cut/src/utils/CanvasMaterialUtils.h",
+    "cut/src/utils/ColorUtils.h",
+    "cut/src/utils/EffectTypeHelper.h",
+    "cut/src/utils/FileUtils.h",
+    "cut/src/utils/KeyframeUtils.h",
+    "cut/src/utils/MaterialAnimationUtils.h",
+    "cut/src/utils/Materials.h",
+    "cut/src/utils/MaterialsUtils.h",
+    "cut/src/utils/MathUtils.h",
+    "cut/src/utils/MutableConfigUtils.h",
+    "cut/src/utils/ProjectUtils.h",
+    "cut/src/utils/SegmentUtils.h",
+    "cut/src/utils/StringUtils.h",
+    "cut/src/utils/TextMaterialUtils.h",
+    "cut/src/utils/TrackUtils.h",
+    "cut/src/utils/VideoMaterialUtils.h",
+    "cut_ios/Classes/Core/Downloader/LVEffectResourceDownloadOperation.h",
+    "cut_ios/Classes/Core/Downloader/LVResourceDownloadOperation.h",
+    "cut_ios/Classes/Core/Downloader/LVResourceDownloader.h",
+    "cut_ios/Classes/Core/Downloader/LVTemplateResourceDownloadOperation.h",
+    "cut_ios/Classes/Core/IESTemplateDefine.h",
+    "cut_ios/Classes/Core/LVDataConverter.h",
+    "cut_ios/Classes/Core/LVProject+Query.h",
+    "cut_ios/Classes/Core/LVVEAdapter.h",
+    "cut_ios/Classes/Core/MaterialTailLeader+Query.h",
+    "cut_ios/Classes/Core/MaterialText+Query.h",
+    "cut_ios/Classes/Core/ModelPrivate/LVMediaDraft+Private.h",
+    "cut_ios/Classes/Core/NLE/LVCutSameTextMaterial+Private.h",
+    "cut_ios/Classes/Core/NLE/LVCutSameVideoMaterial+Private.h",
+    "cut_ios/Classes/Core/PlatformImp/LVFileSystem.h",
+    "cut_ios/Classes/Core/Serializer/LVJSONRequestSerializer.h",
+    "cut_ios/Classes/Core/util/LVEffectPreloadUtil.h",
+    "cut_ios/Classes/Core/util/LVKeyframeHelper.h",
+    "cut_ios/Classes/Core/util/LVKeyframeUtil.h",
+    "cut_ios/Classes/Core/util/LVPlayerFeatureType.h",
+    "cut_ios/Classes/Core/util/LVVEBundleDataSource.h",
+    "cut_ios/Classes/Core/util/LVVEConstDefinition.h",
+    "cut_ios/Classes/Core/util/LVVEDataCache.h",
+    "cut_ios/Classes/Core/util/LVVEDataPackager.h",
+    "cut_ios/Classes/Core/util/LVVETextPackager.h",
+    "cut_ios/Classes/Core/util/LVVETextTemplatePackager.h",
+    "cut_ios/Classes/Core/util/LVVideoMaskUtil.h",
+    "cut_ios/Classes/Core/util/LVVideoMaterialUtil.h",
+    "cut_ios/Classes/Core/util/NSDictionary+LVVEJson.h",
+    "cut_ios/Headers/Core/Definition/LVConstDefinition.h",
+    "cut_ios/Headers/Core/Definition/LVDownloadDefinition.h",
+    "cut_ios/Headers/Core/Definition/LVGeometry.h",
+    "cut_ios/Headers/Core/Definition/LVMediaDefinition.h",
+    "cut_ios/Headers/Core/Downloader/LVMultiTasksProgress.h",
+    "cut_ios/Headers/Core/Downloader/LVPreprocessManager.h",
+    "cut_ios/Headers/Core/Downloader/LVPreprocessSession.h",
+    "cut_ios/Headers/Core/Downloader/LVProcessVideoSession.h",
+    "cut_ios/Headers/Core/Downloader/LVRemoteRequest.h",
+    "cut_ios/Headers/Core/Downloader/LVResourceDownloadTools.h",
+    "cut_ios/Headers/Core/Downloader/LVResourceDownloaderDefine.h",
+    "cut_ios/Headers/Core/Downloader/LVTask.h",
+    "cut_ios/Headers/Core/Downloader/LVVideoReverseOperation.h",
+    "cut_ios/Headers/Core/DraftMigration/Extension/LVDraftMigrationTools.h",
+    "cut_ios/Headers/Core/DraftMigration/Extension/NSDictionary+JKSafeAccess.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationConfig.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationContext.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationDefinition.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationFlow.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationTask.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationTask170.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationTask180.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationTask181.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationTask190.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationTask200.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationTask210.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationTask220.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationTask230.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationTask270.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationTask300.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationTask390.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationTask440.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationTask460.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationTask490.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationTask500.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationTask510.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationTask530.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationTask550.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationTask570.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationTask590.h",
+    "cut_ios/Headers/Core/DraftMigration/Migration/LVDraftMigrationTask600.h",
+    "cut_ios/Headers/Core/DraftMigration/ModulesLaunch/LVModulesLaunchExport.h",
+    "cut_ios/Headers/Core/DraftMigration/ModulesLaunch/LVModulesLaunchModel.h",
+    "cut_ios/Headers/Core/DraftMigration/ModulesLaunch/LVModulesLaunchProxy.h",
+    "cut_ios/Headers/Core/DraftMigration/ModulesLaunch/LVModulesLaunchStatistics.h",
+    "cut_ios/Headers/Core/Effect/EffectPlatform+LV.h",
+    "cut_ios/Headers/Core/Effect/EffectPlatformBridge/ARTEffectModel+LVEffectDataSource.h",
+    "cut_ios/Headers/Core/Effect/EffectPlatformBridge/IESEffectLogger+LV.h",
+    "cut_ios/Headers/Core/Effect/EffectPlatformBridge/IESEffectModel+LVEffectDataSource.h",
+    "cut_ios/Headers/Core/Effect/EffectPlatformBridge/LVEffectDataSource.h",
+    "cut_ios/Headers/Core/Effect/EffectPlatformBridge/LVEffectDownloadProxy.h",
+    "cut_ios/Headers/Core/Effect/EffectPlatformBridge/LVEffectPlatformBridgeHeader.h",
+    "cut_ios/Headers/Core/Effect/EffectPlatformBridge/NSError+LVEffect.h",
+    "cut_ios/Headers/Core/Effect/LVEffectManager+AutoUpdate.h",
+    "cut_ios/Headers/Core/Effect/LVEffectManager+Download.h",
+    "cut_ios/Headers/Core/Effect/LVEffectManager.h",
+    "cut_ios/Headers/Core/Effect/LVEffectPanelCategoryItem.h",
+    "cut_ios/Headers/Core/Effect/LVEffectPanelItem.h",
+    "cut_ios/Headers/Core/Effect/LVEffectPlatformConfig.h",
+    "cut_ios/Headers/Core/Effect/Proxy/LVArtistOpenPlatformSDKProxy.h",
+    "cut_ios/Headers/Core/Effect/Proxy/LVEffectPlatformSDKProxy+Download_Old.h",
+    "cut_ios/Headers/Core/Effect/Proxy/LVEffectPlatformSDKProxy.h",
+    "cut_ios/Headers/Core/Extension/AVAsset+LV.h",
+    "cut_ios/Headers/Core/Extension/AVAssetImageGenerator+LV.h",
+    "cut_ios/Headers/Core/Extension/CGFloat+LV.h",
+    "cut_ios/Headers/Core/Extension/CGSize+LV.h",
+    "cut_ios/Headers/Core/Extension/CMTime+LV.h",
+    "cut_ios/Headers/Core/Extension/CMTimeRange+Extension.h",
+    "cut_ios/Headers/Core/Extension/LVGenerateID.h",
+    "cut_ios/Headers/Core/Extension/LVGeometryTool.h",
+    "cut_ios/Headers/Core/Extension/MTLValueTransformer+LV.h",
+    "cut_ios/Headers/Core/Extension/NSArray+LV.h",
+    "cut_ios/Headers/Core/Extension/NSBundle+LV.h",
+    "cut_ios/Headers/Core/Extension/NSDictionary+LVJson.h",
+    "cut_ios/Headers/Core/Extension/NSMutableArray+LV.h",
+    "cut_ios/Headers/Core/Extension/NSString+MD5.h",
+    "cut_ios/Headers/Core/Extension/NSThread+LV.h",
+    "cut_ios/Headers/Core/Extension/SSZipArchive+LV.h",
+    "cut_ios/Headers/Core/Extension/UIColor+Extension.h",
+    "cut_ios/Headers/Core/Extension/UIImage+LV.h",
+    "cut_ios/Headers/Core/Helper/LVDraftCovertHelper.h",
+    "cut_ios/Headers/Core/Helper/LVDraftPayloadTypeHelper.h",
+    "cut_ios/Headers/Core/Helper/LVFileManager.h",
+    "cut_ios/Headers/Core/Inject/LVBundleDataSource.h",
+    "cut_ios/Headers/Core/Inject/LVDependencyInjector.h",
+    "cut_ios/Headers/Core/Inject/VideoTemplateDevice.h",
+    "cut_ios/Headers/Core/LVCutSameConsumer.h",
+    "cut_ios/Headers/Core/Logger/VideoTemplateLogger.h",
+    "cut_ios/Headers/Core/Manager/AIMatting/LVAIMattingAlgorithmsManager.h",
+    "cut_ios/Headers/Core/Manager/AIMatting/LVAIMattingCache.h",
+    "cut_ios/Headers/Core/Manager/AIMatting/LVAIMattingManager.h",
+    "cut_ios/Headers/Core/Manager/AIMatting/LVClipAIMattingDefines.h",
+    "cut_ios/Headers/Core/Manager/AIMatting/LVPlayerAIMattingProxy.h",
+    "cut_ios/Headers/Core/Manager/AIMatting/LVVEAIMattingFileManager.h",
+    "cut_ios/Headers/Core/Manager/AIMatting/LVVEAssetMattingManagerProxy.h",
+    "cut_ios/Headers/Core/Manager/LVDraftDataManager.h",
+    "cut_ios/Headers/Core/Manager/LVTemplateChecker.h",
+    "cut_ios/Headers/Core/Manager/LVTemplateDataManager+Fetcher.h",
+    "cut_ios/Headers/Core/Manager/LVTemplateDataManager.h",
+    "cut_ios/Headers/Core/Manager/LVTemplateMigrationProxy.h",
+    "cut_ios/Headers/Core/Manager/LVTemplateProcessor.h",
+    "cut_ios/Headers/Core/Manager/LVVideoCompressor.h",
+    "cut_ios/Headers/Core/Model/AutoModel/LVDraftModels.h",
+    "cut_ios/Headers/Core/Model/LVMediaDraft.h",
+    "cut_ios/Headers/Core/Model/LVMediaDraftHeaders.h",
+    "cut_ios/Headers/Core/Model/LVReplaceMaterialFragment.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVAllKeyframe.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVCanvasConfig.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVDataBridge.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVDataBridgeResult.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVDraftAnimationPayload.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVDraftAudioEffectPayload.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVDraftAudioFadePayload.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVDraftAudioPayload.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVDraftBeatsPayload.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVDraftCanvasPayload.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVDraftChromaPayload.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVDraftConfig.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVDraftEffectPayload.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVDraftEffectTemplatePayload.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVDraftImagePayload.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVDraftPayload.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVDraftPlaceholderPayload.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVDraftSpeedPayload.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVDraftStickerPayload.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVDraftTailLeaderPayload.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVDraftTextPayload.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVDraftTransitionPayload.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVDraftVideoMaskPayload.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVDraftVideoPayload.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVKeyframe.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVMediaAsset.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVMediaDraft+Query.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVMediaDraftOld.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVMediaSegment+AudioEffect.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVMediaSegment+Query.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVMediaSegment+Speed.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVMediaSegment.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVMediaTrack.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVModelType.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVMutableConfig.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVPayloadPool.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVPlatform.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVSegmentClipInfo.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVTextTemplateInfo.h",
+    "cut_ios/Headers/Core/Model/ModelInterface/LVVideoCropInfo.h",
+    "cut_ios/Headers/Core/NLE/LVCutSameConvertHelper.h",
+    "cut_ios/Headers/Core/NLE/LVCutSameResourceManager.h",
+    "cut_ios/Headers/Core/NLE/LVCutSameTextMaterial.h",
+    "cut_ios/Headers/Core/NLE/LVCutSameVideoMaterial.h",
+    "cut_ios/Headers/Core/VETransformer/Exporter/LVExporterManager.h",
+    "cut_ios/Headers/Core/VETransformer/Exporter/LVExporterVideoData+Private.h",
+    "cut_ios/Headers/Core/VETransformer/Exporter/LVExporterVideoData.h",
+    "cut_ios/Headers/Core/VETransformer/Helper/LVPlayerDataPackager.h",
+    "cut_ios/Headers/Core/VETransformer/Helper/LVPlayerDisableCache.h",
+    "cut_ios/Headers/Core/VETransformer/Helper/LVPlayerFeatureType.h",
+    "cut_ios/Headers/Core/VETransformer/Helper/LVVEBundleDataSourceHelper.h",
+    "cut_ios/Headers/Core/VETransformer/Helper/LVVEDataPackagerHelper.h",
+    "cut_ios/Headers/Core/VETransformer/Helper/LVVETextPackagerHelper.h",
+    "cut_ios/Headers/Core/VETransformer/Helper/MaterialAnimationUtilsHelper.h",
+    "cut_ios/Headers/Core/VETransformer/LVPlayer.h",
+    "cut_ios/Headers/Core/VETransformer/LVPlayerItem.h",
+    "cut_ios/Headers/Core/VETransformer/LVPlayerItemSource.h",
+    "cut_ios/Headers/Core/VETransformer/LVPlayerStickerBox.h",
+    "thirdparty/nlohmann/adl_serializer.hpp",
+    "thirdparty/nlohmann/detail/conversions/from_json.hpp",
+    "thirdparty/nlohmann/detail/conversions/to_chars.hpp",
+    "thirdparty/nlohmann/detail/conversions/to_json.hpp",
+    "thirdparty/nlohmann/detail/exceptions.hpp",
+    "thirdparty/nlohmann/detail/input/binary_reader.hpp",
+    "thirdparty/nlohmann/detail/input/input_adapters.hpp",
+    "thirdparty/nlohmann/detail/input/json_sax.hpp",
+    "thirdparty/nlohmann/detail/input/lexer.hpp",
+    "thirdparty/nlohmann/detail/input/parser.hpp",
+    "thirdparty/nlohmann/detail/input/position_t.hpp",
+    "thirdparty/nlohmann/detail/iterators/internal_iterator.hpp",
+    "thirdparty/nlohmann/detail/iterators/iter_impl.hpp",
+    "thirdparty/nlohmann/detail/iterators/iteration_proxy.hpp",
+    "thirdparty/nlohmann/detail/iterators/iterator_traits.hpp",
+    "thirdparty/nlohmann/detail/iterators/json_reverse_iterator.hpp",
+    "thirdparty/nlohmann/detail/iterators/primitive_iterator.hpp",
+    "thirdparty/nlohmann/detail/json_pointer.hpp",
+    "thirdparty/nlohmann/detail/json_ref.hpp",
+    "thirdparty/nlohmann/detail/macro_scope.hpp",
+    "thirdparty/nlohmann/detail/macro_unscope.hpp",
+    "thirdparty/nlohmann/detail/meta/cpp_future.hpp",
+    "thirdparty/nlohmann/detail/meta/detected.hpp",
+    "thirdparty/nlohmann/detail/meta/is_sax.hpp",
+    "thirdparty/nlohmann/detail/meta/type_traits.hpp",
+    "thirdparty/nlohmann/detail/meta/void_t.hpp",
+    "thirdparty/nlohmann/detail/output/binary_writer.hpp",
+    "thirdparty/nlohmann/detail/output/output_adapters.hpp",
+    "thirdparty/nlohmann/detail/output/serializer.hpp",
+    "thirdparty/nlohmann/detail/value_t.hpp",
+    "thirdparty/nlohmann/json.hpp",
+    "thirdparty/nlohmann/json_fwd.hpp",
+    "thirdparty/nlohmann/thirdparty/hedley/hedley.hpp",
+    "thirdparty/nlohmann/thirdparty/hedley/hedley_undef.hpp",
+    "thirdparty/sha1/sha1.hpp",
+    "thirdparty/zip/miniz.h",
+    "thirdparty/zip/zip.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/VideoTemplate/ARTEffectModel+LVEffectDataSource.h",
+    "pod_support/Headers/Private/VideoTemplate/AVAsset+LV.h",
+    "pod_support/Headers/Private/VideoTemplate/AVAssetImageGenerator+LV.h",
+    "pod_support/Headers/Private/VideoTemplate/CGFloat+LV.h",
+    "pod_support/Headers/Private/VideoTemplate/CGSize+LV.h",
+    "pod_support/Headers/Private/VideoTemplate/CMTime+LV.h",
+    "pod_support/Headers/Private/VideoTemplate/CMTimeRange+Extension.h",
+    "pod_support/Headers/Private/VideoTemplate/CanvasConfigUtils.h",
+    "pod_support/Headers/Private/VideoTemplate/CanvasMaterialUtils.h",
+    "pod_support/Headers/Private/VideoTemplate/ColorUtils.h",
+    "pod_support/Headers/Private/VideoTemplate/ComLogger.h",
+    "pod_support/Headers/Private/VideoTemplate/ComObj.h",
+    "pod_support/Headers/Private/VideoTemplate/ComVEEditor.h",
+    "pod_support/Headers/Private/VideoTemplate/CountDownLatch.h",
+    "pod_support/Headers/Private/VideoTemplate/DecodeFunction.h",
+    "pod_support/Headers/Private/VideoTemplate/DefaultResourceFetcher.h",
+    "pod_support/Headers/Private/VideoTemplate/DispathMaterialFunction.h",
+    "pod_support/Headers/Private/VideoTemplate/DownloadFunction.h",
+    "pod_support/Headers/Private/VideoTemplate/EffectPlatform+LV.h",
+    "pod_support/Headers/Private/VideoTemplate/EffectTypeHelper.h",
+    "pod_support/Headers/Private/VideoTemplate/Executor.h",
+    "pod_support/Headers/Private/VideoTemplate/FetchEffectFunction.h",
+    "pod_support/Headers/Private/VideoTemplate/FetchVideoFunction.h",
+    "pod_support/Headers/Private/VideoTemplate/FileSystem.h",
+    "pod_support/Headers/Private/VideoTemplate/FileUtils.h",
+    "pod_support/Headers/Private/VideoTemplate/FontItem.h",
+    "pod_support/Headers/Private/VideoTemplate/IESEffectLogger+LV.h",
+    "pod_support/Headers/Private/VideoTemplate/IESEffectModel+LVEffectDataSource.h",
+    "pod_support/Headers/Private/VideoTemplate/IESTemplateDefine.h",
+    "pod_support/Headers/Private/VideoTemplate/InfoStickerBorderInfo.h",
+    "pod_support/Headers/Private/VideoTemplate/KeyframeUtils.h",
+    "pod_support/Headers/Private/VideoTemplate/LVAIMattingAlgorithmsManager.h",
+    "pod_support/Headers/Private/VideoTemplate/LVAIMattingCache.h",
+    "pod_support/Headers/Private/VideoTemplate/LVAIMattingManager.h",
+    "pod_support/Headers/Private/VideoTemplate/LVAllKeyframe.h",
+    "pod_support/Headers/Private/VideoTemplate/LVArtistOpenPlatformSDKProxy.h",
+    "pod_support/Headers/Private/VideoTemplate/LVBundleDataSource.h",
+    "pod_support/Headers/Private/VideoTemplate/LVCanvasConfig.h",
+    "pod_support/Headers/Private/VideoTemplate/LVClipAIMattingDefines.h",
+    "pod_support/Headers/Private/VideoTemplate/LVConstDefinition.h",
+    "pod_support/Headers/Private/VideoTemplate/LVCutSameConsumer.h",
+    "pod_support/Headers/Private/VideoTemplate/LVCutSameConvertHelper.h",
+    "pod_support/Headers/Private/VideoTemplate/LVCutSameResourceManager.h",
+    "pod_support/Headers/Private/VideoTemplate/LVCutSameTextMaterial+Private.h",
+    "pod_support/Headers/Private/VideoTemplate/LVCutSameTextMaterial.h",
+    "pod_support/Headers/Private/VideoTemplate/LVCutSameVideoMaterial+Private.h",
+    "pod_support/Headers/Private/VideoTemplate/LVCutSameVideoMaterial.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDataBridge.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDataBridgeResult.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDataConverter.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDependencyInjector.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDownloadDefinition.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftAnimationPayload.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftAudioEffectPayload.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftAudioFadePayload.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftAudioPayload.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftBeatsPayload.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftCanvasPayload.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftChromaPayload.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftConfig.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftCovertHelper.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftDataManager.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftEffectPayload.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftEffectTemplatePayload.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftImagePayload.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationConfig.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationContext.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationDefinition.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationFlow.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationTask.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationTask170.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationTask180.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationTask181.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationTask190.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationTask200.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationTask210.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationTask220.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationTask230.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationTask270.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationTask300.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationTask390.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationTask440.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationTask460.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationTask490.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationTask500.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationTask510.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationTask530.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationTask550.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationTask570.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationTask590.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationTask600.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftMigrationTools.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftModels.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftPayload.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftPayloadTypeHelper.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftPlaceholderPayload.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftSpeedPayload.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftStickerPayload.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftTailLeaderPayload.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftTextPayload.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftTransitionPayload.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftVideoMaskPayload.h",
+    "pod_support/Headers/Private/VideoTemplate/LVDraftVideoPayload.h",
+    "pod_support/Headers/Private/VideoTemplate/LVEffectDataSource.h",
+    "pod_support/Headers/Private/VideoTemplate/LVEffectDownloadProxy.h",
+    "pod_support/Headers/Private/VideoTemplate/LVEffectManager+AutoUpdate.h",
+    "pod_support/Headers/Private/VideoTemplate/LVEffectManager+Download.h",
+    "pod_support/Headers/Private/VideoTemplate/LVEffectManager.h",
+    "pod_support/Headers/Private/VideoTemplate/LVEffectPanelCategoryItem.h",
+    "pod_support/Headers/Private/VideoTemplate/LVEffectPanelItem.h",
+    "pod_support/Headers/Private/VideoTemplate/LVEffectPlatformBridgeHeader.h",
+    "pod_support/Headers/Private/VideoTemplate/LVEffectPlatformConfig.h",
+    "pod_support/Headers/Private/VideoTemplate/LVEffectPlatformSDKProxy+Download_Old.h",
+    "pod_support/Headers/Private/VideoTemplate/LVEffectPlatformSDKProxy.h",
+    "pod_support/Headers/Private/VideoTemplate/LVEffectPreloadUtil.h",
+    "pod_support/Headers/Private/VideoTemplate/LVEffectResourceDownloadOperation.h",
+    "pod_support/Headers/Private/VideoTemplate/LVExporterManager.h",
+    "pod_support/Headers/Private/VideoTemplate/LVExporterVideoData+Private.h",
+    "pod_support/Headers/Private/VideoTemplate/LVExporterVideoData.h",
+    "pod_support/Headers/Private/VideoTemplate/LVFileManager.h",
+    "pod_support/Headers/Private/VideoTemplate/LVFileSystem.h",
+    "pod_support/Headers/Private/VideoTemplate/LVGenerateID.h",
+    "pod_support/Headers/Private/VideoTemplate/LVGeometry.h",
+    "pod_support/Headers/Private/VideoTemplate/LVGeometryTool.h",
+    "pod_support/Headers/Private/VideoTemplate/LVJSONRequestSerializer.h",
+    "pod_support/Headers/Private/VideoTemplate/LVKeyframe.h",
+    "pod_support/Headers/Private/VideoTemplate/LVKeyframeHelper.h",
+    "pod_support/Headers/Private/VideoTemplate/LVKeyframeUtil.h",
+    "pod_support/Headers/Private/VideoTemplate/LVMediaAsset.h",
+    "pod_support/Headers/Private/VideoTemplate/LVMediaDefinition.h",
+    "pod_support/Headers/Private/VideoTemplate/LVMediaDraft+Private.h",
+    "pod_support/Headers/Private/VideoTemplate/LVMediaDraft+Query.h",
+    "pod_support/Headers/Private/VideoTemplate/LVMediaDraft.h",
+    "pod_support/Headers/Private/VideoTemplate/LVMediaDraftHeaders.h",
+    "pod_support/Headers/Private/VideoTemplate/LVMediaDraftOld.h",
+    "pod_support/Headers/Private/VideoTemplate/LVMediaSegment+AudioEffect.h",
+    "pod_support/Headers/Private/VideoTemplate/LVMediaSegment+Query.h",
+    "pod_support/Headers/Private/VideoTemplate/LVMediaSegment+Speed.h",
+    "pod_support/Headers/Private/VideoTemplate/LVMediaSegment.h",
+    "pod_support/Headers/Private/VideoTemplate/LVMediaTrack.h",
+    "pod_support/Headers/Private/VideoTemplate/LVModelType.h",
+    "pod_support/Headers/Private/VideoTemplate/LVModulesLaunchExport.h",
+    "pod_support/Headers/Private/VideoTemplate/LVModulesLaunchModel.h",
+    "pod_support/Headers/Private/VideoTemplate/LVModulesLaunchProxy.h",
+    "pod_support/Headers/Private/VideoTemplate/LVModulesLaunchStatistics.h",
+    "pod_support/Headers/Private/VideoTemplate/LVMultiTasksProgress.h",
+    "pod_support/Headers/Private/VideoTemplate/LVMutableConfig.h",
+    "pod_support/Headers/Private/VideoTemplate/LVPayloadPool.h",
+    "pod_support/Headers/Private/VideoTemplate/LVPlatform.h",
+    "pod_support/Headers/Private/VideoTemplate/LVPlayer.h",
+    "pod_support/Headers/Private/VideoTemplate/LVPlayerAIMattingProxy.h",
+    "pod_support/Headers/Private/VideoTemplate/LVPlayerDataPackager.h",
+    "pod_support/Headers/Private/VideoTemplate/LVPlayerDisableCache.h",
+    "pod_support/Headers/Private/VideoTemplate/LVPlayerFeatureType.h",
+    "pod_support/Headers/Private/VideoTemplate/LVPlayerItem.h",
+    "pod_support/Headers/Private/VideoTemplate/LVPlayerItemSource.h",
+    "pod_support/Headers/Private/VideoTemplate/LVPlayerStickerBox.h",
+    "pod_support/Headers/Private/VideoTemplate/LVPreprocessManager.h",
+    "pod_support/Headers/Private/VideoTemplate/LVPreprocessSession.h",
+    "pod_support/Headers/Private/VideoTemplate/LVProcessVideoSession.h",
+    "pod_support/Headers/Private/VideoTemplate/LVProject+Query.h",
+    "pod_support/Headers/Private/VideoTemplate/LVRemoteRequest.h",
+    "pod_support/Headers/Private/VideoTemplate/LVReplaceMaterialFragment.h",
+    "pod_support/Headers/Private/VideoTemplate/LVResourceDownloadOperation.h",
+    "pod_support/Headers/Private/VideoTemplate/LVResourceDownloadTools.h",
+    "pod_support/Headers/Private/VideoTemplate/LVResourceDownloader.h",
+    "pod_support/Headers/Private/VideoTemplate/LVResourceDownloaderDefine.h",
+    "pod_support/Headers/Private/VideoTemplate/LVSegmentClipInfo.h",
+    "pod_support/Headers/Private/VideoTemplate/LVTask.h",
+    "pod_support/Headers/Private/VideoTemplate/LVTemplateChecker.h",
+    "pod_support/Headers/Private/VideoTemplate/LVTemplateDataManager+Fetcher.h",
+    "pod_support/Headers/Private/VideoTemplate/LVTemplateDataManager.h",
+    "pod_support/Headers/Private/VideoTemplate/LVTemplateMigrationProxy.h",
+    "pod_support/Headers/Private/VideoTemplate/LVTemplateProcessor.h",
+    "pod_support/Headers/Private/VideoTemplate/LVTemplateResourceDownloadOperation.h",
+    "pod_support/Headers/Private/VideoTemplate/LVTextTemplateInfo.h",
+    "pod_support/Headers/Private/VideoTemplate/LVVEAIMattingFileManager.h",
+    "pod_support/Headers/Private/VideoTemplate/LVVEAdapter.h",
+    "pod_support/Headers/Private/VideoTemplate/LVVEAssetMattingManagerProxy.h",
+    "pod_support/Headers/Private/VideoTemplate/LVVEBundleDataSource.h",
+    "pod_support/Headers/Private/VideoTemplate/LVVEBundleDataSourceHelper.h",
+    "pod_support/Headers/Private/VideoTemplate/LVVECanvasFilterParam.h",
+    "pod_support/Headers/Private/VideoTemplate/LVVEConstDefinition.h",
+    "pod_support/Headers/Private/VideoTemplate/LVVEDataCache.h",
+    "pod_support/Headers/Private/VideoTemplate/LVVEDataPackager.h",
+    "pod_support/Headers/Private/VideoTemplate/LVVEDataPackagerHelper.h",
+    "pod_support/Headers/Private/VideoTemplate/LVVETextPackager.h",
+    "pod_support/Headers/Private/VideoTemplate/LVVETextPackagerHelper.h",
+    "pod_support/Headers/Private/VideoTemplate/LVVETextTemplatePackager.h",
+    "pod_support/Headers/Private/VideoTemplate/LVVideoCompressor.h",
+    "pod_support/Headers/Private/VideoTemplate/LVVideoCropInfo.h",
+    "pod_support/Headers/Private/VideoTemplate/LVVideoMaskUtil.h",
+    "pod_support/Headers/Private/VideoTemplate/LVVideoMaterialUtil.h",
+    "pod_support/Headers/Private/VideoTemplate/LVVideoReverseOperation.h",
+    "pod_support/Headers/Private/VideoTemplate/MTLValueTransformer+LV.h",
+    "pod_support/Headers/Private/VideoTemplate/MaterialAnimationUtils.h",
+    "pod_support/Headers/Private/VideoTemplate/MaterialAnimationUtilsHelper.h",
+    "pod_support/Headers/Private/VideoTemplate/MaterialTailLeader+Query.h",
+    "pod_support/Headers/Private/VideoTemplate/MaterialText+Query.h",
+    "pod_support/Headers/Private/VideoTemplate/Materials.h",
+    "pod_support/Headers/Private/VideoTemplate/MaterialsUtils.h",
+    "pod_support/Headers/Private/VideoTemplate/MathUtils.h",
+    "pod_support/Headers/Private/VideoTemplate/ModelType.h",
+    "pod_support/Headers/Private/VideoTemplate/MutableConfigUtils.h",
+    "pod_support/Headers/Private/VideoTemplate/NSArray+LV.h",
+    "pod_support/Headers/Private/VideoTemplate/NSBundle+LV.h",
+    "pod_support/Headers/Private/VideoTemplate/NSDictionary+JKSafeAccess.h",
+    "pod_support/Headers/Private/VideoTemplate/NSDictionary+LVJson.h",
+    "pod_support/Headers/Private/VideoTemplate/NSDictionary+LVVEJson.h",
+    "pod_support/Headers/Private/VideoTemplate/NSError+LVEffect.h",
+    "pod_support/Headers/Private/VideoTemplate/NSMutableArray+LV.h",
+    "pod_support/Headers/Private/VideoTemplate/NSString+MD5.h",
+    "pod_support/Headers/Private/VideoTemplate/NSThread+LV.h",
+    "pod_support/Headers/Private/VideoTemplate/ProjectEditor.h",
+    "pod_support/Headers/Private/VideoTemplate/ProjectPreSuccessFunction.h",
+    "pod_support/Headers/Private/VideoTemplate/ProjectUtils.h",
+    "pod_support/Headers/Private/VideoTemplate/ResourceEffectCoder.h",
+    "pod_support/Headers/Private/VideoTemplate/ResourceFetcher.h",
+    "pod_support/Headers/Private/VideoTemplate/ResourceStreamContext.h",
+    "pod_support/Headers/Private/VideoTemplate/ResourceVideoCoder.h",
+    "pod_support/Headers/Private/VideoTemplate/SSZipArchive+LV.h",
+    "pod_support/Headers/Private/VideoTemplate/SegmentUtils.h",
+    "pod_support/Headers/Private/VideoTemplate/Stream.h",
+    "pod_support/Headers/Private/VideoTemplate/StreamCallback.h",
+    "pod_support/Headers/Private/VideoTemplate/StreamContext.h",
+    "pod_support/Headers/Private/VideoTemplate/StreamFunction.h",
+    "pod_support/Headers/Private/VideoTemplate/StreamParallelAndFunction.h",
+    "pod_support/Headers/Private/VideoTemplate/StreamSerialAndFunction.h",
+    "pod_support/Headers/Private/VideoTemplate/StringUtils.h",
+    "pod_support/Headers/Private/VideoTemplate/TemplateError.h",
+    "pod_support/Headers/Private/VideoTemplate/TemplateException.h",
+    "pod_support/Headers/Private/VideoTemplate/TemplateGlobal.h",
+    "pod_support/Headers/Private/VideoTemplate/TemplateInfoListener.h",
+    "pod_support/Headers/Private/VideoTemplate/TemplatePlayer.h",
+    "pod_support/Headers/Private/VideoTemplate/TemplateSource.h",
+    "pod_support/Headers/Private/VideoTemplate/TemplateSourceObserver.h",
+    "pod_support/Headers/Private/VideoTemplate/TextMaterialUtils.h",
+    "pod_support/Headers/Private/VideoTemplate/TrackUtils.h",
+    "pod_support/Headers/Private/VideoTemplate/UIColor+Extension.h",
+    "pod_support/Headers/Private/VideoTemplate/UIImage+LV.h",
+    "pod_support/Headers/Private/VideoTemplate/UnZipFunction.h",
+    "pod_support/Headers/Private/VideoTemplate/UpgradeFunction.h",
+    "pod_support/Headers/Private/VideoTemplate/VEEditorPlayer.h",
+    "pod_support/Headers/Private/VideoTemplate/VideoData.h",
+    "pod_support/Headers/Private/VideoTemplate/VideoMaterialUtils.h",
+    "pod_support/Headers/Private/VideoTemplate/VideoTemplateDevice.h",
+    "pod_support/Headers/Private/VideoTemplate/VideoTemplateLogger.h",
+    "pod_support/Headers/Private/VideoTemplate/adl_serializer.hpp",
+    "pod_support/Headers/Private/VideoTemplate/binary_reader.hpp",
+    "pod_support/Headers/Private/VideoTemplate/binary_writer.hpp",
+    "pod_support/Headers/Private/VideoTemplate/cpp_future.hpp",
+    "pod_support/Headers/Private/VideoTemplate/detected.hpp",
+    "pod_support/Headers/Private/VideoTemplate/exceptions.hpp",
+    "pod_support/Headers/Private/VideoTemplate/from_json.hpp",
+    "pod_support/Headers/Private/VideoTemplate/hedley.hpp",
+    "pod_support/Headers/Private/VideoTemplate/hedley_undef.hpp",
+    "pod_support/Headers/Private/VideoTemplate/input_adapters.hpp",
+    "pod_support/Headers/Private/VideoTemplate/internal_iterator.hpp",
+    "pod_support/Headers/Private/VideoTemplate/is_sax.hpp",
+    "pod_support/Headers/Private/VideoTemplate/iter_impl.hpp",
+    "pod_support/Headers/Private/VideoTemplate/iteration_proxy.hpp",
+    "pod_support/Headers/Private/VideoTemplate/iterator_traits.hpp",
+    "pod_support/Headers/Private/VideoTemplate/json.hpp",
+    "pod_support/Headers/Private/VideoTemplate/json_fwd.hpp",
+    "pod_support/Headers/Private/VideoTemplate/json_pointer.hpp",
+    "pod_support/Headers/Private/VideoTemplate/json_ref.hpp",
+    "pod_support/Headers/Private/VideoTemplate/json_reverse_iterator.hpp",
+    "pod_support/Headers/Private/VideoTemplate/json_sax.hpp",
+    "pod_support/Headers/Private/VideoTemplate/lexer.hpp",
+    "pod_support/Headers/Private/VideoTemplate/macro_scope.hpp",
+    "pod_support/Headers/Private/VideoTemplate/macro_unscope.hpp",
+    "pod_support/Headers/Private/VideoTemplate/miniz.h",
+    "pod_support/Headers/Private/VideoTemplate/output_adapters.hpp",
+    "pod_support/Headers/Private/VideoTemplate/parser.hpp",
+    "pod_support/Headers/Private/VideoTemplate/position_t.hpp",
+    "pod_support/Headers/Private/VideoTemplate/primitive_iterator.hpp",
+    "pod_support/Headers/Private/VideoTemplate/serializer.hpp",
+    "pod_support/Headers/Private/VideoTemplate/sha1.hpp",
+    "pod_support/Headers/Private/VideoTemplate/to_chars.hpp",
+    "pod_support/Headers/Private/VideoTemplate/to_json.hpp",
+    "pod_support/Headers/Private/VideoTemplate/type_traits.hpp",
+    "pod_support/Headers/Private/VideoTemplate/value_t.hpp",
+    "pod_support/Headers/Private/VideoTemplate/void_t.hpp",
+    "pod_support/Headers/Private/VideoTemplate/zip.h",
+    "pod_support/Headers/Public/VideoTemplate/ARTEffectModel+LVEffectDataSource.h",
+    "pod_support/Headers/Public/VideoTemplate/AVAsset+LV.h",
+    "pod_support/Headers/Public/VideoTemplate/AVAssetImageGenerator+LV.h",
+    "pod_support/Headers/Public/VideoTemplate/CGFloat+LV.h",
+    "pod_support/Headers/Public/VideoTemplate/CGSize+LV.h",
+    "pod_support/Headers/Public/VideoTemplate/CMTime+LV.h",
+    "pod_support/Headers/Public/VideoTemplate/CMTimeRange+Extension.h",
+    "pod_support/Headers/Public/VideoTemplate/EffectPlatform+LV.h",
+    "pod_support/Headers/Public/VideoTemplate/IESEffectLogger+LV.h",
+    "pod_support/Headers/Public/VideoTemplate/IESEffectModel+LVEffectDataSource.h",
+    "pod_support/Headers/Public/VideoTemplate/LVAIMattingAlgorithmsManager.h",
+    "pod_support/Headers/Public/VideoTemplate/LVAIMattingCache.h",
+    "pod_support/Headers/Public/VideoTemplate/LVAIMattingManager.h",
+    "pod_support/Headers/Public/VideoTemplate/LVAllKeyframe.h",
+    "pod_support/Headers/Public/VideoTemplate/LVArtistOpenPlatformSDKProxy.h",
+    "pod_support/Headers/Public/VideoTemplate/LVBundleDataSource.h",
+    "pod_support/Headers/Public/VideoTemplate/LVCanvasConfig.h",
+    "pod_support/Headers/Public/VideoTemplate/LVClipAIMattingDefines.h",
+    "pod_support/Headers/Public/VideoTemplate/LVConstDefinition.h",
+    "pod_support/Headers/Public/VideoTemplate/LVCutSameConsumer.h",
+    "pod_support/Headers/Public/VideoTemplate/LVCutSameConvertHelper.h",
+    "pod_support/Headers/Public/VideoTemplate/LVCutSameResourceManager.h",
+    "pod_support/Headers/Public/VideoTemplate/LVCutSameTextMaterial.h",
+    "pod_support/Headers/Public/VideoTemplate/LVCutSameVideoMaterial.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDataBridge.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDataBridgeResult.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDependencyInjector.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDownloadDefinition.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftAnimationPayload.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftAudioEffectPayload.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftAudioFadePayload.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftAudioPayload.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftBeatsPayload.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftCanvasPayload.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftChromaPayload.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftConfig.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftCovertHelper.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftDataManager.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftEffectPayload.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftEffectTemplatePayload.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftImagePayload.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationConfig.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationContext.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationDefinition.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationFlow.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationTask.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationTask170.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationTask180.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationTask181.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationTask190.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationTask200.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationTask210.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationTask220.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationTask230.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationTask270.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationTask300.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationTask390.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationTask440.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationTask460.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationTask490.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationTask500.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationTask510.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationTask530.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationTask550.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationTask570.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationTask590.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationTask600.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftMigrationTools.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftModels.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftPayload.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftPayloadTypeHelper.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftPlaceholderPayload.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftSpeedPayload.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftStickerPayload.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftTailLeaderPayload.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftTextPayload.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftTransitionPayload.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftVideoMaskPayload.h",
+    "pod_support/Headers/Public/VideoTemplate/LVDraftVideoPayload.h",
+    "pod_support/Headers/Public/VideoTemplate/LVEffectDataSource.h",
+    "pod_support/Headers/Public/VideoTemplate/LVEffectDownloadProxy.h",
+    "pod_support/Headers/Public/VideoTemplate/LVEffectManager+AutoUpdate.h",
+    "pod_support/Headers/Public/VideoTemplate/LVEffectManager+Download.h",
+    "pod_support/Headers/Public/VideoTemplate/LVEffectManager.h",
+    "pod_support/Headers/Public/VideoTemplate/LVEffectPanelCategoryItem.h",
+    "pod_support/Headers/Public/VideoTemplate/LVEffectPanelItem.h",
+    "pod_support/Headers/Public/VideoTemplate/LVEffectPlatformBridgeHeader.h",
+    "pod_support/Headers/Public/VideoTemplate/LVEffectPlatformConfig.h",
+    "pod_support/Headers/Public/VideoTemplate/LVEffectPlatformSDKProxy+Download_Old.h",
+    "pod_support/Headers/Public/VideoTemplate/LVEffectPlatformSDKProxy.h",
+    "pod_support/Headers/Public/VideoTemplate/LVExporterManager.h",
+    "pod_support/Headers/Public/VideoTemplate/LVExporterVideoData+Private.h",
+    "pod_support/Headers/Public/VideoTemplate/LVExporterVideoData.h",
+    "pod_support/Headers/Public/VideoTemplate/LVFileManager.h",
+    "pod_support/Headers/Public/VideoTemplate/LVGenerateID.h",
+    "pod_support/Headers/Public/VideoTemplate/LVGeometry.h",
+    "pod_support/Headers/Public/VideoTemplate/LVGeometryTool.h",
+    "pod_support/Headers/Public/VideoTemplate/LVKeyframe.h",
+    "pod_support/Headers/Public/VideoTemplate/LVMediaAsset.h",
+    "pod_support/Headers/Public/VideoTemplate/LVMediaDefinition.h",
+    "pod_support/Headers/Public/VideoTemplate/LVMediaDraft+Query.h",
+    "pod_support/Headers/Public/VideoTemplate/LVMediaDraft.h",
+    "pod_support/Headers/Public/VideoTemplate/LVMediaDraftHeaders.h",
+    "pod_support/Headers/Public/VideoTemplate/LVMediaDraftOld.h",
+    "pod_support/Headers/Public/VideoTemplate/LVMediaSegment+AudioEffect.h",
+    "pod_support/Headers/Public/VideoTemplate/LVMediaSegment+Query.h",
+    "pod_support/Headers/Public/VideoTemplate/LVMediaSegment+Speed.h",
+    "pod_support/Headers/Public/VideoTemplate/LVMediaSegment.h",
+    "pod_support/Headers/Public/VideoTemplate/LVMediaTrack.h",
+    "pod_support/Headers/Public/VideoTemplate/LVModelType.h",
+    "pod_support/Headers/Public/VideoTemplate/LVModulesLaunchExport.h",
+    "pod_support/Headers/Public/VideoTemplate/LVModulesLaunchModel.h",
+    "pod_support/Headers/Public/VideoTemplate/LVModulesLaunchProxy.h",
+    "pod_support/Headers/Public/VideoTemplate/LVModulesLaunchStatistics.h",
+    "pod_support/Headers/Public/VideoTemplate/LVMultiTasksProgress.h",
+    "pod_support/Headers/Public/VideoTemplate/LVMutableConfig.h",
+    "pod_support/Headers/Public/VideoTemplate/LVPayloadPool.h",
+    "pod_support/Headers/Public/VideoTemplate/LVPlatform.h",
+    "pod_support/Headers/Public/VideoTemplate/LVPlayer.h",
+    "pod_support/Headers/Public/VideoTemplate/LVPlayerAIMattingProxy.h",
+    "pod_support/Headers/Public/VideoTemplate/LVPlayerDataPackager.h",
+    "pod_support/Headers/Public/VideoTemplate/LVPlayerDisableCache.h",
+    "pod_support/Headers/Public/VideoTemplate/LVPlayerFeatureType.h",
+    "pod_support/Headers/Public/VideoTemplate/LVPlayerItem.h",
+    "pod_support/Headers/Public/VideoTemplate/LVPlayerItemSource.h",
+    "pod_support/Headers/Public/VideoTemplate/LVPlayerStickerBox.h",
+    "pod_support/Headers/Public/VideoTemplate/LVPreprocessManager.h",
+    "pod_support/Headers/Public/VideoTemplate/LVPreprocessSession.h",
+    "pod_support/Headers/Public/VideoTemplate/LVProcessVideoSession.h",
+    "pod_support/Headers/Public/VideoTemplate/LVRemoteRequest.h",
+    "pod_support/Headers/Public/VideoTemplate/LVReplaceMaterialFragment.h",
+    "pod_support/Headers/Public/VideoTemplate/LVResourceDownloadTools.h",
+    "pod_support/Headers/Public/VideoTemplate/LVResourceDownloaderDefine.h",
+    "pod_support/Headers/Public/VideoTemplate/LVSegmentClipInfo.h",
+    "pod_support/Headers/Public/VideoTemplate/LVTask.h",
+    "pod_support/Headers/Public/VideoTemplate/LVTemplateChecker.h",
+    "pod_support/Headers/Public/VideoTemplate/LVTemplateDataManager+Fetcher.h",
+    "pod_support/Headers/Public/VideoTemplate/LVTemplateDataManager.h",
+    "pod_support/Headers/Public/VideoTemplate/LVTemplateMigrationProxy.h",
+    "pod_support/Headers/Public/VideoTemplate/LVTemplateProcessor.h",
+    "pod_support/Headers/Public/VideoTemplate/LVTextTemplateInfo.h",
+    "pod_support/Headers/Public/VideoTemplate/LVVEAIMattingFileManager.h",
+    "pod_support/Headers/Public/VideoTemplate/LVVEAssetMattingManagerProxy.h",
+    "pod_support/Headers/Public/VideoTemplate/LVVEBundleDataSourceHelper.h",
+    "pod_support/Headers/Public/VideoTemplate/LVVEDataPackagerHelper.h",
+    "pod_support/Headers/Public/VideoTemplate/LVVETextPackagerHelper.h",
+    "pod_support/Headers/Public/VideoTemplate/LVVideoCompressor.h",
+    "pod_support/Headers/Public/VideoTemplate/LVVideoCropInfo.h",
+    "pod_support/Headers/Public/VideoTemplate/LVVideoReverseOperation.h",
+    "pod_support/Headers/Public/VideoTemplate/MTLValueTransformer+LV.h",
+    "pod_support/Headers/Public/VideoTemplate/MaterialAnimationUtilsHelper.h",
+    "pod_support/Headers/Public/VideoTemplate/NSArray+LV.h",
+    "pod_support/Headers/Public/VideoTemplate/NSBundle+LV.h",
+    "pod_support/Headers/Public/VideoTemplate/NSDictionary+JKSafeAccess.h",
+    "pod_support/Headers/Public/VideoTemplate/NSDictionary+LVJson.h",
+    "pod_support/Headers/Public/VideoTemplate/NSError+LVEffect.h",
+    "pod_support/Headers/Public/VideoTemplate/NSMutableArray+LV.h",
+    "pod_support/Headers/Public/VideoTemplate/NSString+MD5.h",
+    "pod_support/Headers/Public/VideoTemplate/NSThread+LV.h",
+    "pod_support/Headers/Public/VideoTemplate/SSZipArchive+LV.h",
+    "pod_support/Headers/Public/VideoTemplate/UIColor+Extension.h",
+    "pod_support/Headers/Public/VideoTemplate/UIImage+LV.h",
+    "pod_support/Headers/Public/VideoTemplate/VideoTemplateDevice.h",
+    "pod_support/Headers/Public/VideoTemplate/VideoTemplateLogger.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/VideoTemplate/VideoTemplate_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/VideoTemplate/VideoTemplate_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":VideoTemplate_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":VideoTemplate_private_includes",
+    ":VideoTemplate_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ArtistOpenPlatformSDK//:Effect_objc_interface",
+    "@EffectPlatformSDK//:ModelDistribute_objc_interface",
+    "@NLEPlatform//:NLEPlatform_objc_interface",
+    "@TemplateConsumer//:Cutsame_objc_interface",
+    "@TTVideoEditor//:LVCutTemplate_objc_interface",
+    "@ArtistOpenPlatformSDK//:Effect_swift_interface",
+    "@EffectPlatformSDK//:ModelDistribute_swift_interface",
+    "@NLEPlatform//:NLEPlatform_swift_interface",
+    "@TemplateConsumer//:Cutsame_swift_interface",
+    "@TTVideoEditor//:LVCutTemplate_swift_interface",
+    ":VideoTemplate_Core_VendoredLibraries",
+    ":Core_objc_interface",
+    "@ArtistOpenPlatformSDK//:Effect_module_map",
+    "@EffectPlatformSDK//:ModelDistribute_module_map",
+    "@NLEPlatform//:NLEPlatform_module_map",
+    "@TemplateConsumer//:Cutsame_module_map",
+    "@TTVideoEditor//:LVCutTemplate_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DVideoTemplate_POD_VERSION=@\\\"9999_4.0.171.6-bugfix\\\"",
+    "-lc++",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":VideoTemplate_Core_VideoTemplate"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "GamePlay_hdrs",
+  srcs = [
+    "cut_ios/GamePlay/Classes/GamePlayManager.h",
+    "cut_ios/GamePlay/DI/GPNetServiceProtocol.h",
+    "cut_ios/GamePlay/DI/GPServiceContainerProtocol.h",
+    "cut_ios/GamePlay/DI/GPServiceFactory.h",
+    "cut_ios/GamePlay/Model/GPBaseResponseModel.h",
+    "cut_ios/GamePlay/Model/GPMaterialModel.h",
+    "cut_ios/GamePlay/Model/GPRequestModel.h",
+    "cut_ios/GamePlay/Model/GPServerHandleResourceModel.h",
+    "cut_ios/GamePlay/Utils/NSData+GPAdditions.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "GamePlay_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/VideoTemplate/GPBaseResponseModel.h",
+    "pod_support/Headers/Private/VideoTemplate/GPMaterialModel.h",
+    "pod_support/Headers/Private/VideoTemplate/GPNetServiceProtocol.h",
+    "pod_support/Headers/Private/VideoTemplate/GPRequestModel.h",
+    "pod_support/Headers/Private/VideoTemplate/GPServerHandleResourceModel.h",
+    "pod_support/Headers/Private/VideoTemplate/GPServiceContainerProtocol.h",
+    "pod_support/Headers/Private/VideoTemplate/GPServiceFactory.h",
+    "pod_support/Headers/Private/VideoTemplate/GamePlayManager.h",
+    "pod_support/Headers/Private/VideoTemplate/NSData+GPAdditions.h",
+    "pod_support/Headers/Public/VideoTemplate/GPBaseResponseModel.h",
+    "pod_support/Headers/Public/VideoTemplate/GPMaterialModel.h",
+    "pod_support/Headers/Public/VideoTemplate/GPNetServiceProtocol.h",
+    "pod_support/Headers/Public/VideoTemplate/GPRequestModel.h",
+    "pod_support/Headers/Public/VideoTemplate/GPServerHandleResourceModel.h",
+    "pod_support/Headers/Public/VideoTemplate/GPServiceContainerProtocol.h",
+    "pod_support/Headers/Public/VideoTemplate/GPServiceFactory.h",
+    "pod_support/Headers/Public/VideoTemplate/GamePlayManager.h",
+    "pod_support/Headers/Public/VideoTemplate/NSData+GPAdditions.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "GamePlay_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "GamePlay_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "GamePlay_module_map",
+  module_map = "pod_support/Headers/Public/VideoTemplate/VideoTemplate_GamePlay-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/VideoTemplate/VideoTemplate_GamePlay-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "GamePlay_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "GamePlay_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":VideoTemplate_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":VideoTemplate_private_includes",
+    ":VideoTemplate_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":VideoTemplate_GamePlay_VendoredLibraries",
+    ":GamePlay_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DVideoTemplate_POD_VERSION=@\\\"9999_4.0.171.6-bugfix\\\"",
+    "-lc++",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "GamePlay",
+  deps = [
+    ":GamePlay_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "GamePlay_lib",
+  deps = [
+    ":GamePlay"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_VideoTemplate_module_map",
+  module_map = "@VideoTemplate//:pod_support/Headers/Public/VideoTemplate/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@VideoTemplate//:pod_support/Headers/Public/VideoTemplate/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_VideoTemplate_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@VideoTemplate//:Core_objc_interface", "@VideoTemplate//:GamePlay_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_library")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_library(
+  name = "Lark_VideoTemplate",
+  target_name = "Lark",
+  module_name = "VideoTemplate",
+  hdrs = ["@VideoTemplate//:Core_pod_hdrs", "@VideoTemplate//:GamePlay_pod_hdrs"],
+  srcs = [],
+  non_arc_srcs = [],
+  deps = ["@VideoTemplate//:VideoTemplate_Core_VendoredLibraries", "@VideoTemplate//:VideoTemplate_GamePlay_VendoredLibraries"],
+  pod_deps = ["ArtistOpenPlatformSDK", "EffectPlatformSDK", "NLEPlatform", "TemplateConsumer", "TTVideoEditor"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DVideoTemplate_POD_VERSION=@\\\"9999_4.0.171.6-bugfix\\\"",
+    "-lc++",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "VideoTemplate_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "VideoTemplate_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["UIKit", "Foundation", "JavaScriptCore"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = ["@VideoTemplate//:VideoTemplate_Core_VideoTemplate"],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "VideoTemplate_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "VideoTemplate_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "VideoTemplate_dynamic", False),
+  tags = getattr(defs_external_objc_library, "VideoTemplate_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("VideoTemplate", {}),
+  visibility = ["//visibility:public"],
+)

@@ -1,0 +1,1 @@
+../../../../BDTuring/Classes/Core/Model/BDTuringPictureVerifyModel.h

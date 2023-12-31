@@ -1,0 +1,35 @@
+# Uncomment the next line to define a global platform for your project
+platform :ios, '11.0'
+
+source 'git@code.byted.org:ee/pods_specs.git'
+source 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+source 'git@code.byted.org:iOS_Library/publicthird_source_repo.git'
+source 'git@code.byted.org:iOS_Library/privatethird_source_repo.git'
+
+
+target 'LarkIMMentionDemo' do
+  use_frameworks!
+  pod 'LookinServer'
+  pod 'LarkIMMention', :subspecs => ['View'], :path => '../'
+  pod 'LarkUIKit', :subspecs => ['Checkbox', "Resources", "Common", "LoadMore", "TextField"], :path => '../../../Libs/LarkUIKit'
+end
+
+target 'UnitTests' do
+  use_frameworks!
+  pod 'LarkIMMention', :subspecs => ['Core'], :path => '../'
+end
+
+target 'ViewTests' do
+  use_frameworks!
+  pod 'iOSSnapshotTestCase', '6.2.0'
+  pod 'LarkIMMention', :subspecs => ['View'], :path => '../'
+  pod 'LarkUIKit', :subspecs => ['Checkbox', "Resources", "Common", "LoadMore", "TextField"], :path => '../../../Libs/LarkUIKit'
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '11.0'
+    end
+  end
+end

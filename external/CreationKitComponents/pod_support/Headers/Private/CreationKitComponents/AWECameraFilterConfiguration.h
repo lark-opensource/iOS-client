@@ -1,0 +1,1 @@
+../../../../Recorder/Filter/Core/Managers/AWECameraFilterConfiguration.h

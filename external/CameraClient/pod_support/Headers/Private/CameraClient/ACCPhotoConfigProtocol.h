@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/Album/Configure/ACCPhotoConfigProtocol.h

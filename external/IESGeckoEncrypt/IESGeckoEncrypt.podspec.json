@@ -1,0 +1,55 @@
+{
+  "name": "IESGeckoEncrypt",
+  "version": "0.0.2.1-binary",
+  "summary": "Encrypt for gecko",
+  "homepage": "https://code.byted.org/gecko/gecko_encrypt_ios",
+  "authors": {
+    "Tan xinwen": "tanxinwen@bytedance.com"
+  },
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/aweme-rock/rock_binary/privatethird_binary_repo/IESGeckoEncrypt/0.0.2.1-binary/1656314851/IESGeckoEncrypt.tar.xz"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "requires_arc": true,
+  "default_subspecs": "Core",
+  "preserve_paths": [
+    "rock_document/**/*.{h,m,mm,cpp,hpp,swift}",
+    "rock_document/rock-document-files.txt"
+  ],
+  "source_code": {
+    "git": "git@code.byted.org:gecko/gecko_encrypt_ios.git",
+    "commit": "7bbfa3e2ae9026fa34be64dac4814bd615243d68"
+  },
+  "binary_type": "rock",
+  "package_env": {
+    "id": null,
+    "xcode": "Xcode 13.0\nBuild version 13A233\n"
+  },
+  "subspecs": [
+    {
+      "name": "Core",
+      "public_header_files": [
+        "IESGeckoEncrypt/IESGurdEncrypt.h"
+      ],
+      "source_files": "IESGeckoEncrypt/*.{h,m}",
+      "vendored_libraries": [
+        "IESGeckoEncrypt/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "IESGeckoEncrypt/*.o",
+          "libIESGeckoEncrypt-c8c0fbd.a"
+        ]
+      }
+    }
+  ]
+}

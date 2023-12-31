@@ -1,0 +1,1831 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "NLEPlatform_pod_hdrs",
+  srcs = [
+    ":NLEPlatform_root_pod_hdrs",
+    ":Model_pod_hdrs",
+    ":Resource_pod_hdrs",
+    ":Adapter_pod_hdrs",
+    ":TOBAdapter_pod_hdrs",
+    ":NLETemplate_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "NLEPlatform_private_includes",
+  include = [
+    "external/NLEPlatform/pod_support/Headers/Private/NLEPlatform/"
+  ],
+  deps = [],
+  external_name = "NLEPlatform"
+)
+gen_includes(
+  name = "NLEPlatform_public_includes",
+  include = [
+    "external/NLEPlatform/pod_support/Headers/Public/NLEPlatform/"
+  ],
+  deps = [],
+  external_name = "NLEPlatform"
+)
+filegroup(
+  name = "_NLEPlatform_hdrs",
+  srcs = [
+    ":NLEPlatform_root_hdrs",
+    ":Model_hdrs",
+    ":Resource_hdrs",
+    ":Adapter_hdrs",
+    ":TOBAdapter_hdrs",
+    ":NLETemplate_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "NLEPlatform_xcode_hmapsource",
+  hdrs = [
+    ":NLEPlatform_root_hdrs",
+    ":Adapter_hdrs",
+    ":Model_hdrs",
+    ":NLETemplate_hdrs",
+    ":Resource_hdrs",
+    ":TOBAdapter_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "NLEPlatform_xcode_hmap",
+  dep = ":NLEPlatform_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/NLEPlatform/*-bitsky-generated.modulemap", "pod_support/Headers/Public/NLEPlatform/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "NLEPlatform_Model_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libNLEPlatform_Model_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "NLEPlatform_Resource_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libNLEPlatform_Resource_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "NLEPlatform_Adapter_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libNLEPlatform__Adapter_TOBAdapter_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "NLEPlatform_TOBAdapter_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libNLEPlatform__Adapter_TOBAdapter_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "NLEPlatform_NLETemplate_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libNLEPlatform_NLETemplate_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "NLEPlatform_custom_includes",
+  include = [
+    "external/Protobuf/objectivec",
+    "external/NLEPlatform/ios/convert",
+    "external/NLEPlatform/core",
+    "external/NLEPlatform/core/editor",
+    "external/NLEPlatform/core/model",
+    "external/NLEPlatform/core/thirdparty",
+    "external/NLEPlatform/core/utils",
+    "external/NLEPlatform/core/templatemodel",
+    "external/NLEPlatform/base"
+  ],
+  include_files = [],
+  external_name = "NLEPlatform",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "NLEPlatform_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":NLEPlatform_xcode_hmap"
+  ],
+  external_name = "NLEPlatform",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NLEPlatform_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NLEPlatform_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "NLEPlatform_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "NLEPlatform_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "NLEPlatform_module_map",
+  module_map = "pod_support/Headers/Public/NLEPlatform/NLEPlatform-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/NLEPlatform/NLEPlatform-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "NLEPlatform_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "NLEPlatform_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":NLEPlatform_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":NLEPlatform_private_includes",
+    ":NLEPlatform_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":NLEPlatform_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DNLEPlatform_POD_VERSION=@\\\"9999_2.3.1-alpha.0-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "NLEPlatform",
+  deps = [
+    ":NLEPlatform_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "NLEPlatform_lib",
+  deps = [
+    ":NLEPlatform"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Model_hdrs",
+  srcs = [
+    "core/editor/NLEBranch.h",
+    "core/editor/NLECommit.h",
+    "core/editor/NLEEditor.h",
+    "core/editor/NLEMeasure.h",
+    "core/logger/NLELogger.h",
+    "core/logger/NLEMonitor.h",
+    "core/logger/NLETimer.h",
+    "core/logger/Trace.h",
+    "core/model/NLEAnimationType.h",
+    "core/model/NLECurveSpeedCalculator.h",
+    "core/model/NLEError.h",
+    "core/model/NLEFeature.h",
+    "core/model/NLEInstantMode.h",
+    "core/model/NLEManifest.h",
+    "core/model/NLENode.h",
+    "core/model/NLENodeChangeInfo.h",
+    "core/model/NLENodeDecoder.h",
+    "core/model/NLENodeMacro.h",
+    "core/model/NLEPropertyUtil.hpp",
+    "core/model/NLEResType.h",
+    "core/model/NLEResourceNode.h",
+    "core/model/NLESequenceNode.h",
+    "core/model/NLEStyle.h",
+    "core/model/NLETrackType.h",
+    "core/model/SwigDocExample.h",
+    "core/nle_export.h",
+    "core/resources/NLEArtistResourceProtocol.h",
+    "core/resources/NLECutsameResourceProtocol.h",
+    "core/resources/NLELokiResourceProtocol.h",
+    "core/resources/NLEMediaResourceProtocol.h",
+    "core/resources/NLEResourceFetchCallback.h",
+    "core/resources/NLEResourceHandler.h",
+    "core/resources/NLEResourceIdParser.h",
+    "core/resources/NLEResourceProtocol.h",
+    "core/resources/NLEResourcePubDefine.h",
+    "core/resources/NLEResourceSynchronizer.h",
+    "core/resources/NLEResourceUtil.h",
+    "core/resources/NLEUrlResourceProtocol.h",
+    "core/thirdparty/nlohmann/adl_serializer.hpp",
+    "core/thirdparty/nlohmann/detail/conversions/from_json.hpp",
+    "core/thirdparty/nlohmann/detail/conversions/to_chars.hpp",
+    "core/thirdparty/nlohmann/detail/conversions/to_json.hpp",
+    "core/thirdparty/nlohmann/detail/exceptions.hpp",
+    "core/thirdparty/nlohmann/detail/input/binary_reader.hpp",
+    "core/thirdparty/nlohmann/detail/input/input_adapters.hpp",
+    "core/thirdparty/nlohmann/detail/input/json_sax.hpp",
+    "core/thirdparty/nlohmann/detail/input/lexer.hpp",
+    "core/thirdparty/nlohmann/detail/input/parser.hpp",
+    "core/thirdparty/nlohmann/detail/input/position_t.hpp",
+    "core/thirdparty/nlohmann/detail/iterators/internal_iterator.hpp",
+    "core/thirdparty/nlohmann/detail/iterators/iter_impl.hpp",
+    "core/thirdparty/nlohmann/detail/iterators/iteration_proxy.hpp",
+    "core/thirdparty/nlohmann/detail/iterators/iterator_traits.hpp",
+    "core/thirdparty/nlohmann/detail/iterators/json_reverse_iterator.hpp",
+    "core/thirdparty/nlohmann/detail/iterators/primitive_iterator.hpp",
+    "core/thirdparty/nlohmann/detail/json_pointer.hpp",
+    "core/thirdparty/nlohmann/detail/json_ref.hpp",
+    "core/thirdparty/nlohmann/detail/macro_scope.hpp",
+    "core/thirdparty/nlohmann/detail/macro_unscope.hpp",
+    "core/thirdparty/nlohmann/detail/meta/cpp_future.hpp",
+    "core/thirdparty/nlohmann/detail/meta/detected.hpp",
+    "core/thirdparty/nlohmann/detail/meta/is_sax.hpp",
+    "core/thirdparty/nlohmann/detail/meta/type_traits.hpp",
+    "core/thirdparty/nlohmann/detail/meta/void_t.hpp",
+    "core/thirdparty/nlohmann/detail/output/binary_writer.hpp",
+    "core/thirdparty/nlohmann/detail/output/output_adapters.hpp",
+    "core/thirdparty/nlohmann/detail/output/serializer.hpp",
+    "core/thirdparty/nlohmann/detail/value_t.hpp",
+    "core/thirdparty/nlohmann/json.hpp",
+    "core/thirdparty/nlohmann/json_fwd.hpp",
+    "core/thirdparty/nlohmann/thirdparty/hedley/hedley.hpp",
+    "core/thirdparty/nlohmann/thirdparty/hedley/hedley_undef.hpp",
+    "core/thirdparty/sha1/sha1.hpp",
+    "core/utils/Aspectutils.h",
+    "core/utils/CoordinateUtils.h",
+    "core/utils/FileUtils.h",
+    "core/utils/ModuleLoader.h",
+    "core/utils/NLEFileDescriptor.h",
+    "core/utils/SharedPtrUtils.hpp",
+    "core/utils/TimeUtils.h",
+    "core/utils/TmpDir.h",
+    "core/utils/json_forward.hpp",
+    "core/utils/path_util.h",
+    "core/utils/string_util.h",
+    "core/utils/uuid.h",
+    "ios/BaseKit/NSArray+NLE.h",
+    "ios/BaseKit/NSDictionary+VEAdd.h",
+    "ios/BaseKit/NSString+NLE.h",
+    "ios/BaseKit/UIColor+NLE.h",
+    "ios/Classes/NLEBranchListener.h",
+    "ios/Classes/NLEChangeListener.h",
+    "ios/Classes/NLEDiffCalculator_OC.h",
+    "ios/Classes/NLEEditorListener.h",
+    "ios/Classes/NLEResourceSynchronizerImpl.h",
+    "ios/Classes/NLETypeConverter.h",
+    "ios/Classes/private/NLEModel+Private.h",
+    "ios/Classes/private/TemplateModels/NLETemplate+Private.h",
+    "ios/Classes/private/TemplateModels/Template+Private.h",
+    "ios/Headers/Logger/NLELogger_OC.h",
+    "ios/Headers/NLEAllKeyFrameInfo.h",
+    "ios/Headers/NLEBranch+iOS.h",
+    "ios/Headers/NLEChromaChannel+iOS.h",
+    "ios/Headers/NLECommit+iOS.h",
+    "ios/Headers/NLEEditor+iOS.h",
+    "ios/Headers/NLEEditorCommitContextProtocol.h",
+    "ios/Headers/NLEEffect+iOS.h",
+    "ios/Headers/NLEFilter+iOS.h",
+    "ios/Headers/NLEMVExternalAlgorithmResult+iOS.h",
+    "ios/Headers/NLEMask+iOS.h",
+    "ios/Headers/NLEModel+iOS.h",
+    "ios/Headers/NLENativeDefine.h",
+    "ios/Headers/NLENode+iOS.h",
+    "ios/Headers/NLEResourceAV+iOS.h",
+    "ios/Headers/NLEResourceNode+iOS.h",
+    "ios/Headers/NLEResourceSynchronizerImpl+iOS.h",
+    "ios/Headers/NLESegment+iOS.h",
+    "ios/Headers/NLESegmentAudio+iOS.h",
+    "ios/Headers/NLESegmentAudioLoudnessBalanceFilter+iOS.h",
+    "ios/Headers/NLESegmentAudioVolumeFilter+iOS.h",
+    "ios/Headers/NLESegmentChromaChannel+iOS.h",
+    "ios/Headers/NLESegmentComposerFilter+iOS.h",
+    "ios/Headers/NLESegmentEffect+iOS.h",
+    "ios/Headers/NLESegmentEmojiSticker+iOS.h",
+    "ios/Headers/NLESegmentFilter+iOS.h",
+    "ios/Headers/NLESegmentHDRFilter+iOS.h",
+    "ios/Headers/NLESegmentImage+iOS.h",
+    "ios/Headers/NLESegmentImageSticker+iOS.h",
+    "ios/Headers/NLESegmentImageVideoAnimation+iOS.h",
+    "ios/Headers/NLESegmentInfoSticker+iOS.h",
+    "ios/Headers/NLESegmentMV+iOS.h",
+    "ios/Headers/NLESegmentMask+iOS.h",
+    "ios/Headers/NLESegmentPlay+iOS.h",
+    "ios/Headers/NLESegmentSticker+iOS.h",
+    "ios/Headers/NLESegmentSubtitleSticker+iOS.h",
+    "ios/Headers/NLESegmentTextSticker+iOS.h",
+    "ios/Headers/NLESegmentTextTemplate+iOS.h",
+    "ios/Headers/NLESegmentTimeEffect+iOS.h",
+    "ios/Headers/NLESegmentTransition+iOS.h",
+    "ios/Headers/NLESegmentVideo+iOS.h",
+    "ios/Headers/NLESegmentVideoAnimation+iOS.h",
+    "ios/Headers/NLEStyCanvas+iOS.h",
+    "ios/Headers/NLEStyClip+iOS.h",
+    "ios/Headers/NLEStyCrop+iOS.h",
+    "ios/Headers/NLEStyStickerAnimation+iOS.h",
+    "ios/Headers/NLEStyleText+iOS.h",
+    "ios/Headers/NLETextTemplateClip+iOS.h",
+    "ios/Headers/NLETimeEffect+iOS.h",
+    "ios/Headers/NLETimeSpaceNode+iOS.h",
+    "ios/Headers/NLETimeSpaceNodeGroup+iOS.h",
+    "ios/Headers/NLETrack+iOS.h",
+    "ios/Headers/NLETrackAlgorithm+iOS.h",
+    "ios/Headers/NLETrackMV+iOS.h",
+    "ios/Headers/NLETrackSlot+iOS.h",
+    "ios/Headers/NLEVideoAnimation+iOS.h",
+    "ios/Headers/NLEVideoFrameModel+iOS.h",
+    "ios/Headers/Utils/NLECurveSpeedCalculator+iOS.h",
+    "ios/convert/HTSVideoData+Converter.h",
+    "ios/convert/HTSVideoDataConverterDefaultHolder.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Model_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/NLEPlatform/Aspectutils.h",
+    "pod_support/Headers/Private/NLEPlatform/CoordinateUtils.h",
+    "pod_support/Headers/Private/NLEPlatform/FileUtils.h",
+    "pod_support/Headers/Private/NLEPlatform/HTSVideoData+Converter.h",
+    "pod_support/Headers/Private/NLEPlatform/HTSVideoDataConverterDefaultHolder.h",
+    "pod_support/Headers/Private/NLEPlatform/ModuleLoader.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEAllKeyFrameInfo.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEAnimationType.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEArtistResourceProtocol.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEBranch+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEBranch.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEBranchListener.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEChangeListener.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEChromaChannel+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLECommit+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLECommit.h",
+    "pod_support/Headers/Private/NLEPlatform/NLECurveSpeedCalculator+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLECurveSpeedCalculator.h",
+    "pod_support/Headers/Private/NLEPlatform/NLECutsameResourceProtocol.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEDiffCalculator_OC.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEEditor+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEEditor.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEEditorCommitContextProtocol.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEEditorListener.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEEffect+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEError.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEFeature.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEFileDescriptor.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEFilter+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEInstantMode.h",
+    "pod_support/Headers/Private/NLEPlatform/NLELogger.h",
+    "pod_support/Headers/Private/NLEPlatform/NLELogger_OC.h",
+    "pod_support/Headers/Private/NLEPlatform/NLELokiResourceProtocol.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEMVExternalAlgorithmResult+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEManifest.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEMask+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEMeasure.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEMediaResourceProtocol.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEModel+Private.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEModel+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEMonitor.h",
+    "pod_support/Headers/Private/NLEPlatform/NLENativeDefine.h",
+    "pod_support/Headers/Private/NLEPlatform/NLENode+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLENode.h",
+    "pod_support/Headers/Private/NLEPlatform/NLENodeChangeInfo.h",
+    "pod_support/Headers/Private/NLEPlatform/NLENodeDecoder.h",
+    "pod_support/Headers/Private/NLEPlatform/NLENodeMacro.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEPropertyUtil.hpp",
+    "pod_support/Headers/Private/NLEPlatform/NLEResType.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEResourceAV+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEResourceFetchCallback.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEResourceHandler.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEResourceIdParser.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEResourceNode+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEResourceNode.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEResourceProtocol.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEResourcePubDefine.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEResourceSynchronizer.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEResourceSynchronizerImpl+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEResourceSynchronizerImpl.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEResourceUtil.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegment+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentAudio+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentAudioLoudnessBalanceFilter+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentAudioVolumeFilter+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentChromaChannel+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentComposerFilter+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentEffect+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentEmojiSticker+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentFilter+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentHDRFilter+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentImage+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentImageSticker+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentImageVideoAnimation+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentInfoSticker+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentMV+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentMask+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentPlay+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentSticker+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentSubtitleSticker+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentTextSticker+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentTextTemplate+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentTimeEffect+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentTransition+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentVideo+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentVideoAnimation+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESequenceNode.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEStyCanvas+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEStyClip+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEStyCrop+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEStyStickerAnimation+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEStyle.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEStyleText+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETemplate+Private.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETextTemplateClip+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETimeEffect+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETimeSpaceNode+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETimeSpaceNodeGroup+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETimer.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETrack+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETrackAlgorithm+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETrackMV+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETrackSlot+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETrackType.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETypeConverter.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEUrlResourceProtocol.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEVideoAnimation+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEVideoFrameModel+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NSArray+NLE.h",
+    "pod_support/Headers/Private/NLEPlatform/NSDictionary+VEAdd.h",
+    "pod_support/Headers/Private/NLEPlatform/NSString+NLE.h",
+    "pod_support/Headers/Private/NLEPlatform/SharedPtrUtils.hpp",
+    "pod_support/Headers/Private/NLEPlatform/SwigDocExample.h",
+    "pod_support/Headers/Private/NLEPlatform/Template+Private.h",
+    "pod_support/Headers/Private/NLEPlatform/TimeUtils.h",
+    "pod_support/Headers/Private/NLEPlatform/TmpDir.h",
+    "pod_support/Headers/Private/NLEPlatform/Trace.h",
+    "pod_support/Headers/Private/NLEPlatform/UIColor+NLE.h",
+    "pod_support/Headers/Private/NLEPlatform/adl_serializer.hpp",
+    "pod_support/Headers/Private/NLEPlatform/binary_reader.hpp",
+    "pod_support/Headers/Private/NLEPlatform/binary_writer.hpp",
+    "pod_support/Headers/Private/NLEPlatform/cpp_future.hpp",
+    "pod_support/Headers/Private/NLEPlatform/detected.hpp",
+    "pod_support/Headers/Private/NLEPlatform/exceptions.hpp",
+    "pod_support/Headers/Private/NLEPlatform/from_json.hpp",
+    "pod_support/Headers/Private/NLEPlatform/hedley.hpp",
+    "pod_support/Headers/Private/NLEPlatform/hedley_undef.hpp",
+    "pod_support/Headers/Private/NLEPlatform/input_adapters.hpp",
+    "pod_support/Headers/Private/NLEPlatform/internal_iterator.hpp",
+    "pod_support/Headers/Private/NLEPlatform/is_sax.hpp",
+    "pod_support/Headers/Private/NLEPlatform/iter_impl.hpp",
+    "pod_support/Headers/Private/NLEPlatform/iteration_proxy.hpp",
+    "pod_support/Headers/Private/NLEPlatform/iterator_traits.hpp",
+    "pod_support/Headers/Private/NLEPlatform/json.hpp",
+    "pod_support/Headers/Private/NLEPlatform/json_forward.hpp",
+    "pod_support/Headers/Private/NLEPlatform/json_fwd.hpp",
+    "pod_support/Headers/Private/NLEPlatform/json_pointer.hpp",
+    "pod_support/Headers/Private/NLEPlatform/json_ref.hpp",
+    "pod_support/Headers/Private/NLEPlatform/json_reverse_iterator.hpp",
+    "pod_support/Headers/Private/NLEPlatform/json_sax.hpp",
+    "pod_support/Headers/Private/NLEPlatform/lexer.hpp",
+    "pod_support/Headers/Private/NLEPlatform/macro_scope.hpp",
+    "pod_support/Headers/Private/NLEPlatform/macro_unscope.hpp",
+    "pod_support/Headers/Private/NLEPlatform/nle_export.h",
+    "pod_support/Headers/Private/NLEPlatform/output_adapters.hpp",
+    "pod_support/Headers/Private/NLEPlatform/parser.hpp",
+    "pod_support/Headers/Private/NLEPlatform/path_util.h",
+    "pod_support/Headers/Private/NLEPlatform/position_t.hpp",
+    "pod_support/Headers/Private/NLEPlatform/primitive_iterator.hpp",
+    "pod_support/Headers/Private/NLEPlatform/serializer.hpp",
+    "pod_support/Headers/Private/NLEPlatform/sha1.hpp",
+    "pod_support/Headers/Private/NLEPlatform/string_util.h",
+    "pod_support/Headers/Private/NLEPlatform/to_chars.hpp",
+    "pod_support/Headers/Private/NLEPlatform/to_json.hpp",
+    "pod_support/Headers/Private/NLEPlatform/type_traits.hpp",
+    "pod_support/Headers/Private/NLEPlatform/uuid.h",
+    "pod_support/Headers/Private/NLEPlatform/value_t.hpp",
+    "pod_support/Headers/Private/NLEPlatform/void_t.hpp",
+    "pod_support/Headers/Public/NLEPlatform/HTSVideoData+Converter.h",
+    "pod_support/Headers/Public/NLEPlatform/HTSVideoDataConverterDefaultHolder.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEAllKeyFrameInfo.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEBranch+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEChromaChannel+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLECommit+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLECurveSpeedCalculator+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEEditor+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEEditorCommitContextProtocol.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEEffect+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEFilter+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLELogger_OC.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEMVExternalAlgorithmResult+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEMask+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEModel+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLENativeDefine.h",
+    "pod_support/Headers/Public/NLEPlatform/NLENode+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEResourceAV+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEResourceNode+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEResourceSynchronizerImpl+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegment+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentAudio+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentAudioLoudnessBalanceFilter+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentAudioVolumeFilter+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentChromaChannel+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentComposerFilter+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentEffect+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentEmojiSticker+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentFilter+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentHDRFilter+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentImage+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentImageSticker+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentImageVideoAnimation+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentInfoSticker+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentMV+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentMask+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentPlay+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentSticker+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentSubtitleSticker+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentTextSticker+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentTextTemplate+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentTimeEffect+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentTransition+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentVideo+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESegmentVideoAnimation+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEStyCanvas+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEStyClip+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEStyCrop+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEStyStickerAnimation+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEStyleText+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLETextTemplateClip+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLETimeEffect+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLETimeSpaceNode+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLETimeSpaceNodeGroup+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLETrack+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLETrackAlgorithm+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLETrackMV+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLETrackSlot+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEVideoAnimation+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEVideoFrameModel+iOS.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Model_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Model_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Model_module_map",
+  module_map = "pod_support/Headers/Public/NLEPlatform/NLEPlatform_Model-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/NLEPlatform/NLEPlatform_Model-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Model_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Model_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":NLEPlatform_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":NLEPlatform_private_includes",
+    ":NLEPlatform_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":NLEPlatform_Model_VendoredLibraries",
+    ":Model_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DNLEPlatform_POD_VERSION=@\\\"9999_2.3.1-alpha.0-lark\\\"",
+    "-D__V_IPHONE_PLATFORM__",
+    "-lc++",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=c++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Model",
+  deps = [
+    ":Model_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Model_lib",
+  deps = [
+    ":Model"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Resource_hdrs",
+  srcs = [
+    "core/resourcesdav/BlockDeque.h",
+    "core/resourcesdav/CountDownLatch.h",
+    "core/resourcesdav/DownloadMutex.h",
+    "core/resourcesdav/NLEModelDownloader.h",
+    "core/resourcesdav/NLEModelDownloaderParams.h",
+    "core/resourcesdav/NLEResourceDownloadCallback.h",
+    "core/resourcesdav/NLEResourceListDownloadCallback.h",
+    "core/resourcesdav/NLESingleResourceDownloadCallback.h",
+    "core/resourcesdav/ResourceUtil.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Resource_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/NLEPlatform/BlockDeque.h",
+    "pod_support/Headers/Private/NLEPlatform/CountDownLatch.h",
+    "pod_support/Headers/Private/NLEPlatform/DownloadMutex.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEModelDownloader.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEModelDownloaderParams.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEResourceDownloadCallback.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEResourceListDownloadCallback.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESingleResourceDownloadCallback.h",
+    "pod_support/Headers/Private/NLEPlatform/ResourceUtil.h",
+    "pod_support/Headers/Public/NLEPlatform/BlockDeque.h",
+    "pod_support/Headers/Public/NLEPlatform/CountDownLatch.h",
+    "pod_support/Headers/Public/NLEPlatform/DownloadMutex.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEModelDownloader.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEModelDownloaderParams.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEResourceDownloadCallback.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEResourceListDownloadCallback.h",
+    "pod_support/Headers/Public/NLEPlatform/NLESingleResourceDownloadCallback.h",
+    "pod_support/Headers/Public/NLEPlatform/ResourceUtil.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Resource_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Resource_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Resource_module_map",
+  module_map = "pod_support/Headers/Public/NLEPlatform/NLEPlatform_Resource-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/NLEPlatform/NLEPlatform_Resource-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Resource_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Resource_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":NLEPlatform_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":NLEPlatform_private_includes",
+    ":NLEPlatform_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@DavinciResource//:DavinciResource_objc_interface",
+    "@DavinciResource//:DavinciResource_swift_interface",
+    ":NLEPlatform_Resource_VendoredLibraries",
+    ":Resource_objc_interface",
+    "@DavinciResource//:DavinciResource_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DNLEPlatform_POD_VERSION=@\\\"9999_2.3.1-alpha.0-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Resource",
+  deps = [
+    ":Resource_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Resource_lib",
+  deps = [
+    ":Resource"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Adapter_hdrs",
+  srcs = [
+    "ios/Classes/Utils/CGFloat+NLE.h",
+    "ios/Classes/Utils/CGSize+NLE.h",
+    "ios/Classes/Utils/IESMMCanvasSource+NLE.h",
+    "ios/Classes/Utils/NLECurveTransUtil.h",
+    "ios/Classes/Utils/NLEDataPackager.h",
+    "ios/Classes/Utils/NLEFileManager.h",
+    "ios/Classes/Utils/NLEGeometryTool.h",
+    "ios/Classes/Utils/NLEKeyFrameUtil.h",
+    "ios/Classes/Utils/NLEMacros.h",
+    "ios/Classes/Utils/NLEPathUtilities.h",
+    "ios/Classes/Utils/NLEResourceFinder.h",
+    "ios/Classes/Utils/NLEResourceFinderProtocol.h",
+    "ios/Classes/Utils/NLESegmentAudioUtil.h",
+    "ios/Classes/Utils/NLESegmentVideoUtil.h",
+    "ios/Classes/Utils/NLETools.h",
+    "ios/Classes/Utils/NLETrackUtil.h",
+    "ios/Classes/Utils/NLEVideoMaskUtil.h",
+    "ios/Classes/Utils/VETextPackager.h",
+    "ios/veadapter/DataSource/NLEBundleDataSource.h",
+    "ios/veadapter/Interface/NLEAudioSession.h",
+    "ios/veadapter/Interface/NLEBingoManager.h",
+    "ios/veadapter/Interface/NLECaptureOutput.h",
+    "ios/veadapter/Interface/NLEClipBeatResult.h",
+    "ios/veadapter/Interface/NLEEffectDrawer.h",
+    "ios/veadapter/Interface/NLEExportSession.h",
+    "ios/veadapter/Interface/NLEInterface.h",
+    "ios/veadapter/NLEConstDefinition.h",
+    "ios/veadapter/NLEProcessUnit.h",
+    "ios/veadapter/NLEStickerBox.h",
+    "ios/veadapter/NLETextTemplateInfo.h",
+    "ios/veadapter/NLEVEDataCache.h",
+    "ios/veadapter/NLEVideoDataUpdateInfo.h",
+    "ios/veadapter/Protocol/NLEVECallBackProtocol.h",
+    "ios/veadapter/Tools/NLEAudioSession_Private.h",
+    "ios/veadapter/Tools/NLECaptureOutput_Private.h",
+    "ios/veadapter/Tools/NLEEffectDrawer_Private.h",
+    "ios/veadapter/Tools/NLEExportSession_Private.h",
+    "ios/veadapter/VEEditorSession+NLE.h",
+    "ios/veadapter/VENativeWrapper+Audio.h",
+    "ios/veadapter/VENativeWrapper+Chroma.h",
+    "ios/veadapter/VENativeWrapper+Cover.h",
+    "ios/veadapter/VENativeWrapper+Effect.h",
+    "ios/veadapter/VENativeWrapper+Filter.h",
+    "ios/veadapter/VENativeWrapper+FilterAmazing.h",
+    "ios/veadapter/VENativeWrapper+FilterAudioPitch.h",
+    "ios/veadapter/VENativeWrapper+FilterKeyFrame.h",
+    "ios/veadapter/VENativeWrapper+FilterNormal.h",
+    "ios/veadapter/VENativeWrapper+MV.h",
+    "ios/veadapter/VENativeWrapper+Media.h",
+    "ios/veadapter/VENativeWrapper+MediaKeyframe.h",
+    "ios/veadapter/VENativeWrapper+Sticker.h",
+    "ios/veadapter/VENativeWrapper+Sync.h",
+    "ios/veadapter/VENativeWrapper+TimeEffect.h",
+    "ios/veadapter/VENativeWrapper+Transition.h",
+    "ios/veadapter/VENativeWrapper+VideoAnimation.h",
+    "ios/veadapter/VENativeWrapper+VideoEffect.h",
+    "ios/veadapter/VENativeWrapper+VideoMask.h",
+    "ios/veadapter/VENativeWrapper.h",
+    "ios/veadapter/VENativeWrapper_Private.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Adapter_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/NLEPlatform/CGFloat+NLE.h",
+    "pod_support/Headers/Private/NLEPlatform/CGSize+NLE.h",
+    "pod_support/Headers/Private/NLEPlatform/IESMMCanvasSource+NLE.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEAudioSession.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEAudioSession_Private.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEBingoManager.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEBundleDataSource.h",
+    "pod_support/Headers/Private/NLEPlatform/NLECaptureOutput.h",
+    "pod_support/Headers/Private/NLEPlatform/NLECaptureOutput_Private.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEClipBeatResult.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEConstDefinition.h",
+    "pod_support/Headers/Private/NLEPlatform/NLECurveTransUtil.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEDataPackager.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEEffectDrawer.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEEffectDrawer_Private.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEExportSession.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEExportSession_Private.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEFileManager.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEGeometryTool.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEInterface.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEKeyFrameUtil.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEMacros.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEPathUtilities.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEProcessUnit.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEResourceFinder.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEResourceFinderProtocol.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentAudioUtil.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentVideoUtil.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEStickerBox.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETextTemplateInfo.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETools.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETrackUtil.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEVECallBackProtocol.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEVEDataCache.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEVideoDataUpdateInfo.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEVideoMaskUtil.h",
+    "pod_support/Headers/Private/NLEPlatform/VEEditorSession+NLE.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+Audio.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+Chroma.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+Cover.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+Effect.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+Filter.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+FilterAmazing.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+FilterAudioPitch.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+FilterKeyFrame.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+FilterNormal.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+MV.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+Media.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+MediaKeyframe.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+Sticker.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+Sync.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+TimeEffect.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+Transition.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+VideoAnimation.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+VideoEffect.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+VideoMask.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper_Private.h",
+    "pod_support/Headers/Private/NLEPlatform/VETextPackager.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEBundleDataSource.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEConstDefinition.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEInterface.h",
+    "pod_support/Headers/Public/NLEPlatform/NLETextTemplateInfo.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEVECallBackProtocol.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Adapter_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Adapter_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Adapter_module_map",
+  module_map = "pod_support/Headers/Public/NLEPlatform/NLEPlatform_Adapter-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/NLEPlatform/NLEPlatform_Adapter-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Adapter_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Adapter_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":NLEPlatform_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":NLEPlatform_private_includes",
+    ":NLEPlatform_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTVideoEditor//:Core_objc_interface",
+    "@TTVideoEditor//:LVCutTemplate_objc_interface",
+    "@TTVideoEditor//:Core_swift_interface",
+    "@TTVideoEditor//:LVCutTemplate_swift_interface",
+    ":NLEPlatform_Adapter_VendoredLibraries",
+    ":Adapter_objc_interface",
+    "@TTVideoEditor//:Core_module_map",
+    "@TTVideoEditor//:LVCutTemplate_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DNLEPlatform_POD_VERSION=@\\\"9999_2.3.1-alpha.0-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Adapter",
+  deps = [
+    ":Adapter_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Adapter_lib",
+  deps = [
+    ":Adapter"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TOBAdapter_hdrs",
+  srcs = [
+    "ios/Classes/Utils/CGFloat+NLE.h",
+    "ios/Classes/Utils/CGSize+NLE.h",
+    "ios/Classes/Utils/IESMMCanvasSource+NLE.h",
+    "ios/Classes/Utils/NLECurveTransUtil.h",
+    "ios/Classes/Utils/NLEDataPackager.h",
+    "ios/Classes/Utils/NLEFileManager.h",
+    "ios/Classes/Utils/NLEGeometryTool.h",
+    "ios/Classes/Utils/NLEKeyFrameUtil.h",
+    "ios/Classes/Utils/NLEMacros.h",
+    "ios/Classes/Utils/NLEPathUtilities.h",
+    "ios/Classes/Utils/NLEResourceFinder.h",
+    "ios/Classes/Utils/NLEResourceFinderProtocol.h",
+    "ios/Classes/Utils/NLESegmentAudioUtil.h",
+    "ios/Classes/Utils/NLESegmentVideoUtil.h",
+    "ios/Classes/Utils/NLETools.h",
+    "ios/Classes/Utils/NLETrackUtil.h",
+    "ios/Classes/Utils/NLEVideoMaskUtil.h",
+    "ios/Classes/Utils/VETextPackager.h",
+    "ios/veadapter/DataSource/NLEBundleDataSource.h",
+    "ios/veadapter/Interface/NLEAudioSession.h",
+    "ios/veadapter/Interface/NLEBingoManager.h",
+    "ios/veadapter/Interface/NLECaptureOutput.h",
+    "ios/veadapter/Interface/NLEClipBeatResult.h",
+    "ios/veadapter/Interface/NLEEffectDrawer.h",
+    "ios/veadapter/Interface/NLEExportSession.h",
+    "ios/veadapter/Interface/NLEInterface.h",
+    "ios/veadapter/NLEConstDefinition.h",
+    "ios/veadapter/NLEProcessUnit.h",
+    "ios/veadapter/NLEStickerBox.h",
+    "ios/veadapter/NLETextTemplateInfo.h",
+    "ios/veadapter/NLEVEDataCache.h",
+    "ios/veadapter/NLEVideoDataUpdateInfo.h",
+    "ios/veadapter/Protocol/NLEVECallBackProtocol.h",
+    "ios/veadapter/Tools/NLEAudioSession_Private.h",
+    "ios/veadapter/Tools/NLECaptureOutput_Private.h",
+    "ios/veadapter/Tools/NLEEffectDrawer_Private.h",
+    "ios/veadapter/Tools/NLEExportSession_Private.h",
+    "ios/veadapter/VEEditorSession+NLE.h",
+    "ios/veadapter/VENativeWrapper+Audio.h",
+    "ios/veadapter/VENativeWrapper+Chroma.h",
+    "ios/veadapter/VENativeWrapper+Cover.h",
+    "ios/veadapter/VENativeWrapper+Effect.h",
+    "ios/veadapter/VENativeWrapper+Filter.h",
+    "ios/veadapter/VENativeWrapper+FilterAmazing.h",
+    "ios/veadapter/VENativeWrapper+FilterAudioPitch.h",
+    "ios/veadapter/VENativeWrapper+FilterKeyFrame.h",
+    "ios/veadapter/VENativeWrapper+FilterNormal.h",
+    "ios/veadapter/VENativeWrapper+MV.h",
+    "ios/veadapter/VENativeWrapper+Media.h",
+    "ios/veadapter/VENativeWrapper+MediaKeyframe.h",
+    "ios/veadapter/VENativeWrapper+Sticker.h",
+    "ios/veadapter/VENativeWrapper+Sync.h",
+    "ios/veadapter/VENativeWrapper+TimeEffect.h",
+    "ios/veadapter/VENativeWrapper+Transition.h",
+    "ios/veadapter/VENativeWrapper+VideoAnimation.h",
+    "ios/veadapter/VENativeWrapper+VideoEffect.h",
+    "ios/veadapter/VENativeWrapper+VideoMask.h",
+    "ios/veadapter/VENativeWrapper.h",
+    "ios/veadapter/VENativeWrapper_Private.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TOBAdapter_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/NLEPlatform/CGFloat+NLE.h",
+    "pod_support/Headers/Private/NLEPlatform/CGSize+NLE.h",
+    "pod_support/Headers/Private/NLEPlatform/IESMMCanvasSource+NLE.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEAudioSession.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEAudioSession_Private.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEBingoManager.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEBundleDataSource.h",
+    "pod_support/Headers/Private/NLEPlatform/NLECaptureOutput.h",
+    "pod_support/Headers/Private/NLEPlatform/NLECaptureOutput_Private.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEClipBeatResult.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEConstDefinition.h",
+    "pod_support/Headers/Private/NLEPlatform/NLECurveTransUtil.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEDataPackager.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEEffectDrawer.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEEffectDrawer_Private.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEExportSession.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEExportSession_Private.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEFileManager.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEGeometryTool.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEInterface.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEKeyFrameUtil.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEMacros.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEPathUtilities.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEProcessUnit.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEResourceFinder.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEResourceFinderProtocol.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentAudioUtil.h",
+    "pod_support/Headers/Private/NLEPlatform/NLESegmentVideoUtil.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEStickerBox.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETextTemplateInfo.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETools.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETrackUtil.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEVECallBackProtocol.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEVEDataCache.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEVideoDataUpdateInfo.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEVideoMaskUtil.h",
+    "pod_support/Headers/Private/NLEPlatform/VEEditorSession+NLE.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+Audio.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+Chroma.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+Cover.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+Effect.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+Filter.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+FilterAmazing.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+FilterAudioPitch.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+FilterKeyFrame.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+FilterNormal.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+MV.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+Media.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+MediaKeyframe.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+Sticker.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+Sync.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+TimeEffect.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+Transition.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+VideoAnimation.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+VideoEffect.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper+VideoMask.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper.h",
+    "pod_support/Headers/Private/NLEPlatform/VENativeWrapper_Private.h",
+    "pod_support/Headers/Private/NLEPlatform/VETextPackager.h",
+    "pod_support/Headers/Public/NLEPlatform/CGSize+NLE.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEBundleDataSource.h",
+    "pod_support/Headers/Public/NLEPlatform/NLECaptureOutput.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEConstDefinition.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEInterface.h",
+    "pod_support/Headers/Public/NLEPlatform/NLETextTemplateInfo.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEVECallBackProtocol.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TOBAdapter_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TOBAdapter_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TOBAdapter_module_map",
+  module_map = "pod_support/Headers/Public/NLEPlatform/NLEPlatform_TOBAdapter-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/NLEPlatform/NLEPlatform_TOBAdapter-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TOBAdapter_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "TOBAdapter_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":NLEPlatform_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":NLEPlatform_private_includes",
+    ":NLEPlatform_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTVideoEditor//:TTVideoEditor_objc_interface",
+    "@TTVideoEditor//:TTVideoEditor_swift_interface",
+    ":NLEPlatform_TOBAdapter_VendoredLibraries",
+    ":TOBAdapter_objc_interface",
+    "@TTVideoEditor//:TTVideoEditor_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DNLEPlatform_POD_VERSION=@\\\"9999_2.3.1-alpha.0-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TOBAdapter",
+  deps = [
+    ":TOBAdapter_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TOBAdapter_lib",
+  deps = [
+    ":TOBAdapter"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NLETemplate_hdrs",
+  srcs = [
+    "core/templatemodel/MVInfoModel.h",
+    "core/templatemodel/NLEContextProcessor.h",
+    "core/templatemodel/NLEMVTemplateModel.h",
+    "core/templatemodel/NLEMappingNode.h",
+    "core/templatemodel/NLETemplateEditor.h",
+    "core/templatemodel/NLETemplateFeature.h",
+    "core/templatemodel/NLETemplateManifest.h",
+    "core/templatemodel/NLETemplateModel.h",
+    "core/templatemodel/NLETemplateZipProgressHandler.h",
+    "core/templatemodel/TemplateConfig.h",
+    "core/templatemodel/TemplateInfo.h",
+    "core/templatemodel/TemplateVolumeUtils.h",
+    "core/thirdparty/zip/miniz.h",
+    "core/thirdparty/zip/zip.h",
+    "ios/Classes/TemplateModels/Models/NLEContextProcessor+iOS.h",
+    "ios/Classes/TemplateModels/Models/NLEMappingNode+iOS.h",
+    "ios/Classes/TemplateModels/Models/NLETemplateEditor+iOS.h",
+    "ios/Classes/TemplateModels/Models/NLETemplateModel+iOS.h",
+    "ios/Classes/TemplateModels/Models/TemplateConfig+iOS.h",
+    "ios/Classes/TemplateModels/Models/TemplateInfo+iOS.h",
+    "ios/Classes/TemplateModels/Models/TemplateNode+iOS.h",
+    "ios/Classes/TemplateModels/Utils/NLETemplateVolumeUtils+iOS.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NLETemplate_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/NLEPlatform/MVInfoModel.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEContextProcessor+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEContextProcessor.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEMVTemplateModel.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEMappingNode+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLEMappingNode.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETemplateEditor+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETemplateEditor.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETemplateFeature.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETemplateManifest.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETemplateModel+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETemplateModel.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETemplateVolumeUtils+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/NLETemplateZipProgressHandler.h",
+    "pod_support/Headers/Private/NLEPlatform/TemplateConfig+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/TemplateConfig.h",
+    "pod_support/Headers/Private/NLEPlatform/TemplateInfo+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/TemplateInfo.h",
+    "pod_support/Headers/Private/NLEPlatform/TemplateNode+iOS.h",
+    "pod_support/Headers/Private/NLEPlatform/TemplateVolumeUtils.h",
+    "pod_support/Headers/Private/NLEPlatform/miniz.h",
+    "pod_support/Headers/Private/NLEPlatform/zip.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEContextProcessor+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLEMappingNode+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLETemplateEditor+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLETemplateModel+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/NLETemplateVolumeUtils+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/TemplateConfig+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/TemplateInfo+iOS.h",
+    "pod_support/Headers/Public/NLEPlatform/TemplateNode+iOS.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "NLETemplate_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "NLETemplate_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "NLETemplate_module_map",
+  module_map = "pod_support/Headers/Public/NLEPlatform/NLEPlatform_NLETemplate-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/NLEPlatform/NLEPlatform_NLETemplate-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "NLETemplate_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "NLETemplate_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":NLEPlatform_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":NLEPlatform_private_includes",
+    ":NLEPlatform_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":NLEPlatform_NLETemplate_VendoredLibraries",
+    ":NLETemplate_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DNLEPlatform_POD_VERSION=@\\\"9999_2.3.1-alpha.0-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "NLETemplate",
+  deps = [
+    ":NLETemplate_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "NLETemplate_lib",
+  deps = [
+    ":NLETemplate"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_NLEPlatform_module_map",
+  module_map = "@NLEPlatform//:pod_support/Headers/Public/NLEPlatform/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@NLEPlatform//:pod_support/Headers/Public/NLEPlatform/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_NLEPlatform_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@NLEPlatform//:Adapter_objc_interface", "@NLEPlatform//:Model_objc_interface", "@NLEPlatform//:NLEPlatform_objc_interface", "@NLEPlatform//:NLETemplate_objc_interface", "@NLEPlatform//:Resource_objc_interface", "@NLEPlatform//:TOBAdapter_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_library")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_library(
+  name = "Lark_NLEPlatform",
+  target_name = "Lark",
+  module_name = "NLEPlatform",
+  hdrs = ["@NLEPlatform//:Adapter_pod_hdrs", "@NLEPlatform//:Model_pod_hdrs", "@NLEPlatform//:NLEPlatform_root_pod_hdrs", "@NLEPlatform//:NLETemplate_pod_hdrs", "@NLEPlatform//:Resource_pod_hdrs", "@NLEPlatform//:TOBAdapter_pod_hdrs"],
+  srcs = [],
+  non_arc_srcs = [],
+  deps = ["@NLEPlatform//:NLEPlatform_Adapter_VendoredLibraries", "@NLEPlatform//:NLEPlatform_Model_VendoredLibraries", "@NLEPlatform//:NLEPlatform_NLETemplate_VendoredLibraries", "@NLEPlatform//:NLEPlatform_Resource_VendoredLibraries", "@NLEPlatform//:NLEPlatform_TOBAdapter_VendoredLibraries"],
+  pod_deps = ["TTVideoEditor", "DavinciResource"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DNLEPlatform_POD_VERSION=@\\\"9999_2.3.1-alpha.0-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-D__V_IPHONE_PLATFORM__",
+    "-lc++",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "NLEPlatform_copts", []),
+  cxxopts = ["-std=c++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "NLEPlatform_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["UIKit", "Foundation", "JavaScriptCore"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "NLEPlatform_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "NLEPlatform_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "NLEPlatform_dynamic", False),
+  tags = getattr(defs_external_objc_library, "NLEPlatform_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("NLEPlatform", {}),
+  visibility = ["//visibility:public"],
+)

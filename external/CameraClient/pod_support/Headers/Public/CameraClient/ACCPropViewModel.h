@@ -1,0 +1,1 @@
+../../../../CameraClient/MVPComponents/Recorder/Sticker/ViewModel/ACCPropViewModel.h

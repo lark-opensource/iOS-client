@@ -1,0 +1,17 @@
+debug_dependency 'SnapKit', '5.0.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+
+debug_cocoapods do
+  pre_install "patch build settings", <<-'PRE_INSTALL'
+
+  installer.pod_targets.each do |pod_target|
+    attributes_hash = pod_target.root_spec.attributes_hash
+    pod_target_xcconfig = (attributes_hash['pod_target_xcconfig'] ||= {})
+
+    pod_target_xcconfig['SWIFT_VERSION'] = '5.1'
+    pod_target_xcconfig['IPHONEOS_DEPLOYMENT_TARGET'] = '11.0'
+    pod_target_xcconfig['WARNING_CFLAGS'] ||= []
+    pod_target_xcconfig['WARNING_CFLAGS'] += ['-Wno-nullability-completeness', '-Wno-nonnull']
+    pod_target_xcconfig['CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED'] = 'NO'
+  end
+  PRE_INSTALL
+end

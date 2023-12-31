@@ -1,0 +1,714 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "DavinciResource_pod_hdrs",
+  srcs = [
+    ":DavinciResource_root_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "DavinciResource_private_includes",
+  include = [
+    "external/DavinciResource/pod_support/Headers/Private/DavinciResource/"
+  ],
+  deps = [],
+  external_name = "DavinciResource"
+)
+gen_includes(
+  name = "DavinciResource_public_includes",
+  include = [
+    "external/DavinciResource/pod_support/Headers/Public/DavinciResource/"
+  ],
+  deps = [],
+  external_name = "DavinciResource"
+)
+filegroup(
+  name = "_DavinciResource_hdrs",
+  srcs = [
+    ":DavinciResource_root_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "DavinciResource_xcode_hmapsource",
+  hdrs = [
+    ":_DavinciResource_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "DavinciResource_xcode_hmap",
+  dep = ":DavinciResource_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/DavinciResource/*-bitsky-generated.modulemap", "pod_support/Headers/Public/DavinciResource/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "DavinciResource_custom_includes",
+  include = [
+    "external/DavinciResource/resource",
+    "external/DavinciResource/url_resource",
+    "external/DavinciResource/loki_resource",
+    "external/DavinciResource/algorithm_resource",
+    "external/DavinciResource/cbox/executor",
+    "external/DavinciResource/cbox/file",
+    "external/DavinciResource/base/thirdparty",
+    "external/DavinciResource/base/logger",
+    "external/DavinciResource/base/networker",
+    "external/DavinciResource/base/task",
+    "external/DavinciResource/base/downloader",
+    "external/DavinciResource/base/common_util",
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "DavinciResource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "DavinciResource_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":DavinciResource_xcode_hmap"
+  ],
+  external_name = "DavinciResource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DavinciResource_root_hdrs",
+  srcs = [
+    "algorithm_resource/AlgorithmConstantsDefine.h",
+    "algorithm_resource/AlgorithmDataModel.h",
+    "algorithm_resource/AlgorithmResourceConfig.h",
+    "algorithm_resource/AlgorithmResourceFinder.h",
+    "algorithm_resource/AlgorithmResourceGlobalSettings.h",
+    "algorithm_resource/AlgorithmResourceHandler.h",
+    "algorithm_resource/AlgorithmResourceParser.h",
+    "algorithm_resource/AlgorithmResourceProtocol.h",
+    "algorithm_resource/AlgorithmResourceUtils.h",
+    "algorithm_resource/IBuildInModelFinder.h",
+    "algorithm_resource/IRequirementsPeeker.h",
+    "algorithm_resource/ModelsInfoCache.h",
+    "algorithm_resource/task/DownloadModelTask.h",
+    "algorithm_resource/task/FetchModelInfoTask.h",
+    "base/common_util/lexical_cast.h",
+    "base/common_util/md5.h",
+    "base/common_util/string_util.h",
+    "base/downloader/DAVDownloader.h",
+    "base/logger/DavinciLogger.h",
+    "base/networker/DAVHTTPClientDelegate.h",
+    "base/networker/DAVHttpClient.h",
+    "base/networker/DAVHttpClientCallback.h",
+    "base/networker/DAVHttpClientDefine.h",
+    "base/networker/DAVNetworkCreator.h",
+    "base/task/BaseUrlFetcherTask.hpp",
+    "base/task/Bundle.h",
+    "base/task/ResponseChecker.h",
+    "base/task/Task.h",
+    "base/thirdparty/nlohmann/adl_serializer.hpp",
+    "base/thirdparty/nlohmann/detail/conversions/from_json.hpp",
+    "base/thirdparty/nlohmann/detail/conversions/to_chars.hpp",
+    "base/thirdparty/nlohmann/detail/conversions/to_json.hpp",
+    "base/thirdparty/nlohmann/detail/exceptions.hpp",
+    "base/thirdparty/nlohmann/detail/input/binary_reader.hpp",
+    "base/thirdparty/nlohmann/detail/input/input_adapters.hpp",
+    "base/thirdparty/nlohmann/detail/input/json_sax.hpp",
+    "base/thirdparty/nlohmann/detail/input/lexer.hpp",
+    "base/thirdparty/nlohmann/detail/input/parser.hpp",
+    "base/thirdparty/nlohmann/detail/input/position_t.hpp",
+    "base/thirdparty/nlohmann/detail/iterators/internal_iterator.hpp",
+    "base/thirdparty/nlohmann/detail/iterators/iter_impl.hpp",
+    "base/thirdparty/nlohmann/detail/iterators/iteration_proxy.hpp",
+    "base/thirdparty/nlohmann/detail/iterators/iterator_traits.hpp",
+    "base/thirdparty/nlohmann/detail/iterators/json_reverse_iterator.hpp",
+    "base/thirdparty/nlohmann/detail/iterators/primitive_iterator.hpp",
+    "base/thirdparty/nlohmann/detail/json_pointer.hpp",
+    "base/thirdparty/nlohmann/detail/json_ref.hpp",
+    "base/thirdparty/nlohmann/detail/macro_scope.hpp",
+    "base/thirdparty/nlohmann/detail/macro_unscope.hpp",
+    "base/thirdparty/nlohmann/detail/meta/cpp_future.hpp",
+    "base/thirdparty/nlohmann/detail/meta/detected.hpp",
+    "base/thirdparty/nlohmann/detail/meta/is_sax.hpp",
+    "base/thirdparty/nlohmann/detail/meta/type_traits.hpp",
+    "base/thirdparty/nlohmann/detail/meta/void_t.hpp",
+    "base/thirdparty/nlohmann/detail/output/binary_writer.hpp",
+    "base/thirdparty/nlohmann/detail/output/output_adapters.hpp",
+    "base/thirdparty/nlohmann/detail/output/serializer.hpp",
+    "base/thirdparty/nlohmann/detail/value_t.hpp",
+    "base/thirdparty/nlohmann/json.hpp",
+    "base/thirdparty/nlohmann/json_fwd.hpp",
+    "base/thirdparty/nlohmann/thirdparty/hedley/hedley.hpp",
+    "base/thirdparty/nlohmann/thirdparty/hedley/hedley_undef.hpp",
+    "cbox/cbox/executor/DAVExecutorExport.h",
+    "cbox/cbox/executor/DAVTaskQueue.h",
+    "cbox/cbox/executor/DAVThread.h",
+    "cbox/cbox/executor/DAVThreadPool.h",
+    "cbox/cbox/executor/DefaultExecutor.h",
+    "cbox/cbox/executor/Executor.h",
+    "cbox/cbox/executor/ExecutorCreator.h",
+    "cbox/cbox/executor/IdGenerator.h",
+    "cbox/cbox/file/DAVFile.h",
+    "cbox/cbox/file/DAVFileExport.h",
+    "cbox/cbox/file/file_platform.h",
+    "cbox/cbox/file/miniz.h",
+    "cbox/cbox/file/zip.h",
+    "loki_resource/LokiConstanceDefine.h",
+    "loki_resource/LokiDataModel.h",
+    "loki_resource/LokiResource.h",
+    "loki_resource/LokiResourceConfig.h",
+    "loki_resource/LokiResourceHandler.h",
+    "loki_resource/LokiResourceUtils.h",
+    "loki_resource/task/DownloadEffectTask.h",
+    "loki_resource/task/FetchEffectsInfoTask.h",
+    "loki_resource/task/FetchRequiredModelsTask.h",
+    "resource/DAVCreator.h",
+    "resource/DAVPubDefine.h",
+    "resource/DAVPublicUtil.h",
+    "resource/DAVResource.h",
+    "resource/DAVResourceFetchCallback.h",
+    "resource/DAVResourceHandler.h",
+    "resource/DAVResourceIdParser.h",
+    "resource/DAVResourceManager.h",
+    "resource/DAVResourceProtocol.h",
+    "resource/DAVResourceTask.h",
+    "resource/json_forward.hpp",
+    "resource_impl/DefaultResourceManager.h",
+    "resource_impl/DefaultResourceTaskManager.h",
+    "url_resource/UrlResourceHandler.h",
+    "url_resource/UrlResourceProtocol.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DavinciResource_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/DavinciResource/AlgorithmConstantsDefine.h",
+    "pod_support/Headers/Private/DavinciResource/AlgorithmDataModel.h",
+    "pod_support/Headers/Private/DavinciResource/AlgorithmResourceConfig.h",
+    "pod_support/Headers/Private/DavinciResource/AlgorithmResourceFinder.h",
+    "pod_support/Headers/Private/DavinciResource/AlgorithmResourceGlobalSettings.h",
+    "pod_support/Headers/Private/DavinciResource/AlgorithmResourceHandler.h",
+    "pod_support/Headers/Private/DavinciResource/AlgorithmResourceParser.h",
+    "pod_support/Headers/Private/DavinciResource/AlgorithmResourceProtocol.h",
+    "pod_support/Headers/Private/DavinciResource/AlgorithmResourceUtils.h",
+    "pod_support/Headers/Private/DavinciResource/BaseUrlFetcherTask.hpp",
+    "pod_support/Headers/Private/DavinciResource/Bundle.h",
+    "pod_support/Headers/Private/DavinciResource/DAVCreator.h",
+    "pod_support/Headers/Private/DavinciResource/DAVDownloader.h",
+    "pod_support/Headers/Private/DavinciResource/DAVExecutorExport.h",
+    "pod_support/Headers/Private/DavinciResource/DAVFile.h",
+    "pod_support/Headers/Private/DavinciResource/DAVFileExport.h",
+    "pod_support/Headers/Private/DavinciResource/DAVHTTPClientDelegate.h",
+    "pod_support/Headers/Private/DavinciResource/DAVHttpClient.h",
+    "pod_support/Headers/Private/DavinciResource/DAVHttpClientCallback.h",
+    "pod_support/Headers/Private/DavinciResource/DAVHttpClientDefine.h",
+    "pod_support/Headers/Private/DavinciResource/DAVNetworkCreator.h",
+    "pod_support/Headers/Private/DavinciResource/DAVPubDefine.h",
+    "pod_support/Headers/Private/DavinciResource/DAVPublicUtil.h",
+    "pod_support/Headers/Private/DavinciResource/DAVResource.h",
+    "pod_support/Headers/Private/DavinciResource/DAVResourceFetchCallback.h",
+    "pod_support/Headers/Private/DavinciResource/DAVResourceHandler.h",
+    "pod_support/Headers/Private/DavinciResource/DAVResourceIdParser.h",
+    "pod_support/Headers/Private/DavinciResource/DAVResourceManager.h",
+    "pod_support/Headers/Private/DavinciResource/DAVResourceProtocol.h",
+    "pod_support/Headers/Private/DavinciResource/DAVResourceTask.h",
+    "pod_support/Headers/Private/DavinciResource/DAVTaskQueue.h",
+    "pod_support/Headers/Private/DavinciResource/DAVThread.h",
+    "pod_support/Headers/Private/DavinciResource/DAVThreadPool.h",
+    "pod_support/Headers/Private/DavinciResource/DavinciLogger.h",
+    "pod_support/Headers/Private/DavinciResource/DefaultExecutor.h",
+    "pod_support/Headers/Private/DavinciResource/DefaultResourceManager.h",
+    "pod_support/Headers/Private/DavinciResource/DefaultResourceTaskManager.h",
+    "pod_support/Headers/Private/DavinciResource/DownloadEffectTask.h",
+    "pod_support/Headers/Private/DavinciResource/DownloadModelTask.h",
+    "pod_support/Headers/Private/DavinciResource/Executor.h",
+    "pod_support/Headers/Private/DavinciResource/ExecutorCreator.h",
+    "pod_support/Headers/Private/DavinciResource/FetchEffectsInfoTask.h",
+    "pod_support/Headers/Private/DavinciResource/FetchModelInfoTask.h",
+    "pod_support/Headers/Private/DavinciResource/FetchRequiredModelsTask.h",
+    "pod_support/Headers/Private/DavinciResource/IBuildInModelFinder.h",
+    "pod_support/Headers/Private/DavinciResource/IRequirementsPeeker.h",
+    "pod_support/Headers/Private/DavinciResource/IdGenerator.h",
+    "pod_support/Headers/Private/DavinciResource/LokiConstanceDefine.h",
+    "pod_support/Headers/Private/DavinciResource/LokiDataModel.h",
+    "pod_support/Headers/Private/DavinciResource/LokiResource.h",
+    "pod_support/Headers/Private/DavinciResource/LokiResourceConfig.h",
+    "pod_support/Headers/Private/DavinciResource/LokiResourceHandler.h",
+    "pod_support/Headers/Private/DavinciResource/LokiResourceUtils.h",
+    "pod_support/Headers/Private/DavinciResource/ModelsInfoCache.h",
+    "pod_support/Headers/Private/DavinciResource/ResponseChecker.h",
+    "pod_support/Headers/Private/DavinciResource/Task.h",
+    "pod_support/Headers/Private/DavinciResource/UrlResourceHandler.h",
+    "pod_support/Headers/Private/DavinciResource/UrlResourceProtocol.h",
+    "pod_support/Headers/Private/DavinciResource/adl_serializer.hpp",
+    "pod_support/Headers/Private/DavinciResource/binary_reader.hpp",
+    "pod_support/Headers/Private/DavinciResource/binary_writer.hpp",
+    "pod_support/Headers/Private/DavinciResource/cpp_future.hpp",
+    "pod_support/Headers/Private/DavinciResource/detected.hpp",
+    "pod_support/Headers/Private/DavinciResource/exceptions.hpp",
+    "pod_support/Headers/Private/DavinciResource/file_platform.h",
+    "pod_support/Headers/Private/DavinciResource/from_json.hpp",
+    "pod_support/Headers/Private/DavinciResource/hedley.hpp",
+    "pod_support/Headers/Private/DavinciResource/hedley_undef.hpp",
+    "pod_support/Headers/Private/DavinciResource/input_adapters.hpp",
+    "pod_support/Headers/Private/DavinciResource/internal_iterator.hpp",
+    "pod_support/Headers/Private/DavinciResource/is_sax.hpp",
+    "pod_support/Headers/Private/DavinciResource/iter_impl.hpp",
+    "pod_support/Headers/Private/DavinciResource/iteration_proxy.hpp",
+    "pod_support/Headers/Private/DavinciResource/iterator_traits.hpp",
+    "pod_support/Headers/Private/DavinciResource/json.hpp",
+    "pod_support/Headers/Private/DavinciResource/json_forward.hpp",
+    "pod_support/Headers/Private/DavinciResource/json_fwd.hpp",
+    "pod_support/Headers/Private/DavinciResource/json_pointer.hpp",
+    "pod_support/Headers/Private/DavinciResource/json_ref.hpp",
+    "pod_support/Headers/Private/DavinciResource/json_reverse_iterator.hpp",
+    "pod_support/Headers/Private/DavinciResource/json_sax.hpp",
+    "pod_support/Headers/Private/DavinciResource/lexer.hpp",
+    "pod_support/Headers/Private/DavinciResource/lexical_cast.h",
+    "pod_support/Headers/Private/DavinciResource/macro_scope.hpp",
+    "pod_support/Headers/Private/DavinciResource/macro_unscope.hpp",
+    "pod_support/Headers/Private/DavinciResource/md5.h",
+    "pod_support/Headers/Private/DavinciResource/miniz.h",
+    "pod_support/Headers/Private/DavinciResource/output_adapters.hpp",
+    "pod_support/Headers/Private/DavinciResource/parser.hpp",
+    "pod_support/Headers/Private/DavinciResource/position_t.hpp",
+    "pod_support/Headers/Private/DavinciResource/primitive_iterator.hpp",
+    "pod_support/Headers/Private/DavinciResource/serializer.hpp",
+    "pod_support/Headers/Private/DavinciResource/string_util.h",
+    "pod_support/Headers/Private/DavinciResource/to_chars.hpp",
+    "pod_support/Headers/Private/DavinciResource/to_json.hpp",
+    "pod_support/Headers/Private/DavinciResource/type_traits.hpp",
+    "pod_support/Headers/Private/DavinciResource/value_t.hpp",
+    "pod_support/Headers/Private/DavinciResource/void_t.hpp",
+    "pod_support/Headers/Private/DavinciResource/zip.h",
+    "pod_support/Headers/Public/DavinciResource/AlgorithmResourceConfig.h",
+    "pod_support/Headers/Public/DavinciResource/AlgorithmResourceGlobalSettings.h",
+    "pod_support/Headers/Public/DavinciResource/AlgorithmResourceHandler.h",
+    "pod_support/Headers/Public/DavinciResource/AlgorithmResourceProtocol.h",
+    "pod_support/Headers/Public/DavinciResource/DAVCreator.h",
+    "pod_support/Headers/Public/DavinciResource/DAVExecutorExport.h",
+    "pod_support/Headers/Public/DavinciResource/DAVFile.h",
+    "pod_support/Headers/Public/DavinciResource/DAVFileExport.h",
+    "pod_support/Headers/Public/DavinciResource/DAVHTTPClientDelegate.h",
+    "pod_support/Headers/Public/DavinciResource/DAVHttpClient.h",
+    "pod_support/Headers/Public/DavinciResource/DAVHttpClientCallback.h",
+    "pod_support/Headers/Public/DavinciResource/DAVHttpClientDefine.h",
+    "pod_support/Headers/Public/DavinciResource/DAVNetworkCreator.h",
+    "pod_support/Headers/Public/DavinciResource/DAVPubDefine.h",
+    "pod_support/Headers/Public/DavinciResource/DAVPublicUtil.h",
+    "pod_support/Headers/Public/DavinciResource/DAVResource.h",
+    "pod_support/Headers/Public/DavinciResource/DAVResourceFetchCallback.h",
+    "pod_support/Headers/Public/DavinciResource/DAVResourceHandler.h",
+    "pod_support/Headers/Public/DavinciResource/DAVResourceIdParser.h",
+    "pod_support/Headers/Public/DavinciResource/DAVResourceManager.h",
+    "pod_support/Headers/Public/DavinciResource/DAVResourceProtocol.h",
+    "pod_support/Headers/Public/DavinciResource/DAVResourceTask.h",
+    "pod_support/Headers/Public/DavinciResource/DAVTaskQueue.h",
+    "pod_support/Headers/Public/DavinciResource/DAVThread.h",
+    "pod_support/Headers/Public/DavinciResource/DAVThreadPool.h",
+    "pod_support/Headers/Public/DavinciResource/DefaultExecutor.h",
+    "pod_support/Headers/Public/DavinciResource/Executor.h",
+    "pod_support/Headers/Public/DavinciResource/ExecutorCreator.h",
+    "pod_support/Headers/Public/DavinciResource/IBuildInModelFinder.h",
+    "pod_support/Headers/Public/DavinciResource/IRequirementsPeeker.h",
+    "pod_support/Headers/Public/DavinciResource/IdGenerator.h",
+    "pod_support/Headers/Public/DavinciResource/LokiResource.h",
+    "pod_support/Headers/Public/DavinciResource/LokiResourceConfig.h",
+    "pod_support/Headers/Public/DavinciResource/LokiResourceHandler.h",
+    "pod_support/Headers/Public/DavinciResource/UrlResourceHandler.h",
+    "pod_support/Headers/Public/DavinciResource/UrlResourceProtocol.h",
+    "pod_support/Headers/Public/DavinciResource/file_platform.h",
+    "pod_support/Headers/Public/DavinciResource/json_forward.hpp",
+    "pod_support/Headers/Public/DavinciResource/miniz.h",
+    "pod_support/Headers/Public/DavinciResource/zip.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DavinciResource_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DavinciResource_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "DavinciResource_module_map",
+  module_map = "pod_support/Headers/Public/DavinciResource/DavinciResource-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/DavinciResource/DavinciResource-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DavinciResource_root_srcs",
+  srcs = [
+    "algorithm_resource/AlgorithmConstantsDefine.cpp",
+    "algorithm_resource/AlgorithmDataModel.cpp",
+    "algorithm_resource/AlgorithmResourceConfig.cpp",
+    "algorithm_resource/AlgorithmResourceFinder.cpp",
+    "algorithm_resource/AlgorithmResourceGlobalSettings.cpp",
+    "algorithm_resource/AlgorithmResourceHandler.cpp",
+    "algorithm_resource/AlgorithmResourceParser.cpp",
+    "algorithm_resource/AlgorithmResourceProtocol.cpp",
+    "algorithm_resource/AlgorithmResourceUtils.cpp",
+    "base/task/Bundle.cpp",
+    "resource_impl/DAVCreator.cpp",
+    "base/downloader/DAVDownloader.cpp",
+    "cbox/cbox/file/DAVFile.cpp",
+    "base/networker/DAVHttpClient.cpp",
+    "base/logger/DavinciLogger.cpp",
+    "base/networker/DAVNetworkCreator.cpp",
+    "resource_impl/DAVPublicUtil.cpp",
+    "resource_impl/DAVResource.cpp",
+    "resource_impl/DAVResourceIdParser.cpp",
+    "resource_impl/DAVResourceProtocol.cpp",
+    "cbox/cbox/executor/DAVThread.cpp",
+    "cbox/cbox/executor/DefaultExecutor.cpp",
+    "resource_impl/DefaultResourceManager.cpp",
+    "resource_impl/DefaultResourceTaskManager.cpp",
+    "loki_resource/task/DownloadEffectTask.cpp",
+    "algorithm_resource/task/DownloadModelTask.cpp",
+    "cbox/cbox/executor/ExecutorCreator.cpp",
+    "loki_resource/task/FetchEffectsInfoTask.cpp",
+    "algorithm_resource/task/FetchModelInfoTask.cpp",
+    "loki_resource/task/FetchRequiredModelsTask.cpp",
+    "cbox/cbox/file/file_platform.cpp",
+    "cbox/cbox/executor/IdGenerator.cpp",
+    "loki_resource/LokiConstanceDefine.cpp",
+    "loki_resource/LokiDataModel.cpp",
+    "loki_resource/LokiResource.cpp",
+    "loki_resource/LokiResourceConfig.cpp",
+    "loki_resource/LokiResourceHandler.cpp",
+    "loki_resource/LokiResourceUtils.cpp",
+    "base/common_util/md5.c",
+    "algorithm_resource/ModelsInfoCache.cpp",
+    "base/common_util/string_util.cpp",
+    "base/task/Task.cpp",
+    "url_resource/UrlResourceHandler.cpp",
+    "url_resource/UrlResourceProtocol.cpp",
+    "cbox/cbox/file/zip.c"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DavinciResource_oc",
+  enable_modules = 1,
+  srcs = [
+    "DavinciResource_root_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "DavinciResource_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":DavinciResource_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":DavinciResource_private_includes",
+    ":DavinciResource_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":DavinciResource_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-D__V_IPHONE_PLATFORM__",
+    "-DDavinciResource_POD_VERSION=@\\\"9999_0.0.29-alpha.0\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=c++14",
+    "-stdlib=libc++"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DavinciResource",
+  deps = [
+    ":DavinciResource_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "DavinciResource_lib",
+  deps = [
+    ":DavinciResource"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_DavinciResource_module_map",
+  module_map = "@DavinciResource//:pod_support/Headers/Public/DavinciResource/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@DavinciResource//:pod_support/Headers/Public/DavinciResource/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_DavinciResource_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@DavinciResource//:DavinciResource_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_DavinciResource",
+  target_name = "Lark",
+  module_name = "DavinciResource",
+  hdrs = ["@DavinciResource//:DavinciResource_root_pod_hdrs"],
+  srcs = ["@DavinciResource//:DavinciResource_root_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-D__V_IPHONE_PLATFORM__",
+    "-DDavinciResource_POD_VERSION=@\\\"9999_0.0.29-alpha.0\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "DavinciResource_copts", []),
+  cxxopts = ["-std=c++14", "-stdlib=libc++", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "DavinciResource_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "DavinciResource_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "DavinciResource_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "DavinciResource_dynamic", False),
+  tags = getattr(defs_external_objc_library, "DavinciResource_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("DavinciResource", {}),
+  visibility = ["//visibility:public"],
+)

@@ -1,0 +1,1 @@
+../../../../../../Lynx/starlight/style/background_data.h

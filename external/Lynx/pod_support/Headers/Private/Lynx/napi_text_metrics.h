@@ -1,0 +1,1 @@
+../../../../third_party/krypton/jsbridge/bindings/canvas/napi_text_metrics.h

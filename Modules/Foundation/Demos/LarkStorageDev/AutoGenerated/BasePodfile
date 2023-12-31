@@ -1,0 +1,85 @@
+require 'EEScaffold'
+
+ios_client_root = '../../../../..'
+require_relative "#{ios_client_root}/if_pod.rb"
+
+lark_project_root = ios_client_root + "/bin/lib/lark-project/lib"
+require_relative "#{lark_project_root}/lark/project/podfile_mixin"
+require_relative "#{lark_project_root}/lark/project/lark_assert"
+require_relative "#{lark_project_root}/lark/project/assembly"
+require_relative "#{lark_project_root}/lark/demo"
+
+module Pod
+  class Podfile
+    # 推荐使用 `lark_demo` 来对 demo 进行配置
+    def lark_demo
+      @lark_demo ||= LarkDemo.new(self)
+    end
+  end
+
+  # 集中存放/管理 Demo 内的相关配置
+  class LarkDemo
+    def initialize(podfile)
+      @podfile = podfile
+    end
+
+    # 使用 strict mode
+    def use_strict_mode!
+      @podfile.strict_lock_mode!
+    end
+
+    alias :use_strict_lock! :use_strict_mode!
+
+    # 禁止 swift lint
+    def disable_swiftlint!
+      @podfile.disable_swiftlint! if @podfile.respond_to?(:disable_swiftlint!)
+    end
+
+    # 二进制配置
+    #
+    # @param strategy:
+    #   :all 开启全部二进制(默认)
+    #   :pb 只有PB开启二进制
+    #   other 手动开启二进制
+    # @yieldself [Pod::PodfilePatch] additional config
+    def config_binary(strategy: :all, &block)
+      @podfile.lark_use_common_binary_config(strategy: strategy, &block)
+    end
+
+    # 同步 if_pod
+    def sync_if_pods
+      @podfile.lark_main_target_if_pods
+    end
+
+    alias :use_if_pods! :sync_if_pods
+
+    def base_setup
+      # common setup
+      @podfile.lark_build_for_all_arch!
+
+      hummer_tags = {}
+      hummer_tags["COCOAPODS_LINK_POD_CACHE"] = 1 if Lark::Misc.true? ENV['COCOAPODS_LINK_POD_CACHE']
+      hummer_tags["COCOAPODS_INTEGRATE_SPECIFIC_TARGETS"] = 1 if Lark::Misc.true? ENV['COCOAPODS_INTEGRATE_SPECIFIC_TARGETS']
+      @podfile.lark_template_common_setup(hummer_tags: hummer_tags)
+    end
+
+    # @param installer [Pod::Installer]
+    def base_pre_install(installer)
+      @podfile.lark_template_common_pre_install installer
+    end
+
+    # @param installer [Pod::Installer]
+    def base_post_install(installer)
+      @podfile.lark_template_common_post_install installer
+
+      # 自动收集 Assembly，生成/更新 BaseAssembly.swift
+      file_path = Pathname.new(__dir__).join('BaseAssembly.swift')
+      Lark::Project::Assembly::rebuild(installer, file_path: file_path, use_v2: true)
+    end
+
+    def base_flush
+      # Podfile 结束 eval 前需要执行的一些代码，目前是引用 if_pod 的集成需要延后生效
+      @podfile.flush_defer_actions!
+    end
+  end
+end

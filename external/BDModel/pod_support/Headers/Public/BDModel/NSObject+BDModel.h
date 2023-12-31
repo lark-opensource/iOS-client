@@ -1,0 +1,1 @@
+../../../../BDModel/Classes/NSObject+BDModel.h

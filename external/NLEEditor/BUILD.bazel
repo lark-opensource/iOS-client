@@ -1,0 +1,1435 @@
+load('@build_bazel_rules_apple//apple:resources.bzl', 'apple_resource_bundle', 'gen_bundle_plist')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "NLEEditor_pod_hdrs",
+  srcs = [
+    ":NLEEditor_root_pod_hdrs",
+    ":EditorArch_pod_hdrs",
+    ":LiteEditor_pod_hdrs",
+    ":Adapter_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "NLEEditor_private_includes",
+  include = [
+    "external/NLEEditor/pod_support/Headers/Private/NLEEditor/"
+  ],
+  deps = [],
+  external_name = "NLEEditor"
+)
+gen_includes(
+  name = "NLEEditor_public_includes",
+  include = [
+    "external/NLEEditor/pod_support/Headers/Public/NLEEditor/"
+  ],
+  deps = [],
+  external_name = "NLEEditor"
+)
+filegroup(
+  name = "_NLEEditor_hdrs",
+  srcs = [
+    ":NLEEditor_root_hdrs",
+    ":EditorArch_hdrs",
+    ":LiteEditor_hdrs",
+    ":Adapter_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "NLEEditor_xcode_hmapsource",
+  hdrs = [
+    ":NLEEditor_root_hdrs",
+    ":Adapter_hdrs",
+    ":EditorArch_hdrs",
+    ":LiteEditor_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "NLEEditor_xcode_hmap",
+  dep = ":NLEEditor_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/NLEEditor/*-bitsky-generated.modulemap", "pod_support/Headers/Public/NLEEditor/*-bitsky-generated-umbrella.h"]))
+gen_bundle_plist(
+  name = "GEN_EditorArch_Plist",
+  bundle_name = "EditorArch",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "0.0.0",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "NLEEditor_EditorArch_EditorArch",
+  bundle_name = "EditorArch",
+  infoplists = [
+    ":GEN_EditorArch_Plist"
+  ],
+  resources = glob(
+    [
+      "NLEEditor/Assets/EditorArch/EditorArch.xcassets/**"
+    ]
+  ) + [
+    "NLEEditor/Assets/styles/color.json",
+    "NLEEditor/Assets/styles/config.json",
+    "NLEEditor/Assets/styles/font.json",
+    "NLEEditor/Assets/styles/layout.json",
+    "NLEEditor/Assets/lottie/lv_loading_s.json",
+    "NLEEditor/Assets/lottie/music(old).json",
+    "NLEEditor/Assets/lottie/loading.json",
+    "NLEEditor/Assets/lottie/lv_loading_L.json",
+    "NLEEditor/Assets/lottie/lv_loading_L_light.json",
+    "NLEEditor/Assets/lottie/lv_loading_s_light.json"
+  ],
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "NLEEditor_EditorArch_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libNLEEditor_EditorArch_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_bundle_plist(
+  name = "GEN_DVELiteEditor_Plist",
+  bundle_name = "DVELiteEditor",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "0.0.0",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "NLEEditor_LiteEditor_DVELiteEditor",
+  bundle_name = "DVELiteEditor",
+  infoplists = [
+    ":GEN_DVELiteEditor_Plist"
+  ],
+  resources = glob(
+    [
+      "NLEEditor/Assets/LiteEditor/LiteEditor.xcassets/**"
+    ]
+  ),
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "NLEEditor_LiteEditor_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libNLEEditor_LiteEditor_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "NLEEditor_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "NLEEditor",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "NLEEditor_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":NLEEditor_xcode_hmap"
+  ],
+  external_name = "NLEEditor",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NLEEditor_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NLEEditor_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "NLEEditor_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "NLEEditor_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "NLEEditor_module_map",
+  module_map = "pod_support/Headers/Public/NLEEditor/NLEEditor-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/NLEEditor/NLEEditor-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "NLEEditor_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "NLEEditor_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "xml2"
+  ],
+  deps = [
+    ":NLEEditor_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":NLEEditor_private_includes",
+    ":NLEEditor_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":NLEEditor_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DNLEEditor_POD_VERSION=@\\\"9999_0.0.0.511-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "NLEEditor",
+  deps = [
+    ":NLEEditor_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "NLEEditor_lib",
+  deps = [
+    ":NLEEditor"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EditorArch_hdrs",
+  srcs = [
+    "NLEEditor/Classes/EditorArch/Arch/Configuration/DVEBusinessConfiguration.h",
+    "NLEEditor/Classes/EditorArch/Arch/DI/Container/DVEGlobalServiceContainer.h",
+    "NLEEditor/Classes/EditorArch/Arch/DI/Container/DVEVCContextServiceContainer.h",
+    "NLEEditor/Classes/EditorArch/Arch/DI/Container/DVEVCContextServiceProvider.h",
+    "NLEEditor/Classes/EditorArch/Arch/DI/ServiceLocator/DVEServiceLocator.h",
+    "NLEEditor/Classes/EditorArch/Arch/VCContext/DVEVCContext.h",
+    "NLEEditor/Classes/EditorArch/Arch/VCContext/NLEWrapper/NLEEditor/DVENLEEditorProtocol.h",
+    "NLEEditor/Classes/EditorArch/Arch/VCContext/NLEWrapper/NLEEditor/DVENLEEditorWrapper.h",
+    "NLEEditor/Classes/EditorArch/Arch/VCContext/NLEWrapper/NLEInterface/DVENLEInterfaceProtocol.h",
+    "NLEEditor/Classes/EditorArch/Arch/VCContext/NLEWrapper/NLEInterface/DVENLEInterfaceWrapper.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/DVECoreProtocol.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/DVEEditorDoneEvent.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Editor/Canvas/DVECanvasEditor.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Editor/Canvas/DVECanvasEditorWrapper.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Editor/Canvas/DVECoreCanvasProtocol.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Editor/KeyFrame/DVECoreKeyFrameProtocol.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Editor/KeyFrame/DVEKeyFrameEditor.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Editor/KeyFrame/DVEKeyFrameEditorWrapper.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Editor/Slot/DVECoreSlotProtocol.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Editor/Slot/DVESlotEditor.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Editor/Slot/DVESlotEditorWrapper.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Editor/Sticker/DVECoreStickerProtocol.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Editor/Sticker/DVEStickerEditor.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Editor/Sticker/DVEStickerEditorWrapper.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Editor/Video/DVECoreVideoProtocol.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Editor/Video/DVEVideoEditor.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Editor/Video/DVEVideoEditorWrapper.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Service/ActionService/DVEActionService.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Service/ActionService/DVECoreActionServiceProtocol.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Service/DraftService/DVECoreDraftServiceProtocol.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Service/DraftService/DVEDraftService.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Service/ExportService/DVECoreExportServiceProtocol.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Service/ExportService/DVEExportService.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Service/ImportService/DVECoreImportServiceProtocol.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Service/ImportService/DVEImportService.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Service/PlayerService/DVEPlayerService.h",
+    "NLEEditor/Classes/EditorArch/EditorCore/Service/PlayerService/DVEPlayerServiceProtocol.h",
+    "NLEEditor/Classes/EditorArch/Model/Album/DVEAlbumResourcePickerModel.h",
+    "NLEEditor/Classes/EditorArch/Model/Bar/DVEBarComponentModel.h",
+    "NLEEditor/Classes/EditorArch/Model/Bar/DVEBarComponentProtocol.h",
+    "NLEEditor/Classes/EditorArch/Model/Draft/DataStore/DVEDataStorage.h",
+    "NLEEditor/Classes/EditorArch/Model/Draft/Model/DVEDraftModel.h",
+    "NLEEditor/Classes/EditorArch/Model/Draft/Protocol/DVEDraftModelProtocol.h",
+    "NLEEditor/Classes/EditorArch/Model/PickerView/DVEModuleBaseCategoryModel.h",
+    "NLEEditor/Classes/EditorArch/Model/Resource/DVEEffectCategory.h",
+    "NLEEditor/Classes/EditorArch/Model/Resource/DVEEffectValue.h",
+    "NLEEditor/Classes/EditorArch/Model/Text/DVETextParm.h",
+    "NLEEditor/Classes/EditorArch/ModuleInterface/Factory/DVEUIFactory.h",
+    "NLEEditor/Classes/EditorArch/ModuleInterface/InjectionLocator/DVEServiceInjectionLocator.h",
+    "NLEEditor/Classes/EditorArch/ModuleInterface/Protocol/InjectContainer/DVEGlobalExternalInjectProtocol.h",
+    "NLEEditor/Classes/EditorArch/ModuleInterface/Protocol/InjectContainer/DVEVCContextExternalInjectProtocol.h",
+    "NLEEditor/Classes/EditorArch/ModuleInterface/Protocol/InjectItems/DVEAlertProtocol.h",
+    "NLEEditor/Classes/EditorArch/ModuleInterface/Protocol/InjectItems/DVEEditorEventProtocol.h",
+    "NLEEditor/Classes/EditorArch/ModuleInterface/Protocol/InjectItems/DVELoadingProtocol.h",
+    "NLEEditor/Classes/EditorArch/ModuleInterface/Protocol/InjectItems/DVELoggerProtocol.h",
+    "NLEEditor/Classes/EditorArch/ModuleInterface/Protocol/InjectItems/DVEMusicResourceLoaderProtocol.h",
+    "NLEEditor/Classes/EditorArch/ModuleInterface/Protocol/InjectItems/DVEResourceCategoryModelProtocol.h",
+    "NLEEditor/Classes/EditorArch/ModuleInterface/Protocol/InjectItems/DVEResourceLoaderProtocol.h",
+    "NLEEditor/Classes/EditorArch/ModuleInterface/Protocol/InjectItems/DVEResourceModelProtocol.h",
+    "NLEEditor/Classes/EditorArch/ModuleInterface/Protocol/InjectItems/DVEResourceMusicCategoryModelProtocol.h",
+    "NLEEditor/Classes/EditorArch/ModuleInterface/Protocol/InjectItems/DVEResourceMusicModelProtocol.h",
+    "NLEEditor/Classes/EditorArch/ModuleInterface/Protocol/InjectItems/DVEResourcePickerProtocol.h",
+    "NLEEditor/Classes/EditorArch/ModuleInterface/Protocol/InjectItems/DVETextReaderModelProtocol.h",
+    "NLEEditor/Classes/EditorArch/ModuleInterface/Protocol/InjectItems/DVEToastProtocol.h",
+    "NLEEditor/Classes/EditorArch/UI/Base/DVEBaseBar.h",
+    "NLEEditor/Classes/EditorArch/UI/Base/DVEBaseView.h",
+    "NLEEditor/Classes/EditorArch/UI/Base/DVEEffectsBarBottomView.h",
+    "NLEEditor/Classes/EditorArch/UI/Base/DVEModuleBaseEmptyView.h",
+    "NLEEditor/Classes/EditorArch/UI/Base/DVEModuleBaseErrorView.h",
+    "NLEEditor/Classes/EditorArch/UI/Base/DVEModuleBaseOverlayView.h",
+    "NLEEditor/Classes/EditorArch/UI/ConfigKeyDefines/DVEConfigDefines.h",
+    "NLEEditor/Classes/EditorArch/UI/ConfigKeyDefines/DVEUIColorDefines.h",
+    "NLEEditor/Classes/EditorArch/UI/ConfigKeyDefines/DVEUIFontDefines.h",
+    "NLEEditor/Classes/EditorArch/UI/ConfigKeyDefines/DVEUILayoutDefines.h",
+    "NLEEditor/Classes/EditorArch/UI/DVEKit/Loading/DVEHUDCustomerView.h",
+    "NLEEditor/Classes/EditorArch/UI/DVEKit/Loading/DVELoading.h",
+    "NLEEditor/Classes/EditorArch/UI/DVEKit/Notification/DVENotification.h",
+    "NLEEditor/Classes/EditorArch/UI/DVEKit/Notification/DVENotificationAlertView.h",
+    "NLEEditor/Classes/EditorArch/UI/DVEKit/Notification/DVENotificationEditView.h",
+    "NLEEditor/Classes/EditorArch/UI/DVEKit/Notification/DVENotificationView.h",
+    "NLEEditor/Classes/EditorArch/UI/DVEKit/Slider/DVEBaseSlider.h",
+    "NLEEditor/Classes/EditorArch/UI/DVEKit/Slider/DVERangeSlider.h",
+    "NLEEditor/Classes/EditorArch/UI/DVEKit/Slider/DVEScaleSlider.h",
+    "NLEEditor/Classes/EditorArch/UI/DVEKit/Slider/DVEStepSlider.h",
+    "NLEEditor/Classes/EditorArch/UI/DVEKit/Toast/DVEToast.h",
+    "NLEEditor/Classes/EditorArch/UI/DVEKit/UIKit/DVETextInputHelper.h",
+    "NLEEditor/Classes/EditorArch/UI/DVEKit/UIKit/DVEUIConfig.h",
+    "NLEEditor/Classes/EditorArch/UI/DVEPickerView/DVELoadingView.h",
+    "NLEEditor/Classes/EditorArch/UI/DVEPickerView/DVEPickerBaseCell.h",
+    "NLEEditor/Classes/EditorArch/UI/DVEPickerView/DVEPickerCategoryBaseCell.h",
+    "NLEEditor/Classes/EditorArch/UI/DVEPickerView/DVEPickerCategoryTabView.h",
+    "NLEEditor/Classes/EditorArch/UI/DVEPickerView/DVEPickerCollectionViewCell.h",
+    "NLEEditor/Classes/EditorArch/UI/DVEPickerView/DVEPickerOverlayView.h",
+    "NLEEditor/Classes/EditorArch/UI/DVEPickerView/DVEPickerUIConfigurationProtocol.h",
+    "NLEEditor/Classes/EditorArch/UI/DVEPickerView/DVEPickerView.h",
+    "NLEEditor/Classes/EditorArch/UI/DVEPickerView/DVEPickerViewModels.h",
+    "NLEEditor/Classes/EditorArch/UI/Preview/DVEPreviewContainerView.h",
+    "NLEEditor/Classes/EditorArch/UI/Preview/DVEPreviewManager.h",
+    "NLEEditor/Classes/EditorArch/UI/Preview/DVEStickerEditBoxPlugin.h",
+    "NLEEditor/Classes/EditorArch/UI/Preview/DVETextEditBoxPlugin.h",
+    "NLEEditor/Classes/EditorArch/UI/Preview/Protocol/DVEEditBoxPluginManagerProtocol.h",
+    "NLEEditor/Classes/EditorArch/UI/Preview/Protocol/DVEEditBoxPluginProtocol.h",
+    "NLEEditor/Classes/EditorArch/UI/Preview/Protocol/DVEPreviewGestureListenerProtocol.h",
+    "NLEEditor/Classes/EditorArch/UI/Preview/Protocol/DVEPreviewManagerProtocol.h",
+    "NLEEditor/Classes/EditorArch/UI/Preview/Protocol/DVEPreviewPluginProtocol.h",
+    "NLEEditor/Classes/EditorArch/UI/Preview/ViewModel/DVEPreviewStickerViewModel.h",
+    "NLEEditor/Classes/EditorArch/UI/Preview/ViewModel/DVEPreviewTextViewModel.h",
+    "NLEEditor/Classes/EditorArch/Utils/DVEDataCache.h",
+    "NLEEditor/Classes/EditorArch/Utils/DVELoggerMacro.h",
+    "NLEEditor/Classes/EditorArch/Utils/Manager/DVEAlbumResourcePicker.h",
+    "NLEEditor/Classes/EditorArch/Utils/Manager/DVEBundleLoader.h",
+    "NLEEditor/Classes/EditorArch/Utils/Manager/DVEReportUtils.h",
+    "NLEEditor/Classes/EditorArch/Utils/NLESegmentTextSticker_OC+Text.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EditorArch_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/NLEEditor/DVEActionService.h",
+    "pod_support/Headers/Private/NLEEditor/DVEAlbumResourcePicker.h",
+    "pod_support/Headers/Private/NLEEditor/DVEAlbumResourcePickerModel.h",
+    "pod_support/Headers/Private/NLEEditor/DVEAlertProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEBarComponentModel.h",
+    "pod_support/Headers/Private/NLEEditor/DVEBarComponentProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEBaseBar.h",
+    "pod_support/Headers/Private/NLEEditor/DVEBaseSlider.h",
+    "pod_support/Headers/Private/NLEEditor/DVEBaseView.h",
+    "pod_support/Headers/Private/NLEEditor/DVEBundleLoader.h",
+    "pod_support/Headers/Private/NLEEditor/DVEBusinessConfiguration.h",
+    "pod_support/Headers/Private/NLEEditor/DVECanvasEditor.h",
+    "pod_support/Headers/Private/NLEEditor/DVECanvasEditorWrapper.h",
+    "pod_support/Headers/Private/NLEEditor/DVEConfigDefines.h",
+    "pod_support/Headers/Private/NLEEditor/DVECoreActionServiceProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVECoreCanvasProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVECoreDraftServiceProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVECoreExportServiceProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVECoreImportServiceProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVECoreKeyFrameProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVECoreProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVECoreSlotProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVECoreStickerProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVECoreVideoProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEDataCache.h",
+    "pod_support/Headers/Private/NLEEditor/DVEDataStorage.h",
+    "pod_support/Headers/Private/NLEEditor/DVEDraftModel.h",
+    "pod_support/Headers/Private/NLEEditor/DVEDraftModelProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEDraftService.h",
+    "pod_support/Headers/Private/NLEEditor/DVEEditBoxPluginManagerProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEEditBoxPluginProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEEditorDoneEvent.h",
+    "pod_support/Headers/Private/NLEEditor/DVEEditorEventProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEEffectCategory.h",
+    "pod_support/Headers/Private/NLEEditor/DVEEffectValue.h",
+    "pod_support/Headers/Private/NLEEditor/DVEEffectsBarBottomView.h",
+    "pod_support/Headers/Private/NLEEditor/DVEExportService.h",
+    "pod_support/Headers/Private/NLEEditor/DVEGlobalExternalInjectProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEGlobalServiceContainer.h",
+    "pod_support/Headers/Private/NLEEditor/DVEHUDCustomerView.h",
+    "pod_support/Headers/Private/NLEEditor/DVEImportService.h",
+    "pod_support/Headers/Private/NLEEditor/DVEKeyFrameEditor.h",
+    "pod_support/Headers/Private/NLEEditor/DVEKeyFrameEditorWrapper.h",
+    "pod_support/Headers/Private/NLEEditor/DVELoading.h",
+    "pod_support/Headers/Private/NLEEditor/DVELoadingProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVELoadingView.h",
+    "pod_support/Headers/Private/NLEEditor/DVELoggerMacro.h",
+    "pod_support/Headers/Private/NLEEditor/DVELoggerProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEModuleBaseCategoryModel.h",
+    "pod_support/Headers/Private/NLEEditor/DVEModuleBaseEmptyView.h",
+    "pod_support/Headers/Private/NLEEditor/DVEModuleBaseErrorView.h",
+    "pod_support/Headers/Private/NLEEditor/DVEModuleBaseOverlayView.h",
+    "pod_support/Headers/Private/NLEEditor/DVEMusicResourceLoaderProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVENLEEditorProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVENLEEditorWrapper.h",
+    "pod_support/Headers/Private/NLEEditor/DVENLEInterfaceProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVENLEInterfaceWrapper.h",
+    "pod_support/Headers/Private/NLEEditor/DVENotification.h",
+    "pod_support/Headers/Private/NLEEditor/DVENotificationAlertView.h",
+    "pod_support/Headers/Private/NLEEditor/DVENotificationEditView.h",
+    "pod_support/Headers/Private/NLEEditor/DVENotificationView.h",
+    "pod_support/Headers/Private/NLEEditor/DVEPickerBaseCell.h",
+    "pod_support/Headers/Private/NLEEditor/DVEPickerCategoryBaseCell.h",
+    "pod_support/Headers/Private/NLEEditor/DVEPickerCategoryTabView.h",
+    "pod_support/Headers/Private/NLEEditor/DVEPickerCollectionViewCell.h",
+    "pod_support/Headers/Private/NLEEditor/DVEPickerOverlayView.h",
+    "pod_support/Headers/Private/NLEEditor/DVEPickerUIConfigurationProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEPickerView.h",
+    "pod_support/Headers/Private/NLEEditor/DVEPickerViewModels.h",
+    "pod_support/Headers/Private/NLEEditor/DVEPlayerService.h",
+    "pod_support/Headers/Private/NLEEditor/DVEPlayerServiceProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEPreviewContainerView.h",
+    "pod_support/Headers/Private/NLEEditor/DVEPreviewGestureListenerProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEPreviewManager.h",
+    "pod_support/Headers/Private/NLEEditor/DVEPreviewManagerProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEPreviewPluginProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEPreviewStickerViewModel.h",
+    "pod_support/Headers/Private/NLEEditor/DVEPreviewTextViewModel.h",
+    "pod_support/Headers/Private/NLEEditor/DVERangeSlider.h",
+    "pod_support/Headers/Private/NLEEditor/DVEReportUtils.h",
+    "pod_support/Headers/Private/NLEEditor/DVEResourceCategoryModelProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEResourceLoaderProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEResourceModelProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEResourceMusicCategoryModelProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEResourceMusicModelProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEResourcePickerProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEScaleSlider.h",
+    "pod_support/Headers/Private/NLEEditor/DVEServiceInjectionLocator.h",
+    "pod_support/Headers/Private/NLEEditor/DVEServiceLocator.h",
+    "pod_support/Headers/Private/NLEEditor/DVESlotEditor.h",
+    "pod_support/Headers/Private/NLEEditor/DVESlotEditorWrapper.h",
+    "pod_support/Headers/Private/NLEEditor/DVEStepSlider.h",
+    "pod_support/Headers/Private/NLEEditor/DVEStickerEditBoxPlugin.h",
+    "pod_support/Headers/Private/NLEEditor/DVEStickerEditor.h",
+    "pod_support/Headers/Private/NLEEditor/DVEStickerEditorWrapper.h",
+    "pod_support/Headers/Private/NLEEditor/DVETextEditBoxPlugin.h",
+    "pod_support/Headers/Private/NLEEditor/DVETextInputHelper.h",
+    "pod_support/Headers/Private/NLEEditor/DVETextParm.h",
+    "pod_support/Headers/Private/NLEEditor/DVETextReaderModelProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEToast.h",
+    "pod_support/Headers/Private/NLEEditor/DVEToastProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEUIColorDefines.h",
+    "pod_support/Headers/Private/NLEEditor/DVEUIConfig.h",
+    "pod_support/Headers/Private/NLEEditor/DVEUIFactory.h",
+    "pod_support/Headers/Private/NLEEditor/DVEUIFontDefines.h",
+    "pod_support/Headers/Private/NLEEditor/DVEUILayoutDefines.h",
+    "pod_support/Headers/Private/NLEEditor/DVEVCContext.h",
+    "pod_support/Headers/Private/NLEEditor/DVEVCContextExternalInjectProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEVCContextServiceContainer.h",
+    "pod_support/Headers/Private/NLEEditor/DVEVCContextServiceProvider.h",
+    "pod_support/Headers/Private/NLEEditor/DVEVideoEditor.h",
+    "pod_support/Headers/Private/NLEEditor/DVEVideoEditorWrapper.h",
+    "pod_support/Headers/Private/NLEEditor/NLESegmentTextSticker_OC+Text.h",
+    "pod_support/Headers/Public/NLEEditor/DVEActionService.h",
+    "pod_support/Headers/Public/NLEEditor/DVEAlbumResourcePicker.h",
+    "pod_support/Headers/Public/NLEEditor/DVEAlbumResourcePickerModel.h",
+    "pod_support/Headers/Public/NLEEditor/DVEAlertProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEBarComponentModel.h",
+    "pod_support/Headers/Public/NLEEditor/DVEBarComponentProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEBaseBar.h",
+    "pod_support/Headers/Public/NLEEditor/DVEBaseSlider.h",
+    "pod_support/Headers/Public/NLEEditor/DVEBaseView.h",
+    "pod_support/Headers/Public/NLEEditor/DVEBundleLoader.h",
+    "pod_support/Headers/Public/NLEEditor/DVEBusinessConfiguration.h",
+    "pod_support/Headers/Public/NLEEditor/DVECanvasEditor.h",
+    "pod_support/Headers/Public/NLEEditor/DVECanvasEditorWrapper.h",
+    "pod_support/Headers/Public/NLEEditor/DVEConfigDefines.h",
+    "pod_support/Headers/Public/NLEEditor/DVECoreActionServiceProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVECoreCanvasProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVECoreDraftServiceProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVECoreExportServiceProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVECoreImportServiceProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVECoreKeyFrameProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVECoreProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVECoreSlotProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVECoreStickerProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVECoreVideoProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEDataCache.h",
+    "pod_support/Headers/Public/NLEEditor/DVEDataStorage.h",
+    "pod_support/Headers/Public/NLEEditor/DVEDraftModel.h",
+    "pod_support/Headers/Public/NLEEditor/DVEDraftModelProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEDraftService.h",
+    "pod_support/Headers/Public/NLEEditor/DVEEditBoxPluginManagerProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEEditBoxPluginProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEEditorDoneEvent.h",
+    "pod_support/Headers/Public/NLEEditor/DVEEditorEventProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEEffectCategory.h",
+    "pod_support/Headers/Public/NLEEditor/DVEEffectValue.h",
+    "pod_support/Headers/Public/NLEEditor/DVEEffectsBarBottomView.h",
+    "pod_support/Headers/Public/NLEEditor/DVEExportService.h",
+    "pod_support/Headers/Public/NLEEditor/DVEGlobalExternalInjectProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEGlobalServiceContainer.h",
+    "pod_support/Headers/Public/NLEEditor/DVEHUDCustomerView.h",
+    "pod_support/Headers/Public/NLEEditor/DVEImportService.h",
+    "pod_support/Headers/Public/NLEEditor/DVEKeyFrameEditor.h",
+    "pod_support/Headers/Public/NLEEditor/DVEKeyFrameEditorWrapper.h",
+    "pod_support/Headers/Public/NLEEditor/DVELoading.h",
+    "pod_support/Headers/Public/NLEEditor/DVELoadingProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVELoadingView.h",
+    "pod_support/Headers/Public/NLEEditor/DVELoggerMacro.h",
+    "pod_support/Headers/Public/NLEEditor/DVELoggerProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEModuleBaseCategoryModel.h",
+    "pod_support/Headers/Public/NLEEditor/DVEModuleBaseEmptyView.h",
+    "pod_support/Headers/Public/NLEEditor/DVEModuleBaseErrorView.h",
+    "pod_support/Headers/Public/NLEEditor/DVEModuleBaseOverlayView.h",
+    "pod_support/Headers/Public/NLEEditor/DVEMusicResourceLoaderProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVENLEEditorProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVENLEEditorWrapper.h",
+    "pod_support/Headers/Public/NLEEditor/DVENLEInterfaceProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVENLEInterfaceWrapper.h",
+    "pod_support/Headers/Public/NLEEditor/DVENotification.h",
+    "pod_support/Headers/Public/NLEEditor/DVENotificationAlertView.h",
+    "pod_support/Headers/Public/NLEEditor/DVENotificationEditView.h",
+    "pod_support/Headers/Public/NLEEditor/DVENotificationView.h",
+    "pod_support/Headers/Public/NLEEditor/DVEPickerBaseCell.h",
+    "pod_support/Headers/Public/NLEEditor/DVEPickerCategoryBaseCell.h",
+    "pod_support/Headers/Public/NLEEditor/DVEPickerCategoryTabView.h",
+    "pod_support/Headers/Public/NLEEditor/DVEPickerCollectionViewCell.h",
+    "pod_support/Headers/Public/NLEEditor/DVEPickerOverlayView.h",
+    "pod_support/Headers/Public/NLEEditor/DVEPickerUIConfigurationProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEPickerView.h",
+    "pod_support/Headers/Public/NLEEditor/DVEPickerViewModels.h",
+    "pod_support/Headers/Public/NLEEditor/DVEPlayerService.h",
+    "pod_support/Headers/Public/NLEEditor/DVEPlayerServiceProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEPreviewContainerView.h",
+    "pod_support/Headers/Public/NLEEditor/DVEPreviewGestureListenerProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEPreviewManager.h",
+    "pod_support/Headers/Public/NLEEditor/DVEPreviewManagerProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEPreviewPluginProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEPreviewStickerViewModel.h",
+    "pod_support/Headers/Public/NLEEditor/DVEPreviewTextViewModel.h",
+    "pod_support/Headers/Public/NLEEditor/DVERangeSlider.h",
+    "pod_support/Headers/Public/NLEEditor/DVEReportUtils.h",
+    "pod_support/Headers/Public/NLEEditor/DVEResourceCategoryModelProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEResourceLoaderProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEResourceModelProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEResourceMusicCategoryModelProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEResourceMusicModelProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEResourcePickerProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEScaleSlider.h",
+    "pod_support/Headers/Public/NLEEditor/DVEServiceInjectionLocator.h",
+    "pod_support/Headers/Public/NLEEditor/DVEServiceLocator.h",
+    "pod_support/Headers/Public/NLEEditor/DVESlotEditor.h",
+    "pod_support/Headers/Public/NLEEditor/DVESlotEditorWrapper.h",
+    "pod_support/Headers/Public/NLEEditor/DVEStepSlider.h",
+    "pod_support/Headers/Public/NLEEditor/DVEStickerEditBoxPlugin.h",
+    "pod_support/Headers/Public/NLEEditor/DVEStickerEditor.h",
+    "pod_support/Headers/Public/NLEEditor/DVEStickerEditorWrapper.h",
+    "pod_support/Headers/Public/NLEEditor/DVETextEditBoxPlugin.h",
+    "pod_support/Headers/Public/NLEEditor/DVETextInputHelper.h",
+    "pod_support/Headers/Public/NLEEditor/DVETextParm.h",
+    "pod_support/Headers/Public/NLEEditor/DVETextReaderModelProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEToast.h",
+    "pod_support/Headers/Public/NLEEditor/DVEToastProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEUIColorDefines.h",
+    "pod_support/Headers/Public/NLEEditor/DVEUIConfig.h",
+    "pod_support/Headers/Public/NLEEditor/DVEUIFactory.h",
+    "pod_support/Headers/Public/NLEEditor/DVEUIFontDefines.h",
+    "pod_support/Headers/Public/NLEEditor/DVEUILayoutDefines.h",
+    "pod_support/Headers/Public/NLEEditor/DVEVCContext.h",
+    "pod_support/Headers/Public/NLEEditor/DVEVCContextExternalInjectProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEVCContextServiceContainer.h",
+    "pod_support/Headers/Public/NLEEditor/DVEVCContextServiceProvider.h",
+    "pod_support/Headers/Public/NLEEditor/DVEVideoEditor.h",
+    "pod_support/Headers/Public/NLEEditor/DVEVideoEditorWrapper.h",
+    "pod_support/Headers/Public/NLEEditor/NLESegmentTextSticker_OC+Text.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EditorArch_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EditorArch_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "EditorArch_module_map",
+  module_map = "pod_support/Headers/Public/NLEEditor/NLEEditor_EditorArch-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/NLEEditor/NLEEditor_EditorArch-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EditorArch_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "EditorArch_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/EditorArch-prefix.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "xml2"
+  ],
+  deps = [
+    ":NLEEditor_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":NLEEditor_private_includes",
+    ":NLEEditor_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@lottie-ios//:lottie-ios_objc_interface",
+    "@MBProgressHUD//:MBProgressHUD_objc_interface",
+    "@MJExtension//:MJExtension_objc_interface",
+    "@MJRefresh//:MJRefresh_objc_interface",
+    "@NLEPlatform//:Model_objc_interface",
+    "@PocketSVG//:PocketSVG_objc_interface",
+    "@ReactiveObjC//:ReactiveObjC_objc_interface",
+    "@SDWebImage//:SDWebImage_objc_interface",
+    "@SGPagingView//:SGPagingView_objc_interface",
+    "@TTVideoEditor//:TTVideoEditor_objc_interface",
+    "@lottie-ios//:lottie-ios_swift_interface",
+    "@MBProgressHUD//:MBProgressHUD_swift_interface",
+    "@MJExtension//:MJExtension_swift_interface",
+    "@MJRefresh//:MJRefresh_swift_interface",
+    "@NLEPlatform//:Model_swift_interface",
+    "@PocketSVG//:PocketSVG_swift_interface",
+    "@ReactiveObjC//:ReactiveObjC_swift_interface",
+    "@SDWebImage//:SDWebImage_swift_interface",
+    "@SGPagingView//:SGPagingView_swift_interface",
+    "@TTVideoEditor//:TTVideoEditor_swift_interface",
+    ":NLEEditor_EditorArch_VendoredLibraries",
+    ":EditorArch_objc_interface",
+    "@lottie-ios//:lottie-ios_module_map",
+    "@MBProgressHUD//:MBProgressHUD_module_map",
+    "@MJExtension//:MJExtension_module_map",
+    "@MJRefresh//:MJRefresh_module_map",
+    "@NLEPlatform//:Model_module_map",
+    "@PocketSVG//:PocketSVG_module_map",
+    "@ReactiveObjC//:ReactiveObjC_module_map",
+    "@SDWebImage//:SDWebImage_module_map",
+    "@SGPagingView//:SGPagingView_module_map",
+    "@TTVideoEditor//:TTVideoEditor_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DNLEEditor_POD_VERSION=@\\\"9999_0.0.0.511-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":NLEEditor_EditorArch_EditorArch"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EditorArch",
+  deps = [
+    ":EditorArch_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "EditorArch_lib",
+  deps = [
+    ":EditorArch"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "LiteEditor_hdrs",
+  srcs = [
+    "NLEEditor/Classes/LiteEditor/DI/DVEVCContextServiceContainer+LiteEditor.h",
+    "NLEEditor/Classes/LiteEditor/Define/DVELiteTrackEventDefines.h",
+    "NLEEditor/Classes/LiteEditor/Editor/Beauty/DVEBeautyEditor.h",
+    "NLEEditor/Classes/LiteEditor/Editor/Beauty/DVEBeautyEditorWrapper.h",
+    "NLEEditor/Classes/LiteEditor/Editor/Beauty/DVECoreBeautyProtocol.h",
+    "NLEEditor/Classes/LiteEditor/Editor/ComposerBeauty/DVEComposerBeautyEditor.h",
+    "NLEEditor/Classes/LiteEditor/Editor/ComposerBeauty/DVEComposerBeautyEditorWrapper.h",
+    "NLEEditor/Classes/LiteEditor/Editor/ComposerBeauty/DVECoreComposerBeautyProtocol.h",
+    "NLEEditor/Classes/LiteEditor/Editor/ComposerFilter/DVEComposerFilterEditor.h",
+    "NLEEditor/Classes/LiteEditor/Editor/ComposerFilter/DVEComposerFilterEditorWrapper.h",
+    "NLEEditor/Classes/LiteEditor/Editor/ComposerFilter/DVECoreComposerFilterProtocol.h",
+    "NLEEditor/Classes/LiteEditor/Manager/Bubble/DVEEditStickerBubbleManager.h",
+    "NLEEditor/Classes/LiteEditor/Manager/Cache/DVEDataCache+LiteEditor.h",
+    "NLEEditor/Classes/LiteEditor/Manager/Export/DVELiteExportHelper.h",
+    "NLEEditor/Classes/LiteEditor/Preview/EditBox/DVELiteEditBoxPluginManager.h",
+    "NLEEditor/Classes/LiteEditor/Preview/EditBox/DVELiteTransformEditView.h",
+    "NLEEditor/Classes/LiteEditor/Preview/Plugin/DVELiteStickerBubblePlugin.h",
+    "NLEEditor/Classes/LiteEditor/Preview/Plugin/DVELiteStickerEditTrashPlugin.h",
+    "NLEEditor/Classes/LiteEditor/Preview/Plugin/DVELiteVideoClipPlayPlugin.h",
+    "NLEEditor/Classes/LiteEditor/Service/DVELiteEditorInjectionProtocol.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/Items/Beauty/DVELiteToolBarBeautyItem.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/Items/Filter/DVELiteToolBarFilterItem.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/Items/Sticker/DVELiteToolBarStickerItem.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/Items/Text/DVELiteToolBarTextItem.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/Items/VideoClip/DVELiteToolBarVideoClipItem.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/Protocol/DVELiteToolBarItemProtocol.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/Template/DVELiteToolBarItemTemplate.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/Template/DVELiteToolBarItemTemplateProtocol.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/View/Clip/Base/DVELiteClipPanel.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/View/Clip/Sticker/DVELiteStickerClipPanel.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/View/Clip/VideoClip/DVELiteVideoClipPanel.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/View/Collection/Base/DVELiteCollectionPanel.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/View/Collection/Beauty/DVELiteBeautyCollectionPanel.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/View/Collection/Configuration/DVELitePickerCollectionCell.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/View/Collection/Configuration/DVELitePickerViewCategoryConfiguration.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/View/Collection/Configuration/DVELitePickerViewConfiguration.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/View/Collection/Configuration/DVELitePickerViewListConfiguration.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/View/Collection/Filter/DVELiteFilterCollectionPanel.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/View/Config/DVELitePanelCommonConfig.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/View/Sticker/DVELiteStickerBar.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/View/Sticker/DVELiteStickerItemCell.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/View/Sticker/DVELiteStickerPickerUIDefaultConfiguration.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/View/Text/DVELiteTextBar.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Components/View/Text/DVELiteTextColorCell.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/ContainerVC/DVELiteToolBarViewController.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/ContainerVC/View/DVELiteToolBarItemCell.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Model/DVELiteBarComponentModel.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/Model/DVELiteBarComponentProtocol.h",
+    "NLEEditor/Classes/LiteEditor/ToolBar/ViewModel/DVELiteToolBarViewModel.h",
+    "NLEEditor/Classes/LiteEditor/ViewController/DVELiteViewController.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "LiteEditor_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/NLEEditor/DVEBeautyEditor.h",
+    "pod_support/Headers/Private/NLEEditor/DVEBeautyEditorWrapper.h",
+    "pod_support/Headers/Private/NLEEditor/DVEComposerBeautyEditor.h",
+    "pod_support/Headers/Private/NLEEditor/DVEComposerBeautyEditorWrapper.h",
+    "pod_support/Headers/Private/NLEEditor/DVEComposerFilterEditor.h",
+    "pod_support/Headers/Private/NLEEditor/DVEComposerFilterEditorWrapper.h",
+    "pod_support/Headers/Private/NLEEditor/DVECoreBeautyProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVECoreComposerBeautyProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVECoreComposerFilterProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVEDataCache+LiteEditor.h",
+    "pod_support/Headers/Private/NLEEditor/DVEEditStickerBubbleManager.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteBarComponentModel.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteBarComponentProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteBeautyCollectionPanel.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteClipPanel.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteCollectionPanel.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteEditBoxPluginManager.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteEditorInjectionProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteExportHelper.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteFilterCollectionPanel.h",
+    "pod_support/Headers/Private/NLEEditor/DVELitePanelCommonConfig.h",
+    "pod_support/Headers/Private/NLEEditor/DVELitePickerCollectionCell.h",
+    "pod_support/Headers/Private/NLEEditor/DVELitePickerViewCategoryConfiguration.h",
+    "pod_support/Headers/Private/NLEEditor/DVELitePickerViewConfiguration.h",
+    "pod_support/Headers/Private/NLEEditor/DVELitePickerViewListConfiguration.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteStickerBar.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteStickerBubblePlugin.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteStickerClipPanel.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteStickerEditTrashPlugin.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteStickerItemCell.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteStickerPickerUIDefaultConfiguration.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteTextBar.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteTextColorCell.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteToolBarBeautyItem.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteToolBarFilterItem.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteToolBarItemCell.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteToolBarItemProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteToolBarItemTemplate.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteToolBarItemTemplateProtocol.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteToolBarStickerItem.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteToolBarTextItem.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteToolBarVideoClipItem.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteToolBarViewController.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteToolBarViewModel.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteTrackEventDefines.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteTransformEditView.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteVideoClipPanel.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteVideoClipPlayPlugin.h",
+    "pod_support/Headers/Private/NLEEditor/DVELiteViewController.h",
+    "pod_support/Headers/Private/NLEEditor/DVEVCContextServiceContainer+LiteEditor.h",
+    "pod_support/Headers/Public/NLEEditor/DVEBeautyEditor.h",
+    "pod_support/Headers/Public/NLEEditor/DVEBeautyEditorWrapper.h",
+    "pod_support/Headers/Public/NLEEditor/DVEComposerBeautyEditor.h",
+    "pod_support/Headers/Public/NLEEditor/DVEComposerBeautyEditorWrapper.h",
+    "pod_support/Headers/Public/NLEEditor/DVEComposerFilterEditor.h",
+    "pod_support/Headers/Public/NLEEditor/DVEComposerFilterEditorWrapper.h",
+    "pod_support/Headers/Public/NLEEditor/DVECoreBeautyProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVECoreComposerBeautyProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVECoreComposerFilterProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVEDataCache+LiteEditor.h",
+    "pod_support/Headers/Public/NLEEditor/DVEEditStickerBubbleManager.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteBarComponentModel.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteBarComponentProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteBeautyCollectionPanel.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteClipPanel.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteCollectionPanel.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteEditBoxPluginManager.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteEditorInjectionProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteExportHelper.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteFilterCollectionPanel.h",
+    "pod_support/Headers/Public/NLEEditor/DVELitePanelCommonConfig.h",
+    "pod_support/Headers/Public/NLEEditor/DVELitePickerCollectionCell.h",
+    "pod_support/Headers/Public/NLEEditor/DVELitePickerViewCategoryConfiguration.h",
+    "pod_support/Headers/Public/NLEEditor/DVELitePickerViewConfiguration.h",
+    "pod_support/Headers/Public/NLEEditor/DVELitePickerViewListConfiguration.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteStickerBar.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteStickerBubblePlugin.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteStickerClipPanel.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteStickerEditTrashPlugin.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteStickerItemCell.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteStickerPickerUIDefaultConfiguration.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteTextBar.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteTextColorCell.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteToolBarBeautyItem.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteToolBarFilterItem.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteToolBarItemCell.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteToolBarItemProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteToolBarItemTemplate.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteToolBarItemTemplateProtocol.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteToolBarStickerItem.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteToolBarTextItem.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteToolBarVideoClipItem.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteToolBarViewController.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteToolBarViewModel.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteTrackEventDefines.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteTransformEditView.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteVideoClipPanel.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteVideoClipPlayPlugin.h",
+    "pod_support/Headers/Public/NLEEditor/DVELiteViewController.h",
+    "pod_support/Headers/Public/NLEEditor/DVEVCContextServiceContainer+LiteEditor.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "LiteEditor_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "LiteEditor_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "LiteEditor_module_map",
+  module_map = "pod_support/Headers/Public/NLEEditor/NLEEditor_LiteEditor-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/NLEEditor/NLEEditor_LiteEditor-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "LiteEditor_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "LiteEditor_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/LiteEditor-prefix.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "xml2"
+  ],
+  deps = [
+    ":NLEEditor_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":NLEEditor_private_includes",
+    ":NLEEditor_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@DVETrackKit//:DVELiteTrack_objc_interface",
+    "@DVETrackKit//:DVELiteTrack_swift_interface",
+    ":NLEEditor_LiteEditor_VendoredLibraries",
+    ":LiteEditor_objc_interface",
+    "@DVETrackKit//:DVELiteTrack_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DNLEEditor_POD_VERSION=@\\\"9999_0.0.0.511-lark\\\"",
+    "-DENABLE_LITEEDITOR=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":NLEEditor_LiteEditor_DVELiteEditor"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "LiteEditor",
+  deps = [
+    ":LiteEditor_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "LiteEditor_lib",
+  deps = [
+    ":LiteEditor"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Adapter_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Adapter_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Adapter_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Adapter_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Adapter_module_map",
+  module_map = "pod_support/Headers/Public/NLEEditor/NLEEditor_Adapter-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/NLEEditor/NLEEditor_Adapter-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Adapter_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Adapter_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "xml2"
+  ],
+  deps = [
+    ":NLEEditor_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":NLEEditor_private_includes",
+    ":NLEEditor_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@DVEFoundationKit//:Adapter_objc_interface",
+    "@DVETrackKit//:Adapter_objc_interface",
+    "@NLEPlatform//:Adapter_objc_interface",
+    "@DVEFoundationKit//:Adapter_swift_interface",
+    "@DVETrackKit//:Adapter_swift_interface",
+    "@NLEPlatform//:Adapter_swift_interface",
+    ":Adapter_objc_interface",
+    "@DVEFoundationKit//:Adapter_module_map",
+    "@DVETrackKit//:Adapter_module_map",
+    "@NLEPlatform//:Adapter_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DNLEEditor_POD_VERSION=@\\\"9999_0.0.0.511-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Adapter",
+  deps = [
+    ":Adapter_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Adapter_lib",
+  deps = [
+    ":Adapter"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_NLEEditor_module_map",
+  module_map = "@NLEEditor//:pod_support/Headers/Public/NLEEditor/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@NLEEditor//:pod_support/Headers/Public/NLEEditor/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_NLEEditor_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@NLEEditor//:Adapter_objc_interface", "@NLEEditor//:EditorArch_objc_interface", "@NLEEditor//:LiteEditor_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_library")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_library(
+  name = "Lark_NLEEditor",
+  target_name = "Lark",
+  module_name = "NLEEditor",
+  hdrs = ["@NLEEditor//:Adapter_pod_hdrs", "@NLEEditor//:EditorArch_pod_hdrs", "@NLEEditor//:LiteEditor_pod_hdrs"],
+  srcs = [],
+  non_arc_srcs = [],
+  deps = ["@NLEEditor//:NLEEditor_EditorArch_VendoredLibraries", "@NLEEditor//:NLEEditor_LiteEditor_VendoredLibraries"],
+  pod_deps = ["DVEFoundationKit", "DVETrackKit", "NLEPlatform", "lottie-ios", "MBProgressHUD", "MJExtension", "MJRefresh", "PocketSVG", "ReactiveObjC", "SDWebImage", "SGPagingView", "TTVideoEditor"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DNLEEditor_POD_VERSION=@\\\"9999_0.0.0.511-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-DENABLE_LITEEDITOR=1",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "NLEEditor_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "NLEEditor_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["UIKit", "Foundation", "JavaScriptCore"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = ["xml2"],
+  data = ["@NLEEditor//:NLEEditor_EditorArch_EditorArch", "@NLEEditor//:NLEEditor_LiteEditor_DVELiteEditor"],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "NLEEditor_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "NLEEditor_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "NLEEditor_dynamic", False),
+  tags = getattr(defs_external_objc_library, "NLEEditor_tags", []),
+  pch = "pod_support/Headers/Private/Lark_NLEEditor-prefix.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("NLEEditor", {}),
+  visibility = ["//visibility:public"],
+)

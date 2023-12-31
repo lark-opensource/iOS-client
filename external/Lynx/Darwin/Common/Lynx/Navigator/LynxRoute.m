@@ -1,0 +1,27 @@
+// Copyright 2019 The Lynx Authors. All rights reserved.
+
+#import "LynxRoute.h"
+
+@implementation LynxRoute
+
+- (instancetype)initWithUrl:(NSString *)url param:(NSDictionary *)param {
+  return [self initWithUrl:url routeName:url param:param];
+}
+
+- (instancetype)initWithUrl:(NSString *)url
+                  routeName:(NSString *)routeName
+                      param:(NSDictionary *)param {
+  self = [super init];
+  if (self) {
+    self.templateUrl = url;
+    self.routeName = url;
+    self.param = param;
+  }
+  return self;
+}
+
+- (id)copyWithZone:(NSZone *)zone {
+  return self;
+}
+
+@end

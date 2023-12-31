@@ -1,0 +1,84 @@
+{
+  "name": "LookinServer",
+  "version": "1.2.4",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://lookin.work",
+  "license": "GPL-3.0",
+  "authors": {
+    "Li Kai": "lookin@lookin.work"
+  },
+  "platforms": {
+    "ios": "9.0",
+    "tvos": "9.0"
+  },
+  "default_subspecs": "Core",
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/8888/LookinServer/source/1.2.4/LookinServer_source.zip"
+  },
+  "frameworks": "UIKit",
+  "requires_arc": true,
+  "subspecs": [
+    {
+      "name": "Core",
+      "source_files": [
+        "Src/Main/**/*",
+        "Src/Base/**/*"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "$(inherited) SHOULD_COMPILE_LOOKIN_SERVER=1",
+        "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "$(inherited) SHOULD_COMPILE_LOOKIN_SERVER"
+      }
+    },
+    {
+      "name": "Swift",
+      "dependencies": {
+        "LookinServer/Core": []
+      },
+      "source_files": "Src/Swift/**/*",
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "$(inherited) LOOKIN_SERVER_SWIFT_ENABLED=1",
+        "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "$(inherited) LOOKIN_SERVER_SWIFT_ENABLED"
+      }
+    },
+    {
+      "name": "NoHook",
+      "dependencies": {
+        "LookinServer/Core": []
+      },
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "$(inherited) LOOKIN_SERVER_DISABLE_HOOK=1"
+      }
+    },
+    {
+      "name": "SwiftAndNoHook",
+      "dependencies": {
+        "LookinServer/Core": []
+      },
+      "source_files": "Src/Swift/**/*",
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "$(inherited) LOOKIN_SERVER_SWIFT_ENABLED=1 LOOKIN_SERVER_DISABLE_HOOK=1",
+        "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "$(inherited) LOOKIN_SERVER_SWIFT_ENABLED"
+      }
+    }
+  ],
+  "pod_target_xcconfig": {
+    "BUILD_LIBRARY_FOR_DISTRIBUTION": "YES",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "LookinServer_POD_VERSION=@\\\"8888_1.2.4\\\""
+  },
+  "_bytebus_platform": {
+    "repo_id": "2695",
+    "app_id": "8888",
+    "is_swift": "1"
+  },
+  "repoId": "2695",
+  "source_code": {
+    "git": "https://github.com/QMUI/LookinServer.git",
+    "tag": "1.2.4"
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "LookinServer_POD_VERSION=@\\\"8888_1.2.4\\\""
+  }
+}

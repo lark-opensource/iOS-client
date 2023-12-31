@@ -1,0 +1,1 @@
+../../../../BDDynamically/Classes/Core/public/BDQBDelegate.h

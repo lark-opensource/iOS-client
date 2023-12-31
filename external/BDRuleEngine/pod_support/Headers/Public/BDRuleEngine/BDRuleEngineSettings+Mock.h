@@ -1,0 +1,1 @@
+../../../../BDRuleEngine/Classes/Debug/Model/BDRuleEngineSettings+Mock.h

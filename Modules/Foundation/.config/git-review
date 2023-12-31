@@ -1,0 +1,53 @@
+#!/bin/bash -e
+# origin code from https://stackoverflow.com/questions/7101145/how-to-configure-specific-upstream-push-refspec-for-git-when-used-with-gerrit/7141743#7141743
+
+if [ -z "$1" ]; then
+    REMOTE=origin
+else
+    REMOTE=$1
+fi
+
+if [ -z "$2" ]; then
+    BRANCH=`git symbolic-ref HEAD`
+    case $BRANCH in
+        refs/heads/*)
+            BRANCH=`echo ${BRANCH/refs\/heads\//}`
+            ;;
+        *)
+            echo "I can't figure out which branch you are on."
+            exit 1
+            ;;
+    esac
+else
+    BRANCH=$2
+fi
+
+suffix=`git config remote.review.push | awk -F 'for/\\\*' '{print $2}'`
+
+
+users=(
+    liuwanlin
+    lizhiqiang
+    liyong.520
+    kangtao
+    yangjing.sniper
+    yaoqihao
+    kongkaikai
+    supeng.charlie
+    liyuguo.jeffrey
+    qihongye
+    zhaochen.09
+    lichen.arthur
+    dongzhao.stone
+    cuiguilin
+    wangxiaohua
+)
+
+function join_by { local d=$1; shift; echo -n "$1"; shift; printf "%s" "${@/#/$d}"; }
+
+if [ -z "$suffix" ]; then
+    str=`join_by ',r=' "${users[@]}"`
+    suffix="%r=$str"
+fi
+
+git push $REMOTE HEAD:refs/for/$BRANCH${suffix}

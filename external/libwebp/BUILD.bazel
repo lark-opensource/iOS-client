@@ -1,0 +1,1388 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "libwebp_pod_hdrs",
+  srcs = [
+    ":libwebp_root_pod_hdrs",
+    ":sharpyuv_pod_hdrs",
+    ":webp_pod_hdrs",
+    ":demux_pod_hdrs",
+    ":mux_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "libwebp_private_includes",
+  include = [
+    "external/libwebp/pod_support/Headers/Private/libwebp/"
+  ],
+  deps = [],
+  external_name = "libwebp"
+)
+gen_includes(
+  name = "libwebp_public_includes",
+  include = [
+    "external/libwebp/pod_support/Headers/Public/libwebp/"
+  ],
+  deps = [],
+  external_name = "libwebp"
+)
+filegroup(
+  name = "_libwebp_hdrs",
+  srcs = [
+    ":libwebp_root_hdrs",
+    ":sharpyuv_hdrs",
+    ":webp_hdrs",
+    ":demux_hdrs",
+    ":mux_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "libwebp_xcode_hmapsource",
+  hdrs = [
+    ":libwebp_root_hdrs",
+    ":demux_hdrs",
+    ":mux_hdrs",
+    ":sharpyuv_hdrs",
+    ":webp_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "libwebp_xcode_hmap",
+  dep = ":libwebp_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/libwebp/*-bitsky-generated.modulemap", "pod_support/Headers/Public/libwebp/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "libwebp_custom_includes",
+  include = [
+    "external/libwebp/",
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "libwebp",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "libwebp_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":libwebp_xcode_hmap"
+  ],
+  external_name = "libwebp",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libwebp_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libwebp_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libwebp_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libwebp_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "libwebp_module_map",
+  module_map = "pod_support/Headers/Public/libwebp/libwebp-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/libwebp/libwebp-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libwebp_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "libwebp_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":libwebp_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":libwebp_private_includes",
+    ":libwebp_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":libwebp_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libwebp",
+  deps = [
+    ":libwebp_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "libwebp_lib",
+  deps = [
+    ":libwebp"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "sharpyuv_hdrs",
+  srcs = [
+    "sharpyuv/sharpyuv.h",
+    "sharpyuv/sharpyuv_cpu.h",
+    "sharpyuv/sharpyuv_csp.h",
+    "sharpyuv/sharpyuv_dsp.h",
+    "sharpyuv/sharpyuv_gamma.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "sharpyuv_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/libwebp/sharpyuv.h",
+    "pod_support/Headers/Private/libwebp/sharpyuv_cpu.h",
+    "pod_support/Headers/Private/libwebp/sharpyuv_csp.h",
+    "pod_support/Headers/Private/libwebp/sharpyuv_dsp.h",
+    "pod_support/Headers/Private/libwebp/sharpyuv_gamma.h",
+    "pod_support/Headers/Public/libwebp/sharpyuv.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "sharpyuv_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "sharpyuv_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "sharpyuv_module_map",
+  module_map = "pod_support/Headers/Public/libwebp/libwebp_sharpyuv-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/libwebp/libwebp_sharpyuv-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "sharpyuv_srcs",
+  srcs = [
+    "sharpyuv/sharpyuv.c",
+    "sharpyuv/sharpyuv_cpu.c",
+    "sharpyuv/sharpyuv_csp.c",
+    "sharpyuv/sharpyuv_dsp.c",
+    "sharpyuv/sharpyuv_gamma.c",
+    "sharpyuv/sharpyuv_neon.c",
+    "sharpyuv/sharpyuv_sse2.c"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "sharpyuv_oc",
+  enable_modules = 1,
+  srcs = [
+    "sharpyuv_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "sharpyuv_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":libwebp_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":libwebp_private_includes",
+    ":libwebp_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":sharpyuv_objc_interface"
+  ],
+  per_label_options = [
+    ".*sharpyuv/sharpyuv.c@-D_THREAD_SAFE",
+    ".*sharpyuv/sharpyuv_cpu.c@-D_THREAD_SAFE",
+    ".*sharpyuv/sharpyuv_csp.c@-D_THREAD_SAFE",
+    ".*sharpyuv/sharpyuv_dsp.c@-D_THREAD_SAFE",
+    ".*sharpyuv/sharpyuv_gamma.c@-D_THREAD_SAFE",
+    ".*sharpyuv/sharpyuv_neon.c@-D_THREAD_SAFE",
+    ".*sharpyuv/sharpyuv_sse2.c@-D_THREAD_SAFE"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "sharpyuv",
+  deps = [
+    ":sharpyuv_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "sharpyuv_lib",
+  deps = [
+    ":sharpyuv"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "webp_hdrs",
+  srcs = [
+    "src/dec/alphai_dec.h",
+    "src/dec/common_dec.h",
+    "src/dec/vp8_dec.h",
+    "src/dec/vp8i_dec.h",
+    "src/dec/vp8li_dec.h",
+    "src/dec/webpi_dec.h",
+    "src/dsp/common_sse2.h",
+    "src/dsp/common_sse41.h",
+    "src/dsp/cpu.h",
+    "src/dsp/dsp.h",
+    "src/dsp/lossless.h",
+    "src/dsp/lossless_common.h",
+    "src/dsp/mips_macro.h",
+    "src/dsp/msa_macro.h",
+    "src/dsp/neon.h",
+    "src/dsp/quant.h",
+    "src/dsp/yuv.h",
+    "src/enc/backward_references_enc.h",
+    "src/enc/cost_enc.h",
+    "src/enc/histogram_enc.h",
+    "src/enc/vp8i_enc.h",
+    "src/enc/vp8li_enc.h",
+    "src/utils/bit_reader_inl_utils.h",
+    "src/utils/bit_reader_utils.h",
+    "src/utils/bit_writer_utils.h",
+    "src/utils/color_cache_utils.h",
+    "src/utils/endian_inl_utils.h",
+    "src/utils/filters_utils.h",
+    "src/utils/huffman_encode_utils.h",
+    "src/utils/huffman_utils.h",
+    "src/utils/quant_levels_dec_utils.h",
+    "src/utils/quant_levels_utils.h",
+    "src/utils/random_utils.h",
+    "src/utils/rescaler_utils.h",
+    "src/utils/thread_utils.h",
+    "src/utils/utils.h",
+    "src/webp/decode.h",
+    "src/webp/encode.h",
+    "src/webp/format_constants.h",
+    "src/webp/mux_types.h",
+    "src/webp/types.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "webp_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/libwebp/alphai_dec.h",
+    "pod_support/Headers/Private/libwebp/backward_references_enc.h",
+    "pod_support/Headers/Private/libwebp/bit_reader_inl_utils.h",
+    "pod_support/Headers/Private/libwebp/bit_reader_utils.h",
+    "pod_support/Headers/Private/libwebp/bit_writer_utils.h",
+    "pod_support/Headers/Private/libwebp/color_cache_utils.h",
+    "pod_support/Headers/Private/libwebp/common_dec.h",
+    "pod_support/Headers/Private/libwebp/common_sse2.h",
+    "pod_support/Headers/Private/libwebp/common_sse41.h",
+    "pod_support/Headers/Private/libwebp/cost_enc.h",
+    "pod_support/Headers/Private/libwebp/cpu.h",
+    "pod_support/Headers/Private/libwebp/decode.h",
+    "pod_support/Headers/Private/libwebp/dsp.h",
+    "pod_support/Headers/Private/libwebp/encode.h",
+    "pod_support/Headers/Private/libwebp/endian_inl_utils.h",
+    "pod_support/Headers/Private/libwebp/filters_utils.h",
+    "pod_support/Headers/Private/libwebp/format_constants.h",
+    "pod_support/Headers/Private/libwebp/histogram_enc.h",
+    "pod_support/Headers/Private/libwebp/huffman_encode_utils.h",
+    "pod_support/Headers/Private/libwebp/huffman_utils.h",
+    "pod_support/Headers/Private/libwebp/lossless.h",
+    "pod_support/Headers/Private/libwebp/lossless_common.h",
+    "pod_support/Headers/Private/libwebp/mips_macro.h",
+    "pod_support/Headers/Private/libwebp/msa_macro.h",
+    "pod_support/Headers/Private/libwebp/mux_types.h",
+    "pod_support/Headers/Private/libwebp/neon.h",
+    "pod_support/Headers/Private/libwebp/quant.h",
+    "pod_support/Headers/Private/libwebp/quant_levels_dec_utils.h",
+    "pod_support/Headers/Private/libwebp/quant_levels_utils.h",
+    "pod_support/Headers/Private/libwebp/random_utils.h",
+    "pod_support/Headers/Private/libwebp/rescaler_utils.h",
+    "pod_support/Headers/Private/libwebp/thread_utils.h",
+    "pod_support/Headers/Private/libwebp/types.h",
+    "pod_support/Headers/Private/libwebp/utils.h",
+    "pod_support/Headers/Private/libwebp/vp8_dec.h",
+    "pod_support/Headers/Private/libwebp/vp8i_dec.h",
+    "pod_support/Headers/Private/libwebp/vp8i_enc.h",
+    "pod_support/Headers/Private/libwebp/vp8li_dec.h",
+    "pod_support/Headers/Private/libwebp/vp8li_enc.h",
+    "pod_support/Headers/Private/libwebp/webpi_dec.h",
+    "pod_support/Headers/Private/libwebp/yuv.h",
+    "pod_support/Headers/Public/libwebp/decode.h",
+    "pod_support/Headers/Public/libwebp/encode.h",
+    "pod_support/Headers/Public/libwebp/format_constants.h",
+    "pod_support/Headers/Public/libwebp/mux_types.h",
+    "pod_support/Headers/Public/libwebp/types.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "webp_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "webp_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "webp_module_map",
+  module_map = "pod_support/Headers/Public/libwebp/libwebp_webp-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/libwebp/libwebp_webp-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "webp_srcs",
+  srcs = [
+    "src/dec/alpha_dec.c",
+    "src/enc/alpha_enc.c",
+    "src/dsp/alpha_processing.c",
+    "src/dsp/alpha_processing_mips_dsp_r2.c",
+    "src/dsp/alpha_processing_neon.c",
+    "src/dsp/alpha_processing_sse2.c",
+    "src/dsp/alpha_processing_sse41.c",
+    "src/enc/analysis_enc.c",
+    "src/enc/backward_references_cost_enc.c",
+    "src/enc/backward_references_enc.c",
+    "src/utils/bit_reader_utils.c",
+    "src/utils/bit_writer_utils.c",
+    "src/dec/buffer_dec.c",
+    "src/utils/color_cache_utils.c",
+    "src/enc/config_enc.c",
+    "src/dsp/cost.c",
+    "src/enc/cost_enc.c",
+    "src/dsp/cost_mips32.c",
+    "src/dsp/cost_mips_dsp_r2.c",
+    "src/dsp/cost_neon.c",
+    "src/dsp/cost_sse2.c",
+    "src/dsp/cpu.c",
+    "src/dsp/dec.c",
+    "src/dsp/dec_clip_tables.c",
+    "src/dsp/dec_mips32.c",
+    "src/dsp/dec_mips_dsp_r2.c",
+    "src/dsp/dec_msa.c",
+    "src/dsp/dec_neon.c",
+    "src/dsp/dec_sse2.c",
+    "src/dsp/dec_sse41.c",
+    "src/dsp/enc.c",
+    "src/dsp/enc_mips32.c",
+    "src/dsp/enc_mips_dsp_r2.c",
+    "src/dsp/enc_msa.c",
+    "src/dsp/enc_neon.c",
+    "src/dsp/enc_sse2.c",
+    "src/dsp/enc_sse41.c",
+    "src/enc/filter_enc.c",
+    "src/dsp/filters.c",
+    "src/dsp/filters_mips_dsp_r2.c",
+    "src/dsp/filters_msa.c",
+    "src/dsp/filters_neon.c",
+    "src/dsp/filters_sse2.c",
+    "src/utils/filters_utils.c",
+    "src/dec/frame_dec.c",
+    "src/enc/frame_enc.c",
+    "src/enc/histogram_enc.c",
+    "src/utils/huffman_encode_utils.c",
+    "src/utils/huffman_utils.c",
+    "src/dec/idec_dec.c",
+    "src/dec/io_dec.c",
+    "src/enc/iterator_enc.c",
+    "src/dsp/lossless.c",
+    "src/dsp/lossless_enc.c",
+    "src/dsp/lossless_enc_mips32.c",
+    "src/dsp/lossless_enc_mips_dsp_r2.c",
+    "src/dsp/lossless_enc_msa.c",
+    "src/dsp/lossless_enc_neon.c",
+    "src/dsp/lossless_enc_sse2.c",
+    "src/dsp/lossless_enc_sse41.c",
+    "src/dsp/lossless_mips_dsp_r2.c",
+    "src/dsp/lossless_msa.c",
+    "src/dsp/lossless_neon.c",
+    "src/dsp/lossless_sse2.c",
+    "src/dsp/lossless_sse41.c",
+    "src/enc/near_lossless_enc.c",
+    "src/enc/picture_csp_enc.c",
+    "src/enc/picture_enc.c",
+    "src/enc/picture_psnr_enc.c",
+    "src/enc/picture_rescale_enc.c",
+    "src/enc/picture_tools_enc.c",
+    "src/enc/predictor_enc.c",
+    "src/dec/quant_dec.c",
+    "src/enc/quant_enc.c",
+    "src/utils/quant_levels_dec_utils.c",
+    "src/utils/quant_levels_utils.c",
+    "src/utils/random_utils.c",
+    "src/dsp/rescaler.c",
+    "src/dsp/rescaler_mips32.c",
+    "src/dsp/rescaler_mips_dsp_r2.c",
+    "src/dsp/rescaler_msa.c",
+    "src/dsp/rescaler_neon.c",
+    "src/dsp/rescaler_sse2.c",
+    "src/utils/rescaler_utils.c",
+    "src/dsp/ssim.c",
+    "src/dsp/ssim_sse2.c",
+    "src/enc/syntax_enc.c",
+    "src/utils/thread_utils.c",
+    "src/enc/token_enc.c",
+    "src/dec/tree_dec.c",
+    "src/enc/tree_enc.c",
+    "src/dsp/upsampling.c",
+    "src/dsp/upsampling_mips_dsp_r2.c",
+    "src/dsp/upsampling_msa.c",
+    "src/dsp/upsampling_neon.c",
+    "src/dsp/upsampling_sse2.c",
+    "src/dsp/upsampling_sse41.c",
+    "src/utils/utils.c",
+    "src/dec/vp8_dec.c",
+    "src/dec/vp8l_dec.c",
+    "src/enc/vp8l_enc.c",
+    "src/dec/webp_dec.c",
+    "src/enc/webp_enc.c",
+    "src/dsp/yuv.c",
+    "src/dsp/yuv_mips32.c",
+    "src/dsp/yuv_mips_dsp_r2.c",
+    "src/dsp/yuv_neon.c",
+    "src/dsp/yuv_sse2.c",
+    "src/dsp/yuv_sse41.c"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "webp_oc",
+  enable_modules = 1,
+  srcs = [
+    "webp_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "webp_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":libwebp_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":libwebp_private_includes",
+    ":libwebp_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":webp_objc_interface"
+  ],
+  per_label_options = [
+    ".*src/dec/alpha_dec.c@-D_THREAD_SAFE",
+    ".*src/dec/buffer_dec.c@-D_THREAD_SAFE",
+    ".*src/dec/frame_dec.c@-D_THREAD_SAFE",
+    ".*src/dec/idec_dec.c@-D_THREAD_SAFE",
+    ".*src/dec/io_dec.c@-D_THREAD_SAFE",
+    ".*src/dec/quant_dec.c@-D_THREAD_SAFE",
+    ".*src/dec/tree_dec.c@-D_THREAD_SAFE",
+    ".*src/dec/vp8_dec.c@-D_THREAD_SAFE",
+    ".*src/dec/vp8l_dec.c@-D_THREAD_SAFE",
+    ".*src/dec/webp_dec.c@-D_THREAD_SAFE",
+    ".*src/dsp/alpha_processing.c@-D_THREAD_SAFE",
+    ".*src/dsp/alpha_processing_mips_dsp_r2.c@-D_THREAD_SAFE",
+    ".*src/dsp/alpha_processing_neon.c@-D_THREAD_SAFE",
+    ".*src/dsp/alpha_processing_sse2.c@-D_THREAD_SAFE",
+    ".*src/dsp/alpha_processing_sse41.c@-D_THREAD_SAFE",
+    ".*src/dsp/cost.c@-D_THREAD_SAFE",
+    ".*src/dsp/cost_mips32.c@-D_THREAD_SAFE",
+    ".*src/dsp/cost_mips_dsp_r2.c@-D_THREAD_SAFE",
+    ".*src/dsp/cost_neon.c@-D_THREAD_SAFE",
+    ".*src/dsp/cost_sse2.c@-D_THREAD_SAFE",
+    ".*src/dsp/cpu.c@-D_THREAD_SAFE",
+    ".*src/dsp/dec.c@-D_THREAD_SAFE",
+    ".*src/dsp/dec_clip_tables.c@-D_THREAD_SAFE",
+    ".*src/dsp/dec_mips32.c@-D_THREAD_SAFE",
+    ".*src/dsp/dec_mips_dsp_r2.c@-D_THREAD_SAFE",
+    ".*src/dsp/dec_msa.c@-D_THREAD_SAFE",
+    ".*src/dsp/dec_neon.c@-D_THREAD_SAFE",
+    ".*src/dsp/dec_sse2.c@-D_THREAD_SAFE",
+    ".*src/dsp/dec_sse41.c@-D_THREAD_SAFE",
+    ".*src/dsp/enc.c@-D_THREAD_SAFE",
+    ".*src/dsp/enc_mips32.c@-D_THREAD_SAFE",
+    ".*src/dsp/enc_mips_dsp_r2.c@-D_THREAD_SAFE",
+    ".*src/dsp/enc_msa.c@-D_THREAD_SAFE",
+    ".*src/dsp/enc_neon.c@-D_THREAD_SAFE",
+    ".*src/dsp/enc_sse2.c@-D_THREAD_SAFE",
+    ".*src/dsp/enc_sse41.c@-D_THREAD_SAFE",
+    ".*src/dsp/filters.c@-D_THREAD_SAFE",
+    ".*src/dsp/filters_mips_dsp_r2.c@-D_THREAD_SAFE",
+    ".*src/dsp/filters_msa.c@-D_THREAD_SAFE",
+    ".*src/dsp/filters_neon.c@-D_THREAD_SAFE",
+    ".*src/dsp/filters_sse2.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_enc.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_enc_mips32.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_enc_mips_dsp_r2.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_enc_msa.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_enc_neon.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_enc_sse2.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_enc_sse41.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_mips_dsp_r2.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_msa.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_neon.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_sse2.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_sse41.c@-D_THREAD_SAFE",
+    ".*src/dsp/rescaler.c@-D_THREAD_SAFE",
+    ".*src/dsp/rescaler_mips32.c@-D_THREAD_SAFE",
+    ".*src/dsp/rescaler_mips_dsp_r2.c@-D_THREAD_SAFE",
+    ".*src/dsp/rescaler_msa.c@-D_THREAD_SAFE",
+    ".*src/dsp/rescaler_neon.c@-D_THREAD_SAFE",
+    ".*src/dsp/rescaler_sse2.c@-D_THREAD_SAFE",
+    ".*src/dsp/ssim.c@-D_THREAD_SAFE",
+    ".*src/dsp/ssim_sse2.c@-D_THREAD_SAFE",
+    ".*src/dsp/upsampling.c@-D_THREAD_SAFE",
+    ".*src/dsp/upsampling_mips_dsp_r2.c@-D_THREAD_SAFE",
+    ".*src/dsp/upsampling_msa.c@-D_THREAD_SAFE",
+    ".*src/dsp/upsampling_neon.c@-D_THREAD_SAFE",
+    ".*src/dsp/upsampling_sse2.c@-D_THREAD_SAFE",
+    ".*src/dsp/upsampling_sse41.c@-D_THREAD_SAFE",
+    ".*src/dsp/yuv.c@-D_THREAD_SAFE",
+    ".*src/dsp/yuv_mips32.c@-D_THREAD_SAFE",
+    ".*src/dsp/yuv_mips_dsp_r2.c@-D_THREAD_SAFE",
+    ".*src/dsp/yuv_neon.c@-D_THREAD_SAFE",
+    ".*src/dsp/yuv_sse2.c@-D_THREAD_SAFE",
+    ".*src/dsp/yuv_sse41.c@-D_THREAD_SAFE",
+    ".*src/enc/alpha_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/analysis_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/backward_references_cost_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/backward_references_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/config_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/cost_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/filter_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/frame_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/histogram_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/iterator_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/near_lossless_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/picture_csp_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/picture_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/picture_psnr_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/picture_rescale_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/picture_tools_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/predictor_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/quant_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/syntax_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/token_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/tree_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/vp8l_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/webp_enc.c@-D_THREAD_SAFE",
+    ".*src/utils/bit_reader_utils.c@-D_THREAD_SAFE",
+    ".*src/utils/bit_writer_utils.c@-D_THREAD_SAFE",
+    ".*src/utils/color_cache_utils.c@-D_THREAD_SAFE",
+    ".*src/utils/filters_utils.c@-D_THREAD_SAFE",
+    ".*src/utils/huffman_encode_utils.c@-D_THREAD_SAFE",
+    ".*src/utils/huffman_utils.c@-D_THREAD_SAFE",
+    ".*src/utils/quant_levels_dec_utils.c@-D_THREAD_SAFE",
+    ".*src/utils/quant_levels_utils.c@-D_THREAD_SAFE",
+    ".*src/utils/random_utils.c@-D_THREAD_SAFE",
+    ".*src/utils/rescaler_utils.c@-D_THREAD_SAFE",
+    ".*src/utils/thread_utils.c@-D_THREAD_SAFE",
+    ".*src/utils/utils.c@-D_THREAD_SAFE"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "webp",
+  deps = [
+    ":webp_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "webp_lib",
+  deps = [
+    ":webp"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "demux_hdrs",
+  srcs = [
+    "src/webp/demux.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "demux_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/libwebp/demux.h",
+    "pod_support/Headers/Public/libwebp/demux.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "demux_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "demux_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "demux_module_map",
+  module_map = "pod_support/Headers/Public/libwebp/libwebp_demux-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/libwebp/libwebp_demux-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "demux_srcs",
+  srcs = [
+    "src/demux/anim_decode.c",
+    "src/demux/demux.c"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "demux_oc",
+  enable_modules = 1,
+  srcs = [
+    "demux_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "demux_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":libwebp_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":libwebp_private_includes",
+    ":libwebp_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":demux_objc_interface"
+  ],
+  per_label_options = [
+    ".*src/demux/anim_decode.c@-D_THREAD_SAFE",
+    ".*src/demux/demux.c@-D_THREAD_SAFE"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "demux",
+  deps = [
+    ":demux_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "demux_lib",
+  deps = [
+    ":demux"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mux_hdrs",
+  srcs = [
+    "src/mux/animi.h",
+    "src/mux/muxi.h",
+    "src/webp/mux.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mux_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/libwebp/animi.h",
+    "pod_support/Headers/Private/libwebp/mux.h",
+    "pod_support/Headers/Private/libwebp/muxi.h",
+    "pod_support/Headers/Public/libwebp/mux.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mux_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mux_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "mux_module_map",
+  module_map = "pod_support/Headers/Public/libwebp/libwebp_mux-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/libwebp/libwebp_mux-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "mux_srcs",
+  srcs = [
+    "src/mux/anim_encode.c",
+    "src/mux/muxedit.c",
+    "src/mux/muxinternal.c",
+    "src/mux/muxread.c"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "mux_oc",
+  enable_modules = 1,
+  srcs = [
+    "mux_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "mux_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":libwebp_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":libwebp_private_includes",
+    ":libwebp_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":mux_objc_interface"
+  ],
+  per_label_options = [
+    ".*src/mux/anim_encode.c@-D_THREAD_SAFE",
+    ".*src/mux/muxedit.c@-D_THREAD_SAFE",
+    ".*src/mux/muxinternal.c@-D_THREAD_SAFE",
+    ".*src/mux/muxread.c@-D_THREAD_SAFE"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "mux",
+  deps = [
+    ":mux_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "mux_lib",
+  deps = [
+    ":mux"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_libwebp_module_map",
+  module_map = "@libwebp//:pod_support/Headers/Public/libwebp/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@libwebp//:pod_support/Headers/Public/libwebp/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_libwebp_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@libwebp//:demux_objc_interface", "@libwebp//:libwebp_objc_interface", "@libwebp//:mux_objc_interface", "@libwebp//:sharpyuv_objc_interface", "@libwebp//:webp_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_libwebp",
+  target_name = "Lark",
+  module_name = "libwebp",
+  hdrs = ["@libwebp//:demux_pod_hdrs", "@libwebp//:libwebp_root_pod_hdrs", "@libwebp//:mux_pod_hdrs", "@libwebp//:sharpyuv_pod_hdrs", "@libwebp//:webp_pod_hdrs"],
+  srcs = ["@libwebp//:demux_srcs", "@libwebp//:mux_srcs", "@libwebp//:sharpyuv_srcs", "@libwebp//:webp_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [".*src/demux/anim_decode.c@-D_THREAD_SAFE",
+    ".*src/demux/demux.c@-D_THREAD_SAFE",
+    ".*src/mux/anim_encode.c@-D_THREAD_SAFE",
+    ".*src/mux/muxedit.c@-D_THREAD_SAFE",
+    ".*src/mux/muxinternal.c@-D_THREAD_SAFE",
+    ".*src/mux/muxread.c@-D_THREAD_SAFE",
+    ".*sharpyuv/sharpyuv.c@-D_THREAD_SAFE",
+    ".*sharpyuv/sharpyuv_cpu.c@-D_THREAD_SAFE",
+    ".*sharpyuv/sharpyuv_csp.c@-D_THREAD_SAFE",
+    ".*sharpyuv/sharpyuv_dsp.c@-D_THREAD_SAFE",
+    ".*sharpyuv/sharpyuv_gamma.c@-D_THREAD_SAFE",
+    ".*sharpyuv/sharpyuv_neon.c@-D_THREAD_SAFE",
+    ".*sharpyuv/sharpyuv_sse2.c@-D_THREAD_SAFE",
+    ".*src/dec/alpha_dec.c@-D_THREAD_SAFE",
+    ".*src/dec/buffer_dec.c@-D_THREAD_SAFE",
+    ".*src/dec/frame_dec.c@-D_THREAD_SAFE",
+    ".*src/dec/idec_dec.c@-D_THREAD_SAFE",
+    ".*src/dec/io_dec.c@-D_THREAD_SAFE",
+    ".*src/dec/quant_dec.c@-D_THREAD_SAFE",
+    ".*src/dec/tree_dec.c@-D_THREAD_SAFE",
+    ".*src/dec/vp8_dec.c@-D_THREAD_SAFE",
+    ".*src/dec/vp8l_dec.c@-D_THREAD_SAFE",
+    ".*src/dec/webp_dec.c@-D_THREAD_SAFE",
+    ".*src/dsp/alpha_processing.c@-D_THREAD_SAFE",
+    ".*src/dsp/alpha_processing_mips_dsp_r2.c@-D_THREAD_SAFE",
+    ".*src/dsp/alpha_processing_neon.c@-D_THREAD_SAFE",
+    ".*src/dsp/alpha_processing_sse2.c@-D_THREAD_SAFE",
+    ".*src/dsp/alpha_processing_sse41.c@-D_THREAD_SAFE",
+    ".*src/dsp/cost.c@-D_THREAD_SAFE",
+    ".*src/dsp/cost_mips32.c@-D_THREAD_SAFE",
+    ".*src/dsp/cost_mips_dsp_r2.c@-D_THREAD_SAFE",
+    ".*src/dsp/cost_neon.c@-D_THREAD_SAFE",
+    ".*src/dsp/cost_sse2.c@-D_THREAD_SAFE",
+    ".*src/dsp/cpu.c@-D_THREAD_SAFE",
+    ".*src/dsp/dec.c@-D_THREAD_SAFE",
+    ".*src/dsp/dec_clip_tables.c@-D_THREAD_SAFE",
+    ".*src/dsp/dec_mips32.c@-D_THREAD_SAFE",
+    ".*src/dsp/dec_mips_dsp_r2.c@-D_THREAD_SAFE",
+    ".*src/dsp/dec_msa.c@-D_THREAD_SAFE",
+    ".*src/dsp/dec_neon.c@-D_THREAD_SAFE",
+    ".*src/dsp/dec_sse2.c@-D_THREAD_SAFE",
+    ".*src/dsp/dec_sse41.c@-D_THREAD_SAFE",
+    ".*src/dsp/enc.c@-D_THREAD_SAFE",
+    ".*src/dsp/enc_mips32.c@-D_THREAD_SAFE",
+    ".*src/dsp/enc_mips_dsp_r2.c@-D_THREAD_SAFE",
+    ".*src/dsp/enc_msa.c@-D_THREAD_SAFE",
+    ".*src/dsp/enc_neon.c@-D_THREAD_SAFE",
+    ".*src/dsp/enc_sse2.c@-D_THREAD_SAFE",
+    ".*src/dsp/enc_sse41.c@-D_THREAD_SAFE",
+    ".*src/dsp/filters.c@-D_THREAD_SAFE",
+    ".*src/dsp/filters_mips_dsp_r2.c@-D_THREAD_SAFE",
+    ".*src/dsp/filters_msa.c@-D_THREAD_SAFE",
+    ".*src/dsp/filters_neon.c@-D_THREAD_SAFE",
+    ".*src/dsp/filters_sse2.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_enc.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_enc_mips32.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_enc_mips_dsp_r2.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_enc_msa.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_enc_neon.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_enc_sse2.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_enc_sse41.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_mips_dsp_r2.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_msa.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_neon.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_sse2.c@-D_THREAD_SAFE",
+    ".*src/dsp/lossless_sse41.c@-D_THREAD_SAFE",
+    ".*src/dsp/rescaler.c@-D_THREAD_SAFE",
+    ".*src/dsp/rescaler_mips32.c@-D_THREAD_SAFE",
+    ".*src/dsp/rescaler_mips_dsp_r2.c@-D_THREAD_SAFE",
+    ".*src/dsp/rescaler_msa.c@-D_THREAD_SAFE",
+    ".*src/dsp/rescaler_neon.c@-D_THREAD_SAFE",
+    ".*src/dsp/rescaler_sse2.c@-D_THREAD_SAFE",
+    ".*src/dsp/ssim.c@-D_THREAD_SAFE",
+    ".*src/dsp/ssim_sse2.c@-D_THREAD_SAFE",
+    ".*src/dsp/upsampling.c@-D_THREAD_SAFE",
+    ".*src/dsp/upsampling_mips_dsp_r2.c@-D_THREAD_SAFE",
+    ".*src/dsp/upsampling_msa.c@-D_THREAD_SAFE",
+    ".*src/dsp/upsampling_neon.c@-D_THREAD_SAFE",
+    ".*src/dsp/upsampling_sse2.c@-D_THREAD_SAFE",
+    ".*src/dsp/upsampling_sse41.c@-D_THREAD_SAFE",
+    ".*src/dsp/yuv.c@-D_THREAD_SAFE",
+    ".*src/dsp/yuv_mips32.c@-D_THREAD_SAFE",
+    ".*src/dsp/yuv_mips_dsp_r2.c@-D_THREAD_SAFE",
+    ".*src/dsp/yuv_neon.c@-D_THREAD_SAFE",
+    ".*src/dsp/yuv_sse2.c@-D_THREAD_SAFE",
+    ".*src/dsp/yuv_sse41.c@-D_THREAD_SAFE",
+    ".*src/enc/alpha_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/analysis_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/backward_references_cost_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/backward_references_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/config_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/cost_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/filter_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/frame_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/histogram_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/iterator_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/near_lossless_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/picture_csp_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/picture_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/picture_psnr_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/picture_rescale_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/picture_tools_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/predictor_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/quant_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/syntax_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/token_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/tree_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/vp8l_enc.c@-D_THREAD_SAFE",
+    ".*src/enc/webp_enc.c@-D_THREAD_SAFE",
+    ".*src/utils/bit_reader_utils.c@-D_THREAD_SAFE",
+    ".*src/utils/bit_writer_utils.c@-D_THREAD_SAFE",
+    ".*src/utils/color_cache_utils.c@-D_THREAD_SAFE",
+    ".*src/utils/filters_utils.c@-D_THREAD_SAFE",
+    ".*src/utils/huffman_encode_utils.c@-D_THREAD_SAFE",
+    ".*src/utils/huffman_utils.c@-D_THREAD_SAFE",
+    ".*src/utils/quant_levels_dec_utils.c@-D_THREAD_SAFE",
+    ".*src/utils/quant_levels_utils.c@-D_THREAD_SAFE",
+    ".*src/utils/random_utils.c@-D_THREAD_SAFE",
+    ".*src/utils/rescaler_utils.c@-D_THREAD_SAFE",
+    ".*src/utils/thread_utils.c@-D_THREAD_SAFE",
+    ".*src/utils/utils.c@-D_THREAD_SAFE"],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "libwebp_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "libwebp_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "libwebp_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "libwebp_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "libwebp_dynamic", False),
+  tags = getattr(defs_external_objc_library, "libwebp_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("libwebp", {}),
+  visibility = ["//visibility:public"],
+)

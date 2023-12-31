@@ -1,0 +1,79 @@
+PODS:
+  - BDALog (0.5.0.1-binary)
+  - BDAlogProtocol (1.2.2)
+  - BDDataDecorator/Data (2.0.1.1-binary)
+  - boringssl (0.2.2-SM):
+    - boringssl/openssl (= 0.2.2-SM)
+  - boringssl/openssl (0.2.2-SM)
+  - CryptoSwift (1.3.3)
+  - ExtensionPB (1.0.1911):
+    - SwiftProtobuf
+  - Godzippa (2.1.1)
+  - LarkExtensionServices (0.0.1):
+    - LarkExtensionServices/Account (= 0.0.1)
+    - LarkExtensionServices/Config (= 0.0.1)
+    - LarkExtensionServices/Log (= 0.0.1)
+    - LarkExtensionServices/Network (= 0.0.1)
+    - LarkExtensionServices/Track (= 0.0.1)
+  - LarkExtensionServices/Account (0.0.1):
+    - CryptoSwift
+    - LarkExtensionServices/Config
+  - LarkExtensionServices/Config (0.0.1)
+  - LarkExtensionServices/Log (0.0.1)
+  - LarkExtensionServices/Network (0.0.1):
+    - ExtensionPB
+    - LarkExtensionServices/Account
+    - LarkExtensionServices/Log
+    - SwiftProtobuf
+    - TTNetworkManager
+  - LarkExtensionServices/Track (0.0.1)
+  - protobuf_lite (1.0.3-ttnet3)
+  - SwiftProtobuf (1.15.0)
+  - TTNetworkManager (4.1.80.6-tudp):
+    - TTNetworkManager/Core (= 4.1.80.6-tudp)
+  - TTNetworkManager/Core (4.1.80.6-tudp):
+    - BDALog (>= 0.2.2)
+    - BDAlogProtocol (>= 1.2.2)
+    - BDDataDecorator/Data (>= 1.0.3)
+    - boringssl (~> 0.2.1)
+    - Godzippa
+    - protobuf_lite (= 1.0.3-ttnet3)
+
+DEPENDENCIES:
+  - LarkExtensionServices (from `.`)
+
+SPEC REPOS:
+  "git@code.byted.org:ee/pods_specs.git":
+    - CryptoSwift
+    - ExtensionPB
+    - SwiftProtobuf
+  "git@code.byted.org:iOS_Library/privatethird_binary_repo.git":
+    - BDALog
+    - BDDataDecorator
+  "git@code.byted.org:iOS_Library/privatethird_source_repo.git":
+    - BDAlogProtocol
+  "git@code.byted.org:iOS_Library/publicthird_source_repo.git":
+    - Godzippa
+  "git@code.byted.org:iOS_Library/toutiao_source_repo.git":
+    - boringssl
+    - protobuf_lite
+    - TTNetworkManager
+
+EXTERNAL SOURCES:
+  LarkExtensionServices:
+    :path: "."
+
+SPEC CHECKSUMS:
+  BDALog: 2e5658f5893ac20edf89a5869b10bf131ceb8a3d
+  BDAlogProtocol: 25d6b184d9234554557b635bcb35acdf80a189ea
+  BDDataDecorator: 31e878788f218051958a8cfdf0f1e8b3cea68bfe
+  boringssl: 68e1c7f704ff7b928adaa9f54b485905b0dd70ca
+  CryptoSwift: 2ecb3ab7b890c618ed71e1995906f1882d919c54
+  ExtensionPB: 9284f74f6cd354f20ef2fbaaec860c9dcc4a5f0e
+  Godzippa: 0ddd3eb22eb89b249654d8f80a5086e47f729f0c
+  LarkExtensionServices: 72d192a988a631fbf0880cc59392a9dcda285e2a
+  protobuf_lite: 441ccc2e713a1cf260df44525b97333435799b52
+  SwiftProtobuf: 39e22f6f0a4b368c76e532a19708bf63d2dc2b2f
+  TTNetworkManager: 0cd434ebebe27c0c808ce41bfecfb8a08e9a5ddc
+
+COCOAPODS: 1.11.2

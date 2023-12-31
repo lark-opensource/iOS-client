@@ -1,0 +1,50 @@
+# Copyright 2020 The Lynx Authors. All rights reserved.
+
+import("//Lynx/Lynx.gni")
+import("//testing/test.gni")
+
+source_set("shared_data") {
+  public_configs = [
+    "//Lynx:config"
+  ]
+
+  sources = [
+    "lynx_white_board.h",
+    "lynx_white_board.cc"
+  ]
+
+  configs += []
+
+  libs = []
+  deps = []
+  public_deps = [
+    "//Lynx/base",
+    "//Lynx/lepus",
+    "//Lynx/jsbridge",
+  ]
+}
+
+unittest_set("shared_data_test_testset") {
+  testonly = true
+  public_deps = [
+    "//Lynx/shared_data",
+  ]
+
+  deps = [
+    "//Lynx/shell:mock_tasm_delegate",
+    "//Lynx/tasm"
+  ]
+
+  sources = [
+    "lynx_white_board_unittest.cc"
+  ]
+}
+
+unit_test("shared_data_test") {
+  testonly = true
+  sources = []
+  deps = [
+    ":shared_data_test_testset",
+    "//Lynx/tasm/react:dom"
+  ]
+}

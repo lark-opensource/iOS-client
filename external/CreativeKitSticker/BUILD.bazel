@@ -1,0 +1,550 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "CreativeKitSticker_pod_hdrs",
+  srcs = [
+    ":CreativeKitSticker_root_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "CreativeKitSticker_private_includes",
+  include = [
+    "external/CreativeKitSticker/pod_support/Headers/Private/CreativeKitSticker/"
+  ],
+  deps = [],
+  external_name = "CreativeKitSticker"
+)
+gen_includes(
+  name = "CreativeKitSticker_public_includes",
+  include = [
+    "external/CreativeKitSticker/pod_support/Headers/Public/CreativeKitSticker/"
+  ],
+  deps = [],
+  external_name = "CreativeKitSticker"
+)
+filegroup(
+  name = "_CreativeKitSticker_hdrs",
+  srcs = [
+    ":CreativeKitSticker_root_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "CreativeKitSticker_xcode_hmapsource",
+  hdrs = [
+    ":_CreativeKitSticker_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "CreativeKitSticker_xcode_hmap",
+  dep = ":CreativeKitSticker_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/CreativeKitSticker/*-bitsky-generated.modulemap", "pod_support/Headers/Public/CreativeKitSticker/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "CreativeKitSticker_VendoredLibraries",
+  archives = [
+    "libCreativeKitSticker-c7cec43.a"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "CreativeKitSticker_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "CreativeKitSticker",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "CreativeKitSticker_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":CreativeKitSticker_xcode_hmap"
+  ],
+  external_name = "CreativeKitSticker",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CreativeKitSticker_root_hdrs",
+  srcs = [
+    "CreativeKitSticker/Classes/ACCStickerHeaders.h",
+    "CreativeKitSticker/Classes/BaseSticker/ACCBaseStickerView+Private.h",
+    "CreativeKitSticker/Classes/BaseSticker/ACCBaseStickerView.h",
+    "CreativeKitSticker/Classes/BaseSticker/ACCGestureResponsibleStickerView+Private.h",
+    "CreativeKitSticker/Classes/BaseSticker/ACCGestureResponsibleStickerView.h",
+    "CreativeKitSticker/Classes/BaseSticker/ACCPlaybackResponsibleProtocol.h",
+    "CreativeKitSticker/Classes/BaseSticker/ACCPlayerAdaptionContainer+Bubble.h",
+    "CreativeKitSticker/Classes/BaseSticker/ACCStickerBubbleConfig.h",
+    "CreativeKitSticker/Classes/BaseSticker/ACCStickerBubbleProtocol.h",
+    "CreativeKitSticker/Classes/BaseSticker/ACCStickerConfig.h",
+    "CreativeKitSticker/Classes/BaseSticker/ACCStickerContentProtocol.h",
+    "CreativeKitSticker/Classes/BaseSticker/ACCStickerGeometryModel.h",
+    "CreativeKitSticker/Classes/BaseSticker/ACCStickerProtocol.h",
+    "CreativeKitSticker/Classes/BaseSticker/ACCStickerTimeRangeModel.h",
+    "CreativeKitSticker/Classes/Common/ACCStickerDefines.h",
+    "CreativeKitSticker/Classes/Common/ACCStickerSDKExcludeSelfView.h",
+    "CreativeKitSticker/Classes/Common/ACCStickerSelectTimeRangeProtocol.h",
+    "CreativeKitSticker/Classes/Common/ACCStickerUtils.h",
+    "CreativeKitSticker/Classes/Common/UIView+ACCStickerSDKMasonry.h",
+    "CreativeKitSticker/Classes/Common/UIView+ACCStickerSDKUtils.h",
+    "CreativeKitSticker/Classes/Injection/ACCStickerScreenAdaptInjection.h",
+    "CreativeKitSticker/Classes/Injection/ACCStickerScreenAdaptInjectionProtocol.h",
+    "CreativeKitSticker/Classes/PlayerAdaption/ACCPlayerAdaptionContainer.h",
+    "CreativeKitSticker/Classes/PlayerAdaption/ACCPlayerAdaptionContainerProtocol.h",
+    "CreativeKitSticker/Classes/StickerContainer/ACCStickerContainerConfigProtocol.h",
+    "CreativeKitSticker/Classes/StickerContainer/ACCStickerContainerPluginProtocol.h",
+    "CreativeKitSticker/Classes/StickerContainer/ACCStickerContainerProtocol.h",
+    "CreativeKitSticker/Classes/StickerContainer/ACCStickerContainerView+Internal.h",
+    "CreativeKitSticker/Classes/StickerContainer/ACCStickerContainerView.h",
+    "CreativeKitSticker/Classes/StickerContainer/ACCStickerEventFlowProtocol.h",
+    "CreativeKitSticker/Classes/StickerContainer/ACCStickerPluginProtocol.h",
+    "CreativeKitSticker/Classes/StickerContainer/CKSInternalGestureProvider.h",
+    "CreativeKitSticker/Classes/StickerContainer/CKSStickerGestureProviderProtocol.h",
+    "CreativeKitSticker/Classes/StickerCopying/ACCBaseStickerView+ACCStickerCopying.h",
+    "CreativeKitSticker/Classes/StickerCopying/ACCStickerContainerView+ACCStickerCopying.h",
+    "CreativeKitSticker/Classes/StickerCopying/ACCStickerCopyingProtocol.h",
+    "CreativeKitSticker/Classes/StickerGroup/ACCStickerGroupManager.h",
+    "CreativeKitSticker/Classes/StickerGroup/ACCStickerGroupView.h",
+    "CreativeKitSticker/Classes/StickerHierarchy/ACCBaseStickerView+ACCStickerHierarchy.h",
+    "CreativeKitSticker/Classes/StickerHierarchy/ACCStickerHierarchyManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CreativeKitSticker_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CreativeKitSticker/ACCBaseStickerView+ACCStickerCopying.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCBaseStickerView+ACCStickerHierarchy.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCBaseStickerView+Private.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCBaseStickerView.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCGestureResponsibleStickerView+Private.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCGestureResponsibleStickerView.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCPlaybackResponsibleProtocol.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCPlayerAdaptionContainer+Bubble.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCPlayerAdaptionContainer.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCPlayerAdaptionContainerProtocol.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerBubbleConfig.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerBubbleProtocol.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerConfig.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerContainerConfigProtocol.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerContainerPluginProtocol.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerContainerProtocol.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerContainerView+ACCStickerCopying.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerContainerView+Internal.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerContainerView.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerContentProtocol.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerCopyingProtocol.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerDefines.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerEventFlowProtocol.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerGeometryModel.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerGroupManager.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerGroupView.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerHeaders.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerHierarchyManager.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerPluginProtocol.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerProtocol.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerSDKExcludeSelfView.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerScreenAdaptInjection.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerScreenAdaptInjectionProtocol.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerSelectTimeRangeProtocol.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerTimeRangeModel.h",
+    "pod_support/Headers/Private/CreativeKitSticker/ACCStickerUtils.h",
+    "pod_support/Headers/Private/CreativeKitSticker/CKSInternalGestureProvider.h",
+    "pod_support/Headers/Private/CreativeKitSticker/CKSStickerGestureProviderProtocol.h",
+    "pod_support/Headers/Private/CreativeKitSticker/UIView+ACCStickerSDKMasonry.h",
+    "pod_support/Headers/Private/CreativeKitSticker/UIView+ACCStickerSDKUtils.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCBaseStickerView+ACCStickerCopying.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCBaseStickerView+ACCStickerHierarchy.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCBaseStickerView+Private.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCBaseStickerView.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCGestureResponsibleStickerView+Private.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCGestureResponsibleStickerView.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCPlaybackResponsibleProtocol.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCPlayerAdaptionContainer+Bubble.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCPlayerAdaptionContainer.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCPlayerAdaptionContainerProtocol.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerBubbleConfig.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerBubbleProtocol.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerConfig.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerContainerConfigProtocol.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerContainerPluginProtocol.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerContainerProtocol.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerContainerView+ACCStickerCopying.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerContainerView+Internal.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerContainerView.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerContentProtocol.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerCopyingProtocol.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerDefines.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerEventFlowProtocol.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerGeometryModel.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerGroupManager.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerGroupView.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerHeaders.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerHierarchyManager.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerPluginProtocol.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerProtocol.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerSDKExcludeSelfView.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerScreenAdaptInjection.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerScreenAdaptInjectionProtocol.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerSelectTimeRangeProtocol.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerTimeRangeModel.h",
+    "pod_support/Headers/Public/CreativeKitSticker/ACCStickerUtils.h",
+    "pod_support/Headers/Public/CreativeKitSticker/CKSInternalGestureProvider.h",
+    "pod_support/Headers/Public/CreativeKitSticker/CKSStickerGestureProviderProtocol.h",
+    "pod_support/Headers/Public/CreativeKitSticker/UIView+ACCStickerSDKMasonry.h",
+    "pod_support/Headers/Public/CreativeKitSticker/UIView+ACCStickerSDKUtils.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CreativeKitSticker_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CreativeKitSticker_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "CreativeKitSticker_module_map",
+  module_map = "pod_support/Headers/Public/CreativeKitSticker/CreativeKitSticker-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreativeKitSticker/CreativeKitSticker-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CreativeKitSticker_root_srcs",
+  srcs = [
+    "rock_dummy/rock_dummy_c7cec43.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CreativeKitSticker_oc",
+  enable_modules = 1,
+  srcs = [
+    "CreativeKitSticker_root_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "CreativeKitSticker_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreativeKitSticker_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreativeKitSticker_private_includes",
+    ":CreativeKitSticker_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@CreativeKit//:CameraArch_objc_interface",
+    "@Mantle//:Mantle_objc_interface",
+    "@Masonry//:Masonry_objc_interface",
+    "@CreativeKit//:CameraArch_swift_interface",
+    "@Mantle//:Mantle_swift_interface",
+    "@Masonry//:Masonry_swift_interface",
+    ":CreativeKitSticker_VendoredLibraries",
+    ":CreativeKitSticker_objc_interface",
+    "@CreativeKit//:CameraArch_module_map",
+    "@Mantle//:Mantle_module_map",
+    "@Masonry//:Masonry_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CreativeKitSticker",
+  deps = [
+    ":CreativeKitSticker_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "CreativeKitSticker_lib",
+  deps = [
+    ":CreativeKitSticker"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_CreativeKitSticker_module_map",
+  module_map = "@CreativeKitSticker//:pod_support/Headers/Public/CreativeKitSticker/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@CreativeKitSticker//:pod_support/Headers/Public/CreativeKitSticker/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_CreativeKitSticker_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@CreativeKitSticker//:CreativeKitSticker_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_CreativeKitSticker",
+  target_name = "Lark",
+  module_name = "CreativeKitSticker",
+  hdrs = ["@CreativeKitSticker//:CreativeKitSticker_root_pod_hdrs"],
+  srcs = ["@CreativeKitSticker//:CreativeKitSticker_root_srcs"],
+  non_arc_srcs = [],
+  deps = ["@CreativeKitSticker//:CreativeKitSticker_VendoredLibraries"],
+  pod_deps = ["CreativeKit", "Mantle", "Masonry"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "CreativeKitSticker_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "CreativeKitSticker_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "CreativeKitSticker_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "CreativeKitSticker_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "CreativeKitSticker_dynamic", False),
+  tags = getattr(defs_external_objc_library, "CreativeKitSticker_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("CreativeKitSticker", {}),
+  visibility = ["//visibility:public"],
+)

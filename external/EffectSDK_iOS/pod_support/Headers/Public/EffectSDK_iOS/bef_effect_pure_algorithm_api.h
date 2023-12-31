@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_effect_pure_algorithm_api.h

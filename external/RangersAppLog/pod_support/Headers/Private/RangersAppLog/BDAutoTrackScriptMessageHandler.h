@@ -1,0 +1,1 @@
+../../../../BDAutoTracker/Classes/Core/Core/Bridge/BDAutoTrackScriptMessageHandler.h

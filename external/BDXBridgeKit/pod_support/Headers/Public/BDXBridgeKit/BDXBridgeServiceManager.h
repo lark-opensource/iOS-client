@@ -1,0 +1,1 @@
+../../../../BDXBridgeKit/Classes/Core/BDXBridgeServiceManager.h

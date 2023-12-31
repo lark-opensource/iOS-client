@@ -1,0 +1,157 @@
+{
+  "_bytebus_platform": {
+    "repo_id": "4533",
+    "app_id": "9999"
+  },
+  "prepare_command": "curl https://ios.bytedance.net/wlapi/tosDownload/iosbinary/platform/master/awesomecommand_xz.sh | bash ;",
+  "preserve_paths": [
+    "**/*.bwp"
+  ],
+  "description": "framework_description",
+  "license": "MIT",
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/9999/lens/8.5.18-lark.1.binary/lens.framework.tar.xz"
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "lens_POD_VERSION=@\\\"9999_8.5.18-lark\\\""
+  },
+  "ios": {
+    "frameworks": [
+      "UIKit",
+      "Foundation",
+      "JavaScriptCore"
+    ]
+  },
+  "compiler_flags": [
+    "-x",
+    "objective-c++",
+    "-O3"
+  ],
+  "summary": "framework_summary",
+  "libraries": [
+    "z",
+    "c++"
+  ],
+  "platforms": {
+    "ios": "8.0"
+  },
+  "version": "8.5.18-lark.1.binary",
+  "build_file_count": 35,
+  "authors": {
+    "章龙涛": "zhanglongtao.yimmy@bytedance.com"
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "lens_POD_VERSION=@\\\"9999_8.5.18-lark\\\""
+  },
+  "source_code": {
+    "commit": "76a48410c2c3b8d93d504452ce7bde0001b8203a",
+    "git": "git@code.byted.org:ies/lens.git"
+  },
+  "homepage": "https://code.byted.org/ies/lens",
+  "repoId": "4533",
+  "subspecs": [
+    {
+      "name": "core",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_core_*awesome_*.a"
+      },
+      "source_files": [
+        "lensengine/src/cpp/framework/utils/*.{h,cpp,mm}",
+        "lensengine/src/cpp/framework/core/src/*.{cpp,mm}",
+        "lensengine/src/cpp/framework/core/include/*.{h,hpp}",
+        "lensengine/src/cpp/third_party/cppjson/include/*.{h,hpp}",
+        "lensengine/src/cpp/third_party/cppjson/src/*.{c,cpp}",
+        "lensengine/src/cpp/base/utils/LensJson.*",
+        "lensengine/src/cpp/base/utils/LensDeserialize.*",
+        "lensengine/src/cpp/include/*.h"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "LENSCore=1"
+      },
+      "exclude_files": [
+        "lensengine/src/cpp/framework/utils/ThreadPool.cpp",
+        "lensengine/src/cpp/framework/utils/ThreadPool.h",
+        "lensengine/src/cpp/framework/utils/CPURuntime.cpp",
+        "lensengine/src/cpp/framework/utils/CPURuntime.h",
+        "lensengine/src/cpp/framework/utils/ThreadSafeMacros.h",
+        "lensengine/src/cpp/framework/utils/Singleton.h"
+      ]
+    },
+    {
+      "public_header_files": [
+        "lensengine/src/cpp/include/*.h"
+      ],
+      "name": "SmartCodec",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "frameworks": [
+          "Metal",
+          "MetalPerformanceShaders"
+        ],
+        "vendored_libraries": "ios-arch-iphone/*_SmartCodec_*awesome_*.a"
+      },
+      "dependencies": {
+        "fastcv": [],
+        "lens/core": []
+      },
+      "source_files": [
+        "lensengine/src/cpp/algorithm/SmartCodec/src/ios/*.{h,cpp,mm}",
+        "lensengine/src/cpp/algorithm/SmartCodec/src/SmartCodecBackend.cpp",
+        "lensengine/src/cpp/algorithm/SmartCodec/src/SmartCodecFlowGraph.cpp",
+        "lensengine/src/cpp/algorithm/SmartCodec/src/SmartCodecProcess.cpp",
+        "lensengine/src/cpp/algorithm/SmartCodec/include/SmartCodecBackend.h",
+        "lensengine/src/cpp/algorithm/SmartCodec/include/SmartCodecFlowGraph.h",
+        "lensengine/src/cpp/algorithm/SmartCodec/include/SmartCodecProcess.h",
+        "lensengine/src/cpp/base/utils/LensLooper.h",
+        "lensengine/src/cpp/base/utils/LensLooper.cpp"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "HAVE_SMART_CODEC=1 HAVE_FASTCV=1"
+      }
+    },
+    {
+      "public_header_files": [
+        "lensengine/src/cpp/include/*.h"
+      ],
+      "vendored_libraries": [
+        "lensengine/src/cpp/third_party/OneKeyDetection/libs/ios/*.a"
+      ],
+      "name": "LumaDetection",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_LumaDetection_*awesome_*.a"
+      },
+      "dependencies": {
+        "lens/core": []
+      },
+      "source_files": [
+        "lensengine/src/cpp/algorithm/LumaDetection/src/*.{mm}",
+        "lensengine/src/cpp/algorithm/LumaDetection/include/*.{h,hpp}",
+        "lensengine/src/cpp/third_party/OnekeyDetection/include/*.{h,hpp}"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "HAVE_LUMA_DETECT=1"
+      }
+    },
+    {
+      "dependencies": {
+        "lens/LumaDetection": [],
+        "lens/SmartCodec": []
+      },
+      "name": "lark",
+      "preserve_paths": [
+        "**/*.bwp"
+      ]
+    }
+  ],
+  "name": "lens"
+}

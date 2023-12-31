@@ -1,0 +1,1 @@
+../../../../DVETrackKit/Classes/Lite/VideoClip/DVELiteDurationClipView.h

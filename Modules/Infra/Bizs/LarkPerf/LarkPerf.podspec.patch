@@ -1,0 +1,159 @@
+debug_dependency 'AppContainer', '0.2.15', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LKCommonsLogging', '0.4.10', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'Swinject', '2.7.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'LKCommonsTracker', '0.4.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'ThreadSafeDataStructure', '0.0.4', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'AppReciableSDK', '0.1.5'
+
+debug_cocoapods do
+  pre_install "patch build settings", <<-'PRE_INSTALL'
+  use_whold_module = false
+  # fix: add search path for these cross module include headers
+  should_fix_include_headers = {
+    'IESVideoEditor' => ['EffectSDK_iOS', 'KVOController', 'Heimdallr'],
+    'TTVideoEngine' => ['TTPlayerSDK', 'TTVideoSetting'],
+    'ConfigCenter' => ['FMDB'],
+    'AFgzipRequestSerializer' => ['AFNetworking', 'Godzippa'],
+    'Heimdallr' => ['BDAlogProtocol', 'TTMacroManager'],
+    'TTInstallService' => ['Godzippa'],
+    'Timor' => true,
+    'CJPay' => true,
+    'CJComponents' => true,
+    'SAMKeychain' => true,
+    'LarkFinance' => true,
+    'EEMicroAppSDK' => true, # 直接头文件和模块混用，需要改代码, 光改搜索路径还不行
+    'JsSDK' => true, # 依赖了EEMicroAppSDK
+    'LarkMicroApp' => true,
+    # indirect dependency
+    'TTNetworkManager' => ['AFNetworking', 'Godzippa'],
+    'LarkWeb' => true,
+    'LarkOpenPlatform' => true,
+    'TTBaseLib' => ['OpenUDID'],
+    'BDUGShare' => ['TTBaseLib', 'BDUGImageMark', 'SDWebImage'],
+    'LarkContact' => ['BDUGShare'],
+    'QRCode' => ['smash'],
+    'byted_cert' => true,
+  }
+
+  fix_modular_include = Set[
+    'TTNetworkManager',
+    'EEMicroAppSDK',
+    'JsSDK',
+    'LarkMicroApp',
+    'LarkWeb',
+    'LarkOpenPlatform',
+    'WeiboSDK',
+    'WechatSDK',
+    'TencentQQSDK',
+    'BDUGShare',
+    'LarkContact',
+    'BDABTestSDK',
+    'LarkFinance',
+    'CJPay',
+    'CJComponents',
+    'SAMKeychain',
+    'IESVideoEditor',
+    'QRCode',
+    'byted_cert'
+  ]
+
+  tobsdk_flags = Set[
+    'TTInstallService',
+    'TTTracker',
+    'LarkTracker'
+  ]
+  mail_target = Set[
+    'MailSDK'
+  ]
+
+  # @type [Hash{String => Pod::PodTarget}]
+  pod_targets_by_name = installer.pod_targets.group_by(&:pod_name)
+  header_search_paths_of_pods = lambda do |pod_target|
+    return unless config = should_fix_include_headers[pod_target.name]
+    # use true to represent all dependency
+    included_targets = case config
+                       when true then pod_target.recursive_dependent_targets
+                       when Hash then
+                         pod_targets_by_name.values_at(*config[:recursive]).compact.flatten(1)
+                           .flat_map {|pt| [pt] + pt.recursive_dependent_targets}
+                           .uniq
+                       when Array then
+                         pod_targets_by_name.values_at(*config).compact.flatten(1)
+                       else
+                         raise "unsupported"
+                       end
+    return nil if included_targets.empty?
+
+    # 1.9 BuildSettings 按config区分，先兼容一下
+    if Gem::Version.new(Pod::VERSION) < Gem::Version.new('1.9')
+      pt_build_settings = lambda do |pod_target|
+        pod_target.build_settings
+      end
+    else
+      pt_build_settings = lambda do |pod_target|
+        pod_target.build_settings[:release]
+      end
+    end
+
+    headers = []
+    # @param pt [Pod::PodTarget]
+    included_targets.each do |pt|
+      if pt.requires_frameworks? && pt.should_build?
+        headers.push pt_build_settings[pt].framework_header_search_path
+      else
+        # the above code use direct include header, not <module/header.h>
+        headers.push "${PODS_ROOT}/Headers/Public"
+        headers.push "${PODS_ROOT}/Headers/Public/#{pt.pod_name}"
+        # append vendored frameworks header
+        headers.concat(pt_build_settings[pt].file_accessors.flat_map(&:vendored_frameworks).map { |f|
+          File.join '${PODS_ROOT}', f.relative_path_from(pt.sandbox.root), "Headers"
+        })
+      end
+    end
+    headers.uniq
+  end
+
+  # lint: if generate multiple scoped pod_target, downstream pod don't know choose which
+  duplicate_pod_targets = pod_targets_by_name.values.select { |a| a.length > 1 }
+  duplicate_pod_targets.each do |a|
+    Pod::UI.warn "Duplicate Pod target with different subspecs, defined in:"
+    a.each do |pod_target|
+      Pod::UI.warn "  - #{pod_target.name}(#{pod_target.specs.map(&:name).join(", ")}) contained in: #{pod_target.target_definitions.map(&:name).join(', ')}"
+    end
+  end
+  raise "Currently Not Support Duplicate Pod Targets" unless duplicate_pod_targets.empty?
+
+  installer.pod_targets.each do |pod_target|
+    attributes_hash = pod_target.root_spec.attributes_hash
+    pod_target_xcconfig = (attributes_hash['pod_target_xcconfig'] ||= {})
+
+    pod_target_xcconfig['SWIFT_VERSION'] = '5.1'
+    pod_target_xcconfig['IPHONEOS_DEPLOYMENT_TARGET'] = '11.0'
+    pod_target_xcconfig['WARNING_CFLAGS'] ||= []
+    pod_target_xcconfig['WARNING_CFLAGS'] += ['-Wno-nullability-completeness', '-Wno-nonnull']
+    pod_target_xcconfig['CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED'] = 'NO'
+
+    if use_whold_module == true
+      pod_target_xcconfig['SWIFT_WHOLE_MODULE_OPTIMIZATION'] = "YES"
+    end
+
+    # 调试LarkDemo需要打开注释
+    # pod_target_xcconfig['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
+
+    if headers = header_search_paths_of_pods[pod_target]
+      pod_target_xcconfig['SYSTEM_HEADER_SEARCH_PATHS'] = headers.join(' ')
+    end
+    if fix_modular_include.include? pod_target.name
+      pod_target_xcconfig['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = "YES"
+    end
+    if tobsdk_flags.include? pod_target.name
+      pod_target_xcconfig['GCC_PREPROCESSOR_DEFINITIONS'] ||= ''
+      pod_target_xcconfig['GCC_PREPROCESSOR_DEFINITIONS'] += ' TOBSDK=1'
+    end
+    if pod_target.name == 'IESGeckoKit'
+      pod_target_xcconfig['GCC_PREPROCESSOR_DEFINITIONS'] ||= '$(inherited)'
+      pod_target_xcconfig['GCC_PREPROCESSOR_DEFINITIONS'] += ' GURD_DEBUG_ENABLED=1'
+    end
+  end
+  PRE_INSTALL
+end

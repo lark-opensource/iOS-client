@@ -1,0 +1,1 @@
+../../../../../Lynx/inspector/inspector_manager.h

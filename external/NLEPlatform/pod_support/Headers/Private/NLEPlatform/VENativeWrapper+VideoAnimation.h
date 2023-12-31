@@ -1,0 +1,1 @@
+../../../../ios/veadapter/VENativeWrapper+VideoAnimation.h

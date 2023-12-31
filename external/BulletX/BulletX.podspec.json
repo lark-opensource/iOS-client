@@ -1,0 +1,154 @@
+{
+  "name": "BulletX",
+  "version": "1.4.7-alpha.31.1.binary",
+  "summary": "A short description of BulletX.",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://code.byted.org/ugc/Bullet",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "fulei.bill": "fulei.bill@bytedance.com"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/aweme-rock/rock_binary/privatethird_binary_repo/BulletX/1.4.7-alpha.31.1.binary/1648210813/BulletX.tar.xz"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "preserve_paths": [
+    "rock_document/**/*.{h,m,mm,cpp,hpp,swift}",
+    "rock_document/rock-document-files.txt"
+  ],
+  "source_code": {
+    "git": "git@code.byted.org:ugc/Bullet.git",
+    "commit": "84f13e4c033e639be1ec04200eab42b35427f072"
+  },
+  "binary_type": "rock",
+  "package_env": {
+    "id": null,
+    "xcode": "Xcode 13.0\nBuild version 13A233\n"
+  },
+  "subspecs": [
+    {
+      "name": "ModuleInterface",
+      "subspecs": [
+        {
+          "name": "Model",
+          "source_files": "BulletX/ModuleInterface/Model/**/*.{h,m,mm}"
+        },
+        {
+          "name": "Interface",
+          "dependencies": {
+            "BulletX/ModuleInterface/Model": [
+
+            ]
+          },
+          "source_files": "BulletX/ModuleInterface/Interface/**/*.{h,m,mm}"
+        }
+      ]
+    },
+    {
+      "name": "Core",
+      "dependencies": {
+        "BulletX/ModuleInterface": [
+
+        ],
+        "Mantle": [
+
+        ],
+        "ByteDanceKit": [
+
+        ]
+      },
+      "source_files": "BulletX/Classes/**/*.{h,m,mm,c}",
+      "prefix_header_file": "BulletX/Classes/PrefixHeader.pch",
+      "vendored_libraries": [
+        "BulletX/Classes/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "BulletX/Classes/**/*.o",
+          "libBulletX-3c6d893.a"
+        ]
+      }
+    },
+    {
+      "name": "Assembler",
+      "source_files": [
+        "BulletX/Entry/Assembler/**/*.{h,m,mm}",
+        "rock_dummy/rock_dummy_e3f048d.m"
+      ],
+      "resource_bundles": {
+        "BulletResource": [
+          "BulletX/Entry/Assembler/BulletResource.xcassets"
+        ]
+      },
+      "dependencies": {
+        "BulletX/Core": [
+
+        ],
+        "BDXServiceCenter": [
+          "~> 1.4.1"
+        ],
+        "ByteDanceKit/Foundation": [
+
+        ],
+        "ByteDanceKit/UIKit": [
+
+        ],
+        "BDAlogProtocol": [
+
+        ]
+      },
+      "vendored_libraries": [
+        "BulletX/Entry/Assembler/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "BulletX/Entry/Assembler/**/*.o",
+          "libBulletX-e3f048d.a"
+        ]
+      }
+    },
+    {
+      "name": "Dependency",
+      "dependencies": {
+        "BulletX/Core": [
+
+        ],
+        "BulletX/Bridge": [
+
+        ]
+      }
+    },
+    {
+      "name": "Bridge",
+      "dependencies": {
+        "BDXBridgeKit/Core": [
+
+        ]
+      },
+      "source_files": "BulletX/Entry/Bridge/**/*.{h,m,mm}",
+      "vendored_libraries": [
+        "BulletX/Entry/Bridge/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "BulletX/Entry/Bridge/**/*.o",
+          "libBulletX-bf5c3a2.a"
+        ]
+      }
+    }
+  ]
+}

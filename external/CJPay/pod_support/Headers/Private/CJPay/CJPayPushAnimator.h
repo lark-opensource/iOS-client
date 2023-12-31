@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayComponent/Base/Transition/CJPayPushAnimator.h

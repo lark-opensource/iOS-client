@@ -1,0 +1,40 @@
+{
+	"rules": {
+        "rule_name": {
+            "prefetch_apis": "api_name"
+        },
+        "/falcon/live_inapp/page/push_hot/index.html": {
+            "prefetch_apis": ["api_name"] 
+        },
+        "/tt482a3e97d7008189/pages/author_guide/test": {
+            "prefetch_apis": ["api_name1"]
+        },
+        "/tt482a3e97d7008189/pages/author_guide/health": {
+            "hash": "^#\/home\\?",
+            "query": [{
+                "key": "item_id",
+                "value": "^128"
+            }],
+            "prefetch_apis": [ "api_name1"]
+        },
+        "/tt482a3e97d7008189/pages/push_hot/home": [
+            {
+                "query": [{
+                    "key": "item_id"
+                }],
+                "prefetch_apis": [ "api_name1"]
+            },
+            { 
+				"query": [{
+                    "key": "item_id"
+                }],
+                "prefetch_apis": [ "api_name2"]
+			}
+        ]
+   },
+   "restful_rules": {
+        "/share/item/:item_id": {
+            "prefetch_apis": [ "api_name1"]
+        }
+    }
+}

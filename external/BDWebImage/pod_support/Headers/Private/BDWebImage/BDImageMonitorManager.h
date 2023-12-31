@@ -1,0 +1,1 @@
+../../../../BDWebImage/Classes/Monitor/BDImageMonitorManager.h

@@ -1,0 +1,534 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "React-cxxreact_pod_hdrs",
+  srcs = [
+    ":React-cxxreact_root_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "React-cxxreact_private_includes",
+  include = [
+    "external/React-cxxreact/pod_support/Headers/Private/React-cxxreact/"
+  ],
+  deps = [],
+  external_name = "React-cxxreact"
+)
+gen_includes(
+  name = "React-cxxreact_public_includes",
+  include = [
+    "external/React-cxxreact/pod_support/Headers/Public/React-cxxreact/"
+  ],
+  deps = [],
+  external_name = "React-cxxreact"
+)
+filegroup(
+  name = "_React-cxxreact_hdrs",
+  srcs = [
+    ":React-cxxreact_root_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "React-cxxreact_xcode_hmapsource",
+  hdrs = [
+    ":_React-cxxreact_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "React-cxxreact_xcode_hmap",
+  dep = ":React-cxxreact_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/React-cxxreact/*-bitsky-generated.modulemap", "pod_support/Headers/Public/React-cxxreact/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "React-cxxreact_custom_includes",
+  include = [
+    "external/boost-for-react-native",
+    "external/Folly",
+    "external/DoubleConversion",
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "React-cxxreact",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "React-cxxreact_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":React-cxxreact_xcode_hmap"
+  ],
+  external_name = "React-cxxreact",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "React-cxxreact_root_hdrs",
+  srcs = [
+    "ReactCommon/cxxreact/CxxModule.h",
+    "ReactCommon/cxxreact/CxxNativeModule.h",
+    "ReactCommon/cxxreact/Instance.h",
+    "ReactCommon/cxxreact/JSBigString.h",
+    "ReactCommon/cxxreact/JSBundleType.h",
+    "ReactCommon/cxxreact/JSDeltaBundleClient.h",
+    "ReactCommon/cxxreact/JSExecutor.h",
+    "ReactCommon/cxxreact/JSIndexedRAMBundle.h",
+    "ReactCommon/cxxreact/JSModulesUnbundle.h",
+    "ReactCommon/cxxreact/JsArgumentHelpers-inl.h",
+    "ReactCommon/cxxreact/JsArgumentHelpers.h",
+    "ReactCommon/cxxreact/MessageQueueThread.h",
+    "ReactCommon/cxxreact/MethodCall.h",
+    "ReactCommon/cxxreact/ModuleRegistry.h",
+    "ReactCommon/cxxreact/NativeModule.h",
+    "ReactCommon/cxxreact/NativeToJsBridge.h",
+    "ReactCommon/cxxreact/RAMBundleRegistry.h",
+    "ReactCommon/cxxreact/ReactMarker.h",
+    "ReactCommon/cxxreact/RecoverableError.h",
+    "ReactCommon/cxxreact/SampleCxxModule.h",
+    "ReactCommon/cxxreact/SharedProxyCxxModule.h",
+    "ReactCommon/cxxreact/SystraceSection.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "React-cxxreact_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/React-cxxreact/cxxreact/CxxModule.h",
+    "pod_support/Headers/Private/React-cxxreact/cxxreact/CxxNativeModule.h",
+    "pod_support/Headers/Private/React-cxxreact/cxxreact/Instance.h",
+    "pod_support/Headers/Private/React-cxxreact/cxxreact/JSBigString.h",
+    "pod_support/Headers/Private/React-cxxreact/cxxreact/JSBundleType.h",
+    "pod_support/Headers/Private/React-cxxreact/cxxreact/JSDeltaBundleClient.h",
+    "pod_support/Headers/Private/React-cxxreact/cxxreact/JSExecutor.h",
+    "pod_support/Headers/Private/React-cxxreact/cxxreact/JSIndexedRAMBundle.h",
+    "pod_support/Headers/Private/React-cxxreact/cxxreact/JSModulesUnbundle.h",
+    "pod_support/Headers/Private/React-cxxreact/cxxreact/JsArgumentHelpers-inl.h",
+    "pod_support/Headers/Private/React-cxxreact/cxxreact/JsArgumentHelpers.h",
+    "pod_support/Headers/Private/React-cxxreact/cxxreact/MessageQueueThread.h",
+    "pod_support/Headers/Private/React-cxxreact/cxxreact/MethodCall.h",
+    "pod_support/Headers/Private/React-cxxreact/cxxreact/ModuleRegistry.h",
+    "pod_support/Headers/Private/React-cxxreact/cxxreact/NativeModule.h",
+    "pod_support/Headers/Private/React-cxxreact/cxxreact/NativeToJsBridge.h",
+    "pod_support/Headers/Private/React-cxxreact/cxxreact/RAMBundleRegistry.h",
+    "pod_support/Headers/Private/React-cxxreact/cxxreact/ReactMarker.h",
+    "pod_support/Headers/Private/React-cxxreact/cxxreact/RecoverableError.h",
+    "pod_support/Headers/Private/React-cxxreact/cxxreact/SampleCxxModule.h",
+    "pod_support/Headers/Private/React-cxxreact/cxxreact/SharedProxyCxxModule.h",
+    "pod_support/Headers/Private/React-cxxreact/cxxreact/SystraceSection.h",
+    "pod_support/Headers/Public/React-cxxreact/cxxreact/CxxModule.h",
+    "pod_support/Headers/Public/React-cxxreact/cxxreact/CxxNativeModule.h",
+    "pod_support/Headers/Public/React-cxxreact/cxxreact/Instance.h",
+    "pod_support/Headers/Public/React-cxxreact/cxxreact/JSBigString.h",
+    "pod_support/Headers/Public/React-cxxreact/cxxreact/JSBundleType.h",
+    "pod_support/Headers/Public/React-cxxreact/cxxreact/JSDeltaBundleClient.h",
+    "pod_support/Headers/Public/React-cxxreact/cxxreact/JSExecutor.h",
+    "pod_support/Headers/Public/React-cxxreact/cxxreact/JSIndexedRAMBundle.h",
+    "pod_support/Headers/Public/React-cxxreact/cxxreact/JSModulesUnbundle.h",
+    "pod_support/Headers/Public/React-cxxreact/cxxreact/JsArgumentHelpers-inl.h",
+    "pod_support/Headers/Public/React-cxxreact/cxxreact/JsArgumentHelpers.h",
+    "pod_support/Headers/Public/React-cxxreact/cxxreact/MessageQueueThread.h",
+    "pod_support/Headers/Public/React-cxxreact/cxxreact/MethodCall.h",
+    "pod_support/Headers/Public/React-cxxreact/cxxreact/ModuleRegistry.h",
+    "pod_support/Headers/Public/React-cxxreact/cxxreact/NativeModule.h",
+    "pod_support/Headers/Public/React-cxxreact/cxxreact/NativeToJsBridge.h",
+    "pod_support/Headers/Public/React-cxxreact/cxxreact/RAMBundleRegistry.h",
+    "pod_support/Headers/Public/React-cxxreact/cxxreact/ReactMarker.h",
+    "pod_support/Headers/Public/React-cxxreact/cxxreact/RecoverableError.h",
+    "pod_support/Headers/Public/React-cxxreact/cxxreact/SampleCxxModule.h",
+    "pod_support/Headers/Public/React-cxxreact/cxxreact/SharedProxyCxxModule.h",
+    "pod_support/Headers/Public/React-cxxreact/cxxreact/SystraceSection.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "React-cxxreact_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "React-cxxreact_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "React-cxxreact_module_map",
+  module_map = "pod_support/Headers/Public/React-cxxreact/React-cxxreact-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/React-cxxreact/React-cxxreact-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "React-cxxreact_root_srcs",
+  srcs = [
+    "ReactCommon/cxxreact/CxxNativeModule.cpp",
+    "ReactCommon/cxxreact/Instance.cpp",
+    "ReactCommon/cxxreact/JSBigString.cpp",
+    "ReactCommon/cxxreact/JSBundleType.cpp",
+    "ReactCommon/cxxreact/JSDeltaBundleClient.cpp",
+    "ReactCommon/cxxreact/JSExecutor.cpp",
+    "ReactCommon/cxxreact/JSIndexedRAMBundle.cpp",
+    "ReactCommon/cxxreact/MethodCall.cpp",
+    "ReactCommon/cxxreact/ModuleRegistry.cpp",
+    "ReactCommon/cxxreact/NativeToJsBridge.cpp",
+    "ReactCommon/cxxreact/RAMBundleRegistry.cpp",
+    "ReactCommon/cxxreact/ReactMarker.cpp",
+    "ReactCommon/cxxreact/SampleCxxModule.cpp"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "React-cxxreact_oc",
+  enable_modules = 1,
+  srcs = [
+    "React-cxxreact_root_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "React-cxxreact_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":React-cxxreact_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":React-cxxreact_private_includes",
+    ":React-cxxreact_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@boost-for-react-native//:boost-for-react-native_objc_interface",
+    "@DoubleConversion//:DoubleConversion_objc_interface",
+    "@Folly//:Folly_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@React-jsinspector//:React-jsinspector_objc_interface",
+    "@boost-for-react-native//:boost-for-react-native_swift_interface",
+    "@DoubleConversion//:DoubleConversion_swift_interface",
+    "@Folly//:Folly_swift_interface",
+    "@glog//:glog_swift_interface",
+    "@React-jsinspector//:React-jsinspector_swift_interface",
+    ":React-cxxreact_objc_interface",
+    "@boost-for-react-native//:boost-for-react-native_module_map",
+    "@DoubleConversion//:DoubleConversion_module_map",
+    "@Folly//:Folly_module_map",
+    "@glog//:glog_module_map",
+    "@React-jsinspector//:React-jsinspector_module_map"
+  ],
+  per_label_options = [
+    ".*ReactCommon/cxxreact/CxxNativeModule.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/Instance.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/JSBigString.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/JSBundleType.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/JSDeltaBundleClient.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/JSExecutor.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/JSIndexedRAMBundle.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/MethodCall.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/ModuleRegistry.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/NativeToJsBridge.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/RAMBundleRegistry.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/ReactMarker.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/SampleCxxModule.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "React-cxxreact",
+  deps = [
+    ":React-cxxreact_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "React-cxxreact_lib",
+  deps = [
+    ":React-cxxreact"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_React-cxxreact_module_map",
+  module_map = "@React-cxxreact//:pod_support/Headers/Public/React-cxxreact/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@React-cxxreact//:pod_support/Headers/Public/React-cxxreact/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_React-cxxreact_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@React-cxxreact//:React-cxxreact_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_React-cxxreact",
+  target_name = "Lark",
+  module_name = "cxxreact",
+  hdrs = ["@React-cxxreact//:React-cxxreact_root_pod_hdrs"],
+  srcs = ["@React-cxxreact//:React-cxxreact_root_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["boost-for-react-native", "DoubleConversion", "Folly", "glog", "React-jsinspector"],
+  per_label_options = [".*ReactCommon/cxxreact/CxxNativeModule.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/Instance.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/JSBigString.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/JSBundleType.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/JSDeltaBundleClient.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/JSExecutor.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/JSIndexedRAMBundle.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/MethodCall.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/ModuleRegistry.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/NativeToJsBridge.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/RAMBundleRegistry.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/ReactMarker.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/cxxreact/SampleCxxModule.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation"],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "React_cxxreact_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "React_cxxreact_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "React_cxxreact_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "React_cxxreact_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "React_cxxreact_dynamic", False),
+  tags = getattr(defs_external_objc_library, "React_cxxreact_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("React_cxxreact", {}),
+  visibility = ["//visibility:public"],
+)

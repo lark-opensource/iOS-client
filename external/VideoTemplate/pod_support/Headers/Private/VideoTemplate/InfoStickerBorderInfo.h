@@ -1,0 +1,1 @@
+../../../../cut/include/cut/param/InfoStickerBorderInfo.h

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+    <meta name="description" content="Unable to connect to the internet">
+    <title>Unable to connect to the internet</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: "PingFang SC", "Microsoft YaHei", "微软雅黑", "Tahoma", sans-serif;
+            background-color: #fff;
+        }
+        p, ul, ol {
+            font-size: 14px;
+            line-height: 22px;
+            word-break: break-word;
+        }
+        a {
+            text-decoration: none;
+        }
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 60px 30px;
+            box-sizing: content-box;
+        }
+        @media screen and (max-width: 750px) {
+            .container {
+                padding: 10px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+<main class="container">
+    <h1>Unable to connect to the internet</h1>
+    <p>If you cannot connect to the internet, try the following methods:</p>
+    <h3 class="template">1. If you are using iOS 10 or above, and it does not allow 'Feishu' to use WLAN and Cellular mobile networks:</h3>
+    <p class="template">Go to <strong>Settings</strong> - <strong>Cellular Data</strong> - <strong>Apps Using WLAN & Cellular</strong> and allow 'Feishu' to use data on your iPhone.
+    </p>
+    <p class="template">If you can't find "Feishu" in <strong>Apps Using WLAN & Cellular</strong>, try switching the permissions of other apps before finding 'Feishu' to allow the use of data.
+    </p>
+    <h3>2. If WLAN or Cellular Network is not enabled on your iPhone</h3>
+    <p>
+        To connect to the internet, try:
+    </p>
+    <p>
+        Go to <strong>Settings</strong> - <strong>WLAN</strong>, and connect to a Wi-Fi hotspot, or, go to <strong>Settings</strong> - <strong>Cellular</strong>, and enable <strong>Cellular Data</strong>.
+    </p>
+    <h3>3. If you're already connected to a Wi-Fi network</h3>
+    <p>
+        - Please check whether the Wi-Fi hotspot you are using to is connected to the Internet, or whether the hotspot allows your iPhone to access the Internet.
+    </p>
+    <script>
+        function getQueryVariable(variable) {
+            var query = window.location.search.substring(1);
+            var vars = query.split("&");
+            for (var i=0;i<vars.length;i++) {
+                var pair = vars[i].split("=");
+                if(pair[0] === variable){return decodeURIComponent(pair[1]);}
+            }
+            return "";
+        }
+        var es = document.getElementsByClassName("template");
+        var appName = getQueryVariable("app_name");
+        if (appName.length > 0) {
+            for (var i = 0; i < es.length; i++) {
+                var e = es[i];
+                e.innerHTML = e.innerHTML.replace(/Feishu/g, appName);
+            }
+        }
+    </script>
+</main>
+</body></html>

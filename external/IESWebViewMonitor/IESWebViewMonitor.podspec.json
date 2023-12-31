@@ -1,0 +1,224 @@
+{
+  "name": "IESWebViewMonitor",
+  "version": "1.3.21-rc.18-lark",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/renpengcheng/ieswebviewmonitor",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": "renpengcheng@bytedance.com",
+  "source": {
+    "git": "git@code.byted.org:live_client/IESWebViewMonitor.git",
+    "commit": "c9d19478dfa4e86263df649229fb51601595b496"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "dependencies": {
+    "BDAlogProtocol": []
+  },
+  "default_subspecs": [
+    "Core",
+    "HybridMonitor",
+    "WKWebView",
+    "SettingModel"
+  ],
+  "subspecs": [
+    {
+      "name": "SettingModel",
+      "source_files": "IESWebViewMonitor/Classes/SettingModel/**/*",
+      "dependencies": {
+        "IESWebViewMonitor/Core": []
+      }
+    },
+    {
+      "name": "Core",
+      "source_files": "IESWebViewMonitor/Classes/Core/**/*",
+      "dependencies": {
+        "Heimdallr/TTMonitor": [
+          "> 0.7.5"
+        ]
+      }
+    },
+    {
+      "name": "Live",
+      "source_files": "IESWebViewMonitor/Classes/Live/**/*",
+      "dependencies": {
+        "IESDI": [],
+        "IESWebViewMonitor/Core": []
+      }
+    },
+    {
+      "name": "WKWebView",
+      "subspecs": [
+        {
+          "name": "WebPerf",
+          "source_files": "IESWebViewMonitor/Classes/WebPerf/**/*",
+          "resource_bundles": {
+            "IESWebViewMonitor": [
+              "IESWebViewMonitor/Assets/**/*"
+            ]
+          },
+          "dependencies": {
+            "IESWebViewMonitor/SettingModel": [],
+            "IESWebViewMonitor/HybridMonitor": []
+          }
+        },
+        {
+          "name": "WebCore",
+          "source_files": "IESWebViewMonitor/Classes/WebCore/**/*",
+          "dependencies": {
+            "IESWebViewMonitor/Core": [],
+            "IESWebViewMonitor/WKWebView/WebPerf": [],
+            "BDWebCore": []
+          }
+        },
+        {
+          "name": "WebBlankDetect",
+          "source_files": "IESWebViewMonitor/Classes/WebBlankDetect/**/*",
+          "dependencies": {
+            "BDWebKit/BlankDetect": [
+              ">=1.0.10"
+            ]
+          }
+        },
+        {
+          "name": "WebJSB",
+          "source_files": "IESWebViewMonitor/Classes/WebJSB/**/*",
+          "dependencies": {
+            "IESJSBridgeCore/Core": [
+              ">=1.1.5"
+            ]
+          }
+        },
+        {
+          "name": "WebFalcon",
+          "source_files": "IESWebViewMonitor/Classes/WebFalcon/**/*",
+          "dependencies": {
+            "BDWebKit/Falcon": [
+              ">=1.1.19"
+            ],
+            "BDWebKit/Offline": [
+              ">=1.1.19"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Lynx",
+      "subspecs": [
+        {
+          "name": "LynxPerf",
+          "source_files": "IESWebViewMonitor/Classes/LynxPerf/**/*",
+          "dependencies": {
+            "IESWebViewMonitor/Core": [],
+            "IESWebViewMonitor/HybridMonitor": [],
+            "IESWebViewMonitor/SettingModel": [],
+            "Lynx/Framework": [
+              ">= 1.0.2"
+            ],
+            "Lynx/Native": [
+              ">= 1.0.2"
+            ],
+            "Lynx/JSRuntime": [
+              ">= 1.0.2"
+            ],
+            "Lynx/ReleaseResource": [
+              ">= 1.0.2"
+            ]
+          }
+        },
+        {
+          "name": "LynxBlankDetect",
+          "source_files": "IESWebViewMonitor/Classes/LynxBlankDetect/**/*",
+          "dependencies": {
+            "IESWebViewMonitor/Core": []
+          }
+        },
+        {
+          "name": "LynxJSB",
+          "source_files": "IESWebViewMonitor/Classes/LynxJSB/**/*",
+          "dependencies": {
+            "IESWebViewMonitor/Lynx/LynxPerf": [],
+            "Lynx/BDLynxBridge": [
+              ">=1.4"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "HybridMonitor",
+      "source_files": "IESWebViewMonitor/Classes/HybridMonitor/**/*",
+      "dependencies": {
+        "Heimdallr/TTMonitor": [
+          "> 0.7.5"
+        ]
+      }
+    },
+    {
+      "name": "CustomInterface",
+      "subspecs": [
+        {
+          "name": "WebInterface",
+          "source_files": "IESWebViewMonitor/Classes/WebViewInterface/**/*",
+          "dependencies": {
+            "IESWebViewMonitor/Core": [],
+            "IESWebViewMonitor/WKWebView/WebPerf": []
+          }
+        },
+        {
+          "name": "LynxInterface",
+          "source_files": "IESWebViewMonitor/Classes/LynxInterface/**/*",
+          "dependencies": {
+            "IESWebViewMonitor/Core": [],
+            "IESWebViewMonitor/Lynx/LynxPerf": []
+          },
+          "subspecs": [
+            {
+              "name": "LynxFECustomError",
+              "source_files": "IESWebViewMonitor/Classes/LynxCustomError/**/*",
+              "dependencies": {
+                "IESWebViewMonitor/HybridMonitor": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "mPaaS",
+      "dependencies": {
+        "IESWebViewMonitor/Core": [],
+        "IESWebViewMonitor/HybridMonitor": [],
+        "IESWebViewMonitor/WKWebView": [],
+        "IESWebViewMonitor/SettingModel": []
+      }
+    },
+    {
+      "name": "Debug",
+      "source_files": "IESWebViewMonitor/mPaaS/Debug/**/*{h,m}",
+      "dependencies": {
+        "IESWebViewMonitor/mPaaS": [],
+        "IESWebViewMonitor/SettingModel": [],
+        "BDDebugTool": [],
+        "BDStartUp": []
+      }
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "1985",
+    "app_id": "9999"
+  },
+  "repoId": "1985",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "IESWebViewMonitor_POD_VERSION=@\\\"9999_1.3.21-rc.18-lark\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "IESWebViewMonitor_POD_VERSION=@\\\"9999_1.3.21-rc.18-lark\\\""
+  }
+}

@@ -1,0 +1,64 @@
+
+# coding: utf-8
+# @!domain [Pod::Podfile]
+# @!parse
+#  require 'cocoapods'
+
+`git config core.hooksPath hooks`
+
+require_relative '../../bin/lib/lark-project/lib/lark/project/podfile_mixin'
+require_relative '../../bin/lib/lark-project/lib/lark/project/assembly'
+require_relative '../../if_pod'
+
+lark_template_common_setup
+strict_lock_mode!
+
+disable_swiftlint!
+
+# @param strategy:
+#   :all 开启全部二进制
+#   :pb 只有PB开启二进制
+#   other 手动开启二进制
+# 你也可以在本地创建 Podfile.patch（请勿提交该文件！） 以固定配置某些库为源码或者二进制
+# 修改后记得重新pod install
+dev_pods = %W[
+  Minutes
+  MinutesFoundation
+  MinutesInterface
+  MinutesMod
+  MinutesNavigator
+]
+lark_use_common_binary_config(strategy: :all) do
+  # 这里插入Name可以将某个库切成源码, 无需使用引号，一行一个或者使用空格做分割
+  dev_pods.each { |v| source v }
+end
+
+
+target 'LarkMinutesDemo' do
+  lark_main_target_if_pods
+
+  pod 'LarkBaseService' #按需开启
+  pod 'LarkSecurityCompliance'
+  pod 'OPFoundation'
+  pod 'LarkMedia'
+  
+
+  pod 'PassportDebug'
+
+  dev_pods.each { |v| eepod v, inhibit_warnings: false }
+end
+
+# @param installer [Pod::Installer]
+pre_install do |installer|
+  lark_template_common_pre_install installer
+end
+
+# @param installer [Pod::Installer]
+post_install do |installer|
+  lark_template_common_post_install installer
+  Assembly.rebuild installer
+end
+
+# Podfile结束eval前需要执行的一些代码，目前是引用if_pod的集成需要延后生效
+flush_defer_actions!
+

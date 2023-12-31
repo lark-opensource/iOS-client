@@ -1,0 +1,129 @@
+included:
+  - LarkWorkplace/src/Source/Modules
+  - LarkWorkplace/src/Source/Define
+  - LarkWorkplace/src/Source/Pages/Add
+  - LarkWorkplace/src/Source/Pages/Dialog
+  - LarkWorkplace/src/Source/Pages/Home
+  - LarkWorkplace/src/Source/Pages/InstallGuide
+  - LarkWorkplace/src/Source/Pages/Setting
+excluded:
+  - LarkWorkplace/src/Source/Assembly
+  - LarkWorkplace/src/Source/Pages/Home/LowCode/viewController/TemplateVC+TmplList.swift
+  - LarkWorkplace/src/Source/Pages/Third
+  - Example/Pods
+  - LarkWorkplace/src/Source/Modules/Legacy           # 非工作台业务，该文件夹下文件内容暂不做约束
+disabled_rules:
+  - cyclomatic_complexity                             # 过于严格和死板，复杂度通过文件长度和函数长度已经足够了
+  - nesting                                           # 会限制局部私有类型和方法封装的使用。这部分代码组织结构完全可以交给开发人员判断。不用限制
+  - notification_center_detachment                    # 多次调用notification的removeObserver并没有什么副作用。不应该限制开发人员进行更精确的监听生命周期控制
+  - type_body_length                                  # 限制文件和方法长度就足够了。
+  - unneeded_break_in_switch
+  - object_literal
+  - self_in_property_initialization                   # 与fastline swiftline规则不同，故disable
+  - identifier_name
+  - todo
+opt_in_rules:
+  - anyobject_protocol                                # 遵循最新的 Swift 语法规范
+  # - attributes                                      # attributes 的位置，暂时不作限制吧
+  - closure_end_indentation                           # 闭包尾部对齐规则
+  - closure_spacing                                   # 不必要的空格
+  - collection_alignment                              # 容器类元素对齐规则
+  - contains_over_filter_count                        # 使用 contains 代替 filter(where:).count == 0
+  - contains_over_filter_is_empty                     # 使用 contains 代替 filter(where:).isEmpty
+  - contains_over_first_not_nil                       # 使用 contains 代替 first(where:) != nil 或者 firstIndex(where:) != nil
+  - contains_over_range_nil_comparison                # 使用 contains 代替 range(of:) != nil 或者 range(of:) == nil
+  - convenience_type                                  # 用于存储常量的类型建议实现在 enum 中
+  - discarded_notification_center_observer            # Notification addObserver 但未持有
+  # - discouraged_none_name                           # 禁止 enum 声明 none 枚举，先不开吧
+  - discouraged_object_literal                        # 我们有 UD 规范，不建议用 literal 方式声明
+  - empty_collection_literal                          # 规范化容器 空 判断
+  - empty_count                                       # 规范化容器 空 判断
+  - empty_string                                      # 规范化 String 空 判断
+  # - expiring_todo                                   # 标了时间的 TODO 需要按时修复
+  - explicit_init                                     # 初始化的 init 可以省略
+  - fallthrough                                       # 很少机会会用到，而且有其他更清晰的写法，应当尽量避免
+  - file_name_no_space                                # 文件名不能有空格
+  - implicitly_unwrapped_optional                     # 隐式解包应当尽量避免，warning
+  # - legacy_objc_type                                # 纯 swift 环境不使用 objc 类型, SwiftLint 低版本暂不支持
+  # - let_var_whitespace                              # 不合理空格 warning
+  - literal_expression_end_indentation                # Array and dictionary literal end should have the same indentation as the line that started it.
+  # - multiline_arguments                             # 调用参数换行规范，允许换行参数多个并列在一行，不做太严格的限制
+  - multiline_arguments_brackets                      # 参数括号换行规范，换行参数要么被括号严格包裹，要么与括号独立
+  # - multiline_function_chains                       # 链式调用规范，尾闭包不好处理，暂时关闭
+  - multiline_literal_brackets                        # 容器类数据对齐规范
+  - multiline_parameters                              # func 声明参数换行规范，不允许换行参数多个并列在一行
+  - multiline_parameters_brackets                     # func 声明参数括号换行规范，换行参数要么被括号严格包裹，要么与括号独立
+  - no_extension_access_modifier                      # 禁用 extension 访问控制权限，按照 func 维度手动设置
+  - operator_usage_whitespace                         # 操作符空格分割
+  - overridden_super_call                             # override 需要调用 super
+  - prefer_zero_over_explicit_init                    # CGSize 相关结构体建议使用 .zero, 而不是初始化 0
+  - redundant_nil_coalescing                          # optional 变量使用 ?? 时不应该把 nil 作为默认值
+  # - sorted_imports                                  # import 排序，暂不开启
+  - toggle_bool                                       # bool 取反用 toogle()
+  # - type_contents_order                             # 这个顺序太刚性了，暂不开启
+  # - unavailable_function                            # 这个没有自动化的方式，暂不开启
+  - unused_import                                     # 未使用的 import
+  - vertical_parameter_alignment_on_call              # 参数换行对齐
+  - vertical_whitespace_closing_braces                # 避免不必要的空行
+  # - vertical_whitespace_opening_braces                # 避免不必要的空行
+  - weak_delegate                                     # delegate 需要声明 weak
+  # - number_separator                                  # 数字分隔符规范
+  - untyped_error_in_catch                            # catch 的 error 必须明确类型
+  - first_where                                       # 避免使用 .filter{ }.first
+  - fatal_error_message                               # 应当给予错误信息，使错误更明确
+  - enum_case_associated_values_count
+  - required_enum_case
+  - modifier_order                                    # 关键字顺序
+  - missing_docs                                      # public, open 接口应当有注释
+  - closure_body_length
+
+custom_rules:
+  chinese_in_code:
+    name: "Code chinese"
+    regex: "^(?!//)[\u4E00-\u9FA5]+"
+    message: "请勿在代码中写中文；注释请使用 // 或 ///。"
+    severity: error
+  init_color_with_token:
+    name: "Color Init"
+    regex: "UIColor\\.init*|UIColor\\(.*\\)|UIColor\\.(?!clear|white|dynamic|ud).*"
+    message: "Recommend using UniverseDesign Color"
+    severity: warning
+  init_font_with_token:
+    name: "Font Init"
+    regex: "UIFont\\.init*|UIFont\\(.*\\)|UIFont\\.(?!ud).*"
+    message: "Recommend using UniverseDesign Font"
+    severity: warning
+
+
+file_length:
+  warning: 500                                        # 超过 500 行 的文件需要考虑重构了
+  error: 800                                          # 不允许超过 800 行
+  ignore_comment_only_lines: true                     # 不限制文件内的注释大小
+
+line_length:
+  warning: 120                                        # 推荐一行不超过 120 字符
+  error: 180                                          # 不允许超过 180 字符
+  ignores_urls: true                                  # URL应该保持完整，不换行
+  ignores_comments: true                              # 忽略注释
+
+closure_body_length:
+  warning: 20                                         # 闭包内容应当尽量简单，复杂逻辑应该抽象成方法
+  error: 50                                           # 闭包长度不允许超过 50
+
+enum_case_associated_values_count:
+  warning: 4                                          # enum 关联变量应当简单，超过 4 个该考虑是否合理
+  error: 5                                            # enum 关联变量不允许超过 5 个
+
+identifier_name:
+  min_length: 1
+  excluded:
+    - i                                               # 用于index，for循环等，c系语言惯例
+    - j                                               # 用于index，for循环等，c系语言惯例
+    - k                                               # 用于index，for循环等，kv缩写
+    - v                                               # 用于临时持有计算结果，避免重复计算, 帮助排版等。同时强调这个临时变量不重要且马上会被使用到。
+
+large_tuple: 3                                        # 元组最多三个
+
+function_body_length:
+  warning: 120  #40
+  error: 150    #100

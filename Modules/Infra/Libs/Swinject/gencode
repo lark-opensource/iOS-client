@@ -1,0 +1,16 @@
+#!/bin/sh
+
+__dir__="$(cd "$(dirname "$0")"; pwd)"
+cd "$__dir__"
+
+files="src/Container+Register.generated src/Resolver.generated"
+
+for file in $files; do
+  echo "Generating code to $file.swift"
+  erb -v $file.erb > $file.swift
+done
+
+test="app/test/src/ContainerArgTests.generated"
+
+echo "Generating Tests"
+erb -v ${test}.erb > ${test}.swift

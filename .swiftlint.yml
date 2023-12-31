@@ -1,0 +1,124 @@
+included:
+  - Bizs
+  - Libs
+  - Lark-cal
+  - LarkTests
+  - LarkUITests
+  - ShareExtension
+excluded:
+  - Modules/Messenger/Libs/LarkAudio/app
+  - bin
+  - Bizs/JsSDK
+  - Bizs/LarkOpenPlatform
+  - Bizs/LarkMicroApp
+  - Modules
+  - external
+disabled_rules:
+  - nesting                        # 会限制局部私有类型和方法封装的使用。这部分代码组织结构完全可以交给开发人员判断。不用限制
+  - vertical_parameter_alignment
+  - type_body_length
+  - file_length
+  - function_body_length
+  - cyclomatic_complexity
+  - type_name
+  - identifier_name
+  - object_literal
+  - private_over_fileprivate
+  - multiple_closures_with_trailing_closure
+  - unneeded_break_in_switch # for unknown defalut
+  - orphaned_doc_comment
+  - unneeded_notification_center_removal
+  - todo
+  - empty_enum_arguments
+  - comment_spacing
+opt_in_rules:
+  - expiring_todo
+  - explicit_init
+  - empty_count
+  - empty_string
+  - closure_spacing
+  - overridden_super_call
+  - redundant_nil_coalescing
+  - private_outlet
+  - nimble_operator
+  - attributes
+  - operator_usage_whitespace
+  - closure_end_indentation
+  - first_where
+  - object_literal
+  - number_separator
+  - prohibited_super_call
+  - fatal_error_message
+  - anyobject_protocol
+  - required_enum_case
+
+custom_rules:
+  did_select_row_protection:
+    name: "Data Source Protection"
+    regex: "func tableView\\(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath\\) \\{(?-s)(?:\\s*(?://.*)?\n)*^\\s*((?!guard.*tableView\\.cellForRow\\(at: indexPath\\))\\w+)"
+    capture_group: 1
+    message: "Add \"tableView.cellForRow(at: indexPath) != nil else { return }\" at the beginning of this function to protect datasource or disable this rule if you're sure that datasource won't be accessed via indexPath"
+    severity: warning
+  init_font_with_name:
+    name: "Font Init"
+    regex: "UIFont\\(name((?!DINAlternate-Bold).)*size.*\\)|UIFont.init\\(name((?!DINAlternate-Bold).)*size.*\\)|font\\s=\\s.init\\(name((?!DINAlternate-Bold).)*size.*\\)"
+    message: "Do not use the name to initialize the font without special conditions."
+    severity: warning
+  init_color_with_token:
+    name: "Color Init"
+    regex: "UIColor\\.init*|UIColor\\.(?!clear|ud).*|UIColor\\(.*\\)"
+    message: "Please use UniverseDesign Color"
+    severity: warning
+  # init_window_with_lkWindow:
+  #   name: "Window Init"
+  #   regex: "UIWindow\\.init*|UIWindow\\(.*\\)|\\:UIWindow|\\: UIWindow"
+  #   message: "Please use LKVirtualWindow or LKWindow: https://bytedance.larkoffice.com/wiki/wikcnA71xnpQW5IZMwAHppDbM6f"
+  #   severity: warning
+  static_localized_source:
+    name: "source_localized"
+    regex: "static let[\\h\\S]*=[\\h\\S]*I18n"
+    message: "don't save localized source by static"
+    severity: warning
+  first_connectedScenes:
+    name: "connectedScenes"
+    regex: "UIApplication.shared.connectedScenes"
+    message: "Plz use SceneManager connectedScenes"
+    severity: warning
+  # 根据 https://bytedance.feishu.cn/docx/VpZTdl1IioCrENxfWakcPcrwnFo 替换为 byWordWrapping
+  ban_linebreak_byChar:
+    name: "Should not set LineBreak as byWordWrapping"
+    regex: ".byCharWrapping"
+    message: "According to the specification, you should use byWordWrapping instead of byCharWrapping. If you must, disable swiftlint with '// swiftlint:disable ban_linebreak_byChar'"
+    severity: error
+  forbidden_fileapi_usage:
+    name: "Should not use FileAPI."
+    regex: "FileAPI"
+    message: "Cannot use FileAPI directly, use SecurityFileAPI instead."
+    severity: error
+
+file_header:
+  required_pattern: |
+                    \/\/
+                    \/\/  .*?\.swift
+                    \/\/  Lark((UI)?Tests)?
+                    \/\/
+                    \/\/  Created by .*? on \d+\/\d+\/\d+\.
+                    \/\/  Copyright © \d{4}年 Bytedance\.Inc\. All rights reserved\.
+                    \/\/
+line_length:
+  warning: 200
+  ignores_urls: true # URL应该保持完整，不换行
+force_cast: warning
+empty_string: error
+warning_threshold: 1
+function_parameter_count: 9
+identifier_name:
+  min_length: 1
+  excluded:
+    - i
+type_name:
+  excluded:
+    - lk
+number_separator:
+  minimum_length: 5
+large_tuple: 3

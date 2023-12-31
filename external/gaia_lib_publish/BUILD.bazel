@@ -1,0 +1,1853 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "gaia_lib_publish_pod_hdrs",
+  srcs = [
+    ":gaia_lib_publish_root_pod_hdrs",
+    ":gaia_pod_hdrs",
+    ":Math_pod_hdrs",
+    ":MemoryManager_pod_hdrs",
+    ":Message_pod_hdrs",
+    ":Network_pod_hdrs",
+    ":Text_pod_hdrs",
+    ":Thread_pod_hdrs",
+    ":Performance_pod_hdrs",
+    ":Files_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "gaia_lib_publish_private_includes",
+  include = [
+    "external/gaia_lib_publish/pod_support/Headers/Private/gaia_lib_publish/"
+  ],
+  deps = [],
+  external_name = "gaia_lib_publish"
+)
+gen_includes(
+  name = "gaia_lib_publish_public_includes",
+  include = [
+    "external/gaia_lib_publish/pod_support/Headers/Public/gaia_lib_publish/"
+  ],
+  deps = [],
+  external_name = "gaia_lib_publish"
+)
+filegroup(
+  name = "_gaia_lib_publish_hdrs",
+  srcs = [
+    ":gaia_lib_publish_root_hdrs",
+    ":gaia_hdrs",
+    ":Math_hdrs",
+    ":MemoryManager_hdrs",
+    ":Message_hdrs",
+    ":Network_hdrs",
+    ":Text_hdrs",
+    ":Thread_hdrs",
+    ":Performance_hdrs",
+    ":Files_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "gaia_lib_publish_xcode_hmapsource",
+  hdrs = [
+    ":gaia_lib_publish_root_hdrs",
+    ":Files_hdrs",
+    ":gaia_hdrs",
+    ":Math_hdrs",
+    ":MemoryManager_hdrs",
+    ":Message_hdrs",
+    ":Network_hdrs",
+    ":Performance_hdrs",
+    ":Text_hdrs",
+    ":Thread_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "gaia_lib_publish_xcode_hmap",
+  dep = ":gaia_lib_publish_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/gaia_lib_publish/*-bitsky-generated.modulemap", "pod_support/Headers/Public/gaia_lib_publish/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "gaia_lib_publish_gaia_VendoredLibraries",
+  archives = [
+    "lib/ios/Release/libgaia_lib.a"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "gaia_lib_publish_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "gaia_lib_publish",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "gaia_lib_publish_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":gaia_lib_publish_xcode_hmap"
+  ],
+  external_name = "gaia_lib_publish",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "gaia_lib_publish_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "gaia_lib_publish_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "gaia_lib_publish_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "gaia_lib_publish_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "gaia_lib_publish_module_map",
+  module_map = "pod_support/Headers/Public/gaia_lib_publish/gaia_lib_publish-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/gaia_lib_publish/gaia_lib_publish-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "gaia_lib_publish_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "gaia_lib_publish_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":gaia_lib_publish_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":gaia_lib_publish_private_includes",
+    ":gaia_lib_publish_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":gaia_lib_publish_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dgaia_lib_publish_POD_VERSION=@\\\"5_14.5.0.1-D\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "gaia_lib_publish",
+  deps = [
+    ":gaia_lib_publish_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "gaia_lib_publish_lib",
+  deps = [
+    ":gaia_lib_publish"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "gaia_hdrs",
+  srcs = [
+    "inc/Gaia/AMGExport.h",
+    "inc/Gaia/AMGInclude.h",
+    "inc/Gaia/AMGLog.h",
+    "inc/Gaia/AMGPrerequisites.h",
+    "inc/Gaia/AMGPrimitiveNumber.h",
+    "inc/Gaia/AMGPrimitiveVector.h",
+    "inc/Gaia/AMGRefBase.h",
+    "inc/Gaia/AMGSharePtr.h",
+    "inc/Gaia/AMGSystemTime.h",
+    "inc/Gaia/AMGThreadLocal.h",
+    "inc/Gaia/AMGThreadPool.h",
+    "inc/Gaia/Image/AMGImageType.h",
+    "inc/Gaia/Platform/AMGPlatformDef.h",
+    "inc/Gaia/STL/Sort.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "gaia_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/AMGExport.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/AMGInclude.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/AMGLog.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/AMGPrerequisites.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/AMGPrimitiveNumber.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/AMGPrimitiveVector.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/AMGRefBase.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/AMGSharePtr.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/AMGSystemTime.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/AMGThreadLocal.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/AMGThreadPool.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Image/AMGImageType.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Platform/AMGPlatformDef.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/STL/Sort.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/AMGExport.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/AMGInclude.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/AMGLog.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/AMGPrerequisites.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/AMGPrimitiveNumber.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/AMGPrimitiveVector.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/AMGRefBase.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/AMGSharePtr.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/AMGSystemTime.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/AMGThreadLocal.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/AMGThreadPool.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Image/AMGImageType.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Platform/AMGPlatformDef.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/STL/Sort.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "gaia_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "gaia_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "gaia_module_map",
+  module_map = "pod_support/Headers/Public/gaia_lib_publish/gaia_lib_publish_gaia-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/gaia_lib_publish/gaia_lib_publish_gaia-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "gaia_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "gaia_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":gaia_lib_publish_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":gaia_lib_publish_private_includes",
+    ":gaia_lib_publish_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":gaia_lib_publish_gaia_VendoredLibraries",
+    ":gaia_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dgaia_lib_publish_POD_VERSION=@\\\"5_14.5.0.1-D\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "gaia",
+  deps = [
+    ":gaia_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "gaia_lib",
+  deps = [
+    ":gaia"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Math_hdrs",
+  srcs = [
+    "inc/Gaia/Math/AMGColor.h",
+    "inc/Gaia/Math/AMGColorSpaceConversion.h",
+    "inc/Gaia/Math/AMGCurve.h",
+    "inc/Gaia/Math/AMGDynamicBitset.h",
+    "inc/Gaia/Math/AMGFloatConversion.h",
+    "inc/Gaia/Math/AMGHashFunction.h",
+    "inc/Gaia/Math/AMGMatrix3x3.h",
+    "inc/Gaia/Math/AMGMatrix4x4.h",
+    "inc/Gaia/Math/AMGPerlinNoise.h",
+    "inc/Gaia/Math/AMGPolynomials.h",
+    "inc/Gaia/Math/AMGQuaternion.h",
+    "inc/Gaia/Math/AMGRect.h",
+    "inc/Gaia/Math/AMGSphericalHarmonics.h",
+    "inc/Gaia/Math/AMGVector2.h",
+    "inc/Gaia/Math/AMGVector2i.h",
+    "inc/Gaia/Math/AMGVector3.h",
+    "inc/Gaia/Math/AMGVector3i.h",
+    "inc/Gaia/Math/AMGVector4.h",
+    "inc/Gaia/Math/Random/AMGRandom.h",
+    "inc/Gaia/Math/Random/amg_rand.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Math_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Math/AMGColor.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Math/AMGColorSpaceConversion.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Math/AMGCurve.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Math/AMGDynamicBitset.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Math/AMGFloatConversion.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Math/AMGHashFunction.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Math/AMGMatrix3x3.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Math/AMGMatrix4x4.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Math/AMGPerlinNoise.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Math/AMGPolynomials.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Math/AMGQuaternion.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Math/AMGRect.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Math/AMGSphericalHarmonics.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Math/AMGVector2.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Math/AMGVector2i.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Math/AMGVector3.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Math/AMGVector3i.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Math/AMGVector4.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Math/Random/AMGRandom.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Math/Random/amg_rand.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Math/AMGColor.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Math/AMGColorSpaceConversion.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Math/AMGCurve.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Math/AMGDynamicBitset.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Math/AMGFloatConversion.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Math/AMGHashFunction.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Math/AMGMatrix3x3.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Math/AMGMatrix4x4.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Math/AMGPerlinNoise.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Math/AMGPolynomials.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Math/AMGQuaternion.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Math/AMGRect.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Math/AMGSphericalHarmonics.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Math/AMGVector2.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Math/AMGVector2i.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Math/AMGVector3.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Math/AMGVector3i.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Math/AMGVector4.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Math/Random/AMGRandom.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Math/Random/amg_rand.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Math_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Math_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Math_module_map",
+  module_map = "pod_support/Headers/Public/gaia_lib_publish/gaia_lib_publish_Math-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/gaia_lib_publish/gaia_lib_publish_Math-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Math_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Math_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":gaia_lib_publish_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":gaia_lib_publish_private_includes",
+    ":gaia_lib_publish_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Math_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dgaia_lib_publish_POD_VERSION=@\\\"5_14.5.0.1-D\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Math",
+  deps = [
+    ":Math_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Math_lib",
+  deps = [
+    ":Math"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "MemoryManager_hdrs",
+  srcs = [
+    "inc/Gaia/MemoryManager/AMGAllocationHeader.h",
+    "inc/Gaia/MemoryManager/AMGBaseAllocator.h",
+    "inc/Gaia/MemoryManager/AMGDefaultAllocator.h",
+    "inc/Gaia/MemoryManager/AMGLowLevelAllocator.h",
+    "inc/Gaia/MemoryManager/AMGMemoryLabelNames.h",
+    "inc/Gaia/MemoryManager/AMGMemoryLabels.h",
+    "inc/Gaia/MemoryManager/AMGMemoryManager.h",
+    "inc/Gaia/MemoryManager/AMGMemoryManagerCommon.h",
+    "inc/Gaia/MemoryManager/AMGMemoryPool.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "MemoryManager_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/MemoryManager/AMGAllocationHeader.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/MemoryManager/AMGBaseAllocator.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/MemoryManager/AMGDefaultAllocator.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/MemoryManager/AMGLowLevelAllocator.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/MemoryManager/AMGMemoryLabelNames.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/MemoryManager/AMGMemoryLabels.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/MemoryManager/AMGMemoryManager.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/MemoryManager/AMGMemoryManagerCommon.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/MemoryManager/AMGMemoryPool.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/MemoryManager/AMGAllocationHeader.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/MemoryManager/AMGBaseAllocator.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/MemoryManager/AMGDefaultAllocator.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/MemoryManager/AMGLowLevelAllocator.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/MemoryManager/AMGMemoryLabelNames.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/MemoryManager/AMGMemoryLabels.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/MemoryManager/AMGMemoryManager.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/MemoryManager/AMGMemoryManagerCommon.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/MemoryManager/AMGMemoryPool.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "MemoryManager_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "MemoryManager_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "MemoryManager_module_map",
+  module_map = "pod_support/Headers/Public/gaia_lib_publish/gaia_lib_publish_MemoryManager-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/gaia_lib_publish/gaia_lib_publish_MemoryManager-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "MemoryManager_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "MemoryManager_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":gaia_lib_publish_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":gaia_lib_publish_private_includes",
+    ":gaia_lib_publish_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":MemoryManager_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dgaia_lib_publish_POD_VERSION=@\\\"5_14.5.0.1-D\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "MemoryManager",
+  deps = [
+    ":MemoryManager_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "MemoryManager_lib",
+  deps = [
+    ":MemoryManager"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Message_hdrs",
+  srcs = [
+    "inc/Gaia/Message/AMGMessageCenter.h",
+    "inc/Gaia/Message/AMGMessageQueue.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Message_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Message/AMGMessageCenter.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Message/AMGMessageQueue.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Message/AMGMessageCenter.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Message/AMGMessageQueue.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Message_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Message_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Message_module_map",
+  module_map = "pod_support/Headers/Public/gaia_lib_publish/gaia_lib_publish_Message-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/gaia_lib_publish/gaia_lib_publish_Message-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Message_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Message_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":gaia_lib_publish_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":gaia_lib_publish_private_includes",
+    ":gaia_lib_publish_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Message_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dgaia_lib_publish_POD_VERSION=@\\\"5_14.5.0.1-D\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Message",
+  deps = [
+    ":Message_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Message_lib",
+  deps = [
+    ":Message"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Network_hdrs",
+  srcs = [
+    "inc/Gaia/Network/AMGNetHeaderMessageProcessor.h",
+    "inc/Gaia/Network/AMGNetMessageProcessor.h",
+    "inc/Gaia/Network/AMGNetworkCall.h",
+    "inc/Gaia/Network/AMGNetworkClient.h",
+    "inc/Gaia/Network/AMGNetworkPrerequisites.h",
+    "inc/Gaia/Network/AMGNetworkRequest.h",
+    "inc/Gaia/Network/AMGP2PClient.h",
+    "inc/Gaia/Network/AMGP2PService.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Network_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Network/AMGNetHeaderMessageProcessor.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Network/AMGNetMessageProcessor.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Network/AMGNetworkCall.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Network/AMGNetworkClient.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Network/AMGNetworkPrerequisites.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Network/AMGNetworkRequest.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Network/AMGP2PClient.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Network/AMGP2PService.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Network/AMGNetHeaderMessageProcessor.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Network/AMGNetMessageProcessor.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Network/AMGNetworkCall.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Network/AMGNetworkClient.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Network/AMGNetworkPrerequisites.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Network/AMGNetworkRequest.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Network/AMGP2PClient.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Network/AMGP2PService.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Network_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Network_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Network_module_map",
+  module_map = "pod_support/Headers/Public/gaia_lib_publish/gaia_lib_publish_Network-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/gaia_lib_publish/gaia_lib_publish_Network-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Network_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Network_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":gaia_lib_publish_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":gaia_lib_publish_private_includes",
+    ":gaia_lib_publish_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Network_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dgaia_lib_publish_POD_VERSION=@\\\"5_14.5.0.1-D\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Network",
+  deps = [
+    ":Network_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Network_lib",
+  deps = [
+    ":Network"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Text_hdrs",
+  srcs = [
+    "inc/Gaia/Text/AMGSTBTrueType.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Text_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Text/AMGSTBTrueType.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Text/AMGSTBTrueType.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Text_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Text_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Text_module_map",
+  module_map = "pod_support/Headers/Public/gaia_lib_publish/gaia_lib_publish_Text-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/gaia_lib_publish/gaia_lib_publish_Text-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Text_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Text_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":gaia_lib_publish_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":gaia_lib_publish_private_includes",
+    ":gaia_lib_publish_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Text_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dgaia_lib_publish_POD_VERSION=@\\\"5_14.5.0.1-D\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Text",
+  deps = [
+    ":Text_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Text_lib",
+  deps = [
+    ":Text"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Thread_hdrs",
+  srcs = [
+    "inc/Gaia/Thread/AMGThreadFactory.h",
+    "inc/Gaia/Thread/AMGThreadWrapper.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Thread_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Thread/AMGThreadFactory.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Thread/AMGThreadWrapper.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Thread/AMGThreadFactory.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Thread/AMGThreadWrapper.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Thread_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Thread_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Thread_module_map",
+  module_map = "pod_support/Headers/Public/gaia_lib_publish/gaia_lib_publish_Thread-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/gaia_lib_publish/gaia_lib_publish_Thread-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Thread_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Thread_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":gaia_lib_publish_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":gaia_lib_publish_private_includes",
+    ":gaia_lib_publish_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Thread_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dgaia_lib_publish_POD_VERSION=@\\\"5_14.5.0.1-D\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Thread",
+  deps = [
+    ":Thread_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Thread_lib",
+  deps = [
+    ":Thread"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Performance_hdrs",
+  srcs = [
+    "inc/Gaia/Performance/AMGPerformance.h",
+    "inc/Gaia/Performance/AMGPerformanceEvaluation.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Performance_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Performance/AMGPerformance.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Performance/AMGPerformanceEvaluation.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Performance/AMGPerformance.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Performance/AMGPerformanceEvaluation.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Performance_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Performance_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Performance_module_map",
+  module_map = "pod_support/Headers/Public/gaia_lib_publish/gaia_lib_publish_Performance-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/gaia_lib_publish/gaia_lib_publish_Performance-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Performance_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Performance_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":gaia_lib_publish_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":gaia_lib_publish_private_includes",
+    ":gaia_lib_publish_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Performance_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dgaia_lib_publish_POD_VERSION=@\\\"5_14.5.0.1-D\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Performance",
+  deps = [
+    ":Performance_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Performance_lib",
+  deps = [
+    ":Performance"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Files_hdrs",
+  srcs = [
+    "inc/Gaia/Files/AMGArchive.h",
+    "inc/Gaia/Files/AMGFile.h",
+    "inc/Gaia/Files/AMGFileDescriptor.h",
+    "inc/Gaia/Files/AMGFileHandle.h",
+    "inc/Gaia/Files/AMGFileHandleGeneric.h",
+    "inc/Gaia/Files/AMGFileReader.h",
+    "inc/Gaia/Files/AMGFileUtils.h",
+    "inc/Gaia/Files/AMGFileWriter.h",
+    "inc/Gaia/Files/AMGMemoryReader.h",
+    "inc/Gaia/Files/AMGMemoryStream.h",
+    "inc/Gaia/Files/AMGMemoryWriter.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Files_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Files/AMGArchive.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Files/AMGFile.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Files/AMGFileDescriptor.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Files/AMGFileHandle.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Files/AMGFileHandleGeneric.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Files/AMGFileReader.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Files/AMGFileUtils.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Files/AMGFileWriter.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Files/AMGMemoryReader.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Files/AMGMemoryStream.h",
+    "pod_support/Headers/Private/gaia_lib_publish/Gaia/Files/AMGMemoryWriter.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Files/AMGArchive.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Files/AMGFile.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Files/AMGFileDescriptor.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Files/AMGFileHandle.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Files/AMGFileHandleGeneric.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Files/AMGFileReader.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Files/AMGFileUtils.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Files/AMGFileWriter.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Files/AMGMemoryReader.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Files/AMGMemoryStream.h",
+    "pod_support/Headers/Public/gaia_lib_publish/Gaia/Files/AMGMemoryWriter.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Files_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Files_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Files_module_map",
+  module_map = "pod_support/Headers/Public/gaia_lib_publish/gaia_lib_publish_Files-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/gaia_lib_publish/gaia_lib_publish_Files-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Files_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Files_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":gaia_lib_publish_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":gaia_lib_publish_private_includes",
+    ":gaia_lib_publish_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Files_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dgaia_lib_publish_POD_VERSION=@\\\"5_14.5.0.1-D\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Files",
+  deps = [
+    ":Files_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Files_lib",
+  deps = [
+    ":Files"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_gaia_lib_publish_module_map",
+  module_map = "@gaia_lib_publish//:pod_support/Headers/Public/gaia_lib_publish/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@gaia_lib_publish//:pod_support/Headers/Public/gaia_lib_publish/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_gaia_lib_publish_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@gaia_lib_publish//:Files_objc_interface", "@gaia_lib_publish//:Math_objc_interface", "@gaia_lib_publish//:MemoryManager_objc_interface", "@gaia_lib_publish//:Message_objc_interface", "@gaia_lib_publish//:Network_objc_interface", "@gaia_lib_publish//:Performance_objc_interface", "@gaia_lib_publish//:Text_objc_interface", "@gaia_lib_publish//:Thread_objc_interface", "@gaia_lib_publish//:gaia_objc_interface", "@gaia_lib_publish//:gaia_lib_publish_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_library")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_library(
+  name = "Lark_gaia_lib_publish",
+  target_name = "Lark",
+  module_name = "gaia_lib_publish",
+  hdrs = ["@gaia_lib_publish//:Files_pod_hdrs", "@gaia_lib_publish//:Math_pod_hdrs", "@gaia_lib_publish//:MemoryManager_pod_hdrs", "@gaia_lib_publish//:Message_pod_hdrs", "@gaia_lib_publish//:Network_pod_hdrs", "@gaia_lib_publish//:Performance_pod_hdrs", "@gaia_lib_publish//:Text_pod_hdrs", "@gaia_lib_publish//:Thread_pod_hdrs", "@gaia_lib_publish//:gaia_pod_hdrs", "@gaia_lib_publish//:gaia_lib_publish_root_pod_hdrs"],
+  srcs = [],
+  non_arc_srcs = [],
+  deps = ["@gaia_lib_publish//:gaia_lib_publish_gaia_VendoredLibraries"],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dgaia_lib_publish_POD_VERSION=@\\\"5_14.5.0.1-D\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "gaia_lib_publish_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "gaia_lib_publish_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["UIKit", "Foundation", "JavaScriptCore"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = ["c++"],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "gaia_lib_publish_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "gaia_lib_publish_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "gaia_lib_publish_dynamic", False),
+  tags = getattr(defs_external_objc_library, "gaia_lib_publish_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  header_mappings = {
+    "*": "*",
+    "inc/Gaia/AMGExport.h": "Gaia/AMGExport.h",
+    "inc/Gaia/AMGInclude.h": "Gaia/AMGInclude.h",
+    "inc/Gaia/AMGLog.h": "Gaia/AMGLog.h",
+    "inc/Gaia/AMGPrerequisites.h": "Gaia/AMGPrerequisites.h",
+    "inc/Gaia/AMGPrimitiveNumber.h": "Gaia/AMGPrimitiveNumber.h",
+    "inc/Gaia/AMGPrimitiveVector.h": "Gaia/AMGPrimitiveVector.h",
+    "inc/Gaia/AMGRefBase.h": "Gaia/AMGRefBase.h",
+    "inc/Gaia/AMGSharePtr.h": "Gaia/AMGSharePtr.h",
+    "inc/Gaia/AMGSystemTime.h": "Gaia/AMGSystemTime.h",
+    "inc/Gaia/AMGThreadLocal.h": "Gaia/AMGThreadLocal.h",
+    "inc/Gaia/AMGThreadPool.h": "Gaia/AMGThreadPool.h",
+    "inc/Gaia/Files/AMGArchive.h": "Gaia/Files/AMGArchive.h",
+    "inc/Gaia/Files/AMGFile.h": "Gaia/Files/AMGFile.h",
+    "inc/Gaia/Files/AMGFileDescriptor.h": "Gaia/Files/AMGFileDescriptor.h",
+    "inc/Gaia/Files/AMGFileHandle.h": "Gaia/Files/AMGFileHandle.h",
+    "inc/Gaia/Files/AMGFileHandleGeneric.h": "Gaia/Files/AMGFileHandleGeneric.h",
+    "inc/Gaia/Files/AMGFileReader.h": "Gaia/Files/AMGFileReader.h",
+    "inc/Gaia/Files/AMGFileUtils.h": "Gaia/Files/AMGFileUtils.h",
+    "inc/Gaia/Files/AMGFileWriter.h": "Gaia/Files/AMGFileWriter.h",
+    "inc/Gaia/Files/AMGMemoryReader.h": "Gaia/Files/AMGMemoryReader.h",
+    "inc/Gaia/Files/AMGMemoryStream.h": "Gaia/Files/AMGMemoryStream.h",
+    "inc/Gaia/Files/AMGMemoryWriter.h": "Gaia/Files/AMGMemoryWriter.h",
+    "inc/Gaia/Image/AMGImageType.h": "Gaia/Image/AMGImageType.h",
+    "inc/Gaia/Math/AMGColor.h": "Gaia/Math/AMGColor.h",
+    "inc/Gaia/Math/AMGColorSpaceConversion.h": "Gaia/Math/AMGColorSpaceConversion.h",
+    "inc/Gaia/Math/AMGCurve.h": "Gaia/Math/AMGCurve.h",
+    "inc/Gaia/Math/AMGDynamicBitset.h": "Gaia/Math/AMGDynamicBitset.h",
+    "inc/Gaia/Math/AMGFloatConversion.h": "Gaia/Math/AMGFloatConversion.h",
+    "inc/Gaia/Math/AMGHashFunction.h": "Gaia/Math/AMGHashFunction.h",
+    "inc/Gaia/Math/AMGMatrix3x3.h": "Gaia/Math/AMGMatrix3x3.h",
+    "inc/Gaia/Math/AMGMatrix4x4.h": "Gaia/Math/AMGMatrix4x4.h",
+    "inc/Gaia/Math/AMGPerlinNoise.h": "Gaia/Math/AMGPerlinNoise.h",
+    "inc/Gaia/Math/AMGPolynomials.h": "Gaia/Math/AMGPolynomials.h",
+    "inc/Gaia/Math/AMGQuaternion.h": "Gaia/Math/AMGQuaternion.h",
+    "inc/Gaia/Math/AMGRect.h": "Gaia/Math/AMGRect.h",
+    "inc/Gaia/Math/AMGSphericalHarmonics.h": "Gaia/Math/AMGSphericalHarmonics.h",
+    "inc/Gaia/Math/AMGVector2.h": "Gaia/Math/AMGVector2.h",
+    "inc/Gaia/Math/AMGVector2i.h": "Gaia/Math/AMGVector2i.h",
+    "inc/Gaia/Math/AMGVector3.h": "Gaia/Math/AMGVector3.h",
+    "inc/Gaia/Math/AMGVector3i.h": "Gaia/Math/AMGVector3i.h",
+    "inc/Gaia/Math/AMGVector4.h": "Gaia/Math/AMGVector4.h",
+    "inc/Gaia/Math/Random/AMGRandom.h": "Gaia/Math/Random/AMGRandom.h",
+    "inc/Gaia/Math/Random/amg_rand.h": "Gaia/Math/Random/amg_rand.h",
+    "inc/Gaia/MemoryManager/AMGAllocationHeader.h": "Gaia/MemoryManager/AMGAllocationHeader.h",
+    "inc/Gaia/MemoryManager/AMGBaseAllocator.h": "Gaia/MemoryManager/AMGBaseAllocator.h",
+    "inc/Gaia/MemoryManager/AMGDefaultAllocator.h": "Gaia/MemoryManager/AMGDefaultAllocator.h",
+    "inc/Gaia/MemoryManager/AMGLowLevelAllocator.h": "Gaia/MemoryManager/AMGLowLevelAllocator.h",
+    "inc/Gaia/MemoryManager/AMGMemoryLabelNames.h": "Gaia/MemoryManager/AMGMemoryLabelNames.h",
+    "inc/Gaia/MemoryManager/AMGMemoryLabels.h": "Gaia/MemoryManager/AMGMemoryLabels.h",
+    "inc/Gaia/MemoryManager/AMGMemoryManager.h": "Gaia/MemoryManager/AMGMemoryManager.h",
+    "inc/Gaia/MemoryManager/AMGMemoryManagerCommon.h": "Gaia/MemoryManager/AMGMemoryManagerCommon.h",
+    "inc/Gaia/MemoryManager/AMGMemoryPool.h": "Gaia/MemoryManager/AMGMemoryPool.h",
+    "inc/Gaia/Message/AMGMessageCenter.h": "Gaia/Message/AMGMessageCenter.h",
+    "inc/Gaia/Message/AMGMessageQueue.h": "Gaia/Message/AMGMessageQueue.h",
+    "inc/Gaia/Network/AMGNetHeaderMessageProcessor.h": "Gaia/Network/AMGNetHeaderMessageProcessor.h",
+    "inc/Gaia/Network/AMGNetMessageProcessor.h": "Gaia/Network/AMGNetMessageProcessor.h",
+    "inc/Gaia/Network/AMGNetworkCall.h": "Gaia/Network/AMGNetworkCall.h",
+    "inc/Gaia/Network/AMGNetworkClient.h": "Gaia/Network/AMGNetworkClient.h",
+    "inc/Gaia/Network/AMGNetworkPrerequisites.h": "Gaia/Network/AMGNetworkPrerequisites.h",
+    "inc/Gaia/Network/AMGNetworkRequest.h": "Gaia/Network/AMGNetworkRequest.h",
+    "inc/Gaia/Network/AMGP2PClient.h": "Gaia/Network/AMGP2PClient.h",
+    "inc/Gaia/Network/AMGP2PService.h": "Gaia/Network/AMGP2PService.h",
+    "inc/Gaia/Performance/AMGPerformance.h": "Gaia/Performance/AMGPerformance.h",
+    "inc/Gaia/Performance/AMGPerformanceEvaluation.h": "Gaia/Performance/AMGPerformanceEvaluation.h",
+    "inc/Gaia/Platform/AMGPlatformDef.h": "Gaia/Platform/AMGPlatformDef.h",
+    "inc/Gaia/STL/Sort.h": "Gaia/STL/Sort.h",
+    "inc/Gaia/Text/AMGSTBTrueType.h": "Gaia/Text/AMGSTBTrueType.h",
+    "inc/Gaia/Thread/AMGThreadFactory.h": "Gaia/Thread/AMGThreadFactory.h",
+    "inc/Gaia/Thread/AMGThreadWrapper.h": "Gaia/Thread/AMGThreadWrapper.h",
+  },
+  xcconfig_by_build_setting = defs_xcconfigs.get("gaia_lib_publish", {}),
+  visibility = ["//visibility:public"],
+)

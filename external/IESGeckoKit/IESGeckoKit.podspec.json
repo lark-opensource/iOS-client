@@ -1,0 +1,207 @@
+{
+  "name": "IESGeckoKit",
+  "version": "3.4.3-alpha.1",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/ugc/IESGeckoKit",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "Fang Wei": "fangwei.02@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:ugc/IESGeckoKit.git",
+    "commit": "b8ac64fafee7879003fe2b87147e59f864d1c323"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "requires_arc": true,
+  "default_subspecs": "Core",
+  "pod_target_xcconfig": {
+    "GCC_PREPROCESSOR_DEFINITIONS": "GECKO_SPEC_VERSION=@\\\"3.3.3\\\" IESGeckoKit_POD_VERSION=@\\\"9999_3.4.3-alpha.1\\\"",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES"
+  },
+  "subspecs": [
+    {
+      "name": "Core",
+      "dependencies": {
+        "IESGeckoEncrypt": [
+          "0.0.2.1-binary"
+        ],
+        "SSZipArchive": [],
+        "BDTrackerProtocol": [
+          ">= 2.0"
+        ],
+        "IESMetadataStorage": [
+          ">=1.0.18"
+        ],
+        "Heimdallr/TTMonitor": [],
+        "ZstdDecompressKit": [
+          ">=1.0.1"
+        ],
+        "Gaia": []
+      },
+      "libraries": "bz2",
+      "public_header_files": [
+        "IESGeckoKit/Core/IESGurdConfig.h",
+        "IESGeckoKit/Core/IESGeckoKit.h",
+        "IESGeckoKit/Core/IESGeckoDefines.h",
+        "IESGeckoKit/Core/IESGurdStatusCodes.h",
+        "IESGeckoKit/Core/IESGurdProtocolDefines.h",
+        "IESGeckoKit/Core/IESGurdKit+Experiment.h",
+        "IESGeckoKit/Core/IESGurdKit+ExtraParams.h",
+        "IESGeckoKit/Core/IESGurdKit+ResourceLoader.h",
+        "IESGeckoKit/Core/IESGurdKit+RequestBlocklist.h",
+        "IESGeckoKit/Core/IESGurdKit+DownloadProgress.h",
+        "IESGeckoKit/Core/IESGurdKit+BackgroundDownload.h",
+        "IESGeckoKit/Core/InternalPackages/IESGurdKit+InternalPackages.h",
+        "IESGeckoKit/Core/Register/IESGurdRegisterModel.h",
+        "IESGeckoKit/Core/Model/IESGurdFetchResourcesParams.h",
+        "IESGeckoKit/Core/Model/IESGurdLoadResourcesParams.h",
+        "IESGeckoKit/Core/Apply/IESGurdUnzipPackageInfo.h",
+        "IESGeckoKit/Core/Cleaner/IESGurdCacheConfiguration.h",
+        "IESGeckoKit/Core/ByteSync/IESGurdByteSyncMessageManager.h",
+        "IESGeckoKit/Core/Log/IESGurdLogProxy.h",
+        "IESGeckoKit/Core/Monitor/IESGurdMonitorManager.h",
+        "IESGeckoKit/Core/Download/IESGurdDownloadInfoModel.h",
+        "IESGeckoKit/Core/Download/IESGurdDownloadPackageInfo.h",
+        "IESGeckoKit/Core/Download/IESGurdDownloadProgressObject.h",
+        "IESGeckoKit/Core/Network/Base/IESGurdPackagesExtraManager.h",
+        "IESGeckoKit/Core/Network/Model/IESGeckoResourceModel.h",
+        "IESGeckoKit/Core/Network/Model/IESGurdNetworkResponse.h",
+        "IESGeckoKit/Core/Network/Lazy/IESGurdLazyResourcesInfo.h",
+        "IESGeckoKit/Core/Network/Settings/Model/IESGurdSettingsResourceBaseConfig.h",
+        "IESGeckoKit/Core/Network/Settings/Model/IESGurdSettingsConfig.h",
+        "IESGeckoKit/Core/Network/Settings/Model/IESGurdSettingsRequestMeta.h",
+        "IESGeckoKit/Core/Network/Settings/Model/IESGurdSettingsResourceMeta.h",
+        "IESGeckoKit/Core/Network/Settings/Model/IESGurdSettingsClearCacheConfig.h",
+        "IESGeckoKit/Core/Network/Settings/Model/IESGurdSettingsResponse.h",
+        "IESGeckoKit/Core/DelegateDispatcher/IESGurdDelegateDispatcher.h",
+        "IESGeckoKit/Core/Log/IESGurdLogProxy.h"
+      ],
+      "source_files": "IESGeckoKit/Core/**/*.{h,m}"
+    },
+    {
+      "name": "Config",
+      "dependencies": {
+        "IESGeckoKit/Core": []
+      },
+      "subspecs": [
+        {
+          "name": "CN",
+          "source_files": "IESGeckoKit/Config/CN/*.{h,m,mm}"
+        },
+        {
+          "name": "OS",
+          "source_files": "IESGeckoKit/Config/OS/*.{h,m,mm}"
+        }
+      ]
+    },
+    {
+      "name": "Downloader",
+      "dependencies": {
+        "IESGeckoKit/Core": [],
+        "TTNetworkDownloader": [
+          "~>1.1.4"
+        ]
+      },
+      "source_files": "IESGeckoKit/Downloader/*.{h,m,mm}",
+      "public_header_files": "IESGeckoKit/Downloader/IESGurdTTDownloader.h"
+    },
+    {
+      "name": "ByteSync",
+      "dependencies": {
+        "IESGeckoKit/Core": [],
+        "BDUGSyncSDK/Core": [
+          ">= 1.0.0"
+        ]
+      },
+      "source_files": "IESGeckoKit/ByteSync/**/*.{h,m,mm}"
+    },
+    {
+      "name": "IESForestKit",
+      "dependencies": {
+        "IESGeckoKit/Core": [],
+        "TTNetworkManager": [],
+        "TTNetworkDownloader": [],
+        "ByteDanceKit": [],
+        "BDWebImage": []
+      },
+      "source_files": "IESGeckoKit/Forest/**/*.{h,m,mm}",
+      "public_header_files": [
+        "IESGeckoKit/Forest/IESForestKit.h",
+        "IESGeckoKit/Forest/IESForestDefines.h",
+        "IESGeckoKit/Forest/IESForestPreloadConfig.h",
+        "IESGeckoKit/Forest/IESForestConfig.h",
+        "IESGeckoKit/Forest/Request/IESForestRequest.h",
+        "IESGeckoKit/Forest/Request/IESForestRequestParameters.h",
+        "IESGeckoKit/Forest/Response/IESForestResponseProtocol.h",
+        "IESGeckoKit/Forest/Response/IESForestResponse.h",
+        "IESGeckoKit/Forest/IESForestEventTrackData.h",
+        "IESGeckoKit/Forest/Fetcher/IESForestFetcherProtocol.h"
+      ],
+      "prefix_header_file": "IESGeckoKit/Forest/PrefixHeader.pch"
+    },
+    {
+      "name": "Example",
+      "source_files": "IESGeckoKit/Example/**/*.{h,m,mm}"
+    },
+    {
+      "name": "mPaaS",
+      "subspecs": [
+        {
+          "name": "Task",
+          "frameworks": "Foundation",
+          "dependencies": {
+            "BDStartUp/Base": [
+              ">= 1.0.0"
+            ],
+            "BDTrackerProtocol": [
+              ">= 2.5.0"
+            ],
+            "IESGeckoKit/Core": []
+          },
+          "source_files": "IESGeckoKit/mPaaS/Task/**/*.{h,m,c}",
+          "public_header_files": "IESGeckoKit/mPaaS/Task/**/*.h"
+        },
+        {
+          "name": "China",
+          "frameworks": "Foundation",
+          "dependencies": {
+            "IESGeckoKit/mPaaS/Task": [],
+            "IESGeckoKit/Config/CN": []
+          }
+        },
+        {
+          "name": "VA",
+          "frameworks": "Foundation",
+          "dependencies": {
+            "IESGeckoKit/mPaaS/Task": [],
+            "IESGeckoKit/Config/OS": []
+          },
+          "source_files": "IESGeckoKit/mPaaS/VA/**/*.{h,m,c}"
+        },
+        {
+          "name": "SG",
+          "frameworks": "Foundation",
+          "dependencies": {
+            "IESGeckoKit/mPaaS/Task": [],
+            "IESGeckoKit/Config/OS": []
+          },
+          "source_files": "IESGeckoKit/mPaaS/SG/**/*.{h,m,c}"
+        }
+      ]
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "810",
+    "app_id": "9999"
+  },
+  "repoId": "810",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "IESGeckoKit_POD_VERSION=@\\\"9999_3.4.3-alpha.1\\\""
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "default_subspecs": "Core",
+  "extra": {
+    "bytedance_source_depends": [
+      {
+        "binary_md5": "01c6137e87e1bfd2bc375f1bf5dcc9bd",
+        "git": "https://code.byted.org/TTIOS/quiche.git",
+        "binary_name": "libsscronet.a",
+        "module": "TTNetworkManager",
+        "sha1": "a0ef32a5397caa8f9237cd0d238595a7cb68a71b"
+      }
+    ]
+  },
+  "static_framework": true,
+  "platforms": {
+    "ios": "8.0"
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "TTNetworkManager_POD_VERSION=@\\\"13_4.1.137.13-lark\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "USER_HEADER_SEARCH_PATHS": "${PODS_ROOT}/TTNetworkManager/Pod/Classes/TTNetworkBase/Chromium/includes",
+    "HEADER_SEARCH_PATHS": "${PODS_ROOT}/TTNetworkManager/Pod/Classes/TTNetworkBase/Chromium/includes/third_party/boringssl/src/include ${PODS_ROOT}/TTNetworkManager/Pod/Classes/TTNetworkBase/Chromium/includes/third_party/protobuf/src ${PODS_ROOT}/TTNetworkManager/Pod/Classes/TTNetworkBase/Chromium/includes/third_party/abseil-cpp",
+    "GCC_PREPROCESSOR_DEFINITIONS": "NDEBUG=1 GOOGLE_PROTOBUF_NO_RTTI GOOGLE_PROTOBUF_NO_STATIC_INITIALIZER TTNetworkManager_POD_VERSION=@\\\"13_4.1.137.13-lark\\\"",
+    "GCC_ENABLE_CPP_RTTI": "NO"
+  },
+  "_bytebus_platform": {
+    "repo_id": "107",
+    "app_id": "13"
+  },
+  "libraries": [
+    "c++",
+    "resolv",
+    "sscronet"
+  ],
+  "source": {
+    "commit": "28a992608f2fa751e5f6ed55b744f575faa70e46",
+    "git": "git@code.byted.org:TTIOS/tt_pods_network.git"
+  },
+  "version": "4.1.137.13-lark",
+  "homepage": "http://toutiao.com",
+  "repoId": "107",
+  "subspecs": [
+    {
+      "public_header_files": "Pod/Classes/Public/**/*.{h,hpp}",
+      "name": "Core",
+      "preserve_paths": "Pod/*.sh",
+      "ios": {
+        "exclude_files": "Pod/Classes/TTNetworkBase/Chromium/includes/**/*.h"
+      },
+      "dependencies": {
+        "BDDataDecorator/Data": [
+          ">= 1.0.3"
+        ],
+        "BDALog": [
+          ">= 0.2.2"
+        ],
+        "Godzippa": [],
+        "protobuf_lite": [
+          "1.0.4-ttnet3"
+        ],
+        "BDAlogProtocol": [
+          ">= 1.2.2"
+        ],
+        "boringssl": [
+          "~> 0.2.1"
+        ]
+      },
+      "script_phases": {
+        "execution_position": "before_compile",
+        "name": "GetTTNetOCVersion",
+        "script": "\n            IFS=$'\\n'\n            if [[ -d ${PODS_ROOT}/TTNetworkManager/Pod ]]; then\n                cd ${PODS_ROOT}/TTNetworkManager/Pod\n                bash GetTTNetOCVersion.sh\n            fi\n            "
+      },
+      "source_files": [
+        "Pod/Classes/**/*.{h,m,mm,c,cpp,hpp}",
+        "Pod/Classes/**/encrypt.c"
+      ],
+      "resources": "Pod/Assets/*"
+    }
+  ],
+  "prepare_command": "sh ./Pod/Classes/TTNetworkBase/Chromium/getLib.sh",
+  "description": "framework_description",
+  "ios": {
+    "frameworks": [
+      "CFNetwork",
+      "MobileCoreServices",
+      "SystemConfiguration",
+      "JavaScriptCore",
+      "CoreTelephony"
+    ],
+    "vendored_libraries": "Pod/Classes/TTNetworkBase/Chromium/libs/libsscronet.a",
+    "weak_frameworks": "Network"
+  },
+  "authors": {
+    "zhangchenlong": "zhangchenlong@bytedance.com"
+  },
+  "name": "TTNetworkManager",
+  "license": "MIT",
+  "preserve_paths": [
+    "Pod/Classes/TTNetworkBase/Chromium/includes/*",
+    "Pod/Classes/TTNetworkBase/Chromium/libs/*",
+    "Pod/Classes/TTNetworkBase/Chromium/*.jar"
+  ],
+  "summary": "framework_summary",
+  "requires_arc": true
+}

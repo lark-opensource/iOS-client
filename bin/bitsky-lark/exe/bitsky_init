@@ -1,0 +1,182 @@
+require 'optparse'
+require 'pathname'
+require 'fileutils'
+require 'xcodeproj'
+
+options = {}
+OptionParser.new do |opts|
+  opts.banner = '用法: orbit bundle exec ruby bitsky_init.rb [options]'
+
+  opts.on('-d', '--dir [DIR]', '设置目录路径') do |dir|
+    options[:dir] = dir
+  end
+
+  opts.on('-p', '--project-path [PROJECT_PATH]', '设置项目路径') do |project_path|
+    options[:project_path] = project_path
+  end
+
+  opts.on('-t', '--template_dir [TEMPLATE_DIR]', '设置要复用配置的路径') do |template_dir|
+    options[:template_dir] = template_dir
+  end
+end.parse!
+
+dir = options[:dir] || Dir.pwd
+project_path = options[:project_path] || ''
+template_dir = options[:template_dir] || `git rev-parse --show-toplevel`.strip
+template_bitsky_yaml = template_dir + '/' + '.bitsky/bitsky.yaml'
+plugin_path = template_dir + '/' + 'bitsky_plugin'
+
+Dir.chdir dir
+
+# 检查目录下是否有Podfile
+puts 'Checking if Podfile exist'
+raise 'Podfile not exist' unless File.exist? 'Podfile'
+
+# 检查目录下是否使用project文件
+puts 'Checking project file exist'
+if project_path.empty?
+  files = Dir.glob('*.xcodeproj')
+  raise 'multiple xcodeproj files' if files.length > 1
+  raise 'xcodeproj file not exist' if files.empty?
+  project_path = files[0]
+else
+  raise 'xcodeproj file not exist' unless File.exist? project_path
+end
+
+# 检查template目录是否合法
+puts 'Checking template dir valid'
+raise 'no template bitsky.yaml' unless File.exist? template_bitsky_yaml
+
+current_pathname = Pathname.new(dir).expand_path
+template_pathname = Pathname.new(template_bitsky_yaml).expand_path
+template_relative_path = template_pathname.relative_path_from(current_pathname).to_s
+
+# plugin 相关配置
+bazelrc_pathname = Pathname.new(plugin_path + '/bazelrc/common.bazelrc').expand_path
+bazelrc_relative_path = bazelrc_pathname.relative_path_from(current_pathname).to_s
+ocean_yml_pathname = Pathname.new(plugin_path + '/.ocean/build.yaml').expand_path
+ocean_yml_relative_path = ocean_yml_pathname.relative_path_from(current_pathname).to_s
+
+# 生成bitsky.yaml
+puts 'Generating bitsky.yaml'
+project_name = File.basename(project_path)
+project_name_without_extension = File.basename(project_path, '.xcodeproj')
+bitsky_template = <<END_OF_TEXT
+include: "#{template_relative_path}"
+
+toolchain:
+  plugins: 
+    - name: "Lark"
+      disable: true
+
+default_option:
+  package_name: "#{project_name_without_extension}"
+  generate_build_project_path: "#{project_name}"
+  targets:
+    - "#{project_name_without_extension}"
+  bazelrcs:
+    - "#{bazelrc_relative_path}"
+  mode: "Debug"
+  sdk: "simulator"
+  ocean_yml_path: "#{ocean_yml_relative_path}"
+  plugin_bzl_path: ".bitsky/defs.bzl"
+  external_path: "bitsky_external"
+  lldb_source_map: ".bitsky/lldb_source_map.json"
+END_OF_TEXT
+
+FileUtils.mkdir('.bitsky') unless Dir.exist?('.bitsky')
+File.open('.bitsky/bitsky.yaml', 'w') do |file|
+  file.write(bitsky_template)
+end
+
+
+# 建立 defs.bzl 的软链
+bitsky_dir = current_pathname + '.bitsky'
+Dir.chdir(bitsky_dir)
+inernal_defs_pathname = Pathname.new(plugin_path + '/defs.bzl').expand_path
+inernal_defs_relative_path = inernal_defs_pathname.relative_path_from(bitsky_dir).to_s
+# 如果 target_defs_pathname 文件已存在，先删除它
+if File.exist?("internal_defs.bzl")
+  File.delete("internal_defs.bzl")
+end
+File.symlink(inernal_defs_relative_path, File.basename("internal_defs.bzl"))
+Dir.chdir(current_pathname)
+
+# 生成defs.bzl
+puts 'Generating defs.bzl'
+project = Xcodeproj::Project.open(project_path)
+targets = project.root_object.targets
+
+app_targets = targets.select { |target| target.launchable_target_type? }
+extension_targets = targets.select { |target| target.extension_target_type? }
+test_targets = targets.select { |target| target.test_target_type? }
+
+defs_template = <<END_OF_TEXT
+load(
+  "//.bitsky:internal_defs.bzl", 
+  internal_defs = "defs"
+)
+
+package_features = internal_defs.package_features
+
+defs_app_name_list = [#{app_targets.map { |item| "\"#{item}\"" }.join(', ')}]
+
+defs_test_name_list = [#{test_targets.map { |item| "\"#{item}\"" }.join(', ')}]
+
+defs_extension_name_list = [#{extension_targets.map { |item| "\"#{item}\"" }.join(', ')}]
+
+common_copts = internal_defs.common_copts
+
+common_swiftcopts = internal_defs.common_swiftcopts
+
+defs_minimum_os_version = internal_defs.minimum_os_version
+
+for_ios_application = internal_defs.for_ios_application
+
+for_ios_extension = internal_defs.for_ios_extension
+
+for_application_apple_framework = internal_defs.for_application_apple_framework
+
+for_extension_apple_framework = internal_defs.for_extension_apple_framework
+
+for_external_objc_library = internal_defs.for_external_objc_library
+
+for_external_swift_library = internal_defs.for_external_swift_library
+
+for_extension_objc_library = internal_defs.for_extension_objc_library
+
+for_extension_swift_library = internal_defs.for_extension_swift_library
+
+for_module_objc_library = internal_defs.for_module_objc_library
+
+for_module_swift_library = internal_defs.for_module_swift_library
+END_OF_TEXT
+
+File.open('.bitsky/defs.bzl', 'w') do |file|
+  file.write(defs_template)
+end
+
+# 生成.bitsky/BUILD
+puts 'Generating .bitsky/BUILD'
+`touch .bitsky/BUILD`
+
+# 软链conditions/BUILD
+puts 'Generating conditions/BUILD'
+relative_template_dir = Pathname.new(template_dir).relative_path_from(Pathname.new(Dir.pwd))    
+`ln -sf #{relative_template_dir.join('conditions')} .`
+
+# 生成.gitignore
+puts 'Generating .gitignore'
+`touch .gitignore` unless File.exist? '.gitignore'
+ignore_files = %w[bitsky_external !.bitsky/bitsky.yaml !.bitsky/defs.bzl .bitsky/ module.json]
+gitignore_content = File.read('.gitignore')
+ignore_files.filter! do |file| 
+  !gitignore_content.include?(file)
+end
+
+unless ignore_files.empty?
+  File.open('.gitignore', 'a') do |f|
+    f.puts("\n#bitsky ignore")
+    ignore_files.each { |ignore_file| f.puts(ignore_file) }
+  end
+end

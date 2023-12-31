@@ -1,0 +1,1 @@
+../../../../CameraClient/MobileInfra/Foundation/Views/MBCircularProgressBar/ACCMBCircularProgressBarLayer.h

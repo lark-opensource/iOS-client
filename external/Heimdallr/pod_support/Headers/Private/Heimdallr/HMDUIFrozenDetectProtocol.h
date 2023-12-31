@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/UIFrozen/Common/Private/HMDUIFrozenDetectProtocol.h

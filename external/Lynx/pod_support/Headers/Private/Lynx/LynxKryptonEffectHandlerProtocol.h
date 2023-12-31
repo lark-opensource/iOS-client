@@ -1,0 +1,1 @@
+../../../../Darwin/iOS/Lynx/Public/Krypton/LynxKryptonEffectHandlerProtocol.h

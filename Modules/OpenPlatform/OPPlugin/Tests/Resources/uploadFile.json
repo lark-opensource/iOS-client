@@ -1,0 +1,60 @@
+{
+  "test_success()": {
+    "params": {
+      "url": "https://www.bytedance.com/",
+      "filePath": "${filePath}",
+      "name": "xx.jpg",
+      "uploadTaskId": "rtyiombf-3y6276678432-fvueyguf23g7vyuce"
+    },
+    "responsePayload": {
+      "statusCode": 200,
+      "data": "{\"something\":\"something\"}",
+      "uploadTaskId": "rtyiombf-3y6276678432-fvueyguf23g7vyuce"
+    },
+    "extra": {
+      "url": "https://gimg2.baidu.com/xx.jpg",
+      "statusCode": 200,
+      "cookies": []
+    },
+    "desc": "uploadFile 正常流程，传入 filePath，并且 suggestedFileName 为 \"\""
+  },
+  "test_fail_when_filePath_not_exist()": {
+    "params": {
+      "url": "https://www.bytedance.com/",
+      "filePath": "ttfile://temp/xx.jpg",
+      "name": "xx.jpg",
+      "uploadTaskId": "rtyiombf-3y6276678432-fvueyguf23g7vyuce"
+    },
+    "errResult": {
+      "errno": 203,
+      "errString": "File `ttfile://temp/xx.jpg` does not exist "
+    },
+    "desc": "uploadFile 错误流程，传入不存在的 filePath"
+  },
+  "test_fail_when_filePath_not_tempFile_or_userFile()": {
+    "params": {
+      "url": "https://www.bytedance.com/",
+      "filePath": "ttfile://notFound/xx.jpg",
+      "name": "xx.jpg",
+      "uploadTaskId": "rtyiombf-3y6276678432-fvueyguf23g7vyuce"
+    },
+    "errResult": {
+      "errno": 104,
+      "errString": "Parameter error. Invalid value for filePath"
+    },
+    "desc": "uploadFile 错误流程，传入不是 tempFile 也不是 userFile 的 filePath"
+  },
+  "test_fail_when_canceled()": {
+    "params": {
+      "url": "https://www.bytedance.com/",
+      "filePath": "${filePath}",
+      "name": "xx.jpg",
+      "uploadTaskId": "rtyiombf-3y6276678432-fvueyguf23g7vyuce"
+    },
+    "errResult": {
+      "errno": 301,
+      "errString": "Network request cancelled"
+    },
+    "desc": "uploadFile 错误流程, 上传失败"
+  }
+}

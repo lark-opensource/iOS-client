@@ -1,0 +1,1 @@
+../../../../../../../libEffectSDK/inc/Bach/Algorithm/Skeleton/BachSkeletonBuffer.h

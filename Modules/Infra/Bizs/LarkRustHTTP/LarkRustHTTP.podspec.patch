@@ -1,0 +1,81 @@
+# eval_tonic 'lark-project-template-0.1.0'
+gemfile :inherit
+
+# use lark-project config
+fix_static_framework false
+
+cocoapods do
+  ruby_code "do binary patch", <<-'CUSTOM_PATCH'
+
+  require 'lark/project/podfile_mixin'
+  strict_lock_mode!
+  lark_template_common_setup()
+
+  def ci? # 是否CI环境
+    !ENV['WORKFLOW_JOB_ID'].nil?
+  end
+
+  # @param strategy:
+  #   :all 开启全部二进制
+  #   :pb 只有PB开启二进制
+  #   other 手动开启二进制
+  # 你也可以在本地创建 Podfile.patch（请勿提交该文件！） 以固定配置某些库为源码或者二进制
+  # 修改后记得重新pod install
+  # 如果本地 run test， 请将这里改成 :pb 或者 :other 自定义二进制范围
+  # @testable import 的模块不可以使用二进制
+  strategy = ci? ? :pb : :all
+  lark_use_common_binary_config(strategy: :pb) do
+    [
+    ].each { |v| source v }
+  end
+  CUSTOM_PATCH
+
+  pre_install "patch build settings", <<-'PRE_INSTALL'
+  # modify build_settings in pre_install, so cache check will be valid
+  lark_template_common_pre_install installer
+  PRE_INSTALL
+
+  post_install "post patch build settings", <<-'POST_INSTALL'
+
+  treat_warning_as_errors_list = [
+  ]
+
+  warn_as_error = $lark_env.can_change_module_stability && { 'Debug' => treat_warning_as_errors_list }
+  lark_template_common_post_install installer, warn_as_error: warn_as_error
+  POST_INSTALL
+end
+# eval_tonic 'lark-project-template-0.1.0' END
+
+debug_podfile_content '
+  require "lark/project/if_pod"
+  lark_main_target_if_pods
+
+  disable_swiftlint!(except: %w[HTTProtocol LarkRustHTTP])
+'
+# avoid duplicate state var
+test_inherit :search_paths
+# fix boringssl link path error
+test_custom_build_settings "LIBRARY_SEARCH_PATHS" => '$(inherited) "${PODS_ROOT}/BDDataDecorator/BDDataDecorator/Base" "${PODS_ROOT}/BDDataDecorator/ios-arch-iphone" "${PODS_ROOT}/LarkSQLCipher/ios" "${PODS_ROOT}/RustPB/libraries" "${PODS_ROOT}/TTNetworkManager/Pod/Classes/TTNetworkBase/Chromium/libs" "${PODS_ROOT}/boringssl/." "${PODS_ROOT}/protobuf_lite/."'
+
+#test_dependency 'Swifter', path: '/Users/wang/Desktop/Bytedance/Repositories/Components/swifter' # :git => 'git@code.byted.org:wangxiaohua/swifter.git', :commit => '42b3d01'
+test_dependency 'Swifter', :git => 'git@code.byted.org:wangxiaohua/swifter.git', :commit => '0e612e03055f5112cffe880588895e8c61a272fb'
+debug_dependency 'LarkRustClient', :integration => :local
+debug_dependency 'HTTProtocol', :integration => :local
+# debug_dependency 'RustSDK', '5.25.0-43e46978e5a8-1666182401.91350321-alpha'
+# debug_dependency 'RustPB', '5.25.0-43e46978e5a8-1666182401.91350321-alpha'
+# debug_dependency 'LarkSQLCipher', '5.25.0-43e46978e5a8-1666182401.91350321-alpha'
+# rustpb 启动配置植入settings
+# debug_resource_files 'app/app/resources/*'
+
+# rust接入ttnet，可能需要相关的依赖集成
+debug_dependency 'LarkTTNetInitializor', :integration => :local
+# 初始化需要读settings, 但是引入不了，有太多额外关联依赖，嵌套的没法弄, 这也是服务发现的弊端吧..
+# debug_dependency 'LarkSetting'
+# LarkSetting/Core对assemble的扩展有依赖
+# debug_dependency 'LarkSetting/LarkAssemble'
+
+# LarkTTNetInitializor间接依赖，符号找不到
+debug_dependency 'Heimdallr/HMDStart'
+
+# debug_dependency 'RustPB', '3.8.0-alpha.385'
+test_objc_bridging_header_file 'app/test/bridge.h'

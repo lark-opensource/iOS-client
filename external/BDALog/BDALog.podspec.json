@@ -1,0 +1,59 @@
+{
+  "public_header_files": "BDALog/Classes/Public/**/*.h",
+  "platforms": {
+    "ios": "8.0"
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDALog_POD_VERSION=@\\\"9999_0.9.1-rc.7\\\""
+  },
+  "pod_target_xcconfig": {
+    "OTHER_CPLUSPLUSFLAGS": "-fno-c++-static-destructors",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS[config=Release]": "$(inherited) NDEBUG=1",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDALog_POD_VERSION=@\\\"9999_0.9.1-rc.7\\\""
+  },
+  "_bytebus_platform": {
+    "repo_id": "808",
+    "app_id": "9999"
+  },
+  "libraries": [
+    "z",
+    "c++"
+  ],
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/9999/BDALog/0.9.1-rc.7.1.binary/BDALog.framework.tar.xz"
+  },
+  "version": "0.9.1-rc.7.1.binary",
+  "source_files": "BDALog/Classes/**/*{h,m,c,cc,cpp,hpp,mm}",
+  "homepage": "https://github.com/胡波/BDALog",
+  "repoId": "808",
+  "prepare_command": "curl https://ios.bytedance.net/wlapi/tosDownload/iosbinary/platform/master/awesomecommand_xz.sh | bash ;",
+  "private_header_files": "BDALog/Classes/Private/**/*.h",
+  "description": "framework_description",
+  "ios": {
+    "frameworks": [
+      "UIKit",
+      "Foundation",
+      "JavaScriptCore"
+    ],
+    "vendored_libraries": "ios-arch-iphone/*_BDALog_*awesome_*.a"
+  },
+  "authors": {
+    "胡波": "hubo.christyhong@bytedance.com",
+    "张迅": "zhangxun.kilroy@bytedance.com"
+  },
+  "source_code": {
+    "commit": "fdb3f81528e583b7545363778097473f7e36439f",
+    "git": "git@code.byted.org:iOS_Library/BDALog.git"
+  },
+  "name": "BDALog",
+  "license": {
+    "type": "MIT"
+  },
+  "build_file_count": 21,
+  "preserve_paths": [
+    "**/*.bwp"
+  ],
+  "summary": "framework_summary"
+}

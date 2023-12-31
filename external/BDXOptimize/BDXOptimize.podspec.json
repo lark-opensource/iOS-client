@@ -1,0 +1,64 @@
+{
+  "name": "BDXOptimize",
+  "version": "1.4.7-alpha.31.1.binary",
+  "summary": "A short description of BDXOptimize.",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://code.byted.org/ugc/Bullet",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "fulei.bill": "fulei.bill@bytedance.com"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/aweme-rock/rock_binary/privatethird_binary_repo/BDXOptimize/1.4.7-alpha.31.1.binary/1648210874/BDXOptimize.tar.xz"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "default_subspecs": "Prefetch",
+  "preserve_paths": [
+    "rock_document/**/*.{h,m,mm,cpp,hpp,swift}",
+    "rock_document/rock-document-files.txt"
+  ],
+  "source_code": {
+    "git": "git@code.byted.org:ugc/Bullet.git",
+    "commit": "84f13e4c033e639be1ec04200eab42b35427f072"
+  },
+  "binary_type": "rock",
+  "package_env": {
+    "id": null,
+    "xcode": "Xcode 13.0\nBuild version 13A233\n"
+  },
+  "subspecs": [
+    {
+      "name": "Prefetch",
+      "dependencies": {
+        "BDXBridgeKit": [
+
+        ],
+        "IESPrefetch": [
+          ">= 1.1.3"
+        ],
+        "BDXServiceCenter": [
+          "~> 1.4.0"
+        ]
+      },
+      "source_files": "XService/BDXOptimize/Classes/Prefetch/**/*.{h,m,mm,c}",
+      "prefix_header_file": "XService/BDXOptimize/Classes/PrefixHeader.pch",
+      "vendored_libraries": [
+        "XService/BDXOptimize/Classes/Prefetch/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "XService/BDXOptimize/Classes/Prefetch/**/*.o",
+          "libBDXOptimize-0864ba1.a"
+        ]
+      }
+    }
+  ]
+}

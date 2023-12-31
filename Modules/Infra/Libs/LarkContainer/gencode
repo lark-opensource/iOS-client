@@ -1,0 +1,11 @@
+#!/bin/sh
+
+__dir__="$(cd "$(dirname "$0")"; pwd)"
+cd "$__dir__"
+files="src/Injected/Injected.Arguments src/ContainerWrapper+Register"
+
+
+for file in $files; do
+  echo "Generating code to $file.swift"
+  erb -v $file.erb > $file.swift
+done

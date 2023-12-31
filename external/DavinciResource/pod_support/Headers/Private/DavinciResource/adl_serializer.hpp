@@ -1,0 +1,1 @@
+../../../../base/thirdparty/nlohmann/adl_serializer.hpp

@@ -1,0 +1,251 @@
+html {
+  -webkit-user-select: var(--user-select-copyable);
+  user-select: var(--user-select-copyable);
+  width: 100%;
+  height: 100%;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+html[lang^="zh"]{
+  font-family: LarkEmojiFont,LarkChineseQuote,-apple-system,BlinkMacSystemFont,Helvetica Neue,Tahoma,PingFang SC,Microsoft Yahei,Arial,Hiragino Sans GB,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;
+}
+html[lang^="en"], html{
+  font-family: LarkEmojiFont,-apple-system,BlinkMacSystemFont,Helvetica Neue,Tahoma,PingFang SC,Microsoft Yahei,Arial,Hiragino Sans GB,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;
+}
+html[lang^="ja"]{
+  font-family: "ヒラギノ角ゴ Pro W3","Hiragino Kaku Gothic Pro","游ゴシック体","Noto Sans Japanese","Hiragino Sans GB","Yu Gothic","Microsoft Jhenghei UI","Microsoft Yahei UI","ＭＳ Ｐゴシック",Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;
+}
+body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  -webkit-user-select: var(--user-select-copyable);
+  user-select: var(--user-select-copyable);
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  -webkit-text-size-adjust: 100% !important;
+}
+
+/* 色板地址，用到了再写 */
+/* https://www.figma.com/file/mhVnz6wD1HjkpjXCZFPqGf/%F0%9F%8C%9E-Light---00-Style-Foundation-(Color%2C-Typography%2C-Shadow)?node-id=2949%3A683 */
+:root {
+  --R300: #F98E8B;
+  --R400: #F76964;
+  --R500: #F54A45;
+  --R600: #D83931;
+
+  --B100: #E1EAFF;
+  --B200: #BACEFD;
+  --B300: #82A7FC;
+  --B400: #4E83FD;
+  --B500: #3370FF;
+  --B600: #245BDB;
+
+  --N00: #FFFFFF;
+  --N50: #F5F6F7;
+  --N100: #F2F3F5;
+  --N200: #EFF0F1;
+  --N300: #DEE0E3;
+  --N400: #BBBFC4;
+  --N500: #8F959E;
+  --N600: #646A73;
+  --N800: #2B2F36;
+  --N900: #1F2329;
+  --N900-4: rgba(31, 35, 41, 0.04);
+  --N900-6: rgba(31, 35, 41, 0.06);
+  --N900-8: rgba(31, 35, 41, 0.08);
+  --N900-15: rgba(31, 35, 41, 0.15);
+  --N900-30: rgba(31, 35, 41, 0.3);
+  --N900-60: rgba(31, 35, 41, 0.6);
+
+  --token-line-border-card: var(--N300);
+  --token-line-border-component: var(--N400);
+
+  --token-bg-base: var(--N100);
+  --token-bg-body: var(--N00);
+  --editor-bg-body: #FFFFFF;
+  --editor-bg-float: #FFFFFF;
+  --editor-bg-filter: #eff0f1;
+  --editor-box-shadow: rgba(0, 0, 0, 0.25);
+  --token-bg-overlay: var(--N50);
+  --token-bg-mask: rgba(0,0,0,.4);
+  --token-bg-float: var(--N00);
+  --token-bg-float-overlay: var(--N100);
+  --token-switch-before-bg: #FFFFFF;
+
+  --user-select-copyable: none;
+}
+
+:root[data-tt-copyable="true"] {
+  --user-select-copyable: auto;
+}
+
+/* https://www.figma.com/file/JuUQ0totJs5YYuzNDwjPJi/%F0%9F%8C%97-Dark---00-Style-Foundation-(Color%2C-Typography%2C-Shadow)?node-id=3124%3A63095 */
+:root[data-tt-theme="dark"] {
+  --R300: #9E3836;
+  --R400: #CC4743;
+  --R500: #F0544F;
+  --R600: #FA7873;
+
+  --B100: #192A4C;
+  --B200: #203E78;
+  --B300: #2851A3;
+  --B400: #2E65D1;
+  --B500: #4382FF;
+  --B600: #5E94FF;
+
+  --N00: #101010;
+  --N50: #1F1F1F;
+  --N100: #2E2E2E;
+  --N200: #373737;
+  --N300: #434343;
+  --N400: #5F5F5F;
+  --N500: #939393;
+  --N600: #C1C1C1;
+  --N800: #E8E8E8;
+  --N900: #F0F0F0;
+  --N900-4: rgba(240, 240, 240, 0.04);
+  --N900-6: rgba(240, 240, 240, 0.06);
+  --N900-8: rgba(240, 240, 240, 0.08);
+  --N900-15: rgba(240, 240, 240, 0.15);
+  --N900-30: rgba(240, 240, 240, 0.3);
+  --N900-60: rgba(240, 240, 240, 0.6);
+
+  --token-line-border-card: var(--N400);
+  --token-line-border-component: #525252;
+
+  --token-bg-base: var(--N00);
+  --token-bg-body: var(--N50);
+  --token-bg-overlay: var(--N100);
+  --token-bg-mask: rgba(0,0,0,.7);
+  --token-bg-float: var(--N100);
+  --token-bg-float-overlay: var(--N200);
+  --token-bg-tips: var(--N300);
+  --token-switch-before-bg: rgba(120, 120, 128, 0.16);
+  --token-sliding-block-bg: #939393;
+  --editor-bg-body: #1F1F1F;
+  --editor-bg-float: #101010;
+  --editor-bg-filter: #373737;
+  --editor-box-shadow: rgba(0, 0, 0, 0.28);
+  --picker-view-bg-180: linear-gradient(180deg, rgba(31, 31, 31, 1), rgba(31, 31, 31, 0));
+  --picker-view-bg-0: linear-gradient(0deg, rgba(31, 31, 31, 1), rgba(31, 31, 31, 0));
+  --token-text-title2: var(--N900);
+}
+
+/* Token 列表，应该直接使用 token 色彩而不是色板 */
+/* 因为两个模式下token-token(比如text/title--N900)的对应关系有所区别 所以这下面只应该写共通的部分 */
+/* 更多样式可以查看 https://code.byted.org/universe-ui/styles */
+:root {
+  --token-brand: var(--B500);
+
+  --token-primary-100: var(--B100);
+  --token-primary-200: var(--B200);
+  --token-primary-300: var(--B300);
+  --token-primary-400: var(--B400);
+  --token-primary-500: var(--B500);
+  --token-primary-600: var(--B600);
+
+  --token-danger-300: var(--R300);
+  --token-danger-400: var(--R400);
+  --token-danger-500: var(--R500);
+  --token-danger-600: var(--R600);
+
+  --token-info-300: var(--B300);
+
+  --token-text-title: var(--N900);
+  --token-text-caption: var(--N600);
+  --token-text-placeholder: var(--N500);
+  --token-text-disable: var(--N400);
+  --token-text-link-normal: var(--B600);
+  --token-text-link-hover: var(--B500);
+
+  --token-bg-filter: var(--N200);
+  --token-bg-pricolor: var(--B400);
+  --token-bg-tips: var(--N900);
+
+  --token-line-divider-default: var(--N900-15);
+
+  --token-fill-disable: var(--N400);
+  --token-fill-hover: var(--N900-8);
+
+  --token-icon-n1: var(--N800);
+  --token-icon-n2: var(--N600);
+  --token-icon-n3: var(--N500);
+  --token-icon-disable: var(--N400);
+
+  --token-palette-neutral-200: var(--N200);
+  --token-palette-neutral-400: var(--N400);
+  --token-palette-neutral-500: var(--N500);
+
+  /* 静态色值，不跟随主题变化 */
+  --token-static-white: #FFFFFF;
+  --token-static-white-hover: rgba(255, 255, 255, 0.1);
+  --token-static-white-pressed: rgba(255, 255, 255, .2);
+  --token-static-black: #000000;
+  --token-sliding-block-bg: #FFFFFF;
+
+  --token-transparent-neutral-900: var(--N900-15);
+
+  --token-shadow-s4-down: 0px 8px 24px 8px var(--N900-4), 0px 6px 12px var(--N900-4), 0px 4px 8px -8px var(--N900-6);
+}
+
+@font-face {
+    font-weight: normal;
+    font-style: normal;
+    font-family: "ttui";
+    src: url("data:application/x-font-woff;charset=utf-8;base64,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") format("woff");
+}
+
+@font-face {
+    font-weight: normal;
+    font-style: normal;
+    font-family: "larkui";
+    src: url("data:application/x-font-woff;charset=utf-8;base64,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") format("woff");
+}
+tt-editor {
+  line-height: 1.6;
+  padding: 0 10px;
+  user-select: text;
+  -webkit-user-select: text;
+  min-height: 225px;
+  height: 225px;
+  display: block !important;
+  box-sizing: border-box;
+}
+
+.editor_outer_container {
+  width: 100%;
+  height: 100%;
+}
+
+tt-editor .editor-kit-outer-container .editor-kit-container .image-container .image-wrapper.selected .point.n-icon-dragable {
+  display: none;
+}
+
+tt-editor .editor-kit-outer-container .editor-kit-container.editor-kit-mobile.innerdocbody.ios ul.r-list-bullet li::before {
+  font-family: -webkit-standard, "PingFang SC", sans-serif, Arial;
+}
+
+tt-editor .link-popup.layout-row { 
+  display:none; 
+} 
+
+tt-editor .link-modify-popup.layout-row { 
+  display:none; 
+}
+
+tt-editor .editor-kit-container .video-container .video-wrapper {
+  border: none;
+}
+
+tt-editor .editor-kit-container .video-container .video-wrapper .video-upload-loading {
+  height: 220px;
+}
+
+tt-editor .editor-kit-container .video-container .video-wrapper .video-upload-failed .fail-wrapper {
+  height: 220px;
+}
+
+tt-editor video::-webkit-media-controls-overlay-play-button {
+  pointer-events: none;
+}

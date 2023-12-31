@@ -1,0 +1,1 @@
+../../../../third_party/krypton/canvas/gpu/gl_device_attributes.h

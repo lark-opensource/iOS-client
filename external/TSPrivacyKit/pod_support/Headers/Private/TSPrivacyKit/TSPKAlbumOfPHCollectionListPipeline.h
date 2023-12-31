@@ -1,0 +1,1 @@
+../../../../TSPrivacyKit/Classes/Pipelines/Album/PHCollectionList/TSPKAlbumOfPHCollectionListPipeline.h

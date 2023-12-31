@@ -1,0 +1,1550 @@
+load('@build_bazel_rules_apple//apple:resources.bzl', 'apple_resource_bundle', 'gen_bundle_plist')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "CreativeAlbumKit_pod_hdrs",
+  srcs = [
+    ":CreativeAlbumKit_root_pod_hdrs",
+    ":Core_pod_hdrs",
+    ":Default_pod_hdrs",
+    ":DefaultBundle_pod_hdrs",
+    ":DefaultLoading_pod_hdrs",
+    ":DefaultToast_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "CreativeAlbumKit_private_includes",
+  include = [
+    "external/CreativeAlbumKit/pod_support/Headers/Private/CreativeAlbumKit/"
+  ],
+  deps = [],
+  external_name = "CreativeAlbumKit"
+)
+gen_includes(
+  name = "CreativeAlbumKit_public_includes",
+  include = [
+    "external/CreativeAlbumKit/pod_support/Headers/Public/CreativeAlbumKit/"
+  ],
+  deps = [],
+  external_name = "CreativeAlbumKit"
+)
+filegroup(
+  name = "_CreativeAlbumKit_hdrs",
+  srcs = [
+    ":CreativeAlbumKit_root_hdrs",
+    ":Core_hdrs",
+    ":Default_hdrs",
+    ":DefaultBundle_hdrs",
+    ":DefaultLoading_hdrs",
+    ":DefaultToast_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "CreativeAlbumKit_xcode_hmapsource",
+  hdrs = [
+    ":CreativeAlbumKit_root_hdrs",
+    ":Core_hdrs",
+    ":Default_hdrs",
+    ":DefaultBundle_hdrs",
+    ":DefaultLoading_hdrs",
+    ":DefaultToast_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "CreativeAlbumKit_xcode_hmap",
+  dep = ":CreativeAlbumKit_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/CreativeAlbumKit/*-bitsky-generated.modulemap", "pod_support/Headers/Public/CreativeAlbumKit/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "CreativeAlbumKit_Core_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libCreativeAlbumKit-87b5208.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CreativeAlbumKit_Default_file_group_CreativeAlbumKit_Resources_color",
+  srcs = glob(
+    [
+      "CreativeAlbumKit/Resources/color/**"
+    ]
+  )
+)
+filegroup(
+  name = "CreativeAlbumKit_Default_file_group_CreativeAlbumKit_Resources_languages",
+  srcs = glob(
+    [
+      "CreativeAlbumKit/Resources/languages/**"
+    ]
+  )
+)
+gen_bundle_plist(
+  name = "GEN_CreativeAlbumKit_Plist",
+  bundle_name = "CreativeAlbumKit",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "19.9.6",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "CreativeAlbumKit_Default_CreativeAlbumKit",
+  bundle_name = "CreativeAlbumKit",
+  infoplists = [
+    ":GEN_CreativeAlbumKit_Plist"
+  ],
+  resources = glob(
+    [
+      "CreativeAlbumKit/Resources/image/Images.xcassets/**"
+    ]
+  ) + [
+    "CreativeAlbumKit/Resources/Config.plist"
+  ],
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  directory_resources = {
+    ":CreativeAlbumKit_Default_file_group_CreativeAlbumKit_Resources_color": "CreativeAlbumKit/Resources/color",
+    ":CreativeAlbumKit_Default_file_group_CreativeAlbumKit_Resources_languages": "CreativeAlbumKit/Resources/languages"
+  },
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "CreativeAlbumKit_Default_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libCreativeAlbumKit-39e291a.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "CreativeAlbumKit_DefaultBundle_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libCreativeAlbumKit-3077e57.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "CreativeAlbumKit_DefaultLoading_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libCreativeAlbumKit-25a8107.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "CreativeAlbumKit_DefaultToast_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libCreativeAlbumKit-39ac07b.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "CreativeAlbumKit_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "CreativeAlbumKit",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "CreativeAlbumKit_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":CreativeAlbumKit_xcode_hmap"
+  ],
+  external_name = "CreativeAlbumKit",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CreativeAlbumKit_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CreativeAlbumKit_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CreativeAlbumKit_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CreativeAlbumKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "CreativeAlbumKit_module_map",
+  module_map = "pod_support/Headers/Public/CreativeAlbumKit/CreativeAlbumKit-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreativeAlbumKit/CreativeAlbumKit-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CreativeAlbumKit_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "CreativeAlbumKit_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreativeAlbumKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreativeAlbumKit_private_includes",
+    ":CreativeAlbumKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDWebImage//:BDWebImage_objc_interface",
+    "@CreationKitInfra//:CreationKitInfra_objc_interface",
+    "@CreativeKit//:CreativeKit_objc_interface",
+    "@IESInject//:IESInject_objc_interface",
+    "@IESLiveResourcesButler//:IESLiveResourcesButler_objc_interface",
+    "@KVOController//:KVOController_objc_interface",
+    "@libextobjc//:libextobjc_objc_interface",
+    "@Mantle//:Mantle_objc_interface",
+    "@Masonry//:Masonry_objc_interface",
+    "@ReactiveObjC//:ReactiveObjC_objc_interface",
+    "@BDWebImage//:BDWebImage_swift_interface",
+    "@CreationKitInfra//:CreationKitInfra_swift_interface",
+    "@CreativeKit//:CreativeKit_swift_interface",
+    "@IESInject//:IESInject_swift_interface",
+    "@IESLiveResourcesButler//:IESLiveResourcesButler_swift_interface",
+    "@KVOController//:KVOController_swift_interface",
+    "@libextobjc//:libextobjc_swift_interface",
+    "@Mantle//:Mantle_swift_interface",
+    "@Masonry//:Masonry_swift_interface",
+    "@ReactiveObjC//:ReactiveObjC_swift_interface",
+    ":CreativeAlbumKit_objc_interface",
+    "@BDWebImage//:BDWebImage_module_map",
+    "@CreationKitInfra//:CreationKitInfra_module_map",
+    "@CreativeKit//:CreativeKit_module_map",
+    "@IESInject//:IESInject_module_map",
+    "@IESLiveResourcesButler//:IESLiveResourcesButler_module_map",
+    "@KVOController//:KVOController_module_map",
+    "@libextobjc//:libextobjc_module_map",
+    "@Mantle//:Mantle_module_map",
+    "@Masonry//:Masonry_module_map",
+    "@ReactiveObjC//:ReactiveObjC_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CreativeAlbumKit",
+  deps = [
+    ":CreativeAlbumKit_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "CreativeAlbumKit_lib",
+  deps = [
+    ":CreativeAlbumKit"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [
+    "CreativeAlbumKit/Classes/Core/Config/CAKAlbumListTabConfig.h",
+    "CreativeAlbumKit/Classes/Core/Config/CAKAlbumListViewConfig.h",
+    "CreativeAlbumKit/Classes/Core/Manager/CAKPhotoManager.h",
+    "CreativeAlbumKit/Classes/Core/Model/CAKAlbumAssetModel+Cover.h",
+    "CreativeAlbumKit/Classes/Core/Model/CAKAlbumAssetModel.h",
+    "CreativeAlbumKit/Classes/Core/Model/CAKAlbumDataModel.h",
+    "CreativeAlbumKit/Classes/Core/Model/CAKAlbumSectionModel.h",
+    "CreativeAlbumKit/Classes/Core/Protocol/CAKAlbumBottomViewProtocol.h",
+    "CreativeAlbumKit/Classes/Core/Protocol/CAKAlbumListViewControllerProtocol.h",
+    "CreativeAlbumKit/Classes/Core/Protocol/CAKSelectedAssetsViewProtocol.h",
+    "CreativeAlbumKit/Classes/Core/Transition/CAKAlbumTransitionAnimationController.h",
+    "CreativeAlbumKit/Classes/Core/Transition/CAKAlbumTransitionContextProvider.h",
+    "CreativeAlbumKit/Classes/Core/Transition/CAKAlbumTransitionDelegateProtocol.h",
+    "CreativeAlbumKit/Classes/Core/Transition/CAKAlbumTransitionInteractionController.h",
+    "CreativeAlbumKit/Classes/Core/Transition/CAKAlbumZoomTransition.h",
+    "CreativeAlbumKit/Classes/Core/Transition/CAKAlbumZoomTransitionDelegate.h",
+    "CreativeAlbumKit/Classes/Core/ViewModel/CAKAlbumAssetCache.h",
+    "CreativeAlbumKit/Classes/Core/ViewModel/CAKAlbumBaseViewModel.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumAssetCache.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumAssetModel+Cover.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumAssetModel.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumBaseViewModel.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumBottomViewProtocol.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumDataModel.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumListTabConfig.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumListViewConfig.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumListViewControllerProtocol.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumSectionModel.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumTransitionAnimationController.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumTransitionContextProvider.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumTransitionDelegateProtocol.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumTransitionInteractionController.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumZoomTransition.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumZoomTransitionDelegate.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKPhotoManager.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKSelectedAssetsViewProtocol.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumAssetCache.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumAssetModel+Cover.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumAssetModel.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumBaseViewModel.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumBottomViewProtocol.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumDataModel.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumListTabConfig.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumListViewConfig.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumListViewControllerProtocol.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumSectionModel.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumTransitionAnimationController.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumTransitionContextProvider.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumTransitionDelegateProtocol.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumTransitionInteractionController.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumZoomTransition.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumZoomTransitionDelegate.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKPhotoManager.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKSelectedAssetsViewProtocol.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/CreativeAlbumKit/CreativeAlbumKit_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreativeAlbumKit/CreativeAlbumKit_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_srcs",
+  srcs = [
+    "CreativeAlbumKit/Classes/Core/ViewModel/CAKAlbumBaseViewModel.m",
+    "CreativeAlbumKit/Classes/Core/Config/CAKAlbumListViewConfig.m",
+    "CreativeAlbumKit/Classes/Core/Manager/CAKPhotoManager.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [
+    "Core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreativeAlbumKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreativeAlbumKit_private_includes",
+    ":CreativeAlbumKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDWebImage//:BDWebImage_objc_interface",
+    "@CreationKitInfra//:CreationKitInfra_objc_interface",
+    "@CreativeKit//:CreativeKit_objc_interface",
+    "@IESInject//:IESInject_objc_interface",
+    "@IESLiveResourcesButler//:IESLiveResourcesButler_objc_interface",
+    "@KVOController//:KVOController_objc_interface",
+    "@libextobjc//:libextobjc_objc_interface",
+    "@Mantle//:Mantle_objc_interface",
+    "@Masonry//:Masonry_objc_interface",
+    "@ReactiveObjC//:ReactiveObjC_objc_interface",
+    "@BDWebImage//:BDWebImage_swift_interface",
+    "@CreationKitInfra//:CreationKitInfra_swift_interface",
+    "@CreativeKit//:CreativeKit_swift_interface",
+    "@IESInject//:IESInject_swift_interface",
+    "@IESLiveResourcesButler//:IESLiveResourcesButler_swift_interface",
+    "@KVOController//:KVOController_swift_interface",
+    "@libextobjc//:libextobjc_swift_interface",
+    "@Mantle//:Mantle_swift_interface",
+    "@Masonry//:Masonry_swift_interface",
+    "@ReactiveObjC//:ReactiveObjC_swift_interface",
+    ":CreativeAlbumKit_Core_VendoredLibraries",
+    ":Core_objc_interface",
+    "@BDWebImage//:BDWebImage_module_map",
+    "@CreationKitInfra//:CreationKitInfra_module_map",
+    "@CreativeKit//:CreativeKit_module_map",
+    "@IESInject//:IESInject_module_map",
+    "@IESLiveResourcesButler//:IESLiveResourcesButler_module_map",
+    "@KVOController//:KVOController_module_map",
+    "@libextobjc//:libextobjc_module_map",
+    "@Mantle//:Mantle_module_map",
+    "@Masonry//:Masonry_module_map",
+    "@ReactiveObjC//:ReactiveObjC_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Default_hdrs",
+  srcs = [
+    "CreativeAlbumKit/Default/AlbumArch/BaseService/CAKBaseServiceContainer.h",
+    "CreativeAlbumKit/Default/AlbumArch/BaseService/CAKResourceBundleProtocol.h",
+    "CreativeAlbumKit/Default/AlbumArch/BaseService/CAKResourceUnion.h",
+    "CreativeAlbumKit/Default/AlbumArch/BaseService/CAKServiceLocator.h",
+    "CreativeAlbumKit/Default/AlbumArch/Category/UIColor+AlbumKit.h",
+    "CreativeAlbumKit/Default/AlbumArch/Category/UIImage+AlbumKit.h",
+    "CreativeAlbumKit/Default/AlbumArch/Category/UIImage+CAKUIKit.h",
+    "CreativeAlbumKit/Default/AlbumArch/Transition/CAKBounceDismissAnimationController.h",
+    "CreativeAlbumKit/Default/AlbumArch/Transition/CAKBouncePresentAnimationController.h",
+    "CreativeAlbumKit/Default/AlbumArch/Transition/CAKModalTransitionDelegate.h",
+    "CreativeAlbumKit/Default/AlbumArch/Transition/CAKStatusBarControllerUtil.h",
+    "CreativeAlbumKit/Default/AlbumArch/Transition/CAKSwipeInteractionController.h",
+    "CreativeAlbumKit/Default/AlbumArch/UI/CAKAnimatedButton.h",
+    "CreativeAlbumKit/Default/AlbumArch/UI/CAKLoadingProtocol.h",
+    "CreativeAlbumKit/Default/AlbumArch/UI/CAKToastProtocol.h",
+    "CreativeAlbumKit/Default/AlbumArch/Util/CAKLanguageManager.h",
+    "CreativeAlbumKit/Default/Core/Protocol/CAKAlbumNavigationViewProtocol.h",
+    "CreativeAlbumKit/Default/Core/Protocol/CAKAlbumPreviewPageBottomViewProtocol.h",
+    "CreativeAlbumKit/Default/Core/Protocol/CAKAlbumRequestAccessViewProtocol.h",
+    "CreativeAlbumKit/Default/Core/View/CAKAlbumAssetListCell.h",
+    "CreativeAlbumKit/Default/Core/View/CAKAlbumCategorylistCell.h",
+    "CreativeAlbumKit/Default/Core/View/CAKAlbumDenyAccessView.h",
+    "CreativeAlbumKit/Default/Core/View/CAKAlbumGoSettingStrip.h",
+    "CreativeAlbumKit/Default/Core/View/CAKAlbumListBlankView.h",
+    "CreativeAlbumKit/Default/Core/View/CAKAlbumPhotoPreviewAndSelectCell.h",
+    "CreativeAlbumKit/Default/Core/View/CAKAlbumPreviewAndSelectCell.h",
+    "CreativeAlbumKit/Default/Core/View/CAKAlbumPreviewPageBottomView.h",
+    "CreativeAlbumKit/Default/Core/View/CAKAlbumRequestAccessView.h",
+    "CreativeAlbumKit/Default/Core/View/CAKAlbumSelectAlbumButton.h",
+    "CreativeAlbumKit/Default/Core/View/CAKAlbumSelectedAssetsView.h",
+    "CreativeAlbumKit/Default/Core/View/CAKAlbumSlidingScrollView.h",
+    "CreativeAlbumKit/Default/Core/View/CAKAlbumSlidingTabBarView.h",
+    "CreativeAlbumKit/Default/Core/View/CAKAlbumSwitchBottomView.h",
+    "CreativeAlbumKit/Default/Core/View/CAKAlbumVideoPreviewAndSelectCell.h",
+    "CreativeAlbumKit/Default/Core/View/CAKAlbumViewControllerNavigationView.h",
+    "CreativeAlbumKit/Default/Core/View/CAKCircularProgressView.h",
+    "CreativeAlbumKit/Default/Core/View/CAKGradientView.h",
+    "CreativeAlbumKit/Default/Core/View/CAKReorderableForCollectionViewFlowLayout.h",
+    "CreativeAlbumKit/Default/Core/ViewController/CAKAlbumListViewController.h",
+    "CreativeAlbumKit/Default/Core/ViewController/CAKAlbumPreviewAndSelectController.h",
+    "CreativeAlbumKit/Default/Core/ViewController/CAKAlbumSlidingViewController.h",
+    "CreativeAlbumKit/Default/Core/ViewController/CAKAlbumViewController.h",
+    "CreativeAlbumKit/Default/Core/ViewController/CAKCornerBarNavigationController.h",
+    "CreativeAlbumKit/Default/Core/ViewModel/CAKAlbumViewModel.h",
+    "CreativeAlbumKit/Default/Core/config/CAKAlbumBottomViewConfig.h",
+    "CreativeAlbumKit/Default/Core/config/CAKAlbumNavigationViewConfig.h",
+    "CreativeAlbumKit/Default/Core/config/CAKAlbumSelectedAssetsViewConfig.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Default_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumAssetListCell.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumBottomViewConfig.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumCategorylistCell.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumDenyAccessView.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumGoSettingStrip.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumListBlankView.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumListViewController.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumNavigationViewConfig.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumNavigationViewProtocol.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumPhotoPreviewAndSelectCell.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumPreviewAndSelectCell.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumPreviewAndSelectController.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumPreviewPageBottomView.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumPreviewPageBottomViewProtocol.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumRequestAccessView.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumRequestAccessViewProtocol.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumSelectAlbumButton.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumSelectedAssetsView.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumSelectedAssetsViewConfig.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumSlidingScrollView.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumSlidingTabBarView.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumSlidingViewController.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumSwitchBottomView.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumVideoPreviewAndSelectCell.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumViewController.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumViewControllerNavigationView.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAlbumViewModel.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKAnimatedButton.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKBaseServiceContainer.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKBounceDismissAnimationController.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKBouncePresentAnimationController.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKCircularProgressView.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKCornerBarNavigationController.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKGradientView.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKLanguageManager.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKLoadingProtocol.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKModalTransitionDelegate.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKReorderableForCollectionViewFlowLayout.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKResourceBundleProtocol.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKResourceUnion.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKServiceLocator.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKStatusBarControllerUtil.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKSwipeInteractionController.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKToastProtocol.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/UIColor+AlbumKit.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/UIImage+AlbumKit.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/UIImage+CAKUIKit.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumAssetListCell.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumBottomViewConfig.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumCategorylistCell.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumDenyAccessView.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumGoSettingStrip.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumListBlankView.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumListViewController.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumNavigationViewConfig.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumNavigationViewProtocol.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumPhotoPreviewAndSelectCell.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumPreviewAndSelectCell.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumPreviewAndSelectController.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumPreviewPageBottomView.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumPreviewPageBottomViewProtocol.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumRequestAccessView.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumRequestAccessViewProtocol.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumSelectAlbumButton.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumSelectedAssetsView.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumSelectedAssetsViewConfig.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumSlidingScrollView.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumSlidingTabBarView.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumSlidingViewController.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumSwitchBottomView.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumVideoPreviewAndSelectCell.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumViewController.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumViewControllerNavigationView.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAlbumViewModel.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKAnimatedButton.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKBaseServiceContainer.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKBounceDismissAnimationController.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKBouncePresentAnimationController.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKCircularProgressView.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKCornerBarNavigationController.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKGradientView.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKLanguageManager.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKLoadingProtocol.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKModalTransitionDelegate.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKReorderableForCollectionViewFlowLayout.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKResourceBundleProtocol.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKResourceUnion.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKServiceLocator.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKStatusBarControllerUtil.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKSwipeInteractionController.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKToastProtocol.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/UIColor+AlbumKit.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/UIImage+AlbumKit.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/UIImage+CAKUIKit.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Default_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Default_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Default_module_map",
+  module_map = "pod_support/Headers/Public/CreativeAlbumKit/CreativeAlbumKit_Default-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreativeAlbumKit/CreativeAlbumKit_Default-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Default_srcs",
+  srcs = [
+    "CreativeAlbumKit/Default/Core/ViewController/CAKAlbumListViewController.m",
+    "CreativeAlbumKit/Default/Core/View/CAKAlbumSlidingScrollView.m",
+    "CreativeAlbumKit/Default/Core/ViewController/CAKAlbumViewController.m",
+    "rock_dummy/rock_dummy_39e291a.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Default_oc",
+  enable_modules = 1,
+  srcs = [
+    "Default_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Default_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreativeAlbumKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreativeAlbumKit_private_includes",
+    ":CreativeAlbumKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDWebImage//:BDWebImage_objc_interface",
+    "@CreationKitInfra//:CreationKitInfra_objc_interface",
+    "@CreativeKit//:CreativeKit_objc_interface",
+    "@IESInject//:IESInject_objc_interface",
+    "@IESLiveResourcesButler//:IESLiveResourcesButler_objc_interface",
+    "@KVOController//:KVOController_objc_interface",
+    "@libextobjc//:libextobjc_objc_interface",
+    "@Mantle//:Mantle_objc_interface",
+    "@Masonry//:Masonry_objc_interface",
+    "@ReactiveObjC//:ReactiveObjC_objc_interface",
+    "@BDWebImage//:BDWebImage_swift_interface",
+    "@CreationKitInfra//:CreationKitInfra_swift_interface",
+    "@CreativeKit//:CreativeKit_swift_interface",
+    "@IESInject//:IESInject_swift_interface",
+    "@IESLiveResourcesButler//:IESLiveResourcesButler_swift_interface",
+    "@KVOController//:KVOController_swift_interface",
+    "@libextobjc//:libextobjc_swift_interface",
+    "@Mantle//:Mantle_swift_interface",
+    "@Masonry//:Masonry_swift_interface",
+    "@ReactiveObjC//:ReactiveObjC_swift_interface",
+    ":CreativeAlbumKit_Default_VendoredLibraries",
+    ":Default_objc_interface",
+    "@BDWebImage//:BDWebImage_module_map",
+    "@CreationKitInfra//:CreationKitInfra_module_map",
+    "@CreativeKit//:CreativeKit_module_map",
+    "@IESInject//:IESInject_module_map",
+    "@IESLiveResourcesButler//:IESLiveResourcesButler_module_map",
+    "@KVOController//:KVOController_module_map",
+    "@libextobjc//:libextobjc_module_map",
+    "@Mantle//:Mantle_module_map",
+    "@Masonry//:Masonry_module_map",
+    "@ReactiveObjC//:ReactiveObjC_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":CreativeAlbumKit_Default_CreativeAlbumKit"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Default",
+  deps = [
+    ":Default_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Default_lib",
+  deps = [
+    ":Default"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DefaultBundle_hdrs",
+  srcs = [
+    "CreativeAlbumKit/DefaultBundle/CAKBaseServiceContainer+Bundle.h",
+    "CreativeAlbumKit/DefaultBundle/CAKResourceBundleImpl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DefaultBundle_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKBaseServiceContainer+Bundle.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKResourceBundleImpl.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKBaseServiceContainer+Bundle.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKResourceBundleImpl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DefaultBundle_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DefaultBundle_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "DefaultBundle_module_map",
+  module_map = "pod_support/Headers/Public/CreativeAlbumKit/CreativeAlbumKit_DefaultBundle-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreativeAlbumKit/CreativeAlbumKit_DefaultBundle-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DefaultBundle_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "DefaultBundle_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreativeAlbumKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreativeAlbumKit_private_includes",
+    ":CreativeAlbumKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDWebImage//:BDWebImage_objc_interface",
+    "@CreationKitInfra//:CreationKitInfra_objc_interface",
+    "@CreativeKit//:CreativeKit_objc_interface",
+    "@IESInject//:IESInject_objc_interface",
+    "@IESLiveResourcesButler//:IESLiveResourcesButler_objc_interface",
+    "@KVOController//:KVOController_objc_interface",
+    "@libextobjc//:libextobjc_objc_interface",
+    "@Mantle//:Mantle_objc_interface",
+    "@Masonry//:Masonry_objc_interface",
+    "@ReactiveObjC//:ReactiveObjC_objc_interface",
+    "@BDWebImage//:BDWebImage_swift_interface",
+    "@CreationKitInfra//:CreationKitInfra_swift_interface",
+    "@CreativeKit//:CreativeKit_swift_interface",
+    "@IESInject//:IESInject_swift_interface",
+    "@IESLiveResourcesButler//:IESLiveResourcesButler_swift_interface",
+    "@KVOController//:KVOController_swift_interface",
+    "@libextobjc//:libextobjc_swift_interface",
+    "@Mantle//:Mantle_swift_interface",
+    "@Masonry//:Masonry_swift_interface",
+    "@ReactiveObjC//:ReactiveObjC_swift_interface",
+    ":CreativeAlbumKit_DefaultBundle_VendoredLibraries",
+    ":DefaultBundle_objc_interface",
+    "@BDWebImage//:BDWebImage_module_map",
+    "@CreationKitInfra//:CreationKitInfra_module_map",
+    "@CreativeKit//:CreativeKit_module_map",
+    "@IESInject//:IESInject_module_map",
+    "@IESLiveResourcesButler//:IESLiveResourcesButler_module_map",
+    "@KVOController//:KVOController_module_map",
+    "@libextobjc//:libextobjc_module_map",
+    "@Mantle//:Mantle_module_map",
+    "@Masonry//:Masonry_module_map",
+    "@ReactiveObjC//:ReactiveObjC_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DefaultBundle",
+  deps = [
+    ":DefaultBundle_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "DefaultBundle_lib",
+  deps = [
+    ":DefaultBundle"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DefaultLoading_hdrs",
+  srcs = [
+    "CreativeAlbumKit/DefaultLoading/CAKBaseServiceContainer+Loading.h",
+    "CreativeAlbumKit/DefaultLoading/CAKLoadingImpl.h",
+    "CreativeAlbumKit/DefaultLoading/CAKLoadingView.h",
+    "CreativeAlbumKit/DefaultLoading/CAKTextLoadingView.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DefaultLoading_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKBaseServiceContainer+Loading.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKLoadingImpl.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKLoadingView.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKTextLoadingView.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKBaseServiceContainer+Loading.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKLoadingImpl.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKLoadingView.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKTextLoadingView.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DefaultLoading_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DefaultLoading_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "DefaultLoading_module_map",
+  module_map = "pod_support/Headers/Public/CreativeAlbumKit/CreativeAlbumKit_DefaultLoading-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreativeAlbumKit/CreativeAlbumKit_DefaultLoading-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DefaultLoading_srcs",
+  srcs = [
+    "CreativeAlbumKit/DefaultLoading/CAKTextLoadingView.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DefaultLoading_oc",
+  enable_modules = 1,
+  srcs = [
+    "DefaultLoading_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "DefaultLoading_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreativeAlbumKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreativeAlbumKit_private_includes",
+    ":CreativeAlbumKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDWebImage//:BDWebImage_objc_interface",
+    "@CreationKitInfra//:CreationKitInfra_objc_interface",
+    "@CreativeKit//:CreativeKit_objc_interface",
+    "@IESInject//:IESInject_objc_interface",
+    "@IESLiveResourcesButler//:IESLiveResourcesButler_objc_interface",
+    "@KVOController//:KVOController_objc_interface",
+    "@libextobjc//:libextobjc_objc_interface",
+    "@Mantle//:Mantle_objc_interface",
+    "@Masonry//:Masonry_objc_interface",
+    "@ReactiveObjC//:ReactiveObjC_objc_interface",
+    "@BDWebImage//:BDWebImage_swift_interface",
+    "@CreationKitInfra//:CreationKitInfra_swift_interface",
+    "@CreativeKit//:CreativeKit_swift_interface",
+    "@IESInject//:IESInject_swift_interface",
+    "@IESLiveResourcesButler//:IESLiveResourcesButler_swift_interface",
+    "@KVOController//:KVOController_swift_interface",
+    "@libextobjc//:libextobjc_swift_interface",
+    "@Mantle//:Mantle_swift_interface",
+    "@Masonry//:Masonry_swift_interface",
+    "@ReactiveObjC//:ReactiveObjC_swift_interface",
+    ":CreativeAlbumKit_DefaultLoading_VendoredLibraries",
+    ":DefaultLoading_objc_interface",
+    "@BDWebImage//:BDWebImage_module_map",
+    "@CreationKitInfra//:CreationKitInfra_module_map",
+    "@CreativeKit//:CreativeKit_module_map",
+    "@IESInject//:IESInject_module_map",
+    "@IESLiveResourcesButler//:IESLiveResourcesButler_module_map",
+    "@KVOController//:KVOController_module_map",
+    "@libextobjc//:libextobjc_module_map",
+    "@Mantle//:Mantle_module_map",
+    "@Masonry//:Masonry_module_map",
+    "@ReactiveObjC//:ReactiveObjC_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DefaultLoading",
+  deps = [
+    ":DefaultLoading_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "DefaultLoading_lib",
+  deps = [
+    ":DefaultLoading"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DefaultToast_hdrs",
+  srcs = [
+    "CreativeAlbumKit/DefaultToast/CAKBaseServiceContainer+Toast.h",
+    "CreativeAlbumKit/DefaultToast/CAKToast.h",
+    "CreativeAlbumKit/DefaultToast/CAKToastImpl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DefaultToast_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKBaseServiceContainer+Toast.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKToast.h",
+    "pod_support/Headers/Private/CreativeAlbumKit/CAKToastImpl.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKBaseServiceContainer+Toast.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKToast.h",
+    "pod_support/Headers/Public/CreativeAlbumKit/CAKToastImpl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DefaultToast_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DefaultToast_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "DefaultToast_module_map",
+  module_map = "pod_support/Headers/Public/CreativeAlbumKit/CreativeAlbumKit_DefaultToast-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreativeAlbumKit/CreativeAlbumKit_DefaultToast-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DefaultToast_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "DefaultToast_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreativeAlbumKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreativeAlbumKit_private_includes",
+    ":CreativeAlbumKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDWebImage//:BDWebImage_objc_interface",
+    "@CreationKitInfra//:CreationKitInfra_objc_interface",
+    "@CreativeKit//:CreativeKit_objc_interface",
+    "@IESInject//:IESInject_objc_interface",
+    "@IESLiveResourcesButler//:IESLiveResourcesButler_objc_interface",
+    "@KVOController//:KVOController_objc_interface",
+    "@libextobjc//:libextobjc_objc_interface",
+    "@Mantle//:Mantle_objc_interface",
+    "@Masonry//:Masonry_objc_interface",
+    "@ReactiveObjC//:ReactiveObjC_objc_interface",
+    "@BDWebImage//:BDWebImage_swift_interface",
+    "@CreationKitInfra//:CreationKitInfra_swift_interface",
+    "@CreativeKit//:CreativeKit_swift_interface",
+    "@IESInject//:IESInject_swift_interface",
+    "@IESLiveResourcesButler//:IESLiveResourcesButler_swift_interface",
+    "@KVOController//:KVOController_swift_interface",
+    "@libextobjc//:libextobjc_swift_interface",
+    "@Mantle//:Mantle_swift_interface",
+    "@Masonry//:Masonry_swift_interface",
+    "@ReactiveObjC//:ReactiveObjC_swift_interface",
+    ":CreativeAlbumKit_DefaultToast_VendoredLibraries",
+    ":DefaultToast_objc_interface",
+    "@BDWebImage//:BDWebImage_module_map",
+    "@CreationKitInfra//:CreationKitInfra_module_map",
+    "@CreativeKit//:CreativeKit_module_map",
+    "@IESInject//:IESInject_module_map",
+    "@IESLiveResourcesButler//:IESLiveResourcesButler_module_map",
+    "@KVOController//:KVOController_module_map",
+    "@libextobjc//:libextobjc_module_map",
+    "@Mantle//:Mantle_module_map",
+    "@Masonry//:Masonry_module_map",
+    "@ReactiveObjC//:ReactiveObjC_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DefaultToast",
+  deps = [
+    ":DefaultToast_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "DefaultToast_lib",
+  deps = [
+    ":DefaultToast"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_CreativeAlbumKit_module_map",
+  module_map = "@CreativeAlbumKit//:pod_support/Headers/Public/CreativeAlbumKit/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@CreativeAlbumKit//:pod_support/Headers/Public/CreativeAlbumKit/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_CreativeAlbumKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@CreativeAlbumKit//:Core_objc_interface", "@CreativeAlbumKit//:CreativeAlbumKit_objc_interface", "@CreativeAlbumKit//:Default_objc_interface", "@CreativeAlbumKit//:DefaultBundle_objc_interface", "@CreativeAlbumKit//:DefaultLoading_objc_interface", "@CreativeAlbumKit//:DefaultToast_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_CreativeAlbumKit",
+  target_name = "Lark",
+  module_name = "CreativeAlbumKit",
+  hdrs = ["@CreativeAlbumKit//:Core_pod_hdrs", "@CreativeAlbumKit//:CreativeAlbumKit_root_pod_hdrs", "@CreativeAlbumKit//:Default_pod_hdrs", "@CreativeAlbumKit//:DefaultBundle_pod_hdrs", "@CreativeAlbumKit//:DefaultLoading_pod_hdrs", "@CreativeAlbumKit//:DefaultToast_pod_hdrs"],
+  srcs = ["@CreativeAlbumKit//:Core_srcs", "@CreativeAlbumKit//:DefaultLoading_srcs", "@CreativeAlbumKit//:Default_srcs"],
+  non_arc_srcs = [],
+  deps = ["@CreativeAlbumKit//:CreativeAlbumKit_Core_VendoredLibraries", "@CreativeAlbumKit//:CreativeAlbumKit_Default_VendoredLibraries", "@CreativeAlbumKit//:CreativeAlbumKit_DefaultBundle_VendoredLibraries", "@CreativeAlbumKit//:CreativeAlbumKit_DefaultLoading_VendoredLibraries", "@CreativeAlbumKit//:CreativeAlbumKit_DefaultToast_VendoredLibraries"],
+  pod_deps = ["BDWebImage", "CreationKitInfra", "CreativeKit", "IESInject", "IESLiveResourcesButler", "KVOController", "libextobjc", "Mantle", "Masonry", "ReactiveObjC"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "CreativeAlbumKit_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "CreativeAlbumKit_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = ["@CreativeAlbumKit//:CreativeAlbumKit_Default_CreativeAlbumKit"],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "CreativeAlbumKit_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "CreativeAlbumKit_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "CreativeAlbumKit_dynamic", False),
+  tags = getattr(defs_external_objc_library, "CreativeAlbumKit_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("CreativeAlbumKit", {}),
+  visibility = ["//visibility:public"],
+)

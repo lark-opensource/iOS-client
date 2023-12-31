@@ -1,0 +1,1 @@
+../../../../TTAdSplashSDK/Classes/core/SplashManager/TTAdSplashManager+Switch.h

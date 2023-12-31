@@ -1,0 +1,981 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "TransBridge-iOS_pod_hdrs",
+  srcs = [
+    ":TransBridge-iOS_root_pod_hdrs",
+    ":Channel_pod_hdrs",
+    ":Util_pod_hdrs",
+    ":Core_pod_hdrs",
+    ":FlutterMk_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "TransBridge-iOS_private_includes",
+  include = [
+    "external/TransBridge-iOS/pod_support/Headers/Private/TransBridge-iOS/"
+  ],
+  deps = [],
+  external_name = "TransBridge-iOS"
+)
+gen_includes(
+  name = "TransBridge-iOS_public_includes",
+  include = [
+    "external/TransBridge-iOS/pod_support/Headers/Public/TransBridge-iOS/"
+  ],
+  deps = [],
+  external_name = "TransBridge-iOS"
+)
+filegroup(
+  name = "_TransBridge-iOS_hdrs",
+  srcs = [
+    ":TransBridge-iOS_root_hdrs",
+    ":Channel_hdrs",
+    ":Util_hdrs",
+    ":Core_hdrs",
+    ":FlutterMk_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "TransBridge-iOS_xcode_hmapsource",
+  hdrs = [
+    ":TransBridge-iOS_root_hdrs",
+    ":Channel_hdrs",
+    ":Core_hdrs",
+    ":FlutterMk_hdrs",
+    ":Util_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "TransBridge-iOS_xcode_hmap",
+  dep = ":TransBridge-iOS_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/TransBridge-iOS/*-bitsky-generated.modulemap", "pod_support/Headers/Public/TransBridge-iOS/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "TransBridge-iOS_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "TransBridge-iOS",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "TransBridge-iOS_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":TransBridge-iOS_xcode_hmap"
+  ],
+  external_name = "TransBridge-iOS",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TransBridge-iOS_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TransBridge-iOS_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TransBridge-iOS_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TransBridge-iOS_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TransBridge-iOS_module_map",
+  module_map = "pod_support/Headers/Public/TransBridge-iOS/TransBridge-iOS-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TransBridge-iOS/TransBridge-iOS-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TransBridge-iOS_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "TransBridge-iOS_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TransBridge-iOS_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TransBridge-iOS_private_includes",
+    ":TransBridge-iOS_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":TransBridge-iOS_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTransBridge_iOS_POD_VERSION=@\\\"9999_0.1.8\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TransBridge-iOS",
+  deps = [
+    ":TransBridge-iOS_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TransBridge-iOS_lib",
+  deps = [
+    ":TransBridge-iOS"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Channel_hdrs",
+  srcs = [
+    "TransBridge-iOS/Classes/Channel/BDFlutterProtocol.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Channel_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TransBridge-iOS/BDFlutterProtocol.h",
+    "pod_support/Headers/Public/TransBridge-iOS/BDFlutterProtocol.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Channel_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Channel_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Channel_module_map",
+  module_map = "pod_support/Headers/Public/TransBridge-iOS/TransBridge-iOS_Channel-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TransBridge-iOS/TransBridge-iOS_Channel-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Channel_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Channel_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TransBridge-iOS_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TransBridge-iOS_private_includes",
+    ":TransBridge-iOS_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Channel_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTransBridge_iOS_POD_VERSION=@\\\"9999_0.1.8\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Channel",
+  deps = [
+    ":Channel_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Channel_lib",
+  deps = [
+    ":Channel"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Util_hdrs",
+  srcs = [
+    "TransBridge-iOS/Classes/Util/BDChannelJsonUtil.h",
+    "TransBridge-iOS/Classes/Util/FLTClassInfo.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Util_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TransBridge-iOS/BDChannelJsonUtil.h",
+    "pod_support/Headers/Private/TransBridge-iOS/FLTClassInfo.h",
+    "pod_support/Headers/Public/TransBridge-iOS/BDChannelJsonUtil.h",
+    "pod_support/Headers/Public/TransBridge-iOS/FLTClassInfo.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Util_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Util_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Util_module_map",
+  module_map = "pod_support/Headers/Public/TransBridge-iOS/TransBridge-iOS_Util-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TransBridge-iOS/TransBridge-iOS_Util-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Util_srcs",
+  srcs = [
+    "TransBridge-iOS/Classes/Util/BDChannelJsonUtil.m",
+    "TransBridge-iOS/Classes/Util/FLTClassInfo.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Util_oc",
+  enable_modules = 1,
+  srcs = [
+    "Util_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Util_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TransBridge-iOS_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TransBridge-iOS_private_includes",
+    ":TransBridge-iOS_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Util_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTransBridge_iOS_POD_VERSION=@\\\"9999_0.1.8\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Util",
+  deps = [
+    ":Util_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Util_lib",
+  deps = [
+    ":Util"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [
+    "TransBridge-iOS/Classes/Core/BDBridgeContextProtocol.h",
+    "TransBridge-iOS/Classes/Core/BDBridgeHost.h",
+    "TransBridge-iOS/Classes/Core/BDBridgeMethodCallHandler.h",
+    "TransBridge-iOS/Classes/Core/BDBridgeModuleManager.h",
+    "TransBridge-iOS/Classes/Core/BDBridgeViewMarker.h",
+    "TransBridge-iOS/Classes/Core/BDFLTBResponse.h",
+    "TransBridge-iOS/Classes/Core/BDFLTBResponseProtocol.h",
+    "TransBridge-iOS/Classes/Core/BDMethodAuthProtocol.h",
+    "TransBridge-iOS/Classes/Core/BDMethodProtocol.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TransBridge-iOS/BDBridgeContextProtocol.h",
+    "pod_support/Headers/Private/TransBridge-iOS/BDBridgeHost.h",
+    "pod_support/Headers/Private/TransBridge-iOS/BDBridgeMethodCallHandler.h",
+    "pod_support/Headers/Private/TransBridge-iOS/BDBridgeModuleManager.h",
+    "pod_support/Headers/Private/TransBridge-iOS/BDBridgeViewMarker.h",
+    "pod_support/Headers/Private/TransBridge-iOS/BDFLTBResponse.h",
+    "pod_support/Headers/Private/TransBridge-iOS/BDFLTBResponseProtocol.h",
+    "pod_support/Headers/Private/TransBridge-iOS/BDMethodAuthProtocol.h",
+    "pod_support/Headers/Private/TransBridge-iOS/BDMethodProtocol.h",
+    "pod_support/Headers/Public/TransBridge-iOS/BDBridgeContextProtocol.h",
+    "pod_support/Headers/Public/TransBridge-iOS/BDBridgeHost.h",
+    "pod_support/Headers/Public/TransBridge-iOS/BDBridgeMethodCallHandler.h",
+    "pod_support/Headers/Public/TransBridge-iOS/BDBridgeModuleManager.h",
+    "pod_support/Headers/Public/TransBridge-iOS/BDBridgeViewMarker.h",
+    "pod_support/Headers/Public/TransBridge-iOS/BDFLTBResponse.h",
+    "pod_support/Headers/Public/TransBridge-iOS/BDFLTBResponseProtocol.h",
+    "pod_support/Headers/Public/TransBridge-iOS/BDMethodAuthProtocol.h",
+    "pod_support/Headers/Public/TransBridge-iOS/BDMethodProtocol.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/TransBridge-iOS/TransBridge-iOS_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TransBridge-iOS/TransBridge-iOS_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_srcs",
+  srcs = [
+    "TransBridge-iOS/Classes/Core/BDBridgeHost.m",
+    "TransBridge-iOS/Classes/Core/BDBridgeMethodCallHandler.m",
+    "TransBridge-iOS/Classes/Core/BDBridgeModuleManager.m",
+    "TransBridge-iOS/Classes/Core/BDBridgeViewMarker.m",
+    "TransBridge-iOS/Classes/Core/BDFLTBResponse.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [
+    "Core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TransBridge-iOS_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TransBridge-iOS_private_includes",
+    ":TransBridge-iOS_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Core_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTransBridge_iOS_POD_VERSION=@\\\"9999_0.1.8\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "FlutterMk_hdrs",
+  srcs = [
+    "TransBridge-iOS/Classes/Flutter/BDBaseFlutterBridge.h",
+    "TransBridge-iOS/Classes/Flutter/BDFlutterBridge.h",
+    "TransBridge-iOS/Classes/Flutter/BDFlutterBridgeContext.h",
+    "TransBridge-iOS/Classes/Flutter/BDFlutterBridgeHost.h",
+    "TransBridge-iOS/Classes/Flutter/BDFlutterMethodCallHandler.h",
+    "TransBridge-iOS/Classes/Flutter/BDFlutterMethodManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "FlutterMk_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TransBridge-iOS/BDBaseFlutterBridge.h",
+    "pod_support/Headers/Private/TransBridge-iOS/BDFlutterBridge.h",
+    "pod_support/Headers/Private/TransBridge-iOS/BDFlutterBridgeContext.h",
+    "pod_support/Headers/Private/TransBridge-iOS/BDFlutterBridgeHost.h",
+    "pod_support/Headers/Private/TransBridge-iOS/BDFlutterMethodCallHandler.h",
+    "pod_support/Headers/Private/TransBridge-iOS/BDFlutterMethodManager.h",
+    "pod_support/Headers/Public/TransBridge-iOS/BDBaseFlutterBridge.h",
+    "pod_support/Headers/Public/TransBridge-iOS/BDFlutterBridge.h",
+    "pod_support/Headers/Public/TransBridge-iOS/BDFlutterBridgeContext.h",
+    "pod_support/Headers/Public/TransBridge-iOS/BDFlutterBridgeHost.h",
+    "pod_support/Headers/Public/TransBridge-iOS/BDFlutterMethodCallHandler.h",
+    "pod_support/Headers/Public/TransBridge-iOS/BDFlutterMethodManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "FlutterMk_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "FlutterMk_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "FlutterMk_module_map",
+  module_map = "pod_support/Headers/Public/TransBridge-iOS/TransBridge-iOS_FlutterMk-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TransBridge-iOS/TransBridge-iOS_FlutterMk-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "FlutterMk_srcs",
+  srcs = [
+    "TransBridge-iOS/Classes/Flutter/BDBaseFlutterBridge.m",
+    "TransBridge-iOS/Classes/Flutter/BDFlutterBridge.m",
+    "TransBridge-iOS/Classes/Flutter/BDFlutterBridgeContext.m",
+    "TransBridge-iOS/Classes/Flutter/BDFlutterBridgeHost.m",
+    "TransBridge-iOS/Classes/Flutter/BDFlutterMethodCallHandler.m",
+    "TransBridge-iOS/Classes/Flutter/BDFlutterMethodManager.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "FlutterMk_oc",
+  enable_modules = 1,
+  srcs = [
+    "FlutterMk_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "FlutterMk_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TransBridge-iOS_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TransBridge-iOS_private_includes",
+    ":TransBridge-iOS_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":FlutterMk_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTransBridge_iOS_POD_VERSION=@\\\"9999_0.1.8\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "FlutterMk",
+  deps = [
+    ":FlutterMk_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "FlutterMk_lib",
+  deps = [
+    ":FlutterMk"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_TransBridge-iOS_module_map",
+  module_map = "@TransBridge-iOS//:pod_support/Headers/Public/TransBridge-iOS/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@TransBridge-iOS//:pod_support/Headers/Public/TransBridge-iOS/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_TransBridge-iOS_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@TransBridge-iOS//:Channel_objc_interface", "@TransBridge-iOS//:Core_objc_interface", "@TransBridge-iOS//:FlutterMk_objc_interface", "@TransBridge-iOS//:TransBridge-iOS_objc_interface", "@TransBridge-iOS//:Util_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_TransBridge-iOS",
+  target_name = "Lark",
+  module_name = "TransBridge_iOS",
+  hdrs = ["@TransBridge-iOS//:Channel_pod_hdrs", "@TransBridge-iOS//:Core_pod_hdrs", "@TransBridge-iOS//:FlutterMk_pod_hdrs", "@TransBridge-iOS//:TransBridge-iOS_root_pod_hdrs", "@TransBridge-iOS//:Util_pod_hdrs"],
+  srcs = ["@TransBridge-iOS//:Core_srcs", "@TransBridge-iOS//:FlutterMk_srcs", "@TransBridge-iOS//:Util_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DTransBridge_iOS_POD_VERSION=@\\\"9999_0.1.8\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "TransBridge_iOS_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "TransBridge_iOS_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "TransBridge_iOS_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "TransBridge_iOS_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "TransBridge_iOS_dynamic", False),
+  tags = getattr(defs_external_objc_library, "TransBridge_iOS_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("TransBridge_iOS", {}),
+  visibility = ["//visibility:public"],
+)

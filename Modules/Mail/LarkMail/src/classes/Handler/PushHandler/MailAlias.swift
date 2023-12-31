@@ -1,0 +1,32 @@
+//
+//  MailAlias.swift
+//  LarkMail
+//
+//  Created by tefeng liu on 2020/4/9.
+//
+
+import Foundation
+import RustPB
+
+typealias MailUpdateUnreadThreadCountPushResponse = RustPB.Email_V1_MailUpdateUnreadThreadCountPushResponse
+typealias MailAccountPushResponse = RustPB.Email_V1_MailAccountPushResponse
+typealias MailClientSetting = RustPB.Email_Client_V1_Setting
+typealias MailOAuthStatusPushResponse = RustPB.Email_V1_MailOAuthStatusPushResponse
+typealias MailEngagementSettingPushResponse = RustPB.Email_V1_MailEngagementSettingPushResponse
+typealias MailStatisticsAggregationResponse = RustPB.Email_V1_MailStatisticsAggregationResponse
+typealias MailSharedAccountChangePushResponse = RustPB.Email_Client_V1_MailSharedAccountChangePushResponse
+typealias MailBatchChangesEndPushResponse = RustPB.Email_V1_MailBatchChangesEnd
+typealias MailSyncEventResponse = RustPB.Email_Client_V1_MailSyncEventResponse
+typealias MailMetricsResponse = RustPB.Email_V1_MailMetricsResponse
+typealias MailDownloadPushResponse = RustPB.Email_Client_V1_MailPushDownloadCallback
+typealias MailUploadPushResponse = RustPB.Email_Client_V1_MailPushUploadCallback
+typealias MailPushNotificationResponse = RustPB.Basic_V1_Notification
+typealias MailMixedSearchPushResponse = RustPB.Email_Client_V1_MailMixedSearchPushResponse
+typealias MailAddressNamePush = RustPB.Email_Client_V1_UpdateAddressNamePacket
+typealias MailBatchResultChangesPushResponse = RustPB.Email_Client_V1_MailBatchChanges
+typealias MailAITaskStatusPush = RustPB.Email_Client_V1_MailAITaskStatusPushResponse
+typealias MailDownloadProgressPush = RustPB.Email_Client_V1_MailDownloadProcessPushResponse
+typealias MailCleanCachePush = RustPB.Email_Client_V1_MailClientCleanCachePushResponse
+typealias MailFeedPush = RustPB.Email_Client_V1_MailFromChangeResponse
+typealias MailFeedStatusPush = RustPB.Email_Client_V1_MailFollowStatusChangeResponse
+

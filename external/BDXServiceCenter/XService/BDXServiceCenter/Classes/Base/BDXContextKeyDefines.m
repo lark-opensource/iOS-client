@@ -1,0 +1,33 @@
+// Copyright © 2021 Bytedance. All rights reserved.
+#import "BDXContextKeyDefines.h"
+
+#define DEFINE_BDX_CONTEXT_KEY(name) NSString* const name = @ #name
+
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyGlobalProps);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyWidthMode);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyHeightMode);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyAccessKey);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyAid);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyBid);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeySchemaParams);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyTemplateData);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyPrefetchBusiness);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyPrefetchInitData);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyContainerLifecycleDelegate);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyInitialData);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyInitialDataMarkState);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyBridgeClass);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyBridgeProviderClasses);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyXBridgeMethods);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyCustomUIElements);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyProcessorConfig);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyWebViewConfig);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyMonitorSettingModel);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeySecureLinkConfig);
+
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyLoadingView);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyLoadFailedView);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyNavBar);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyNavBarReportHandle);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyNavBarShareHandle);
+DEFINE_BDX_CONTEXT_KEY(kBDXContextKeyContainerBackgroundColor);

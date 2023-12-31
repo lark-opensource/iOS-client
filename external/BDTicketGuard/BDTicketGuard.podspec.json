@@ -1,0 +1,171 @@
+{
+  "_bytebus_platform": {
+    "repo_id": "31749",
+    "app_id": "9999"
+  },
+  "prepare_command": "curl https://ios.bytedance.net/wlapi/tosDownload/iosbinary/platform/master/awesomecommand_xz.sh | bash ;",
+  "preserve_paths": [
+    "**/*.bwp"
+  ],
+  "default_subspecs": [
+    "Core",
+    "Inner"
+  ],
+  "description": "framework_description",
+  "license": {
+    "type": "MIT"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "xcconfig": {
+    "HEADER_SEARCH_PATHS": [
+      "$(inherited)",
+      "\"${PODS_ROOT}/boringssl/include\""
+    ]
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDTicketGuard_POD_VERSION=@\\\"9999_2.0.2\\\""
+  },
+  "ios": {
+    "frameworks": [
+      "UIKit",
+      "Foundation",
+      "JavaScriptCore"
+    ]
+  },
+  "summary": "framework_summary",
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/9999/BDTicketGuard/2.0.2.1-binary/BDTicketGuard.framework.tar.xz"
+  },
+  "version": "2.0.2.1-binary",
+  "build_file_count": 24,
+  "authors": {
+    "chenzhendong": "chenzhendong.ok@bytedance.com"
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDTicketGuard_POD_VERSION=@\\\"9999_2.0.2\\\""
+  },
+  "source_code": {
+    "commit": "6a39cbd67ecd64356b5159bc2c74fe3bed3c997e",
+    "git": "git@code.byted.org:iOS_Library/BDTicketGuard.git"
+  },
+  "homepage": "https://github.com/chenzhendong/BDTicketGuard",
+  "repoId": "31749",
+  "subspecs": [
+    {
+      "private_header_files": [
+        "BDTicketGuard/Classes/Core/Private/**/*.{h,m,mm}"
+      ],
+      "name": "Core",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Core_*awesome_*.a"
+      },
+      "frameworks": "Security",
+      "dependencies": {
+        "ByteDanceKit/Foundation": []
+      },
+      "source_files": "BDTicketGuard/Classes/Core/**/*"
+    },
+    {
+      "private_header_files": [
+        "BDTicketGuard/Classes/Inner/Private/**/*.{h,m,mm,c}"
+      ],
+      "name": "Inner",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Inner_*awesome_*.a"
+      },
+      "dependencies": {
+        "BDTicketGuard/Core": [],
+        "BDTrackerProtocol": [],
+        "ByteDanceKit/Foundation": [],
+        "MMKV": [],
+        "BDAssert": [],
+        "BDAlogProtocol": [],
+        "boringssl": []
+      },
+      "source_files": "BDTicketGuard/Classes/Inner/**/*"
+    },
+    {
+      "private_header_files": [
+        "BDTicketGuard/Classes/CertLoader/Private/**/*.{h,m,mm,c}"
+      ],
+      "name": "CertLoader",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_CertLoader_*awesome_*.a"
+      },
+      "dependencies": {
+        "BDTicketGuard/Core": [],
+        "TTNetworkManager": []
+      },
+      "source_files": "BDTicketGuard/Classes/CertLoader/**/*"
+    },
+    {
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "private_header_files": [
+        "BDTicketGuard/Classes/VersionOld/Private/**/*.{h,m,mm,c}"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_VersionOld_*awesome_*.a"
+      },
+      "name": "VersionOld",
+      "source_files": "BDTicketGuard/Classes/VersionOld/**/*"
+    },
+    {
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "private_header_files": [
+        "BDTicketGuard/Classes/VersionNew/Private/**/*.{h,m,mm,c}"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_VersionNew_*awesome_*.a"
+      },
+      "name": "VersionNew",
+      "source_files": "BDTicketGuard/Classes/VersionNew/**/*"
+    },
+    {
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "private_header_files": [
+        "BDTicketGuard/Classes/Outter/Private/**/*.{h,m,mm,c}"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Outer_*awesome_*.a"
+      },
+      "name": "Outer",
+      "source_files": "BDTicketGuard/Classes/Outer/**/*"
+    },
+    {
+      "public_header_files": [
+        "BDTicketGuard/Classes/Debug/**/*"
+      ],
+      "name": "Debug",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Debug_*awesome_*.a"
+      },
+      "dependencies": {
+        "BDTicketGuard/Core": []
+      },
+      "source_files": "BDTicketGuard/Classes/Debug/**/*"
+    }
+  ],
+  "name": "BDTicketGuard"
+}

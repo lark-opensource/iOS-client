@@ -1,0 +1,2381 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "fastcv_pod_hdrs",
+  srcs = [
+    ":fastcv_root_pod_hdrs",
+    ":exports_pod_hdrs",
+    ":ml_pod_hdrs",
+    ":core_pod_hdrs",
+    ":resize_pod_hdrs",
+    ":resizeCPU_pod_hdrs",
+    ":warp_pod_hdrs",
+    ":imagecopy_pod_hdrs",
+    ":dis_pod_hdrs",
+    ":cvtcolor_pod_hdrs",
+    ":cvtColorCPU_pod_hdrs",
+    ":cvteletype_pod_hdrs",
+    ":morph_pod_hdrs",
+    ":AwemeMode_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "fastcv_private_includes",
+  include = [
+    "external/fastcv/pod_support/Headers/Private/fastcv/"
+  ],
+  deps = [],
+  external_name = "fastcv"
+)
+gen_includes(
+  name = "fastcv_public_includes",
+  include = [
+    "external/fastcv/pod_support/Headers/Public/fastcv/"
+  ],
+  deps = [],
+  external_name = "fastcv"
+)
+filegroup(
+  name = "_fastcv_hdrs",
+  srcs = [
+    ":fastcv_root_hdrs",
+    ":exports_hdrs",
+    ":ml_hdrs",
+    ":core_hdrs",
+    ":resize_hdrs",
+    ":resizeCPU_hdrs",
+    ":warp_hdrs",
+    ":imagecopy_hdrs",
+    ":dis_hdrs",
+    ":cvtcolor_hdrs",
+    ":cvtColorCPU_hdrs",
+    ":cvteletype_hdrs",
+    ":morph_hdrs",
+    ":AwemeMode_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "fastcv_xcode_hmapsource",
+  hdrs = [
+    ":fastcv_root_hdrs",
+    ":AwemeMode_hdrs",
+    ":core_hdrs",
+    ":cvtcolor_hdrs",
+    ":cvtColorCPU_hdrs",
+    ":cvteletype_hdrs",
+    ":dis_hdrs",
+    ":exports_hdrs",
+    ":imagecopy_hdrs",
+    ":ml_hdrs",
+    ":morph_hdrs",
+    ":resize_hdrs",
+    ":resizeCPU_hdrs",
+    ":warp_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "fastcv_xcode_hmap",
+  dep = ":fastcv_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/fastcv/*-bitsky-generated.modulemap", "pod_support/Headers/Public/fastcv/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "fastcv_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "arch_ios/libfastcv_Awesome_.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "fastcv_exports_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "arch_ios/libfastcv_Awesome_.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "fastcv_ml_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "arch_ios/libfastcv_Awesome_.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "fastcv_core_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "arch_ios/libfastcv_Awesome_.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "fastcv_resize_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "arch_ios/libfastcv_Awesome_.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "fastcv_resizeCPU_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "arch_ios/libfastcv_Awesome_.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "fastcv_warp_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "arch_ios/libfastcv_Awesome_.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "fastcv_imagecopy_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "arch_ios/libfastcv_Awesome_.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "fastcv_dis_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "arch_ios/libfastcv_Awesome_.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "fastcv_cvtcolor_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "arch_ios/libfastcv_Awesome_.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "fastcv_cvtColorCPU_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "arch_ios/libfastcv_Awesome_.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "fastcv_cvteletype_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "arch_ios/libfastcv_Awesome_.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "fastcv_morph_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "arch_ios/libfastcv_Awesome_.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "fastcv_AwemeMode_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "arch_ios/libfastcv_Awesome_.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "fastcv_custom_includes",
+  include = [
+    "external/fastcv/cpp/thirdpartys/Eigen",
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "fastcv",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "fastcv_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":fastcv_xcode_hmap"
+  ],
+  external_name = "fastcv",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "fastcv_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "fastcv_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "fastcv_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "fastcv_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "fastcv_module_map",
+  module_map = "pod_support/Headers/Public/fastcv/fastcv-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/fastcv/fastcv-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "fastcv_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "fastcv_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "JavaScriptCore"
+  ],
+  weak_sdk_frameworks = [
+    "Metal",
+    "CoreVideo",
+    "MetalPerformanceShaders"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":fastcv_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":fastcv_private_includes",
+    ":fastcv_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":fastcv_VendoredLibraries",
+    ":fastcv_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEIGEN_MPL2_ONLY=1",
+    "-Dfastcv_POD_VERSION=@\\\"9999_3.3.2\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "fastcv",
+  deps = [
+    ":fastcv_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "fastcv_lib",
+  deps = [
+    ":fastcv"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "exports_hdrs",
+  srcs = [
+    "cpp/exports/include/functions.h",
+    "cpp/exports/include/mat.h",
+    "cpp/exports/include/opext.h",
+    "cpp/exports/include/types.hpp"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "exports_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/fastcv/functions.h",
+    "pod_support/Headers/Private/fastcv/mat.h",
+    "pod_support/Headers/Private/fastcv/opext.h",
+    "pod_support/Headers/Private/fastcv/types.hpp",
+    "pod_support/Headers/Public/fastcv/functions.h",
+    "pod_support/Headers/Public/fastcv/mat.h",
+    "pod_support/Headers/Public/fastcv/opext.h",
+    "pod_support/Headers/Public/fastcv/types.hpp"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "exports_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "exports_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "exports_module_map",
+  module_map = "pod_support/Headers/Public/fastcv/fastcv_exports-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/fastcv/fastcv_exports-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "exports_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "exports_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "JavaScriptCore"
+  ],
+  weak_sdk_frameworks = [
+    "Metal",
+    "CoreVideo",
+    "MetalPerformanceShaders"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":fastcv_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":fastcv_private_includes",
+    ":fastcv_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":fastcv_exports_VendoredLibraries",
+    ":exports_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEIGEN_MPL2_ONLY=1",
+    "-Dfastcv_POD_VERSION=@\\\"9999_3.3.2\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "exports",
+  deps = [
+    ":exports_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "exports_lib",
+  deps = [
+    ":exports"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ml_hdrs",
+  srcs = [
+    "cpp/exports/include/ml/ml.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ml_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/fastcv/ml.h",
+    "pod_support/Headers/Public/fastcv/ml.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ml_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ml_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ml_module_map",
+  module_map = "pod_support/Headers/Public/fastcv/fastcv_ml-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/fastcv/fastcv_ml-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ml_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "ml_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "JavaScriptCore"
+  ],
+  weak_sdk_frameworks = [
+    "Metal",
+    "CoreVideo",
+    "MetalPerformanceShaders"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":fastcv_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":fastcv_private_includes",
+    ":fastcv_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":fastcv_ml_VendoredLibraries",
+    ":ml_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEIGEN_MPL2_ONLY=1",
+    "-Dfastcv_POD_VERSION=@\\\"9999_3.3.2\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ml",
+  deps = [
+    ":ml_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ml_lib",
+  deps = [
+    ":ml"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "core_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "core_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "core_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "core_module_map",
+  module_map = "pod_support/Headers/Public/fastcv/fastcv_core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/fastcv/fastcv_core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "core_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "JavaScriptCore"
+  ],
+  weak_sdk_frameworks = [
+    "Metal",
+    "CoreVideo",
+    "MetalPerformanceShaders"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":fastcv_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":fastcv_private_includes",
+    ":fastcv_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":fastcv_core_VendoredLibraries",
+    ":core_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEIGEN_MPL2_ONLY=1",
+    "-Dfastcv_POD_VERSION=@\\\"9999_3.3.2\\\"",
+    "-DFASTCV_CORE=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "core",
+  deps = [
+    ":core_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "core_lib",
+  deps = [
+    ":core"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "resize_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "resize_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "resize_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "resize_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "resize_module_map",
+  module_map = "pod_support/Headers/Public/fastcv/fastcv_resize-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/fastcv/fastcv_resize-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "resize_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "resize_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "JavaScriptCore"
+  ],
+  weak_sdk_frameworks = [
+    "Metal",
+    "CoreVideo",
+    "MetalPerformanceShaders"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":fastcv_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":fastcv_private_includes",
+    ":fastcv_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":fastcv_resize_VendoredLibraries",
+    ":resize_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEIGEN_MPL2_ONLY=1",
+    "-Dfastcv_POD_VERSION=@\\\"9999_3.3.2\\\"",
+    "-DHAVE_RESIZE=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "resize",
+  deps = [
+    ":resize_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "resize_lib",
+  deps = [
+    ":resize"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "resizeCPU_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "resizeCPU_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "resizeCPU_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "resizeCPU_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "resizeCPU_module_map",
+  module_map = "pod_support/Headers/Public/fastcv/fastcv_resizeCPU-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/fastcv/fastcv_resizeCPU-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "resizeCPU_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "resizeCPU_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "JavaScriptCore"
+  ],
+  weak_sdk_frameworks = [
+    "Metal",
+    "CoreVideo",
+    "MetalPerformanceShaders"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":fastcv_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":fastcv_private_includes",
+    ":fastcv_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":fastcv_resizeCPU_VendoredLibraries",
+    ":resizeCPU_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEIGEN_MPL2_ONLY=1",
+    "-Dfastcv_POD_VERSION=@\\\"9999_3.3.2\\\"",
+    "-DHAVE_RESIZE_CPU=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "resizeCPU",
+  deps = [
+    ":resizeCPU_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "resizeCPU_lib",
+  deps = [
+    ":resizeCPU"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "warp_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "warp_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "warp_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "warp_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "warp_module_map",
+  module_map = "pod_support/Headers/Public/fastcv/fastcv_warp-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/fastcv/fastcv_warp-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "warp_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "warp_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "JavaScriptCore"
+  ],
+  weak_sdk_frameworks = [
+    "Metal",
+    "CoreVideo",
+    "MetalPerformanceShaders"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":fastcv_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":fastcv_private_includes",
+    ":fastcv_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":fastcv_warp_VendoredLibraries",
+    ":warp_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEIGEN_MPL2_ONLY=1",
+    "-Dfastcv_POD_VERSION=@\\\"9999_3.3.2\\\"",
+    "-DHAVE_WARP=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "warp",
+  deps = [
+    ":warp_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "warp_lib",
+  deps = [
+    ":warp"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "imagecopy_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "imagecopy_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "imagecopy_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "imagecopy_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "imagecopy_module_map",
+  module_map = "pod_support/Headers/Public/fastcv/fastcv_imagecopy-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/fastcv/fastcv_imagecopy-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "imagecopy_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "imagecopy_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "JavaScriptCore"
+  ],
+  weak_sdk_frameworks = [
+    "Metal",
+    "CoreVideo",
+    "MetalPerformanceShaders"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":fastcv_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":fastcv_private_includes",
+    ":fastcv_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":fastcv_imagecopy_VendoredLibraries",
+    ":imagecopy_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEIGEN_MPL2_ONLY=1",
+    "-Dfastcv_POD_VERSION=@\\\"9999_3.3.2\\\"",
+    "-DHAVE_IMAGE_COPY=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "imagecopy",
+  deps = [
+    ":imagecopy_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "imagecopy_lib",
+  deps = [
+    ":imagecopy"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "dis_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "dis_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "dis_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "dis_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "dis_module_map",
+  module_map = "pod_support/Headers/Public/fastcv/fastcv_dis-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/fastcv/fastcv_dis-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "dis_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "dis_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "JavaScriptCore"
+  ],
+  weak_sdk_frameworks = [
+    "Metal",
+    "CoreVideo",
+    "MetalPerformanceShaders"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":fastcv_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":fastcv_private_includes",
+    ":fastcv_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":fastcv_dis_VendoredLibraries",
+    ":dis_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEIGEN_MPL2_ONLY=1",
+    "-Dfastcv_POD_VERSION=@\\\"9999_3.3.2\\\"",
+    "-DHAVE_DIS_OPTICAL_FLOW=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "dis",
+  deps = [
+    ":dis_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "dis_lib",
+  deps = [
+    ":dis"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "cvtcolor_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "cvtcolor_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "cvtcolor_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "cvtcolor_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "cvtcolor_module_map",
+  module_map = "pod_support/Headers/Public/fastcv/fastcv_cvtcolor-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/fastcv/fastcv_cvtcolor-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "cvtcolor_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "cvtcolor_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "JavaScriptCore"
+  ],
+  weak_sdk_frameworks = [
+    "Metal",
+    "CoreVideo",
+    "MetalPerformanceShaders"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":fastcv_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":fastcv_private_includes",
+    ":fastcv_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":fastcv_cvtcolor_VendoredLibraries",
+    ":cvtcolor_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEIGEN_MPL2_ONLY=1",
+    "-Dfastcv_POD_VERSION=@\\\"9999_3.3.2\\\"",
+    "-DHAVE_CVT_COLOR=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "cvtcolor",
+  deps = [
+    ":cvtcolor_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "cvtcolor_lib",
+  deps = [
+    ":cvtcolor"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "cvtColorCPU_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "cvtColorCPU_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "cvtColorCPU_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "cvtColorCPU_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "cvtColorCPU_module_map",
+  module_map = "pod_support/Headers/Public/fastcv/fastcv_cvtColorCPU-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/fastcv/fastcv_cvtColorCPU-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "cvtColorCPU_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "cvtColorCPU_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "JavaScriptCore"
+  ],
+  weak_sdk_frameworks = [
+    "Metal",
+    "CoreVideo",
+    "MetalPerformanceShaders"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":fastcv_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":fastcv_private_includes",
+    ":fastcv_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":fastcv_cvtColorCPU_VendoredLibraries",
+    ":cvtColorCPU_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEIGEN_MPL2_ONLY=1",
+    "-Dfastcv_POD_VERSION=@\\\"9999_3.3.2\\\"",
+    "-DHAVE_CVT_COLOR_CPU=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "cvtColorCPU",
+  deps = [
+    ":cvtColorCPU_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "cvtColorCPU_lib",
+  deps = [
+    ":cvtColorCPU"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "cvteletype_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "cvteletype_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "cvteletype_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "cvteletype_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "cvteletype_module_map",
+  module_map = "pod_support/Headers/Public/fastcv/fastcv_cvteletype-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/fastcv/fastcv_cvteletype-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "cvteletype_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "cvteletype_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "JavaScriptCore"
+  ],
+  weak_sdk_frameworks = [
+    "Metal",
+    "CoreVideo",
+    "MetalPerformanceShaders"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":fastcv_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":fastcv_private_includes",
+    ":fastcv_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":fastcv_cvteletype_VendoredLibraries",
+    ":cvteletype_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEIGEN_MPL2_ONLY=1",
+    "-Dfastcv_POD_VERSION=@\\\"9999_3.3.2\\\"",
+    "-DHAVE_CVT_ELE_TYPE=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "cvteletype",
+  deps = [
+    ":cvteletype_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "cvteletype_lib",
+  deps = [
+    ":cvteletype"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "morph_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "morph_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "morph_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "morph_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "morph_module_map",
+  module_map = "pod_support/Headers/Public/fastcv/fastcv_morph-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/fastcv/fastcv_morph-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "morph_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "morph_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "JavaScriptCore"
+  ],
+  weak_sdk_frameworks = [
+    "Metal",
+    "CoreVideo",
+    "MetalPerformanceShaders"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":fastcv_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":fastcv_private_includes",
+    ":fastcv_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":fastcv_morph_VendoredLibraries",
+    ":morph_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEIGEN_MPL2_ONLY=1",
+    "-Dfastcv_POD_VERSION=@\\\"9999_3.3.2\\\"",
+    "-DHAVE_MORPH=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "morph",
+  deps = [
+    ":morph_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "morph_lib",
+  deps = [
+    ":morph"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "AwemeMode_hdrs",
+  srcs = [
+    "cpp/exports/include/functions.h",
+    "cpp/exports/include/mat.h",
+    "cpp/exports/include/opext.h",
+    "cpp/exports/include/types.hpp"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "AwemeMode_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Public/fastcv/functions.h",
+    "pod_support/Headers/Public/fastcv/mat.h",
+    "pod_support/Headers/Public/fastcv/opext.h",
+    "pod_support/Headers/Public/fastcv/types.hpp"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "AwemeMode_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "AwemeMode_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "AwemeMode_module_map",
+  module_map = "pod_support/Headers/Public/fastcv/fastcv_AwemeMode-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/fastcv/fastcv_AwemeMode-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "AwemeMode_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "AwemeMode_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "UIKit",
+    "JavaScriptCore"
+  ],
+  weak_sdk_frameworks = [
+    "Metal",
+    "CoreVideo",
+    "MetalPerformanceShaders"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":fastcv_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":fastcv_private_includes",
+    ":fastcv_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":fastcv_AwemeMode_VendoredLibraries",
+    ":AwemeMode_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEIGEN_MPL2_ONLY=1",
+    "-Dfastcv_POD_VERSION=@\\\"9999_3.3.2\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "AwemeMode",
+  deps = [
+    ":AwemeMode_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "AwemeMode_lib",
+  deps = [
+    ":AwemeMode"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_fastcv_module_map",
+  module_map = "@fastcv//:pod_support/Headers/Public/fastcv/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@fastcv//:pod_support/Headers/Public/fastcv/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_fastcv_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@fastcv//:AwemeMode_objc_interface", "@fastcv//:core_objc_interface", "@fastcv//:cvtColorCPU_objc_interface", "@fastcv//:cvtcolor_objc_interface", "@fastcv//:cvteletype_objc_interface", "@fastcv//:dis_objc_interface", "@fastcv//:exports_objc_interface", "@fastcv//:fastcv_objc_interface", "@fastcv//:imagecopy_objc_interface", "@fastcv//:ml_objc_interface", "@fastcv//:morph_objc_interface", "@fastcv//:resize_objc_interface", "@fastcv//:resizeCPU_objc_interface", "@fastcv//:warp_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_library")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_library(
+  name = "Lark_fastcv",
+  target_name = "Lark",
+  module_name = "fastcv",
+  hdrs = ["@fastcv//:AwemeMode_pod_hdrs", "@fastcv//:core_pod_hdrs", "@fastcv//:cvtColorCPU_pod_hdrs", "@fastcv//:cvtcolor_pod_hdrs", "@fastcv//:cvteletype_pod_hdrs", "@fastcv//:dis_pod_hdrs", "@fastcv//:exports_pod_hdrs", "@fastcv//:fastcv_root_pod_hdrs", "@fastcv//:imagecopy_pod_hdrs", "@fastcv//:ml_pod_hdrs", "@fastcv//:morph_pod_hdrs", "@fastcv//:resize_pod_hdrs", "@fastcv//:resizeCPU_pod_hdrs", "@fastcv//:warp_pod_hdrs"],
+  srcs = [],
+  non_arc_srcs = [],
+  deps = ["@fastcv//:fastcv_AwemeMode_VendoredLibraries", "@fastcv//:fastcv_core_VendoredLibraries", "@fastcv//:fastcv_cvtColorCPU_VendoredLibraries", "@fastcv//:fastcv_cvtcolor_VendoredLibraries", "@fastcv//:fastcv_cvteletype_VendoredLibraries", "@fastcv//:fastcv_dis_VendoredLibraries", "@fastcv//:fastcv_exports_VendoredLibraries", "@fastcv//:fastcv_VendoredLibraries", "@fastcv//:fastcv_imagecopy_VendoredLibraries", "@fastcv//:fastcv_ml_VendoredLibraries", "@fastcv//:fastcv_morph_VendoredLibraries", "@fastcv//:fastcv_resize_VendoredLibraries", "@fastcv//:fastcv_resizeCPU_VendoredLibraries", "@fastcv//:fastcv_warp_VendoredLibraries"],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DEIGEN_MPL2_ONLY=1",
+    "-Dfastcv_POD_VERSION=@\\\"9999_3.3.2\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-DFASTCV_CORE=1",
+    "-DHAVE_CVT_COLOR_CPU=1",
+    "-DHAVE_CVT_COLOR=1",
+    "-DHAVE_CVT_ELE_TYPE=1",
+    "-DHAVE_DIS_OPTICAL_FLOW=1",
+    "-DHAVE_IMAGE_COPY=1",
+    "-DHAVE_MORPH=1",
+    "-DHAVE_RESIZE=1",
+    "-DHAVE_RESIZE_CPU=1",
+    "-DHAVE_WARP=1",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "fastcv_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "fastcv_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["Foundation", "UIKit", "JavaScriptCore"],
+  weak_sdk_frameworks = ["Metal", "CoreVideo", "MetalPerformanceShaders"],
+  sdk_dylibs = ["c++"],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "fastcv_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "fastcv_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "fastcv_dynamic", False),
+  tags = getattr(defs_external_objc_library, "fastcv_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("fastcv", {}),
+  visibility = ["//visibility:public"],
+)

@@ -1,0 +1,64 @@
+{
+  "name": "boringssl",
+  "version": "0.2.3-lark",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/TTIOS/chromium_android/tree/ttnet/third_party/boringssl",
+  "license": "MIT",
+  "authors": {
+    "gaohaidong": "gaohaidong@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:TTIOS/tt_pods_boringssl.git",
+    "commit": "8cec38cb4548dd0ceb2f20d4e7e29d1a46ca81a6"
+  },
+  "platforms": {
+    "ios": null
+  },
+  "preserve_paths": [
+    "include/*",
+    "include/**/*",
+    "libboringssl.a",
+    "libcrcrypto.a",
+    "libboringssl_asm.a"
+  ],
+  "ios": {
+    "vendored_libraries": [
+      "libcrcrypto.a",
+      "libboringssl.a",
+      "libboringssl_asm.a"
+    ]
+  },
+  "libraries": [
+    "boringssl",
+    "crcrypto",
+    "boringssl_asm"
+  ],
+  "subspecs": [
+    {
+      "name": "openssl",
+      "pod_target_xcconfig": {
+        "USE_HEADERMAP": "NO",
+        "HEADER_SEARCH_PATHS": "$(inherited) \"${PODS_ROOT}/boringssl/include\"",
+        "ALWAYS_SEARCH_USER_PATHS": "NO",
+        "GCC_PREPROCESSOR_DEFINITIONS": "TTNET_IMPLEMENT"
+      },
+      "source_files": "include/**/*",
+      "public_header_files": "include/**/*",
+      "header_mappings_dir": "include"
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "156",
+    "app_id": "13"
+  },
+  "repoId": "156",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "boringssl_POD_VERSION=@\\\"13_0.2.3-lark\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "boringssl_POD_VERSION=@\\\"13_0.2.3-lark\\\""
+  }
+}

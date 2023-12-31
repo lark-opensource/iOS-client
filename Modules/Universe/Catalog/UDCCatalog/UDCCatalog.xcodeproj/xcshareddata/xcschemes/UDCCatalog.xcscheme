@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme
+   LastUpgradeVersion = "1200"
+   version = "1.3">
+   <BuildAction
+      parallelizeBuildables = "YES"
+      buildImplicitDependencies = "YES">
+      <PreActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "[BD-build-infer]"
+               scriptText = "export BD_ENTRY_SCRIPT=&quot;$0:A&quot;;
+if [ -f ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_sync.sh ];then
+  bash ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_sync.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- || echo &quot;skip&quot;;
+fi;
+[ ! -d ~/Library/Caches/com.bytedance.buildinfra/common ] &amp;&amp; mkdir -p ~/Library/Caches/com.bytedance.buildinfra/common;
+curl -s -S -f https://ios.bytedance.net/wlapi/tosDownload/iosbinary/indexstore/pre_build_hook_async.sh -o ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_async.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- &amp;
+if [ -f ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_async.sh ];then
+  bash ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_async.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- &amp;;
+fi;
+"
+               shellToInvoke = "/bin/zsh">
+            </ActionContent>
+         </ExecutionAction>
+      </PreActions>
+      <PostActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "[BD-build-infer]"
+               scriptText = "export BD_ENTRY_SCRIPT=&quot;$0:A&quot;;
+if [ -f ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_sync.sh ];then
+  bash ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_sync.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- || echo &quot;skip&quot;;
+fi;
+[ ! -d ~/Library/Caches/com.bytedance.buildinfra/common ] &amp;&amp; mkdir -p ~/Library/Caches/com.bytedance.buildinfra/common;
+curl -s -S -f https://ios.bytedance.net/wlapi/tosDownload/iosbinary/indexstore/post_build_hook_async.sh -o ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_async.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- &amp;;
+if [ -f ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_async.sh ];then
+  bash ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_async.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- &amp;;
+fi;
+"
+               shellToInvoke = "/bin/zsh">
+            </ActionContent>
+         </ExecutionAction>
+      </PostActions>
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "AA59366E87C0C17A8AF5C8D432B0CFB6"
+               BuildableName = "UDCCatalog.app"
+               BlueprintName = "UDCCatalog"
+               ReferencedContainer = "container:UDCCatalog.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <TestAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "YES">
+      <Testables>
+         <TestableReference
+            skipped = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "D6C83A8A255A6B3F00F18FCA"
+               BuildableName = "UDDialogTests.xctest"
+               BlueprintName = "UDDialogTests"
+               ReferencedContainer = "container:UDCCatalog.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "100AC5FAFFC127E0687890BA7A610723"
+               BuildableName = "UDCCatalogUITests.xctest"
+               BlueprintName = "UDCCatalogUITests"
+               ReferencedContainer = "container:UDCCatalog.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "5F07EE51E9DDA0A1177F94A01178415F"
+               BuildableName = "UDCCatalogTests.xctest"
+               BlueprintName = "UDCCatalogTests"
+               ReferencedContainer = "container:UDCCatalog.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "5552EEDB59D94A12268D44468FEDF474"
+               BuildableName = "UniverseDesignIcon-Unit-UnitTests.xctest"
+               BlueprintName = "UniverseDesignIcon-Unit-UnitTests"
+               ReferencedContainer = "container:Pods/UniverseDesignIcon.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+      </Testables>
+   </TestAction>
+   <LaunchAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      launchStyle = "0"
+      useCustomWorkingDirectory = "NO"
+      ignoresPersistentStateOnLaunch = "NO"
+      debugDocumentVersioning = "YES"
+      debugServiceExtension = "internal"
+      allowLocationSimulation = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "AA59366E87C0C17A8AF5C8D432B0CFB6"
+            BuildableName = "UDCCatalog.app"
+            BlueprintName = "UDCCatalog"
+            ReferencedContainer = "container:UDCCatalog.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </LaunchAction>
+   <ProfileAction
+      buildConfiguration = "Release"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      savedToolIdentifier = ""
+      useCustomWorkingDirectory = "NO"
+      debugDocumentVersioning = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "AA59366E87C0C17A8AF5C8D432B0CFB6"
+            BuildableName = "UDCCatalog.app"
+            BlueprintName = "UDCCatalog"
+            ReferencedContainer = "container:UDCCatalog.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </ProfileAction>
+   <AnalyzeAction
+      buildConfiguration = "Debug">
+   </AnalyzeAction>
+   <ArchiveAction
+      buildConfiguration = "Release"
+      revealArchiveInOrganizer = "YES">
+   </ArchiveAction>
+</Scheme>

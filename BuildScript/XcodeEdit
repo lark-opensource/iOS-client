@@ -1,0 +1,33 @@
+#!/bin/bash
+
+base_path=$(
+  cd $(dirname $0)
+  pwd
+)
+
+base_tmp="${TMPDIR}"
+if [[ ! -e "${base_tmp}" ]]; then
+	base_tmp="/tmp"
+fi
+
+zip_file_path="${base_tmp}XcodeEdit.zip"
+unzip_dir="${base_tmp}XcodeEdit/unzip"
+
+mkdir -p $unzip_dir
+
+executable_filepath="${base_path}/.XcodeEdit"
+commit_filepath="${base_path}/.commit"
+
+if [[ ! $(cat "${base_path}/.commit") == "1bd1269e3249730c47a6cc4166e850a596a18bcf" || ! -e "${executable_filepath}" ]]; then
+	curl http://tosv.byted.org/obj/ee-infra-ios/tools/XcodeEdit_2022_09_07.zip -o "${zip_file_path}"
+	unzip -qo $zip_file_path -d $unzip_dir
+	mv "${unzip_dir}/XcodeEdit" "${executable_filepath}"
+	mv "${unzip_dir}/.commit" "${commit_filepath}"
+
+	chmod +x "${executable_filepath}"
+	codesign --force --deep --sign - "${executable_filepath}"
+
+	rm -rf $unzip_dir
+fi
+
+"${executable_filepath}" --workspace "${1}" --config "${2}" --type "${3}"

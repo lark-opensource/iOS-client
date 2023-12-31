@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_swing_segment_custom_api.h

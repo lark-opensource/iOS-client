@@ -1,0 +1,74 @@
+# Copyright 2022 The Lynx Authors. All rights reserved.
+
+import("//Lynx/Lynx.gni")
+import("//testing/test.gni")
+
+lynx_source_set("quickjs") {
+  sources = [
+    "quickjs_api.h",
+    "quickjs_cache_maker_compatible.cc",
+    "quickjs_cache_maker_compatible.h",
+    "quickjs_cache_generator.cc",
+    "quickjs_cache_generator.h",
+    "quickjs_cache_manager.h",
+    "quickjs_debugger_base.h",
+    "quickjs_exception.cc",
+    "quickjs_exception.h",
+    "quickjs_helper.cc",
+    "quickjs_helper.h",
+    "quickjs_host_function.cc",
+    "quickjs_host_function.h",
+    "quickjs_host_object.cc",
+    "quickjs_host_object.h",
+    "quickjs_runtime.cc",
+    "quickjs_runtime.h",
+    "quickjs_runtime_wrapper.cc",
+    "quickjs_runtime_wrapper.h",
+    "quickjs_context_wrapper.cc",
+    "quickjs_context_wrapper.h",
+    "quickjs_context_wrapper_callbacks.cc",
+    "quickjs_context_wrapper_callbacks.h",
+  ]
+
+  deps = [
+    "//Lynx/jsbridge/jscache:jscache",
+  ]
+
+  if (is_win) {
+    deps += [
+      "//Lynx/lepus/quickjs:win_quickjs",
+    ]
+  } else if (!is_android) {
+    deps += [
+      "//Lynx/lepus/quickjs:quickjs",
+      "//Lynx/lepus/quickjs:quickjs_libc",
+    ]
+  }
+
+  configs = [
+    "//Lynx/lepus/quickjs:quickjs_config",
+  ]
+}
+
+unittest_set("quickjs_unittests") {
+  include_dirs = [
+    "//Lynx",
+    "//Lynx/lepus/",
+    "//Lynx/lepus/quickjs/include",
+    "//Lynx/lepus/quickjs/source",
+  ]
+
+  sources = [
+    "quickjs_helper_unittest.cc",
+    "quickjs_cache_maker_compatible_unittest.cc",
+    "quickjs_cache_manager_unittest.cc",
+  ]
+
+  configs = [
+    "//Lynx/jsbridge/jscache:jscache_config",
+  ]
+
+  deps = [
+    ":quickjs",
+  ]
+}

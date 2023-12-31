@@ -1,0 +1,79 @@
+{
+  "name": "CreationKitBeauty",
+  "version": "20.1.0-alpha.24-larktest.1.binary",
+  "summary": "base",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://code.byted.org/ugc/CreativeKit",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "hehai": "hehai.howie@bytedance.com"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/aweme-rock/rock_binary/privatethird_binary_repo/CreationKitBeauty/20.1.0-alpha.24-larktest.1.binary/1699603748/CreationKitBeauty.tar.xz"
+  },
+  "platforms": {
+    "ios": "12.0"
+  },
+  "default_subspecs": "Core",
+  "preserve_paths": [
+    "rock_document/**/*.{h,m,mm,cpp,hpp,swift}",
+    "rock_document/rock-document-files.txt"
+  ],
+  "source_code": {
+    "git": "git@code.byted.org:ugc/CreativeKit.git",
+    "commit": "434d53260a6fda04f385d0a84a11a4c6436fbec9"
+  },
+  "binary_type": "rock",
+  "package_env": {
+    "id": null,
+    "xcode": "Xcode 14.0\nBuild version 14A309\n"
+  },
+  "subspecs": [
+    {
+      "name": "Core",
+      "source_files": "Beauty/**/*.{h,m,mm,c}",
+      "frameworks": "Foundation",
+      "dependencies": {
+        "CreationKitArch": [
+
+        ],
+        "CreationKitInfra": [
+
+        ],
+        "CreativeKit": [
+
+        ],
+        "TTNetworkManager": [
+
+        ],
+        "EffectPlatformSDK/ModelDistribute": [
+
+        ],
+        "Mantle": [
+
+        ],
+        "Masonry": [
+
+        ],
+        "ReactiveObjC": [
+
+        ]
+      },
+      "vendored_libraries": [
+        "Beauty/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "Beauty/**/*.o",
+          "libCreationKitBeauty-613b4e4.a"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+../../../../TTAdSplashSDK/Classes/core/BDASplashViewTargetActionProtocol.h

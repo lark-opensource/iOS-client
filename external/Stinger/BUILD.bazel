@@ -1,0 +1,769 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "Stinger_pod_hdrs",
+  srcs = [
+    ":Stinger_root_pod_hdrs",
+    ":libffi_pod_hdrs",
+    ":Core_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "Stinger_private_includes",
+  include = [
+    "external/Stinger/pod_support/Headers/Private/Stinger/"
+  ],
+  deps = [],
+  external_name = "Stinger"
+)
+gen_includes(
+  name = "Stinger_public_includes",
+  include = [
+    "external/Stinger/pod_support/Headers/Public/Stinger/"
+  ],
+  deps = [],
+  external_name = "Stinger"
+)
+filegroup(
+  name = "_Stinger_hdrs",
+  srcs = [
+    ":Stinger_root_hdrs",
+    ":libffi_hdrs",
+    ":Core_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "Stinger_xcode_hmapsource",
+  hdrs = [
+    ":Stinger_root_hdrs",
+    ":Core_hdrs",
+    ":libffi_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "Stinger_xcode_hmap",
+  dep = ":Stinger_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/Stinger/*-bitsky-generated.modulemap", "pod_support/Headers/Public/Stinger/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "Stinger_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "Stinger",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "Stinger_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":Stinger_xcode_hmap"
+  ],
+  external_name = "Stinger",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Stinger_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Stinger_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Stinger_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Stinger_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Stinger_module_map",
+  module_map = "pod_support/Headers/Public/Stinger/Stinger-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Stinger/Stinger-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Stinger_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Stinger_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":Stinger_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Stinger_private_includes",
+    ":Stinger_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Stinger_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DStinger_POD_VERSION=@\\\"9999_1.0.5\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Stinger",
+  deps = [
+    ":Stinger_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Stinger_lib",
+  deps = [
+    ":Stinger"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libffi_hdrs",
+  srcs = [
+    "Stinger/libffi/darwin_common/include/ffi.h",
+    "Stinger/libffi/darwin_common/include/ffi_cfi.h",
+    "Stinger/libffi/darwin_common/include/ffi_common.h",
+    "Stinger/libffi/darwin_common/include/fficonfig.h",
+    "Stinger/libffi/darwin_common/include/ffitarget.h",
+    "Stinger/libffi/darwin_ios/include/ffi_arm64.h",
+    "Stinger/libffi/darwin_ios/include/ffi_armv7.h",
+    "Stinger/libffi/darwin_ios/include/ffi_i386.h",
+    "Stinger/libffi/darwin_ios/include/ffi_x86_64.h",
+    "Stinger/libffi/darwin_ios/include/fficonfig_arm64.h",
+    "Stinger/libffi/darwin_ios/include/fficonfig_armv7.h",
+    "Stinger/libffi/darwin_ios/include/fficonfig_i386.h",
+    "Stinger/libffi/darwin_ios/include/fficonfig_x86_64.h",
+    "Stinger/libffi/darwin_ios/include/ffitarget_arm64.h",
+    "Stinger/libffi/darwin_ios/include/ffitarget_armv7.h",
+    "Stinger/libffi/darwin_ios/include/ffitarget_i386.h",
+    "Stinger/libffi/darwin_ios/include/ffitarget_x86_64.h",
+    "Stinger/libffi/darwin_ios/src/aarch64/internal_arm64.h",
+    "Stinger/libffi/darwin_ios/src/arm/internal_armv7.h",
+    "Stinger/libffi/darwin_ios/src/x86/asmnames.h",
+    "Stinger/libffi/darwin_ios/src/x86/internal32.h",
+    "Stinger/libffi/darwin_ios/src/x86/internal64.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libffi_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/Stinger/asmnames.h",
+    "pod_support/Headers/Private/Stinger/ffi.h",
+    "pod_support/Headers/Private/Stinger/ffi_arm64.h",
+    "pod_support/Headers/Private/Stinger/ffi_armv7.h",
+    "pod_support/Headers/Private/Stinger/ffi_cfi.h",
+    "pod_support/Headers/Private/Stinger/ffi_common.h",
+    "pod_support/Headers/Private/Stinger/ffi_i386.h",
+    "pod_support/Headers/Private/Stinger/ffi_x86_64.h",
+    "pod_support/Headers/Private/Stinger/fficonfig.h",
+    "pod_support/Headers/Private/Stinger/fficonfig_arm64.h",
+    "pod_support/Headers/Private/Stinger/fficonfig_armv7.h",
+    "pod_support/Headers/Private/Stinger/fficonfig_i386.h",
+    "pod_support/Headers/Private/Stinger/fficonfig_x86_64.h",
+    "pod_support/Headers/Private/Stinger/ffitarget.h",
+    "pod_support/Headers/Private/Stinger/ffitarget_arm64.h",
+    "pod_support/Headers/Private/Stinger/ffitarget_armv7.h",
+    "pod_support/Headers/Private/Stinger/ffitarget_i386.h",
+    "pod_support/Headers/Private/Stinger/ffitarget_x86_64.h",
+    "pod_support/Headers/Private/Stinger/internal32.h",
+    "pod_support/Headers/Private/Stinger/internal64.h",
+    "pod_support/Headers/Private/Stinger/internal_arm64.h",
+    "pod_support/Headers/Private/Stinger/internal_armv7.h",
+    "pod_support/Headers/Public/Stinger/asmnames.h",
+    "pod_support/Headers/Public/Stinger/ffi.h",
+    "pod_support/Headers/Public/Stinger/ffi_arm64.h",
+    "pod_support/Headers/Public/Stinger/ffi_armv7.h",
+    "pod_support/Headers/Public/Stinger/ffi_cfi.h",
+    "pod_support/Headers/Public/Stinger/ffi_common.h",
+    "pod_support/Headers/Public/Stinger/ffi_i386.h",
+    "pod_support/Headers/Public/Stinger/ffi_x86_64.h",
+    "pod_support/Headers/Public/Stinger/fficonfig.h",
+    "pod_support/Headers/Public/Stinger/fficonfig_arm64.h",
+    "pod_support/Headers/Public/Stinger/fficonfig_armv7.h",
+    "pod_support/Headers/Public/Stinger/fficonfig_i386.h",
+    "pod_support/Headers/Public/Stinger/fficonfig_x86_64.h",
+    "pod_support/Headers/Public/Stinger/ffitarget.h",
+    "pod_support/Headers/Public/Stinger/ffitarget_arm64.h",
+    "pod_support/Headers/Public/Stinger/ffitarget_armv7.h",
+    "pod_support/Headers/Public/Stinger/ffitarget_i386.h",
+    "pod_support/Headers/Public/Stinger/ffitarget_x86_64.h",
+    "pod_support/Headers/Public/Stinger/internal32.h",
+    "pod_support/Headers/Public/Stinger/internal64.h",
+    "pod_support/Headers/Public/Stinger/internal_arm64.h",
+    "pod_support/Headers/Public/Stinger/internal_armv7.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libffi_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libffi_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "libffi_module_map",
+  module_map = "pod_support/Headers/Public/Stinger/Stinger_libffi-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Stinger/Stinger_libffi-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libffi_srcs",
+  srcs = [
+    "Stinger/libffi/darwin_common/src/closures.c",
+    "Stinger/libffi/darwin_common/src/debug.c",
+    "Stinger/libffi/darwin_common/src/dlmalloc.c",
+    "Stinger/libffi/darwin_ios/src/x86/ffi64_x86_64.c",
+    "Stinger/libffi/darwin_ios/src/aarch64/ffi_arm64.c",
+    "Stinger/libffi/darwin_ios/src/arm/ffi_armv7.c",
+    "Stinger/libffi/darwin_ios/src/x86/ffi_i386.c",
+    "Stinger/libffi/darwin_ios/src/x86/ffiw64_x86_64.c",
+    "Stinger/libffi/darwin_common/src/java_raw_api.c",
+    "Stinger/libffi/darwin_common/src/prep_cif.c",
+    "Stinger/libffi/darwin_common/src/raw_api.c",
+    "Stinger/libffi/darwin_ios/src/aarch64/sysv_arm64.S",
+    "Stinger/libffi/darwin_ios/src/arm/sysv_armv7.S",
+    "Stinger/libffi/darwin_ios/src/x86/sysv_i386.S",
+    "Stinger/libffi/darwin_common/src/types.c",
+    "Stinger/libffi/darwin_ios/src/x86/unix64_x86_64.S",
+    "Stinger/libffi/darwin_ios/src/x86/win64_x86_64.S"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libffi_oc",
+  enable_modules = 1,
+  srcs = [
+    "libffi_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "libffi_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":Stinger_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Stinger_private_includes",
+    ":Stinger_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":libffi_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DStinger_POD_VERSION=@\\\"9999_1.0.5\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libffi",
+  deps = [
+    ":libffi_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "libffi_lib",
+  deps = [
+    ":libffi"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [
+    "Stinger/Classes/STDefines.h",
+    "Stinger/Classes/STHookInfo.h",
+    "Stinger/Classes/STHookInfoPool.h",
+    "Stinger/Classes/Stinger.h",
+    "Stinger/Classes/StingerMacro.h",
+    "Stinger/Classes/StingerParams.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/Stinger/STDefines.h",
+    "pod_support/Headers/Private/Stinger/STHookInfo.h",
+    "pod_support/Headers/Private/Stinger/STHookInfoPool.h",
+    "pod_support/Headers/Private/Stinger/Stinger.h",
+    "pod_support/Headers/Private/Stinger/StingerMacro.h",
+    "pod_support/Headers/Private/Stinger/StingerParams.h",
+    "pod_support/Headers/Public/Stinger/STDefines.h",
+    "pod_support/Headers/Public/Stinger/STHookInfo.h",
+    "pod_support/Headers/Public/Stinger/STHookInfoPool.h",
+    "pod_support/Headers/Public/Stinger/Stinger.h",
+    "pod_support/Headers/Public/Stinger/StingerMacro.h",
+    "pod_support/Headers/Public/Stinger/StingerParams.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/Stinger/Stinger_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Stinger/Stinger_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_srcs",
+  srcs = [
+    "Stinger/Classes/STHookInfo.m",
+    "Stinger/Classes/STHookInfoPool.m",
+    "Stinger/Classes/Stinger.m",
+    "Stinger/Classes/StingerParams.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [
+    "Core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":Stinger_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Stinger_private_includes",
+    ":Stinger_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Core_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DStinger_POD_VERSION=@\\\"9999_1.0.5\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_Stinger_module_map",
+  module_map = "@Stinger//:pod_support/Headers/Public/Stinger/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@Stinger//:pod_support/Headers/Public/Stinger/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_Stinger_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@Stinger//:Core_objc_interface", "@Stinger//:Stinger_objc_interface", "@Stinger//:libffi_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_Stinger",
+  target_name = "Lark",
+  module_name = "Stinger",
+  hdrs = ["@Stinger//:Core_pod_hdrs", "@Stinger//:Stinger_root_pod_hdrs", "@Stinger//:libffi_pod_hdrs"],
+  srcs = ["@Stinger//:Core_srcs", "@Stinger//:libffi_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DStinger_POD_VERSION=@\\\"9999_1.0.5\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "Stinger_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "Stinger_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "Stinger_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "Stinger_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "Stinger_dynamic", False),
+  tags = getattr(defs_external_objc_library, "Stinger_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("Stinger", {}),
+  visibility = ["//visibility:public"],
+)

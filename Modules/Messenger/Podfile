@@ -1,0 +1,232 @@
+# coding: utf-8
+
+# @!domain [Pod::Podfile]
+# @!parse
+#  require 'cocoapods'
+
+project 'Lark.xcodeproj'
+
+require_relative '../../if_pod'
+require_relative '../../bin/lib/lark-project/lib/lark/project/podfile_mixin'
+require_relative '../../bin/lib/lark-project/lib/lark/project/podfile_unit_test_mixin'
+require_relative '../../bin/lib/lark-project/lib/lark/project/assembly'
+require_relative '../../bin/lib/lark-project/lib/lark/project/remote_cache'
+require_relative '../../remote_cache_enable_users.rb'
+require_relative '../../bin/lib/lark-project/lib/lark/project/lark_assert'
+require_relative '../../remote_cache_enable_users'
+plugin 'cocoapods-monitor'
+
+# 下面这行为M1 arm64的配置，取消注释后工程将会以M1 原生的编译, 详细见https://bytedance.feishu.cn/wiki/wikcnwks71unvjEFltDHpinn9Yc
+lark_build_for_all_arch!
+local_use_module_nolto!
+hummer_tags = {}
+enable_remote_cache = false#暂时关闭, 感兴趣同学可以打开
+if current_user_in_white_list
+  enable_remote_cache = true
+end
+
+# 开启本地源码调试 rust-sdk，可自定义 rust-sdk 根目录 :path 与工程名 :proj_name
+# 说明文档：https://bytedance.larkoffice.com/wiki/K2sywECpki2LC6kCFPrc03mSnXf
+# rust_sdk_local_dev! :path => '../../../rust-sdk'
+
+# 删除本地残留的 .eescaffold 避免影响 eesc 工作
+`eesc_dir=$(git rev-parse --show-toplevel)/Modules/Messenger/.eescaffold; ([[ -e $eesc_dir ]] && rm -rf $eesc_dir)`
+
+enable_remote_cache = try_to_enable_remote_cache(
+	:remote_cache_enable => enable_remote_cache,
+	:primary_branch => "develop",
+	:final_target => "LarkMessengerDemo",
+	:hummer_tags => hummer_tags,
+	:scheme_tag => 'lark.5',
+  :ignore_external_subspec_change => true
+)
+
+
+hummer_tags["COCOAPODS_LINK_POD_CACHE"] = true if Lark::Misc.true? ENV['COCOAPODS_LINK_POD_CACHE']
+hummer_tags["COCOAPODS_INTEGRATE_SPECIFIC_TARGETS"] = true if Lark::Misc.true? ENV['COCOAPODS_INTEGRATE_SPECIFIC_TARGETS']
+hummer_tags["CODE_BYTED_ORG_PRIVATE_TOKEN"] = true if v = ENV['CODE_BYTED_ORG_PRIVATE_TOKEN'] and !v.empty?
+
+lark_template_common_setup(hummer_tags: hummer_tags)
+
+strict_lock_mode!
+
+# 使git hook生效
+`git config core.hooksPath hooks`
+
+disable_swiftlint! if respond_to?(:disable_swiftlint!)
+
+# 不进行 dependency 检查
+ENV['CHECK_ARCH_DEPS'] = 'false'
+
+# 无需使用引号、逗号
+dev_pods = %w[
+  MessengerMod
+  LarkAttachmentUploader
+  LarkFeed
+  LarkFeedBanner
+  LarkFeedPlugin
+  LarkFeedEvent
+  LarkMine
+  LarkUrgent
+  LarkFinance
+  LarkChat
+  LarkTeam
+  LarkChatSetting
+  LarkFile
+  LarkThread
+  LarkContact
+  LarkSearch
+  LarkSearchCore
+  LarkAI
+  LarkMessageCore
+  LarkSendMessage
+  LarkSearchFilter
+  LarkForward
+  LarkAudio
+  LarkCore
+  LarkQRCode
+  LarkMessengerInterface
+  LarkSDK
+  LarkSDKInterface
+  LarkVote
+  LarkFlag
+  Moment
+  DynamicURLComponent
+]
+
+# 无需使用引号、逗号
+dev_pods_unit_test = %w[
+  LarkCore
+  LarkMessageCore
+  LarkSDK
+  LarkSendMessage
+  LarkFeed
+  LarkSearchCore
+]
+
+# :all 全部的assert都会转为lldb断点, :none 全部的assert都会被忽略，转为控制台输出, "Modules/Biz" (or ["Moudles/Biz1", "Moudles/Biz2"]  )对单独或多个一个目录转lldb断点，其他目录忽略assert，转为控制台输出
+# :disable 禁用改feature
+# 你也可以在本地创建 Podfile.patch（请勿提交该文件！） 以固定配置某些库为源码或者二进制, 相关文档可见 https://bytedance.feishu.cn/wiki/wikcn5ZmvLm18TTTrwpIzNggwtf
+assert_dir "Modules/Messenger"
+
+# @param strategy:
+#   :all 开启全部二进制
+#   :pb 只有PB开启二进制
+#   other 手动开启二进制
+# 你也可以在本地创建 Podfile.patch（请勿提交该文件！） 以固定配置某些库为源码或者二进制
+# 修改后记得重新pod install
+lark_use_common_binary_config(strategy: :all) do
+  # 这里插入Name可以将某个库切成源码, 无需使用引号、逗号，一行一个或者使用空格做分割
+  %W[
+  HelpDesk
+  ].each { |v| source v }
+
+  dev_pods.each { |v| source v } # dev pods 使用源码
+
+  # # CI使用二进制缓存, 本地先不用
+  # unless ENV['DEV_POD_BINARY_ENABLE'] == 'true' && ($lark_env.is_binary_cache_job || Lark::Misc.true?(ENV['USE_SWIFT_BINARY']))
+  #   LarkBinary::Config.dev_pods.each { |v| source v, :unstable } # devpod 全都使用源码
+  # end
+
+  if $lark_env.local? && (enable_remote_cache || ((ENV["REMOTE_CACHE_ENABLE"] || "") == 'true'))
+    source_dir "."
+  end
+end
+
+# 其他业务
+other_biz_pods = {
+  # 'calendar' => ['CalendarMod'],
+  # 'todo' => ['TodoMod'],
+  # 'byteview' => ['ByteViewMod'],
+  # 'minutes' => ['MinutesMod'],
+  # 'ccm' => ['CCMMod']
+}
+
+#ENV['TMP_PB_VERSION'] ||= "5.21.0-d7d5e26e4aae.76472897-dev"
+
+target 'LarkMessengerDemo' do
+  lark_main_target_if_pods
+
+  dev_pods.each { |v| eepod v, inhibit_warnings: false }
+  dev_pods_unit_test.each { |v| eepod v, :testspecs => ['Tests'], inhibit_warnings: false }
+
+  other_biz_pods.each { |biz, pods| pods.each { |i| pod i } }
+
+  # 需 Demo 工程额外引入
+  pod 'LarkBaseService'
+  # if_pod 'LarkVideoDirector', subspecs: ['Lark'] # 使用 CK 相机注释这行即可
+  # Debug Pod
+  pod 'MLeaksFinder', '21.0.8', :configurations => ['Debug']
+  pod 'LarkDebug', :subspecs => ['Flex']
+  pod 'LarkKAFKMS', :subspecs => ['Core']
+  pod 'SwiftLint', :configurations => ['Debug']
+  pod 'PassportDebug'
+  pod 'UDDebug'
+  pod 'LarkSecurityCompliance'
+  pod 'SecurityComplianceDebug'
+#  common_version_RustPB  = '5.26.0-a4844736000f-1667975723.98277983-alpha'
+#  pod 'RustPB', common_version_RustPB
+#  pod 'RustSDK', common_version_RustPB
+#  pod 'LarkSQLCipher', common_version_RustPB
+end
+
+# @param installer [Pod::Installer]
+pre_install do |installer|
+  # modify build_settings in pre_install, so cache check will be valid
+  lark_template_common_pre_install installer
+  lark_unit_test_common_pre_install installer
+
+  # additional xcconfigs
+  installer.pod_targets.each do |pod_target|
+    attributes_hash = pod_target.root_spec.attributes_hash
+    pod_target_xcconfig = (attributes_hash['pod_target_xcconfig'] ||= {})
+    pod_target_xcconfig['SWIFT_VERSION'] = '5.5'
+    pod_target_xcconfig['SUPPORTS_MACCATALYST'] = 'NO'
+
+    # 自定义字段用于强制忽略缓存触发构建，请勿随意改变
+    pod_target_xcconfig['CUSTOM_CONFIG_VERSION'] = '0.0.2'
+
+    # Dolphin
+    if ENV['LARK_ENABLE_DOLPHIN'] == 'true' || $lark_env.is_binary_cache_job
+      pod_target_xcconfig['ENABLE_BITCODE'] = '$(inherited)'
+      pod_target_xcconfig['SWIFT_SERIALIZE_DEBUGGING_OPTIONS'] = 'NO'
+      pod_target_xcconfig['SWIFT_COMPILATION_MODE'] = 'singlefile'
+      pod_target_xcconfig['OTHER_SWIFT_FLAGS'] += ' -Xfrontend -no-serialize-debugging-options'
+    end
+  end
+  
+end
+
+post_install do |installer|
+  lark_template_common_post_install installer
+
+  # 接入 lark-project 的 assembly 同步功能，自动生成 Assembly
+  Assembly.rebuild installer
+
+  # the post installer change won't mark cache invalid, and the results is not full(unless use clean install)
+  # but it can set config by configurations..
+  installer.target_installation_results.pod_target_installation_results.each do |name, result|
+    # @type [Xcodeproj::Project::PBXNativeTarget]
+    target = result.native_target
+    release_settings = target.build_settings('Release')
+    release_settings['SWIFT_OPTIMIZATION_LEVEL'] = '-Osize'
+    release_settings['GCC_OPTIMIZATION_LEVEL'] = 'z'
+  end
+
+  treat_warning_as_errors_list = [
+#    'LarkFile',
+#    'LarkAudio',
+#    'LarkMessageInteface',
+#    'LarkUrgent'
+  ]
+
+  warn_as_error = $lark_env.can_change_module_stability && { 'Debug' => $lark_env.treat_warning_as_errors_list + treat_warning_as_errors_list }
+  lark_template_common_post_install installer, warn_as_error: warn_as_error
+end
+
+post_integrate do |installer|
+  lark_unit_test_common_post_integrate(installer, dev_pods_unit_test)
+end
+
+# Podfile结束eval前需要执行的一些代码，目前是引用if_pod的集成需要延后生效
+flush_defer_actions!

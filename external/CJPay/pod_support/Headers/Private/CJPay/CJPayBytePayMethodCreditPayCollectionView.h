@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayAbility/Base/View/CJPayBytePayMethodCreditPayCollectionView.h

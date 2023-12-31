@@ -1,0 +1,1 @@
+../../../../EffectPlatformSDK/Core/Downloader/IESEffectPlatformRequestManager.h

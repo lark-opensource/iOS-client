@@ -1,0 +1,75 @@
+#ifdef __OBJC__
+#import <UIKit/UIKit.h>
+#else
+#ifndef FOUNDATION_EXPORT
+#if defined(__cplusplus)
+#define FOUNDATION_EXPORT extern "C"
+#else
+#define FOUNDATION_EXPORT extern
+#endif
+#endif
+#endif
+
+#import "HTSVideoData+Converter.h"
+#import "HTSVideoDataConverterDefaultHolder.h"
+#import "NLEAllKeyFrameInfo.h"
+#import "NLEBranch+iOS.h"
+#import "NLEChromaChannel+iOS.h"
+#import "NLECommit+iOS.h"
+#import "NLECurveSpeedCalculator+iOS.h"
+#import "NLEEditor+iOS.h"
+#import "NLEEditorCommitContextProtocol.h"
+#import "NLEEffect+iOS.h"
+#import "NLEFilter+iOS.h"
+#import "NLELogger_OC.h"
+#import "NLEMVExternalAlgorithmResult+iOS.h"
+#import "NLEMask+iOS.h"
+#import "NLEModel+iOS.h"
+#import "NLENativeDefine.h"
+#import "NLENode+iOS.h"
+#import "NLEResourceAV+iOS.h"
+#import "NLEResourceNode+iOS.h"
+#import "NLEResourceSynchronizerImpl+iOS.h"
+#import "NLESegment+iOS.h"
+#import "NLESegmentAudio+iOS.h"
+#import "NLESegmentAudioLoudnessBalanceFilter+iOS.h"
+#import "NLESegmentAudioVolumeFilter+iOS.h"
+#import "NLESegmentChromaChannel+iOS.h"
+#import "NLESegmentComposerFilter+iOS.h"
+#import "NLESegmentEffect+iOS.h"
+#import "NLESegmentEmojiSticker+iOS.h"
+#import "NLESegmentFilter+iOS.h"
+#import "NLESegmentHDRFilter+iOS.h"
+#import "NLESegmentImage+iOS.h"
+#import "NLESegmentImageSticker+iOS.h"
+#import "NLESegmentImageVideoAnimation+iOS.h"
+#import "NLESegmentInfoSticker+iOS.h"
+#import "NLESegmentMV+iOS.h"
+#import "NLESegmentMask+iOS.h"
+#import "NLESegmentPlay+iOS.h"
+#import "NLESegmentSticker+iOS.h"
+#import "NLESegmentSubtitleSticker+iOS.h"
+#import "NLESegmentTextSticker+iOS.h"
+#import "NLESegmentTextTemplate+iOS.h"
+#import "NLESegmentTimeEffect+iOS.h"
+#import "NLESegmentTransition+iOS.h"
+#import "NLESegmentVideo+iOS.h"
+#import "NLESegmentVideoAnimation+iOS.h"
+#import "NLEStyCanvas+iOS.h"
+#import "NLEStyClip+iOS.h"
+#import "NLEStyCrop+iOS.h"
+#import "NLEStyStickerAnimation+iOS.h"
+#import "NLEStyleText+iOS.h"
+#import "NLETextTemplateClip+iOS.h"
+#import "NLETimeEffect+iOS.h"
+#import "NLETimeSpaceNode+iOS.h"
+#import "NLETimeSpaceNodeGroup+iOS.h"
+#import "NLETrack+iOS.h"
+#import "NLETrackAlgorithm+iOS.h"
+#import "NLETrackMV+iOS.h"
+#import "NLETrackSlot+iOS.h"
+#import "NLEVideoAnimation+iOS.h"
+#import "NLEVideoFrameModel+iOS.h"
+
+FOUNDATION_EXPORT double NLEPlatformVersionNumber;
+FOUNDATION_EXPORT const unsigned char NLEPlatformVersionString[];

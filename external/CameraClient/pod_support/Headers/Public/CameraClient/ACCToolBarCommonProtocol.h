@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/ViewContainer/Common/Container/ACCToolBarCommonProtocol.h

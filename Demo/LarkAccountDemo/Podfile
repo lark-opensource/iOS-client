@@ -1,0 +1,40 @@
+# rubocop:disable all
+# @!domain [Pod::Podfile]
+
+# @!parse
+#  require 'cocoapods'
+`git config core.hooksPath hooks`
+
+# 配置复用
+require 'lark/project/podfile_mixin'
+# 版本限制和关联依赖复用
+require 'lark/project/if_pod'
+
+lark_template_common_setup
+
+disable_swiftlint!
+
+lark_use_common_binary_config(strategy: :all) do
+end
+
+disable_swiftlint! if respond_to?(:disable_swiftlint!)
+
+target 'LarkAccountDemo' do
+  lark_main_target_if_pods
+  pod 'LarkAccount'
+  pod 'LarkRustClientAssembly'
+end
+
+# @param installer [Pod::Installer]
+pre_install do |installer|
+  lark_template_common_pre_install installer
+end
+
+# @param installer [Pod::Installer]
+post_install do |installer|
+  lark_template_common_post_install installer
+end
+
+flush_defer_actions!
+
+# rubocop:enable all

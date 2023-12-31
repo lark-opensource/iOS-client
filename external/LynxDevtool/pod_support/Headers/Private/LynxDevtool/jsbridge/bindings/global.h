@@ -1,0 +1,1 @@
+../../../../../../Lynx/jsbridge/bindings/global.h

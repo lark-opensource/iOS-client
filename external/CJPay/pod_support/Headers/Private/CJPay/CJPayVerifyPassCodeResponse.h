@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayAbility/PayManage/PassKit/Service/CJPayVerifyPassCodeResponse.h

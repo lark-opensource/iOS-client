@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/ClassCoverage/Common/Private/HMDClassCoverageConfig.h

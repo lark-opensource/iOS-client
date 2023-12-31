@@ -1,0 +1,1 @@
+../../../../IESGeckoKit/Core/Network/Base/IESGurdResourceManager+Settings.h

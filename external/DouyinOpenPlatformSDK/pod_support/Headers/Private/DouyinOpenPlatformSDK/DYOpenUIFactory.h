@@ -1,0 +1,1 @@
+../../../../DouyinOpenPlatformSDK/Classes/Core/__Internal/UI/DYOpenUIFactory.h

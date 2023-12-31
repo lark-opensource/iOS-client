@@ -1,0 +1,528 @@
+# coding: utf-8
+require 'yaml'
+
+# build = ENV["build"]
+
+# ci  = "ee.byted.org/ci/job/sz-ee-ios/job"
+# job = "auto-duty-docs"
+
+task :default do
+  puts string("开始初始化 Rake，安装 fd......", Color::Yellow)
+  system("brew install fd || echo '\033[32m已经安装 fd\033[0m'")
+  puts "\n" + string("安装 python3 中......", Color::Yellow)
+  system("brew install python3 || echo '\033[32m已经安装 python3\033[0m'")
+  puts "\n" + string("安装 optimus_ios 中......", Color::Yellow)
+  system("gem install optimus_ios")
+  puts "\n" + string("bundle update 中......", Color::Yellow)
+  system("bundle update")
+  puts "\n" + string("Rake 初始化完成！", Color::Green)
+  # if not build
+  #   puts "build not found. Please use rake build=[build number]"
+  #   exit
+  # end
+  # if File.exist?("personal-ci-auth")
+  #   output = "/tmp/#{job}-#{build}"
+  #   system("JENKINS_URL=https://`cat personal-ci-auth`@#{ci} nestor console #{job} #{build} > #{output}")
+  #   puts(output)
+  # else
+  #   puts "未检测到配置，让我们先配置一下再使用吧。"
+  #   system("rake setupNestor")
+  # end
+end
+
+# task :setupNestor do
+#   system("command -v nestor > /dev/null || npm install -g nestor")
+#   username = `git config user.email|awk -F@ '{print $1}'`.strip()
+#   puts "接下来将打开Jenkins，请点击“添加新Token”来生成token，然后复制token内容，返回这里"
+#   `read -p "按回车键继续..."`
+#   `open https://ee.byted.org/ci/user/#{username}/configure`
+#   `read -p "已复制token？按回车键继续..."`
+#   `echo #{username}:\`pbpaste\` > personal-ci-auth`
+#   puts `echo export JENKINS_URL=https://\`cat personal-ci-auth\`@#{job}`
+#   `export JENKINS_URL=https://\`cat personal-ci-auth\`@#{job}`
+# end
+
+
+# 替换前端资源包
+# 调用方法：rake web version=1.0.2.xxx
+# rake web version=1.0.2.xxx channel=docs_app (单品需要用新的channel)
+task :web do
+  version = ENV["version"] # 调用时传入
+  channel = ENV["channel"] || "docs_channel"
+  system("sh ./Libs/SKResource/Scripts/replace_web_source_new.sh -v #{version} -c #{channel} || exit 1")
+end
+
+# 替换lynx资源包
+# 调用方法：rake lynx version=1.0.2.xxx
+# rake lynx version=1.0.2.xxx
+task :lynx do
+  version = ENV["version"] # 调用时传入
+  system("sh ./Libs/SKResource/Scripts/replace_lynx_pkg.sh -v #{version} || exit 1")
+end
+
+
+# 获取 SpaceSDK 所有 Pod 的版本（一定是一致的）
+# 调用方式为 rake version
+task :version do
+  max_major, max_minor, max_patch, max_alpha = find_podspec_version
+  if max_alpha == -1
+    puts "#{max_major}.#{max_minor}.#{max_patch}"
+  else
+    puts "#{max_major}.#{max_minor}.#{max_patch}-alpha.#{max_alpha}"
+  end
+end
+
+
+# 将所有 SpaceSDK Pod 升级到下一个 patch 版本
+# e.g. 3.18.0 => 3.18.1
+# e.g. 3.18.0-alpha.3 => 3.18.0
+# 调用方式为 rake patch
+task :patch do
+  max_major, max_minor, max_patch, max_alpha = find_podspec_version
+  if max_alpha == -1
+    max_patch += 1
+  end
+  new_version = "#{max_major}.#{max_minor}.#{max_patch}"
+  if ENV["larkdocs"] == "true"
+    new_version = "#{new_version}-larkdocs"
+  end
+  if ENV["dryrun"] == "true"
+    puts "#{new_version}"
+  else
+    change_podspec_version(new_version)
+  end
+end
+
+
+# 将所有 SpaceSDK Pod 升级到一下个 alpha 版本, 如果当前不是 alpha 版本，会把 minor 版本号加一，再升级到 alpha.0
+# e.g. 3.18.0 => 3.19.0-alpha.0
+# e.g. 3.19.0-alpha.0 => 3.19.0-alpha.1
+# 调用方式为 rake alpha
+task :alpha do
+  max_major, max_minor, max_patch, max_alpha = find_podspec_version
+  if max_alpha == -1
+    max_minor += 1
+  end
+  max_alpha += 1
+  new_version = "#{max_major}.#{max_minor}.#{max_patch}-alpha.#{max_alpha}"
+  is_larkdocs = false
+  if ENV["larkdocs"] == "true"
+    new_version = "#{new_version}-larkdocs"
+  end
+  if ENV["dryrun"] == "true"
+    puts "#{new_version}"
+  else
+    change_podspec_version(new_version)
+  end
+end
+
+
+# 将所有 SpaceSDK Pod 升级到下一个 minor 版本
+# e.g. 3.18.0 => 3.19.0
+# e.g. 3.19.0-alpha.4 => 3.20.0
+# 调用方式为 rake minor
+task :minor do
+  max_major, max_minor, max_patch, max_alpha = find_podspec_version
+  max_minor += 1
+  max_patch = 0
+  new_version = "#{max_major}.#{max_minor}.#{max_patch}"
+  if ENV["larkdocs"] == "true"
+    new_version = "#{new_version}-larkdocs"
+  end
+  if ENV["dryrun"] == "true"
+    puts "#{new_version}"
+  else
+    change_podspec_version(new_version)
+  end
+end
+
+
+# 将所有 SpaceSDK Pod 先升级到下一个 minor 版本，再升级到 alpha.0 版本
+# e.g. 3.18.0 => 3.19.0-alpha.0
+# e.g. 3.19.0-alpha.4 => 3.20.0-alpha.0
+# 调用方式为 rake minor_alpha
+task :minor_alpha do
+  max_major, max_minor, max_patch, max_alpha = find_podspec_version
+  max_minor += 1
+  max_patch = 0
+  max_alpha = 0
+  new_version = "#{max_major}.#{max_minor}.#{max_patch}-alpha.#{max_alpha}"
+  if ENV["larkdocs"] == "true"
+    new_version = "#{new_version}-larkdocs"
+  end
+  if ENV["dryrun"] == "true"
+    puts "#{new_version}"
+  else
+    change_podspec_version(new_version)
+  end
+end
+
+
+# 将所有 SpaceSDK Pod 先升级到下一个 major 版本，再升级到 alpha.0 版本
+# e.g. 3.18.0 => 4.0.0-alpha.0
+# e.g. 3.19.0-alpha.4 => 4.0.0-alpha.0
+# 调用方式为 rake major_alpha
+task :major_alpha do
+  max_major, max_minor, max_patch, max_alpha = find_podspec_version
+  max_major += 1
+  max_minor = 0
+  max_patch = 0
+  max_alpha = 0
+  new_version = "#{max_major}.#{max_minor}.#{max_patch}-alpha.#{max_alpha}"
+  if ENV["larkdocs"] == "true"
+    new_version = "#{new_version}-larkdocs"
+  end
+  if ENV["dryrun"] == "true"
+    puts "#{new_version}"
+  else
+    change_podspec_version(new_version)
+  end
+end
+
+
+# 将所有 SpaceSDK Pod 升级到下一个 major 版本
+# e.g. 3.18.0 => 4.0.0
+# e.g. 3.19.0-alpha.4 => 4.0.0
+# 调用方式为 rake major
+task :major do
+  max_major, max_minor, max_patch, max_alpha = find_podspec_version
+  max_major += 1
+  max_minor = 0
+  max_patch = 0
+  new_version = "#{max_major}.#{max_minor}.#{max_patch}"
+  if ENV["larkdocs"] == "true"
+    new_version = "#{new_version}-larkdocs"
+  end
+  if ENV["dryrun"] == "true"
+    puts "#{new_version}"
+  else
+    change_podspec_version(new_version)
+  end
+end
+
+
+# 替换所有 SpaceSDK Pod 版本为指定版本，不会打 tag
+# 调用方式为 rake change_version version=xxx.xx.x
+task :change_version do
+  new_version = ENV["version"] # 调用时传入
+  if ENV["larkdocs"] == "true"
+    new_version = "#{new_version}-larkdocs"
+  end
+  if ENV["dryrun"] == "true"
+    puts "#{new_version}"
+  else
+    change_podspec_version(new_version)
+  end
+end
+
+
+# 对所有 SpaceSDK Pod 发版
+# 调用方式为 rake publish
+# task :publish do
+#   value = `git fetch origin && git branch -r --contains HEAD | wc -l`
+#   if Integer(value) > 0
+#     system("$HOME/.rbenv/shims/bundle exec optimus_ios module publish --skip-build --no-lint-project-git -n `fd -e podspec -x basename {} .podspec|paste -sd ',' -\` || exit 1")
+#   else
+#     puts "请先将本地提交合并到远端，再发布版本。（如果已经合并，请运行 git pull 或 git pull --rebase 再发布）"
+#   end
+# end
+
+
+# 更新图片资源
+task :asset do
+  system("bundle exec optimus_ios module asset -n SKResource || exit 1")
+end
+
+
+# 更新国际化文案
+task :i18n do
+  system("bundle exec optimus_ios module i18n -n SKResource || exit 1")
+end
+
+
+# 一句话替换指定路径下 Podfile 里面的 spacekit 路径为本地，不填路径则替换 ../ios-client 目录
+# 调用方式为：
+# rake lark_debug 替换 ../ios-client 下 Podfile 里面的 spacekit 路径为本地
+# rake lark_debug lark_path='../lark/path' 替换 ../lark/path 下 Podfile 里面的 spacekit 路径为本地
+task :lark_debug do |task|
+  lark_path = ENV["lark_path"] || "../ios-client"
+  need_lookin = ENV["need_lookin"] || "true"
+  system("python3 ./Scripts/modifySpaceSDKPath.py `pwd` #{lark_path} #{need_lookin}")
+  puts "已替换 #{lark_path} 的 Podfile 里面 SpaceSDK 相关库指向本地编译啦"
+end
+
+
+# 一句话替换指定路径下 Podfile 里面的 spacekit 路径为本地，不填路径则替换 ../spacekit-demo 目录
+# 调用方式为：
+# rake demo_debug 替换 ../demo-client 下 Podfile 里面的 spacekit 路径为本地
+# rake demo_debug demo_path='../demo/path' 替换 ../demo/path 下 Podfile 里面的 spacekit 路径为本地
+task :demo_debug do |task|
+  demo_path = ENV["demo_path"] || "../spacekit-demo"
+  system("python3 ./Scripts/modifySpaceSDKPath.py `pwd` #{demo_path}")
+  puts "已替换 #{demo_path} 的 Podfile 里面 SpaceSDK 相关库指向本地编译啦"
+end
+
+# 往指定路径下 Podfile、config/arch.yml 里加入Lookin库，不指定路径则用 ../ios-client 目录
+# 调用方式为：
+# rake lark_lookin 往 ../ios-client 添加 Lookin
+# rake lark_lookin lark_path='../lark/path' 往 '../lark/path' 添加 Lookin
+task :lark_lookin do |task|
+  lark_path = ENV["lark_path"] || "../ios-client"
+  system("python3 ./Scripts/addLookinToLark.py #{lark_path}")
+  puts "已往 #{lark_path} 的 Podfile、arch.yml添加Lookin"
+end
+
+
+# 将指定的 from 分支合入 to 分支，调起 gitlab 页面。若不指定，则默认 from 当前分支，to develop
+# 调用方式为：
+# rake mr 将当前分支合入 develop
+# rake mr from="feature/branch" 将 feature/branch 合入 develop
+# rake mr to="release/3.36" 将当前分支合入 release/3.36
+# rake mr from="feature/branch" to="release/3.36" 将 feature/branch 合入 release/3.36
+task :mr do |task|
+  from = ENV["from"] || `git rev-parse --abbrev-ref HEAD`.strip
+  to = ENV["to"] || "develop"
+  title = `git log --pretty=format:%s -1`
+  puts "请按住 command 键，点击链接打开 GitLab 页面：https://code.byted.org/ee/spacekit-ios/merge_requests/new?utf8=%E2%9C%93&merge_request[source_branch]=#{from}&merge_request[target_branch]=#{to}&merge_request[title]=#{title}&merge_request[remove_source_branch]=true"
+end
+
+# sync lark version
+# method ：
+# rake lark_sync 
+task :lark_sync do |task|
+  system("bundle install && bundle exec lark-project update_self && bundle exec lark-project synclock . ")
+  puts "sync lark version success ！！！"
+end
+
+# replace docs certificate
+# method ：
+# rake replace_docs_cert 
+task :replace_docs_cert do |task|
+  system("./../../BuildScript/XcodeEdit ./../../ ./../../BuildScript/config_docs.json debug")
+  puts "replace docs certificate success ！！！"
+end
+
+
+# 对比 SpaceSDK 与 ios-client podfile 依赖区别, 需要 SpaceKit 与 ios-client 在同一目录层级
+# 调用方式为：
+# rake compare 和 ../ios-client 对比 podfile.lock
+# rake compare with_path="../lark/path" 和 ../lark/path 对比 podfile.lock
+task :compare do |task|
+  path = ENV["with_path"] || "../ios-client"
+
+  # 解析 podfile.lock 文件
+  def parsePodfileLock(path)
+    podfileLock = YAML.load_file(path)
+
+    pods = Hash.new
+
+    podfileLock["PODS"].each do |item|
+      if item.class == Hash
+        pod, version = parsePodAndVersion(item.keys[0])
+        pods[pod] = version
+      else
+        pod, version = parsePodAndVersion(item)
+        pods[pod] = version
+      end
+    end
+
+    return pods
+  end
+
+  # 解析 pod name 和 version
+  def parsePodAndVersion(message)
+    items = message.split(" ")
+    return items[0].split("/")[0], items[1]
+  end
+
+  puts "lark podfile path: #{path}"
+
+  spacekitPods = parsePodfileLock('./Podfile.lock')
+  larkPods = parsePodfileLock("#{path}/Podfile.lock")
+
+  onlySpaceKit, onlyLark, diff = Hash.new, Hash.new, Hash.new
+
+  spacekitPods.each do |key, value|
+    larkPod = larkPods[key]
+    if larkPod == nil
+      onlySpaceKit[key] = value
+    elsif larkPod != value then
+      diff[key] =  "spacekit: %35s" % string(value, Color::Blue) + "\t" +  "lark: %35s" % string(larkPod, Color::Green)
+    end
+  end
+
+  larkPods.each do |key, value|
+    spacekitPod = spacekitPods[key]
+    if spacekitPod == nil
+      onlyLark[key] = value
+    end
+  end
+
+  localPods = `fd -e podspec -x basename {} .podspec`.split("\n")
+
+  puts string("Diff Local Pods:", Color::Red)
+  diff.each do |key, value|
+    if localPods.include?(key)
+      puts "%50s" % string(key, Color::Yellow) + ":\t" + value
+    end
+  end
+
+  puts "\n" + string("Diff Pods:", Color::Red)
+  diff.each do |key, value|
+    if !localPods.include?(key)
+      puts "%50s" % string(key, Color::Yellow) + ":\t" + value
+    end
+  end
+  puts "\n" + string("Only In SpaceKit:", Color::Red)
+  onlySpaceKit.each do |key, value|
+    puts  "%50s" % string(key, Color::Yellow) + ":\t" + string(value, Color::Green)
+  end
+  # puts "\n" + string("Only In Lark:", Color::Red)
+  # onlyLark.each do |key, value|
+  #   puts  "%50s" % string(key, Color::Yellow) + ":\t" + string(value, Color::Green)
+  # end
+end
+
+
+
+##############################
+# 下面是私有方法，外界无法调用  #
+##############################
+
+# 从所有 SpaceSDK Pod 的 podspec 中找最高版本（每一位都取最高）
+def find_podspec_version
+  max_major = 0
+  max_minor = 0
+  max_patch = 0
+  max_alpha = -1
+
+  Dir.glob("./**/*.podspec").each do |path|
+    if path.include? "HandyJSON"
+      break
+    end
+    podspec = File.open(path).read
+    version = podspec[/s\.version\s*=\s*['"]([^'"]+)['"]/, 1]
+    if version
+    else
+      version = podspec[/spec\.version\s*=\s*['"]([^'"]+)['"]/, 1]
+    end
+
+    first_version = Integer(version[/(\d+)/, 1] || "0")
+    second_version = Integer(version[/\d+\.(\d+).+/, 1] || "0")
+    third_version = Integer(version[/\d+\.\d+\.(\d+).*/, 1] || "0")
+    alpha_versoin = Integer(version[/.*alpha.(\d+)/, 1] || "-1")
+
+    max_major = [max_major, first_version].max
+    max_minor = [max_minor, second_version].max
+    max_patch = [max_patch, third_version].max
+    max_alpha = [max_alpha, alpha_versoin].max
+  end
+  [max_major, max_minor, max_patch, max_alpha]
+end
+
+def change_podspec_version(new_version)
+# 先修改 podspec 中的版本
+  Dir.glob("./**/*.podspec").each do |path|
+    podspec = File.open(path).read
+    version = podspec[/s\.version\s*=\s*['"]([^'"]+)['"]/, 1]
+    if version
+    else
+      version = podspec[/spec\.version\s*=\s*['"]([^'"]+)['"]/, 1]
+    end
+    File.write(path, podspec.sub!(version, new_version))
+  end
+  
+  puts string("SpaceSDK 所有 Pod 版本都已升级到: #{new_version}", Color::Green)
+  puts "\n" + string("开始 pod install......", Color::Yellow)
+  system("bundle install && bundle exec pod install --repo-update --clean-install || exit 1")
+  puts "\n" + string("将所有变更推送至远端......", Color::Yellow)
+  system("git add --all; git commit -m \"SpaceKit 版本升级\"; git push --set-upstream origin `git rev-parse --abbrev-ref HEAD` || exit 1")
+  puts "\n" + string("版本号修改完成，尚未发版，如果有需要，前往 bits 操作", Color::Red)
+  # puts "rake publish"
+end
+
+module Color
+  Green = 1
+  Yellow = 2
+  Red = 3
+  Blue = 6
+end
+
+# 添加输出颜色
+def string(message, color)
+  if color == Color::Red
+    return "\033[31m#{message}\033[0m"
+  elsif color == Color::Green
+    return "\033[32m#{message}\033[0m"
+  elsif color == Color::Yellow
+    return "\033[33m#{message}\033[0m"
+  elsif color == Color::Blue
+    return "\033[36m#{message}\033[0m"
+  end
+  return message
+end
+
+# release
+# def read_current_version(info_plist_path)
+#   return  `/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' #{info_plist_path}`
+# end
+
+# def check_workspace_status
+#   system "/usr/bin/git rev-parse --show-toplevel"
+#   result = `/usr/bin/git status --untracked-files=no --porcelain`
+#   return result.empty?
+# end
+
+# def spacekit_new_version(new_version, plist_path)
+# 	if new_version.endsWith("-spacekit") == false
+# 		new_version = "#{new_version}-spacekit"
+# 	end
+#     system "/usr/libexec/PlistBuddy -c 'Set :CFBundleShortVersionString \"#{new_version}\"' #{plist_path}"
+#     system "/usr/bin/git commit -am \"chore: 升级 SpaceKit 主 App 版本到 #{new_version}\""
+# end
+
+# # rake new_version version="4.5.0"
+# task :new_version do
+#   version_string = ENV["version"]
+#   spacekit_new_version(version_string, File::expand_path(File.path("SpaceKitDemo/SpaceKitDemo/Info.plist")))
+# end
+
+# # rake release
+# # rake release new_version="4.5.0"
+# task :release do
+#   if check_workspace_status() == false
+#     puts "==> Failed: Git workspeace not clean!"
+#     exit(0)
+#   end
+
+#   info_plist_path = File::expand_path(File.path("SpaceKitDemo/SpaceKitDemo/Info.plist"))
+
+#   current_version = read_current_version(info_plist_path)
+
+#   # change podspec version
+#   major = Integer(current_version[/(\d+)/, 1] || "0")
+#   minor = Integer(current_version[/\d+\.(\d+).+/, 1] || "0")
+#   patch = Integer(current_version[/\d+\.\d+\.(\d+).*/, 1] || "0")
+
+#   relase_version = "#{major}.#{minor}"
+
+#   system "/usr/bin/git checkout -b release/#{relase_version}"
+#   change_podspec_version("#{relase_version}.0")
+#   system "/usr/bin/git commit -am \"chore: 升级 SpaceKit 版本到 #{relase_version}.0\""
+
+#   system "/usr/bin/git checkout develop"
+
+#   new_version = "#{major}.#{minor+1}.0-spacekit"
+
+#   new_version=ENV["new_version"]
+#   if new_version.nil? == false && new_version.empty? == false
+#     major = Integer(new_version[/(\d+)/, 1] || "0")
+#     minor = Integer(new_version[/\d+\.(\d+).+/, 1] || "0")
+#     patch = Integer(new_version[/\d+\.\d+\.(\d+).*/, 1] || "0")
+
+#     new_version="#{major}.#{minor}.#{patch}"
+#   end
+
+#   spacekit_new_version(new_version, info_plist_path)
+#   system "/usr/bin/git checkout release/#{relase_version}"
+# end

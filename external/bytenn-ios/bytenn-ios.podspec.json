@@ -1,0 +1,74 @@
+{
+  "name": "bytenn-ios",
+  "version": "3.4.81",
+  "pod_target_xcconfig": {
+    "ENABLE_BITCODE": "NO",
+    "GCC_GENERATE_DEBUGGING_SYMBOLS": "YES",
+    "GCC_OPTIMIZATION_LEVEL": "s",
+    "STRIP_STYLE": "all",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "bytenn_ios_POD_VERSION=@\\\"9999_3.4.81\\\""
+  },
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://bits.bytedance.net/bytebus/components/components/detail/6595?appId=9999",
+  "license": "MIT",
+  "authors": {
+    "唐志新": "zhixin.tang@bytedance.com"
+  },
+  "source": {
+    "http": "http://tosv.byted.org/obj/iosbinary/archive_source/9999/bytenn-ios/3.4.81/bytenn-ios.zip"
+  },
+  "platforms": {
+    "ios": "8.0",
+    "osx": "10.9"
+  },
+  "ios": {
+    "source_files": "ios/include/*.h",
+    "vendored_libraries": "ios/libs/libbyteNN.a",
+    "frameworks": [
+      "CoreML",
+      "Accelerate",
+      "AssetsLibrary"
+    ],
+    "dependencies": {
+      "IESAppLogger_iOS/OCInterface": [
+        ">= 0.0.21"
+      ]
+    },
+    "weak_frameworks": [
+      "MetalPerformanceShaders"
+    ]
+  },
+  "dependencies": {
+    "SSZipArchive": [
+      ">= 2.1.5"
+    ]
+  },
+  "osx": {
+    "source_files": "mac/include/*.h",
+    "vendored_libraries": "mac/libs/libbytenn.dylib"
+  },
+  "libraries": "c++",
+  "compiler_flags": [
+    "-stdlib=libc++",
+    "-ffast-math",
+    "-DNDEBUG",
+    "-O3",
+    "-fvisibility=hidden"
+  ],
+  "commit": "06c3a0aeed257c85d6b4c29155b6201c86238e8e\n",
+  "source_code": {
+    "git": "git@code.byted.org:ies/bytenn-sdk.git",
+    "commit": "06c3a0aeed257c85d6b4c29155b6201c86238e8e"
+  },
+  "_bytebus_platform": {
+    "repo_id": "6595",
+    "app_id": "9999"
+  },
+  "repoId": "6595",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "bytenn_ios_POD_VERSION=@\\\"9999_3.4.81\\\""
+  }
+}

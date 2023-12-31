@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/CrashDetector/Common/Private/HMDCrashDynamicDataProvider.h

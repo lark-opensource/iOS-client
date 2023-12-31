@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/CrashCapture/Common/Public/Directory/HMDCrashAppGroupURL.h

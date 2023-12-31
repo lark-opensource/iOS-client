@@ -1,0 +1,21 @@
+include: "../../.bitsky/bitsky.yaml"
+
+toolchain:
+  plugins: 
+    - name: "Lark"
+      disable: true
+
+default_option:
+  package_name: "LarkMessengerDemo"
+  generate_build_project_path: "Lark.xcodeproj"
+  targets:
+    - "LarkMessengerDemo"
+  bazelrcs:
+    - "../../bitsky_plugin/bazelrc/common.bazelrc"
+  mode: "Debug"
+  sdk: "simulator"
+  ocean_yml_path: "../../bitsky_plugin/.ocean/dev_build.yaml"
+  plugin_bzl_path: ".bitsky/defs.bzl"
+  external_path: "bitsky_external"
+  lldb_source_map: ".bitsky/lldb_source_map.json"
+  project_name: "LarkMessengerDemoBitSky"

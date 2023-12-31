@@ -1,0 +1,11 @@
+#ifndef SIMPLIFYEXTENSION
+#define SIMPLIFYEXTENSION 1
+#endif
+
+#ifdef DEBUG
+#define HMDLog(FORMAT,...) NSLog(@"HMDLog:<%s:%d>\t%s\n",[[[NSString stringWithUTF8String:__FILE__] lastPathComponent] UTF8String], __LINE__, [[NSString stringWithFormat:FORMAT, ##__VA_ARGS__] UTF8String]);
+#define HMDPrint(FORMAT, ...) fprintf(stderr,"\tHMDPrint:<%s:%d>\t" FORMAT"\n",strrchr(__FILE__, '/')+1,__LINE__,##__VA_ARGS__);
+#else
+#define HMDLog(FORMAT,...) nil
+#define HMDPrint(FORMAT,...) NULL
+#endif

@@ -1,0 +1,1 @@
+../../../../TTAdSplashSDK/Classes/ModuleMap/TTAdSplashSDK-umbrella.h

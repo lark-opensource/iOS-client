@@ -1,0 +1,1 @@
+../../../../sources/smartTask/vc_smart_task_manager.h

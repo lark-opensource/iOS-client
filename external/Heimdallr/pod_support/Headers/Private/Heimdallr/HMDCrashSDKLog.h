@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/Mach/Common/Private/tools/SDKLog/HMDCrashSDKLog.h

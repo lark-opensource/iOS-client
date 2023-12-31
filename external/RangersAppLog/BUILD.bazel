@@ -1,0 +1,4956 @@
+load('@build_bazel_rules_apple//apple:resources.bzl', 'apple_resource_bundle', 'gen_bundle_plist')
+load('@build_bazel_rules_apple//apple:apple.bzl', 'apple_static_framework_import')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "RangersAppLog_pod_hdrs",
+  srcs = [
+    ":RangersAppLog_root_pod_hdrs",
+    ":Core_pod_hdrs",
+    ":Host_pod_hdrs",
+    ":Host_CN_pod_hdrs",
+    ":Host_SG_pod_hdrs",
+    ":Host_VA_pod_hdrs",
+    ":Unique_pod_hdrs",
+    ":CAID_pod_hdrs",
+    ":ASA_pod_hdrs",
+    ":Flags_pod_hdrs",
+    ":Flags_DisableiAd_pod_hdrs",
+    ":Log_pod_hdrs",
+    ":ET_pod_hdrs",
+    ":Filter_pod_hdrs",
+    ":UITracker_pod_hdrs",
+    ":Location_pod_hdrs",
+    ":Picker_pod_hdrs",
+    ":DeviceOrientation_pod_hdrs",
+    ":Exception_pod_hdrs",
+    ":OSX_pod_hdrs",
+    ":CBridge_pod_hdrs",
+    ":VolMetaSecML_pod_hdrs",
+    ":Exposure_pod_hdrs",
+    ":DevTools_pod_hdrs",
+    ":Encryptor_pod_hdrs",
+    ":Encryptor_VOLC_pod_hdrs",
+    ":Encryptor_SM2_pod_hdrs",
+    ":OneID_pod_hdrs",
+    ":GlobalRemoteID_pod_hdrs",
+    ":Tests_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "RangersAppLog_private_includes",
+  include = [
+    "external/RangersAppLog/pod_support/Headers/Private/RangersAppLog/"
+  ],
+  deps = [],
+  external_name = "RangersAppLog"
+)
+gen_includes(
+  name = "RangersAppLog_public_includes",
+  include = [
+    "external/RangersAppLog/pod_support/Headers/Public/RangersAppLog/"
+  ],
+  deps = [],
+  external_name = "RangersAppLog"
+)
+filegroup(
+  name = "_RangersAppLog_hdrs",
+  srcs = [
+    ":RangersAppLog_root_hdrs",
+    ":Core_hdrs",
+    ":Host_hdrs",
+    ":Host_CN_hdrs",
+    ":Host_SG_hdrs",
+    ":Host_VA_hdrs",
+    ":Unique_hdrs",
+    ":CAID_hdrs",
+    ":ASA_hdrs",
+    ":Flags_hdrs",
+    ":Flags_DisableiAd_hdrs",
+    ":Log_hdrs",
+    ":ET_hdrs",
+    ":Filter_hdrs",
+    ":UITracker_hdrs",
+    ":Location_hdrs",
+    ":Picker_hdrs",
+    ":DeviceOrientation_hdrs",
+    ":Exception_hdrs",
+    ":OSX_hdrs",
+    ":CBridge_hdrs",
+    ":VolMetaSecML_hdrs",
+    ":Exposure_hdrs",
+    ":DevTools_hdrs",
+    ":Encryptor_hdrs",
+    ":Encryptor_VOLC_hdrs",
+    ":Encryptor_SM2_hdrs",
+    ":OneID_hdrs",
+    ":GlobalRemoteID_hdrs",
+    ":Tests_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "RangersAppLog_xcode_hmapsource",
+  hdrs = [
+    ":RangersAppLog_root_hdrs",
+    ":Core_hdrs",
+    ":Encryptor_VOLC_hdrs",
+    ":ET_hdrs",
+    ":Filter_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "RangersAppLog_xcode_hmap",
+  dep = ":RangersAppLog_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/RangersAppLog/*-bitsky-generated.modulemap", "pod_support/Headers/Public/RangersAppLog/*-bitsky-generated-umbrella.h"]))
+gen_bundle_plist(
+  name = "GEN_RangersAppLog_Plist",
+  bundle_name = "RangersAppLog",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "6.15.5",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "RangersAppLog_Core_RangersAppLog",
+  bundle_name = "RangersAppLog",
+  infoplists = [
+    ":GEN_RangersAppLog_Plist"
+  ],
+  resources = [
+    "BDAutoTracker/Asserts/Core/h5bridge-wkwebview.js"
+  ],
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "RangersAppLog_OSX_VendoredLibraries",
+  archives = [
+    "BDAutoTracker/Classes/OSX/Classes/OneKit/Vendor/libEncryptor-Unsec.a",
+    "BDAutoTracker/Classes/OSX/Classes/OneKit/Vendor/libEncryptor.a"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_bundle_plist(
+  name = "GEN_RangersAppLogDevTools_Plist",
+  bundle_name = "RangersAppLogDevTools",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "6.15.5",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "RangersAppLog_DevTools_RangersAppLogDevTools",
+  bundle_name = "RangersAppLogDevTools",
+  infoplists = [
+    ":GEN_RangersAppLogDevTools_Plist"
+  ],
+  resources = [
+    "BDAutoTracker/Classes/DevTools/Assets/tab-env.png",
+    "BDAutoTracker/Classes/DevTools/Assets/plus.png",
+    "BDAutoTracker/Classes/DevTools/Assets/correct.png",
+    "BDAutoTracker/Classes/DevTools/Assets/feature.png",
+    "BDAutoTracker/Classes/DevTools/Assets/floating_icon.png",
+    "BDAutoTracker/Classes/DevTools/Assets/debug.png",
+    "BDAutoTracker/Classes/DevTools/Assets/arrow-down.png",
+    "BDAutoTracker/Classes/DevTools/Assets/search.png",
+    "BDAutoTracker/Classes/DevTools/Assets/tab-log.png",
+    "BDAutoTracker/Classes/DevTools/Assets/tab-env-unselected.png",
+    "BDAutoTracker/Classes/DevTools/Assets/tab-event.png",
+    "BDAutoTracker/Classes/DevTools/Assets/log.png",
+    "BDAutoTracker/Classes/DevTools/Assets/tab-event-unselected.png",
+    "BDAutoTracker/Classes/DevTools/Assets/send.png",
+    "BDAutoTracker/Classes/DevTools/Assets/tab-log-unselected.png",
+    "BDAutoTracker/Classes/DevTools/Assets/setting.png",
+    "BDAutoTracker/Classes/DevTools/Assets/refresh.png",
+    "BDAutoTracker/Classes/DevTools/Assets/close.png"
+  ],
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+apple_static_framework_import(
+  name = "RangersAppLog_Encryptor_VOLC_VendoredStaticFrameworks",
+  framework_imports = select(
+    {
+      ":iosDevice": glob(
+        [
+          "BDAutoTracker/Classes/Encryptor/Volc/Vendor/VolcEngineEncryptor.xcframework/ios-arm64_armv7/VolcEngineEncryptor.framework/**"
+        ]
+      ),
+      ":iosSimulator": glob(
+        [
+          "BDAutoTracker/Classes/Encryptor/Volc/Vendor/VolcEngineEncryptor.xcframework/ios-arm64_i386_x86_64-simulator/VolcEngineEncryptor.framework/**"
+        ]
+      ),
+      ":osxCase": glob(
+        [
+          "BDAutoTracker/Classes/Encryptor/Volc/Vendor/VolcEngineEncryptor.xcframework/macos-arm64_x86_64/VolcEngineEncryptor.framework/**"
+        ]
+      ),
+      ":tvosDevice": glob(
+        [
+          "BDAutoTracker/Classes/Encryptor/Volc/Vendor/VolcEngineEncryptor.xcframework/tvos-arm64/VolcEngineEncryptor.framework/**"
+        ]
+      ),
+      ":tvosSimulator": glob(
+        [
+          "BDAutoTracker/Classes/Encryptor/Volc/Vendor/VolcEngineEncryptor.xcframework/tvos-arm64_x86_64-simulator/VolcEngineEncryptor.framework/**"
+        ]
+      ),
+      ":watchosDevice": glob(
+        [
+          "BDAutoTracker/Classes/Encryptor/Volc/Vendor/VolcEngineEncryptor.xcframework/watchos-arm64_32_armv7k/VolcEngineEncryptor.framework/**"
+        ]
+      ),
+      ":watchosSimulator": glob(
+        [
+          "BDAutoTracker/Classes/Encryptor/Volc/Vendor/VolcEngineEncryptor.xcframework/watchos-arm64_x86_64-simulator/VolcEngineEncryptor.framework/**"
+        ]
+      )
+    }
+  ),
+  copy_bundle = 0,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+apple_static_framework_import(
+  name = "RangersAppLog_Encryptor_SM2_VendoredStaticFrameworks",
+  framework_imports = glob(
+    [
+      "BDAutoTracker/Classes/Encryptor/SM2/Vendor/openssl.framework/**"
+    ]
+  ),
+  copy_bundle = 0,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_bundle_plist(
+  name = "GEN_RangersAppLog-Tests_Plist",
+  bundle_name = "RangersAppLog-Tests",
+  minimum_os_version = define_minimum_os_version,
+  bundle_version = "6.15.5",
+  platform_type = select(
+    {
+      "//conditions:default": "ios",
+      ":osxCase": "osx",
+      ":tvosCase": "tvos",
+      ":watchosCase": "watchos"
+    }
+  )
+)
+apple_resource_bundle(
+  name = "RangersAppLog_Tests_RangersAppLog-Tests",
+  bundle_name = "RangersAppLog-Tests",
+  infoplists = [
+    ":GEN_RangersAppLog-Tests_Plist"
+  ],
+  resources = [
+    "BDAutoTracker/Tests/Tests-Info.plist",
+    "BDAutoTracker/Tests/fakeRequestData.plist",
+    "BDAutoTracker/Tests/fakeRegisterResult.plist"
+  ],
+  minimum_os_version = define_minimum_os_version,
+  optimization = "space",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "RangersAppLog_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "RangersAppLog",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "RangersAppLog_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":RangersAppLog_xcode_hmap"
+  ],
+  external_name = "RangersAppLog",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RangersAppLog_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RangersAppLog_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RangersAppLog_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RangersAppLog_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "RangersAppLog_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RangersAppLog_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "RangersAppLog_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":RangersAppLog_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RangersAppLog",
+  deps = [
+    ":RangersAppLog_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "RangersAppLog_lib",
+  deps = [
+    ":RangersAppLog"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/Core/BDroneDefines.h",
+    "BDAutoTracker/Classes/Core/Core/ALink/BDAutoTrackALinkActivityContinuation.h",
+    "BDAutoTracker/Classes/Core/Core/ALink/BDAutoTrackerALinkPasteBoardParser.h",
+    "BDAutoTracker/Classes/Core/Core/ALink/NSURL+ral_ALink.h",
+    "BDAutoTracker/Classes/Core/Core/BDAutoTrack+Private.h",
+    "BDAutoTracker/Classes/Core/Core/BDAutoTrackApplication.h",
+    "BDAutoTracker/Classes/Core/Core/BDAutoTrackDurationEvent.h",
+    "BDAutoTracker/Classes/Core/Core/BDAutoTrackEventGenerator.h",
+    "BDAutoTracker/Classes/Core/Core/BDAutoTrackInternalHandler.h",
+    "BDAutoTracker/Classes/Core/Core/BDAutoTrackSchemeHandler+Internal.h",
+    "BDAutoTracker/Classes/Core/Core/BDAutoTrackerDefines.h",
+    "BDAutoTracker/Classes/Core/Core/BDTrackerCoreConstants.h",
+    "BDAutoTracker/Classes/Core/Core/Batch/BDAuoTrackEventBlock.h",
+    "BDAutoTracker/Classes/Core/Core/Batch/BDAutoTrackBatchData.h",
+    "BDAutoTracker/Classes/Core/Core/Batch/BDAutoTrackBatchPacker.h",
+    "BDAutoTracker/Classes/Core/Core/Batch/BDAutoTrackBatchSchedule.h",
+    "BDAutoTracker/Classes/Core/Core/Batch/BDAutoTrackBatchService.h",
+    "BDAutoTracker/Classes/Core/Core/Batch/BDAutoTrackBatchTimer.h",
+    "BDAutoTracker/Classes/Core/Core/Bridge/BDAutoTrackH5Bridge.h",
+    "BDAutoTracker/Classes/Core/Core/Bridge/BDAutoTrackScriptMessageHandler.h",
+    "BDAutoTracker/Classes/Core/Core/Config/BDAutoTrackABConfig.h",
+    "BDAutoTracker/Classes/Core/Core/Config/BDAutoTrackLocalConfigService.h",
+    "BDAutoTracker/Classes/Core/Core/Config/BDAutoTrackRemoteSettingService.h",
+    "BDAutoTracker/Classes/Core/Core/Config/RangersAppLogConfig.h",
+    "BDAutoTracker/Classes/Core/Core/Database/BDAutoTrackDataCenter.h",
+    "BDAutoTracker/Classes/Core/Core/Database/BDAutoTrackDatabaseService.h",
+    "BDAutoTracker/Classes/Core/Core/DeviceInstall/BDAutoTrackRegisterService.h",
+    "BDAutoTracker/Classes/Core/Core/Game/BDAutoTrackPlaySessionHandler.h",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrack+Extension.h",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrack+Game.h",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrack+GameTrack.h",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrack+LaunchFrom.h",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrack+OhayooGameTrack.h",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrack+Profile.h",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrack+SharedInstance.h",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrack+Special.h",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrack.h",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrackAlinkRouting.h",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrackCacheRemover.h",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrackConfig+AppLog.h",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrackConfig+BDroneMonitor.h",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrackConfig.h",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrackEncryptionDelegate.h",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrackNotifications.h",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrackSchemeHandler.h",
+    "BDAutoTracker/Classes/Core/Core/Header/BDCommonDefine.h",
+    "BDAutoTracker/Classes/Core/Core/Header/BDCommonEnumDefine.h",
+    "BDAutoTracker/Classes/Core/Core/Header/RangersAppLog.h",
+    "BDAutoTracker/Classes/Core/Core/Header/RangersAppLogCore.h",
+    "BDAutoTracker/Classes/Core/Core/ProfileReport/BDAutoTrackProfileReporter.h",
+    "BDAutoTracker/Classes/Core/Core/Request/BDAutoTrackActivateRequest.h",
+    "BDAutoTracker/Classes/Core/Core/Request/BDAutoTrackBaseRequest.h",
+    "BDAutoTracker/Classes/Core/Core/Request/BDAutoTrackRegisterRequest.h",
+    "BDAutoTracker/Classes/Core/Core/Request/BDAutoTrackRequest.h",
+    "BDAutoTracker/Classes/Core/Core/Request/BDAutoTrackSettingsRequest.h",
+    "BDAutoTracker/Classes/Core/Core/Request/BDAutoTrackSimpleRequest.h",
+    "BDAutoTracker/Classes/Core/Core/Router/RangersRouter.h",
+    "BDAutoTracker/Classes/Core/Core/Service/BDAutoTrackService.h",
+    "BDAutoTracker/Classes/Core/Core/Service/BDAutoTrackServiceCenter.h",
+    "BDAutoTracker/Classes/Core/Core/Session/BDAutoTrackSessionHandler.h",
+    "BDAutoTracker/Classes/Core/Core/Utility/BDAutoTrackEventCheck.h",
+    "BDAutoTracker/Classes/Core/Core/Utility/BDAutoTrackEventUntils.h",
+    "BDAutoTracker/Classes/Core/Core/Utility/BDAutoTrackParamters.h",
+    "BDAutoTracker/Classes/Core/Core/Utility/MMap/BDAutoTrackMMap.h",
+    "BDAutoTracker/Classes/Core/Identifier/BDAutoTrackIdentifier.h",
+    "BDAutoTracker/Classes/Core/Logger/RangersConsoleLogger.h",
+    "BDAutoTracker/Classes/Core/Logger/RangersLog.h",
+    "BDAutoTracker/Classes/Core/Logger/RangersLogManager.h",
+    "BDAutoTracker/Classes/Core/Logger/VETFileLogger.h",
+    "BDAutoTracker/Classes/Core/Monitor/BDAutoTrackMetricsCollector.h",
+    "BDAutoTracker/Classes/Core/Monitor/BDAutoTrackMonitorStore.h",
+    "BDAutoTracker/Classes/Core/Monitor/BDroneMonitor.h",
+    "BDAutoTracker/Classes/Core/Monitor/BDroneMonitorAgent.h",
+    "BDAutoTracker/Classes/Core/Monitor/BDroneMonitorDefines.h",
+    "BDAutoTracker/Classes/Core/Network/BDAutoTrackCellular.h",
+    "BDAutoTracker/Classes/Core/Network/BDAutoTrackEnviroment.h",
+    "BDAutoTracker/Classes/Core/Network/BDAutoTrackNetworkManager.h",
+    "BDAutoTracker/Classes/Core/Network/BDAutoTrackNetworkRequest.h",
+    "BDAutoTracker/Classes/Core/Network/BDAutoTrackReachability.h",
+    "BDAutoTracker/Classes/Core/Network/Host/BDAutoTrackURLHostItem.h",
+    "BDAutoTracker/Classes/Core/Network/Host/BDAutoTrackURLHostItemPrivate.h",
+    "BDAutoTracker/Classes/Core/Network/Host/BDAutoTrackURLHostItemProtocol.h",
+    "BDAutoTracker/Classes/Core/Network/Host/BDAutoTrackURLHostProvider.h",
+    "BDAutoTracker/Classes/Core/Tables/BDAutoTrackBaseTable.h",
+    "BDAutoTracker/Classes/Core/Tables/BDAutoTrackTables.h",
+    "BDAutoTracker/Classes/Core/Tables/Constants/BDAutoTrackTableConstants.h",
+    "BDAutoTracker/Classes/Core/Tables/FMDB/BDAutoTrackDB.h",
+    "BDAutoTracker/Classes/Core/Tables/FMDB/BDAutoTrackDatabase.h",
+    "BDAutoTracker/Classes/Core/Tables/FMDB/BDAutoTrackDatabaseQueue.h",
+    "BDAutoTracker/Classes/Core/Tables/FMDB/BDAutoTrackResultSet.h",
+    "BDAutoTracker/Classes/Core/Utility/BDAutoTrackDefaults.h",
+    "BDAutoTracker/Classes/Core/Utility/BDAutoTrackDefaults_Fallback.h",
+    "BDAutoTracker/Classes/Core/Utility/BDAutoTrackDeviceHelper.h",
+    "BDAutoTracker/Classes/Core/Utility/BDAutoTrackMacro.h",
+    "BDAutoTracker/Classes/Core/Utility/BDAutoTrackMainBundle.h",
+    "BDAutoTracker/Classes/Core/Utility/BDAutoTrackSandBoxHelper.h",
+    "BDAutoTracker/Classes/Core/Utility/BDAutoTrackTimer.h",
+    "BDAutoTracker/Classes/Core/Utility/BDAutoTrackUI.h",
+    "BDAutoTracker/Classes/Core/Utility/BDAutoTrackUtility.h",
+    "BDAutoTracker/Classes/Core/Utility/BDAutoTrackWeakProxy.h",
+    "BDAutoTracker/Classes/Core/Utility/BDMultiPlatformPrefix.h",
+    "BDAutoTracker/Classes/Core/Utility/BDTrackerErrorBuilder.h",
+    "BDAutoTracker/Classes/Core/Utility/BDTrackerObjectBindContext.h",
+    "BDAutoTracker/Classes/Core/Utility/BDTrackerUtility.h",
+    "BDAutoTracker/Classes/Core/Utility/Extension/NSData+VECompression.h",
+    "BDAutoTracker/Classes/Core/Utility/Extension/NSData+VECryptor.h",
+    "BDAutoTracker/Classes/Core/Utility/Extension/NSDictionary+VETyped.h",
+    "BDAutoTracker/Classes/Core/Utility/Extension/NSMutableDictionary+BDAutoTrackParameter.h",
+    "BDAutoTracker/Classes/Core/Utility/Extension/NSURLRequest+RALDebug.h",
+    "BDAutoTracker/Classes/Core/Utility/Settings/BDAutoTrackKeychain.h",
+    "BDAutoTracker/Classes/Core/Utility/Swizzle/BDAutoTrackSwizzle.h",
+    "BDAutoTracker/Classes/Core/Utility/UIView+Toast.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/RangersAppLog/BDAuoTrackEventBlock.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrack+Extension.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrack+Game.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrack+GameTrack.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrack+LaunchFrom.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrack+OhayooGameTrack.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrack+Private.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrack+Profile.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrack+SharedInstance.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrack+Special.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrack.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackABConfig.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackALinkActivityContinuation.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackActivateRequest.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackAlinkRouting.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackApplication.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackBaseRequest.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackBaseTable.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackBatchData.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackBatchPacker.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackBatchSchedule.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackBatchService.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackBatchTimer.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackCacheRemover.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackCellular.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackConfig+AppLog.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackConfig+BDroneMonitor.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackConfig.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackDB.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackDataCenter.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackDatabase.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackDatabaseQueue.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackDatabaseService.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackDefaults.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackDefaults_Fallback.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackDeviceHelper.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackDurationEvent.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackEncryptionDelegate.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackEnviroment.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackEventCheck.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackEventGenerator.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackEventUntils.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackH5Bridge.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackIdentifier.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackInternalHandler.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackKeychain.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackLocalConfigService.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackMMap.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackMacro.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackMainBundle.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackMetricsCollector.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackMonitorStore.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackNetworkManager.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackNetworkRequest.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackNotifications.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackParamters.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackPlaySessionHandler.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackProfileReporter.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackReachability.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackRegisterRequest.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackRegisterService.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackRemoteSettingService.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackRequest.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackResultSet.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackSandBoxHelper.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackSchemeHandler+Internal.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackSchemeHandler.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackScriptMessageHandler.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackService.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackServiceCenter.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackSessionHandler.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackSettingsRequest.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackSimpleRequest.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackSwizzle.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackTableConstants.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackTables.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackTimer.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackUI.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackURLHostItem.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackURLHostItemPrivate.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackURLHostItemProtocol.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackURLHostProvider.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackUtility.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackWeakProxy.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackerALinkPasteBoardParser.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackerDefines.h",
+    "pod_support/Headers/Private/RangersAppLog/BDCommonDefine.h",
+    "pod_support/Headers/Private/RangersAppLog/BDCommonEnumDefine.h",
+    "pod_support/Headers/Private/RangersAppLog/BDMultiPlatformPrefix.h",
+    "pod_support/Headers/Private/RangersAppLog/BDTrackerCoreConstants.h",
+    "pod_support/Headers/Private/RangersAppLog/BDTrackerErrorBuilder.h",
+    "pod_support/Headers/Private/RangersAppLog/BDTrackerObjectBindContext.h",
+    "pod_support/Headers/Private/RangersAppLog/BDTrackerUtility.h",
+    "pod_support/Headers/Private/RangersAppLog/BDroneDefines.h",
+    "pod_support/Headers/Private/RangersAppLog/BDroneMonitor.h",
+    "pod_support/Headers/Private/RangersAppLog/BDroneMonitorAgent.h",
+    "pod_support/Headers/Private/RangersAppLog/BDroneMonitorDefines.h",
+    "pod_support/Headers/Private/RangersAppLog/NSData+VECompression.h",
+    "pod_support/Headers/Private/RangersAppLog/NSData+VECryptor.h",
+    "pod_support/Headers/Private/RangersAppLog/NSDictionary+VETyped.h",
+    "pod_support/Headers/Private/RangersAppLog/NSMutableDictionary+BDAutoTrackParameter.h",
+    "pod_support/Headers/Private/RangersAppLog/NSURL+ral_ALink.h",
+    "pod_support/Headers/Private/RangersAppLog/NSURLRequest+RALDebug.h",
+    "pod_support/Headers/Private/RangersAppLog/RangersAppLog.h",
+    "pod_support/Headers/Private/RangersAppLog/RangersAppLogConfig.h",
+    "pod_support/Headers/Private/RangersAppLog/RangersAppLogCore.h",
+    "pod_support/Headers/Private/RangersAppLog/RangersConsoleLogger.h",
+    "pod_support/Headers/Private/RangersAppLog/RangersLog.h",
+    "pod_support/Headers/Private/RangersAppLog/RangersLogManager.h",
+    "pod_support/Headers/Private/RangersAppLog/RangersRouter.h",
+    "pod_support/Headers/Private/RangersAppLog/UIView+Toast.h",
+    "pod_support/Headers/Private/RangersAppLog/VETFileLogger.h",
+    "pod_support/Headers/Public/RangersAppLog/BDAutoTrack+Extension.h",
+    "pod_support/Headers/Public/RangersAppLog/BDAutoTrack+Game.h",
+    "pod_support/Headers/Public/RangersAppLog/BDAutoTrack+GameTrack.h",
+    "pod_support/Headers/Public/RangersAppLog/BDAutoTrack+LaunchFrom.h",
+    "pod_support/Headers/Public/RangersAppLog/BDAutoTrack+OhayooGameTrack.h",
+    "pod_support/Headers/Public/RangersAppLog/BDAutoTrack+Profile.h",
+    "pod_support/Headers/Public/RangersAppLog/BDAutoTrack+SharedInstance.h",
+    "pod_support/Headers/Public/RangersAppLog/BDAutoTrack+Special.h",
+    "pod_support/Headers/Public/RangersAppLog/BDAutoTrack.h",
+    "pod_support/Headers/Public/RangersAppLog/BDAutoTrackAlinkRouting.h",
+    "pod_support/Headers/Public/RangersAppLog/BDAutoTrackCacheRemover.h",
+    "pod_support/Headers/Public/RangersAppLog/BDAutoTrackConfig+AppLog.h",
+    "pod_support/Headers/Public/RangersAppLog/BDAutoTrackConfig+BDroneMonitor.h",
+    "pod_support/Headers/Public/RangersAppLog/BDAutoTrackConfig.h",
+    "pod_support/Headers/Public/RangersAppLog/BDAutoTrackEncryptionDelegate.h",
+    "pod_support/Headers/Public/RangersAppLog/BDAutoTrackNotifications.h",
+    "pod_support/Headers/Public/RangersAppLog/BDAutoTrackSchemeHandler.h",
+    "pod_support/Headers/Public/RangersAppLog/BDCommonDefine.h",
+    "pod_support/Headers/Public/RangersAppLog/BDCommonEnumDefine.h",
+    "pod_support/Headers/Public/RangersAppLog/RangersAppLog.h",
+    "pod_support/Headers/Public/RangersAppLog/RangersAppLogCore.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/Core/Core/Batch/BDAuoTrackEventBlock.m",
+    "BDAutoTracker/Classes/Core/Core/BDAutoTrack+Extension.m",
+    "BDAutoTracker/Classes/Core/Core/Game/BDAutoTrack+Game.m",
+    "BDAutoTracker/Classes/Core/Core/Game/BDAutoTrack+GameTrack.m",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrack+LaunchFrom.m",
+    "BDAutoTracker/Classes/Core/Core/Game/BDAutoTrack+OhayooGameTrack.m",
+    "BDAutoTracker/Classes/Core/Core/BDAutoTrack+Private.m",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrack+Profile.m",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrack+SharedInstance.m",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrack+Special.m",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrack.m",
+    "BDAutoTracker/Classes/Core/Core/Config/BDAutoTrackABConfig.m",
+    "BDAutoTracker/Classes/Core/Core/Request/BDAutoTrackActivateRequest.m",
+    "BDAutoTracker/Classes/Core/Core/ALink/BDAutoTrackALinkActivityContinuation.m",
+    "BDAutoTracker/Classes/Core/Core/BDAutoTrackApplication.m",
+    "BDAutoTracker/Classes/Core/Core/Request/BDAutoTrackBaseRequest.m",
+    "BDAutoTracker/Classes/Core/Tables/BDAutoTrackBaseTable.m",
+    "BDAutoTracker/Classes/Core/Core/Batch/BDAutoTrackBatchData.m",
+    "BDAutoTracker/Classes/Core/Core/Batch/BDAutoTrackBatchPacker.m",
+    "BDAutoTracker/Classes/Core/Core/Batch/BDAutoTrackBatchSchedule.m",
+    "BDAutoTracker/Classes/Core/Core/Batch/BDAutoTrackBatchService.m",
+    "BDAutoTracker/Classes/Core/Core/Batch/BDAutoTrackBatchTimer.m",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrackCacheRemover.m",
+    "BDAutoTracker/Classes/Core/Network/BDAutoTrackCellular.m",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrackConfig+AppLog.m",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrackConfig+BDroneMonitor.m",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrackConfig.m",
+    "BDAutoTracker/Classes/Core/Tables/FMDB/BDAutoTrackDatabase.m",
+    "BDAutoTracker/Classes/Core/Tables/FMDB/BDAutoTrackDatabaseQueue.m",
+    "BDAutoTracker/Classes/Core/Core/Database/BDAutoTrackDatabaseService.m",
+    "BDAutoTracker/Classes/Core/Core/Database/BDAutoTrackDataCenter.m",
+    "BDAutoTracker/Classes/Core/Utility/BDAutoTrackDefaults.m",
+    "BDAutoTracker/Classes/Core/Utility/BDAutoTrackDefaults_Fallback.m",
+    "BDAutoTracker/Classes/Core/Utility/BDAutoTrackDeviceHelper.m",
+    "BDAutoTracker/Classes/Core/Core/BDAutoTrackDurationEvent.m",
+    "BDAutoTracker/Classes/Core/Network/BDAutoTrackEnviroment.m",
+    "BDAutoTracker/Classes/Core/Core/ALink/BDAutoTrackerALinkPasteBoardParser.m",
+    "BDAutoTracker/Classes/Core/Core/BDAutoTrackerDefines.m",
+    "BDAutoTracker/Classes/Core/Core/Utility/BDAutoTrackEventCheck.m",
+    "BDAutoTracker/Classes/Core/Core/BDAutoTrackEventGenerator.m",
+    "BDAutoTracker/Classes/Core/Core/Utility/BDAutoTrackEventUntils.m",
+    "BDAutoTracker/Classes/Core/Core/Bridge/BDAutoTrackH5Bridge.m",
+    "BDAutoTracker/Classes/Core/Identifier/BDAutoTrackIdentifier.m",
+    "BDAutoTracker/Classes/Core/Core/BDAutoTrackInternalHandler.m",
+    "BDAutoTracker/Classes/Core/Utility/Settings/BDAutoTrackKeychain.m",
+    "BDAutoTracker/Classes/Core/Core/Config/BDAutoTrackLocalConfigService.m",
+    "BDAutoTracker/Classes/Core/Utility/BDAutoTrackMainBundle.m",
+    "BDAutoTracker/Classes/Core/Monitor/BDAutoTrackMetricsCollector.m",
+    "BDAutoTracker/Classes/Core/Core/Utility/MMap/BDAutoTrackMMap.m",
+    "BDAutoTracker/Classes/Core/Monitor/BDAutoTrackMonitorStore.m",
+    "BDAutoTracker/Classes/Core/Network/BDAutoTrackNetworkManager.m",
+    "BDAutoTracker/Classes/Core/Network/BDAutoTrackNetworkRequest.m",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrackNotifications.m",
+    "BDAutoTracker/Classes/Core/Core/Utility/BDAutoTrackParamters.m",
+    "BDAutoTracker/Classes/Core/Core/Game/BDAutoTrackPlaySessionHandler.m",
+    "BDAutoTracker/Classes/Core/Core/ProfileReport/BDAutoTrackProfileReporter.m",
+    "BDAutoTracker/Classes/Core/Network/BDAutoTrackReachability.m",
+    "BDAutoTracker/Classes/Core/Core/Request/BDAutoTrackRegisterRequest.m",
+    "BDAutoTracker/Classes/Core/Core/DeviceInstall/BDAutoTrackRegisterService.m",
+    "BDAutoTracker/Classes/Core/Core/Config/BDAutoTrackRemoteSettingService.m",
+    "BDAutoTracker/Classes/Core/Core/Request/BDAutoTrackRequest.m",
+    "BDAutoTracker/Classes/Core/Tables/FMDB/BDAutoTrackResultSet.m",
+    "BDAutoTracker/Classes/Core/Utility/BDAutoTrackSandBoxHelper.m",
+    "BDAutoTracker/Classes/Core/Core/BDAutoTrackSchemeHandler+Internal.m",
+    "BDAutoTracker/Classes/Core/Core/Header/BDAutoTrackSchemeHandler.m",
+    "BDAutoTracker/Classes/Core/Core/Bridge/BDAutoTrackScriptMessageHandler.m",
+    "BDAutoTracker/Classes/Core/Core/Service/BDAutoTrackService.m",
+    "BDAutoTracker/Classes/Core/Core/Service/BDAutoTrackServiceCenter.m",
+    "BDAutoTracker/Classes/Core/Core/Session/BDAutoTrackSessionHandler.m",
+    "BDAutoTracker/Classes/Core/Core/Request/BDAutoTrackSettingsRequest.m",
+    "BDAutoTracker/Classes/Core/Core/Request/BDAutoTrackSimpleRequest.m",
+    "BDAutoTracker/Classes/Core/Utility/Swizzle/BDAutoTrackSwizzle.m",
+    "BDAutoTracker/Classes/Core/Tables/Constants/BDAutoTrackTableConstants.m",
+    "BDAutoTracker/Classes/Core/Tables/BDAutoTrackTables.m",
+    "BDAutoTracker/Classes/Core/Utility/BDAutoTrackTimer.m",
+    "BDAutoTracker/Classes/Core/Utility/BDAutoTrackUI.m",
+    "BDAutoTracker/Classes/Core/Network/Host/BDAutoTrackURLHostItem.m",
+    "BDAutoTracker/Classes/Core/Network/Host/BDAutoTrackURLHostItemPrivate.m",
+    "BDAutoTracker/Classes/Core/Network/Host/BDAutoTrackURLHostProvider.m",
+    "BDAutoTracker/Classes/Core/Utility/BDAutoTrackUtility.m",
+    "BDAutoTracker/Classes/Core/Utility/BDAutoTrackWeakProxy.m",
+    "BDAutoTracker/Classes/Core/Monitor/BDroneMonitor.m",
+    "BDAutoTracker/Classes/Core/Monitor/BDroneMonitorAgent.m",
+    "BDAutoTracker/Classes/Core/Monitor/BDroneMonitorDefines.m",
+    "BDAutoTracker/Classes/Core/Core/BDTrackerCoreConstants.m",
+    "BDAutoTracker/Classes/Core/Utility/BDTrackerErrorBuilder.m",
+    "BDAutoTracker/Classes/Core/Utility/BDTrackerObjectBindContext.m",
+    "BDAutoTracker/Classes/Core/Utility/BDTrackerUtility.m",
+    "BDAutoTracker/Classes/Core/Utility/Extension/NSData+VECompression.m",
+    "BDAutoTracker/Classes/Core/Utility/Extension/NSData+VECryptor.m",
+    "BDAutoTracker/Classes/Core/Utility/Extension/NSDictionary+VETyped.m",
+    "BDAutoTracker/Classes/Core/Utility/Extension/NSMutableDictionary+BDAutoTrackParameter.m",
+    "BDAutoTracker/Classes/Core/Core/ALink/NSURL+ral_ALink.m",
+    "BDAutoTracker/Classes/Core/Utility/Extension/NSURLRequest+RALDebug.m",
+    "BDAutoTracker/Classes/Core/Core/Config/RangersAppLogConfig.m",
+    "BDAutoTracker/Classes/Core/Logger/RangersConsoleLogger.m",
+    "BDAutoTracker/Classes/Core/Logger/RangersLogManager.m",
+    "BDAutoTracker/Classes/Core/Core/Router/RangersRouter.m",
+    "BDAutoTracker/Classes/Core/Utility/UIView+Toast.m",
+    "BDAutoTracker/Classes/Core/Logger/VETFileLogger.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [
+    "Core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "CoreGraphics",
+    "Foundation",
+    "Security",
+    "CoreTelephony",
+    "CoreFoundation",
+    "SystemConfiguration",
+    "WebKit",
+    "UIKit"
+  ],
+  sdk_dylibs = [
+    "z",
+    "sqlite3"
+  ],
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Core_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":RangersAppLog_Core_RangersAppLog"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Host_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Host_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Host_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Host-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Host-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Host_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Host_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Host_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Host",
+  deps = [
+    ":Host_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Host_lib",
+  deps = [
+    ":Host"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_CN_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/Host/CN/BDAutoTrackURLHostItemCN.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_CN_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Host_CN_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Host_CN_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Host_CN_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Host_CN-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Host_CN-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_CN_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/Host/CN/BDAutoTrackURLHostItemCN.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Host_CN_oc",
+  enable_modules = 1,
+  srcs = [
+    "Host_CN_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Host_CN_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Host_CN_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Host_CN",
+  deps = [
+    ":Host_CN_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Host_CN_lib",
+  deps = [
+    ":Host_CN"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_SG_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/Host/SG/BDAutoTrackURLHostItemSG.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_SG_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Host_SG_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Host_SG_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Host_SG_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Host_SG-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Host_SG-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_SG_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/Host/SG/BDAutoTrackURLHostItemSG.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Host_SG_oc",
+  enable_modules = 1,
+  srcs = [
+    "Host_SG_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Host_SG_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Host_SG_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Host_SG",
+  deps = [
+    ":Host_SG_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Host_SG_lib",
+  deps = [
+    ":Host_SG"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_VA_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/Host/VA/BDAutoTrackURLHostItemVA.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_VA_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Host_VA_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Host_VA_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Host_VA_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Host_VA-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Host_VA-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Host_VA_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/Host/VA/BDAutoTrackURLHostItemVA.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Host_VA_oc",
+  enable_modules = 1,
+  srcs = [
+    "Host_VA_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Host_VA_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Host_VA_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Host_VA",
+  deps = [
+    ":Host_VA_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Host_VA_lib",
+  deps = [
+    ":Host_VA"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Unique_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/Unique/BDAutoTrackUniqueIDHandler.h",
+    "BDAutoTracker/Classes/Unique/Public/BDAutoTrackIDFA.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Unique_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Unique_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Unique_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Unique_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Unique-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Unique-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Unique_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/Unique/Public/BDAutoTrackIDFA.m",
+    "BDAutoTracker/Classes/Unique/BDAutoTrackUniqueIDHandler.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Unique_oc",
+  enable_modules = 1,
+  srcs = [
+    "Unique_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Unique_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "AdSupport"
+  ],
+  weak_sdk_frameworks = [
+    "AppTrackingTransparency"
+  ],
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Unique_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Unique",
+  deps = [
+    ":Unique_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Unique_lib",
+  deps = [
+    ":Unique"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CAID_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/CAID/BDAutoTrackDeviceHelper+CAID.h",
+    "BDAutoTracker/Classes/CAID/BDAutoTrackRegisterService+CAID.h",
+    "BDAutoTracker/Classes/CAID/Header/BDAutoTrack+CAID.h",
+    "BDAutoTracker/Classes/CAID/RALInstallExtraParams.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CAID_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CAID_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CAID_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "CAID_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_CAID-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_CAID-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CAID_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/CAID/Header/BDAutoTrack+CAID.m",
+    "BDAutoTracker/Classes/CAID/BDAutoTrackDeviceHelper+CAID.m",
+    "BDAutoTracker/Classes/CAID/BDAutoTrackRegisterService+CAID.m",
+    "BDAutoTracker/Classes/CAID/RALInstallExtraParams.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CAID_oc",
+  enable_modules = 1,
+  srcs = [
+    "CAID_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "CAID_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":CAID_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CAID",
+  deps = [
+    ":CAID_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "CAID_lib",
+  deps = [
+    ":CAID"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ASA_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/ASA/BDAutoTrackASA.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ASA_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ASA_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ASA_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ASA_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_ASA-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_ASA-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ASA_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/ASA/BDAutoTrackASA.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ASA_oc",
+  enable_modules = 1,
+  srcs = [
+    "ASA_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "ASA_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "iAd"
+  ],
+  weak_sdk_frameworks = [
+    "AdServices"
+  ],
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":ASA_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ASA",
+  deps = [
+    ":ASA_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ASA_lib",
+  deps = [
+    ":ASA"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Flags_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Flags_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Flags_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Flags_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Flags_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Flags-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Flags-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Flags_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Flags_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Flags_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Flags",
+  deps = [
+    ":Flags_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Flags_lib",
+  deps = [
+    ":Flags"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Flags_DisableiAd_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/Flags/DisableiAd/RALFlagDisableiAd.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Flags_DisableiAd_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Flags_DisableiAd_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Flags_DisableiAd_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Flags_DisableiAd_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Flags_DisableiAd-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Flags_DisableiAd-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Flags_DisableiAd_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/Flags/DisableiAd/RALFlagDisableiAd.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Flags_DisableiAd_oc",
+  enable_modules = 1,
+  srcs = [
+    "Flags_DisableiAd_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Flags_DisableiAd_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Flags_DisableiAd_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Flags_DisableiAd",
+  deps = [
+    ":Flags_DisableiAd_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Flags_DisableiAd_lib",
+  deps = [
+    ":Flags_DisableiAd"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Log_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/Log/BDAutoTrackKeepRequest.h",
+    "BDAutoTracker/Classes/Log/BDAutoTrackLoginRequest.h",
+    "BDAutoTracker/Classes/Log/BDAutoTrackRealTimeHandler.h",
+    "BDAutoTracker/Classes/Log/BDAutoTrackRealTimeService.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Log_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Log_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Log_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Log_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Log-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Log-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Log_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/Log/BDAutoTrackKeepRequest.m",
+    "BDAutoTracker/Classes/Log/BDAutoTrackLoginRequest.m",
+    "BDAutoTracker/Classes/Log/BDAutoTrackRealTimeHandler.m",
+    "BDAutoTracker/Classes/Log/BDAutoTrackRealTimeService.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Log_oc",
+  enable_modules = 1,
+  srcs = [
+    "Log_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Log_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Log_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Log",
+  deps = [
+    ":Log_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Log_lib",
+  deps = [
+    ":Log"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ET_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/ET/BDAutoTrack+ET.h",
+    "BDAutoTracker/Classes/ET/Log/BDAutoTrackETRequest.h",
+    "BDAutoTracker/Classes/ET/Log/BDAutoTrackETService.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ET_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrack+ET.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackETRequest.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackETService.h",
+    "pod_support/Headers/Public/RangersAppLog/BDAutoTrack+ET.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ET_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ET_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ET_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_ET-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_ET-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ET_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/ET/BDAutoTrack+ET.m",
+    "BDAutoTracker/Classes/ET/Log/BDAutoTrackETRequest.m",
+    "BDAutoTracker/Classes/ET/Log/BDAutoTrackETService.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ET_oc",
+  enable_modules = 1,
+  srcs = [
+    "ET_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "ET_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":ET_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ET",
+  deps = [
+    ":ET_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ET_lib",
+  deps = [
+    ":ET"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Filter_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/Filter/BDAutoTrack+Filter.h",
+    "BDAutoTracker/Classes/Filter/Filter/BDAutoTrackFilter.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Filter_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrack+Filter.h",
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackFilter.h",
+    "pod_support/Headers/Public/RangersAppLog/BDAutoTrack+Filter.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Filter_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Filter_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Filter_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Filter-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Filter-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Filter_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/Filter/BDAutoTrack+Filter.m",
+    "BDAutoTracker/Classes/Filter/Filter/BDAutoTrackFilter.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Filter_oc",
+  enable_modules = 1,
+  srcs = [
+    "Filter_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Filter_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Filter_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Filter",
+  deps = [
+    ":Filter_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Filter_lib",
+  deps = [
+    ":Filter"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "UITracker_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/UITracker/BDAutoTrackPageLeave.h",
+    "BDAutoTracker/Classes/UITracker/BDAutoTrackUISessionHandler.h",
+    "BDAutoTracker/Classes/UITracker/BDDelegateDecorator.h",
+    "BDAutoTracker/Classes/UITracker/BDTrackConstants.h",
+    "BDAutoTracker/Classes/UITracker/BDUIAutoTracker.h",
+    "BDAutoTracker/Classes/UITracker/Extension/NSObject+AutoTrack.h",
+    "BDAutoTracker/Classes/UITracker/Extension/UIBarButtonItem+AutoTrack.h",
+    "BDAutoTracker/Classes/UITracker/Extension/UIResponder+AutoTrack.h",
+    "BDAutoTracker/Classes/UITracker/Extension/UIView+AutoTrack.h",
+    "BDAutoTracker/Classes/UITracker/Header/BDAutoTrack+UITracker.h",
+    "BDAutoTracker/Classes/UITracker/Header/BDKeyWindowTracker.h",
+    "BDAutoTracker/Classes/UITracker/Header/RangersAppLogUITrack.h",
+    "BDAutoTracker/Classes/UITracker/Header/UIBarButtonItem+TrackInfo.h",
+    "BDAutoTracker/Classes/UITracker/Header/UIView+TrackInfo.h",
+    "BDAutoTracker/Classes/UITracker/Header/UIViewController+TrackInfo.h",
+    "BDAutoTracker/Classes/UITracker/UI/Alert/UIAlertAction+AutoTrack.h",
+    "BDAutoTracker/Classes/UITracker/UI/Alert/UIAlertController+AutoTrack.h",
+    "BDAutoTracker/Classes/UITracker/UI/Cell/UICollectionView+AutoTrack.h",
+    "BDAutoTracker/Classes/UITracker/UI/Cell/UICollectionViewCell+AutoTrack.h",
+    "BDAutoTracker/Classes/UITracker/UI/Cell/UITableView+AutoTrack.h",
+    "BDAutoTracker/Classes/UITracker/UI/Cell/UITableViewCell+AutoTrack.h",
+    "BDAutoTracker/Classes/UITracker/UI/UIApplication+AutoTrack.h",
+    "BDAutoTracker/Classes/UITracker/UI/UIGestureRecognizer+AutoTrack.h",
+    "BDAutoTracker/Classes/UITracker/UI/ViewController/UINavigationController+AutoTrack.h",
+    "BDAutoTracker/Classes/UITracker/UI/ViewController/UIPageViewController+AutoTrack.h",
+    "BDAutoTracker/Classes/UITracker/UI/ViewController/UITabBarController+AutoTrack.h",
+    "BDAutoTracker/Classes/UITracker/UI/ViewController/UIViewController+AutoTrack.h",
+    "BDAutoTracker/Classes/UITracker/UI/WebView/BDAutoTrackWebViewTrackJS.h",
+    "BDAutoTracker/Classes/UITracker/UI/WebView/BDWKScriptMessageHandler.h",
+    "BDAutoTracker/Classes/UITracker/UI/WebView/WKWebView+AutoTrack.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "UITracker_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "UITracker_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "UITracker_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "UITracker_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_UITracker-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_UITracker-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "UITracker_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/UITracker/Header/BDAutoTrack+UITracker.m",
+    "BDAutoTracker/Classes/UITracker/BDAutoTrackPageLeave.m",
+    "BDAutoTracker/Classes/UITracker/BDAutoTrackUISessionHandler.m",
+    "BDAutoTracker/Classes/UITracker/UI/WebView/BDAutoTrackWebViewTrackJS.m",
+    "BDAutoTracker/Classes/UITracker/BDDelegateDecorator.m",
+    "BDAutoTracker/Classes/UITracker/Header/BDKeyWindowTracker.m",
+    "BDAutoTracker/Classes/UITracker/BDTrackConstants.m",
+    "BDAutoTracker/Classes/UITracker/BDUIAutoTracker.m",
+    "BDAutoTracker/Classes/UITracker/UI/WebView/BDWKScriptMessageHandler.m",
+    "BDAutoTracker/Classes/UITracker/Extension/NSObject+AutoTrack.m",
+    "BDAutoTracker/Classes/UITracker/UI/Alert/UIAlertAction+AutoTrack.m",
+    "BDAutoTracker/Classes/UITracker/UI/Alert/UIAlertController+AutoTrack.m",
+    "BDAutoTracker/Classes/UITracker/UI/UIApplication+AutoTrack.m",
+    "BDAutoTracker/Classes/UITracker/Extension/UIBarButtonItem+AutoTrack.m",
+    "BDAutoTracker/Classes/UITracker/Header/UIBarButtonItem+TrackInfo.m",
+    "BDAutoTracker/Classes/UITracker/UI/Cell/UICollectionView+AutoTrack.m",
+    "BDAutoTracker/Classes/UITracker/UI/Cell/UICollectionViewCell+AutoTrack.m",
+    "BDAutoTracker/Classes/UITracker/UI/UIGestureRecognizer+AutoTrack.m",
+    "BDAutoTracker/Classes/UITracker/UI/ViewController/UINavigationController+AutoTrack.m",
+    "BDAutoTracker/Classes/UITracker/UI/ViewController/UIPageViewController+AutoTrack.m",
+    "BDAutoTracker/Classes/UITracker/Extension/UIResponder+AutoTrack.m",
+    "BDAutoTracker/Classes/UITracker/UI/ViewController/UITabBarController+AutoTrack.m",
+    "BDAutoTracker/Classes/UITracker/UI/Cell/UITableView+AutoTrack.m",
+    "BDAutoTracker/Classes/UITracker/UI/Cell/UITableViewCell+AutoTrack.m",
+    "BDAutoTracker/Classes/UITracker/Extension/UIView+AutoTrack.m",
+    "BDAutoTracker/Classes/UITracker/Header/UIView+TrackInfo.m",
+    "BDAutoTracker/Classes/UITracker/UI/ViewController/UIViewController+AutoTrack.m",
+    "BDAutoTracker/Classes/UITracker/Header/UIViewController+TrackInfo.m",
+    "BDAutoTracker/Classes/UITracker/UI/WebView/WKWebView+AutoTrack.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "UITracker_oc",
+  enable_modules = 1,
+  srcs = [
+    "UITracker_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "UITracker_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "WebKit"
+  ],
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":UITracker_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "UITracker",
+  deps = [
+    ":UITracker_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "UITracker_lib",
+  deps = [
+    ":UITracker"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Location_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/Location/CLLocationManager+AutoTrack.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Location_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Location_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Location_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Location_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Location-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Location-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Location_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/Location/CLLocationManager+AutoTrack.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Location_oc",
+  enable_modules = 1,
+  srcs = [
+    "Location_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Location_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "CoreLocation"
+  ],
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Location_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Location",
+  deps = [
+    ":Location_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Location_lib",
+  deps = [
+    ":Location"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Picker_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/Picker/BDPickerConstants.h",
+    "BDAutoTracker/Classes/Picker/BDPickerDependency.h",
+    "BDAutoTracker/Classes/Picker/BDPickerNetworkManager.h",
+    "BDAutoTracker/Classes/Picker/Header/RangersAppLogPicker.h",
+    "BDAutoTracker/Classes/Picker/Picker/BDPickerView.h",
+    "BDAutoTracker/Classes/Picker/Picker/UIView+Picker.h",
+    "BDAutoTracker/Classes/Picker/Picker/UIViewController+Picker.h",
+    "BDAutoTracker/Classes/Picker/Picker/WebView/BDWebViewPickerJS.h",
+    "BDAutoTracker/Classes/Picker/Picker/WebView/WKWebView+Picker.h",
+    "BDAutoTracker/Classes/Picker/Simulate/BDAutoTrackSimulatorService.h",
+    "BDAutoTracker/Classes/Picker/Simulate/BDPickerSchemeSyncHandler.h",
+    "BDAutoTracker/Classes/Picker/Utility/BDImageHelper.h",
+    "BDAutoTracker/Classes/Picker/Utility/BDScreenHelper.h",
+    "BDAutoTracker/Classes/Picker/Utility/UIColor+Hex.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Picker_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Picker_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Picker_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Picker_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Picker-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Picker-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Picker_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/Picker/Simulate/BDAutoTrackSimulatorService.m",
+    "BDAutoTracker/Classes/Picker/Utility/BDImageHelper.m",
+    "BDAutoTracker/Classes/Picker/BDPickerConstants.m",
+    "BDAutoTracker/Classes/Picker/BDPickerNetworkManager.m",
+    "BDAutoTracker/Classes/Picker/Simulate/BDPickerSchemeSyncHandler.m",
+    "BDAutoTracker/Classes/Picker/Picker/BDPickerView.m",
+    "BDAutoTracker/Classes/Picker/Utility/BDScreenHelper.m",
+    "BDAutoTracker/Classes/Picker/Picker/WebView/BDWebViewPickerJS.m",
+    "BDAutoTracker/Classes/Picker/Utility/UIColor+Hex.m",
+    "BDAutoTracker/Classes/Picker/Picker/UIView+Picker.m",
+    "BDAutoTracker/Classes/Picker/Picker/UIViewController+Picker.m",
+    "BDAutoTracker/Classes/Picker/Picker/WebView/WKWebView+Picker.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Picker_oc",
+  enable_modules = 1,
+  srcs = [
+    "Picker_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Picker_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "CoreText"
+  ],
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Picker_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Picker",
+  deps = [
+    ":Picker_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Picker_lib",
+  deps = [
+    ":Picker"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DeviceOrientation_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/DeviceOrientation/BDAutoTrackDeviceOrientation.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DeviceOrientation_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DeviceOrientation_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DeviceOrientation_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "DeviceOrientation_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_DeviceOrientation-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_DeviceOrientation-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DeviceOrientation_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/DeviceOrientation/BDAutoTrackDeviceOrientation.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DeviceOrientation_oc",
+  enable_modules = 1,
+  srcs = [
+    "DeviceOrientation_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "DeviceOrientation_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":DeviceOrientation_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DeviceOrientation",
+  deps = [
+    ":DeviceOrientation_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "DeviceOrientation_lib",
+  deps = [
+    ":DeviceOrientation"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Exception_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/Exception/BDAutoTrackExceptionTracer.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Exception_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Exception_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Exception_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Exception_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Exception-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Exception-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Exception_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/Exception/BDAutoTrackExceptionTracer.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Exception_oc",
+  enable_modules = 1,
+  srcs = [
+    "Exception_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Exception_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Exception_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Exception",
+  deps = [
+    ":Exception_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Exception_lib",
+  deps = [
+    ":Exception"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "OSX_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/OSX/Classes/OneKit/NSData+OKDecorator.h",
+    "BDAutoTracker/Classes/OSX/Classes/OneKit/NSData+OKGZIP.h",
+    "BDAutoTracker/Classes/OSX/Classes/OneKit/NSData+OKSecurity.h",
+    "BDAutoTracker/Classes/OSX/Classes/OneKit/NSDictionary+OK.h",
+    "BDAutoTracker/Classes/OSX/Classes/OneKit/NSNumber+OK.h",
+    "BDAutoTracker/Classes/OSX/Classes/OneKit/NSObject+OK.h",
+    "BDAutoTracker/Classes/OSX/Classes/OneKit/NSString+OKSecurity.h",
+    "BDAutoTracker/Classes/OSX/Classes/OneKit/OKReachability.h",
+    "BDAutoTracker/Classes/OSX/Classes/OneKit/OKUtility.h",
+    "BDAutoTracker/Classes/OSX/Classes/OneKit/Vendor/app_log_private.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "OSX_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "OSX_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "OSX_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "OSX_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_OSX-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_OSX-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "OSX_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/OSX/Classes/OneKit/NSData+OKDecorator.m",
+    "BDAutoTracker/Classes/OSX/Classes/OneKit/NSData+OKGZIP.m",
+    "BDAutoTracker/Classes/OSX/Classes/OneKit/NSData+OKSecurity.m",
+    "BDAutoTracker/Classes/OSX/Classes/OneKit/NSDictionary+OK.m",
+    "BDAutoTracker/Classes/OSX/Classes/OneKit/NSNumber+OK.m",
+    "BDAutoTracker/Classes/OSX/Classes/OneKit/NSObject+OK.m",
+    "BDAutoTracker/Classes/OSX/Classes/OneKit/NSString+OKSecurity.m",
+    "BDAutoTracker/Classes/OSX/Classes/OneKit/OKReachability.m",
+    "BDAutoTracker/Classes/OSX/Classes/OneKit/OKUtility.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "OSX_oc",
+  enable_modules = 1,
+  srcs = [
+    "OSX_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "OSX_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":RangersAppLog_OSX_VendoredLibraries",
+    ":OSX_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "OSX",
+  deps = [
+    ":OSX_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "OSX_lib",
+  deps = [
+    ":OSX"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CBridge_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/CBridge/CBridge.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CBridge_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CBridge_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CBridge_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "CBridge_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_CBridge-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_CBridge-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CBridge_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/CBridge/CBridge.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CBridge_oc",
+  enable_modules = 1,
+  srcs = [
+    "CBridge_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "CBridge_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":CBridge_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CBridge",
+  deps = [
+    ":CBridge_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "CBridge_lib",
+  deps = [
+    ":CBridge"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "VolMetaSecML_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/VolMetaSecML/RALSecML.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "VolMetaSecML_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "VolMetaSecML_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "VolMetaSecML_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "VolMetaSecML_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_VolMetaSecML-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_VolMetaSecML-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "VolMetaSecML_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/VolMetaSecML/RALSecML.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "VolMetaSecML_oc",
+  enable_modules = 1,
+  srcs = [
+    "VolMetaSecML_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "VolMetaSecML_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "CoreMotion"
+  ],
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":VolMetaSecML_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "VolMetaSecML",
+  deps = [
+    ":VolMetaSecML_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "VolMetaSecML_lib",
+  deps = [
+    ":VolMetaSecML"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Exposure_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/Exposure/Sources/BDAutoTrackExposure.h",
+    "BDAutoTracker/Classes/Exposure/Sources/BDAutoTrackExposureManager.h",
+    "BDAutoTracker/Classes/Exposure/Sources/BDAutoTrackExposureObserver.h",
+    "BDAutoTracker/Classes/Exposure/Sources/BDAutoTrackExposurePrivate.h",
+    "BDAutoTracker/Classes/Exposure/Sources/UIView+BDAutoTrackExposure.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Exposure_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Exposure_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Exposure_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Exposure_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Exposure-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Exposure-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Exposure_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/Exposure/Sources/BDAutoTrackExposure.m",
+    "BDAutoTracker/Classes/Exposure/Sources/BDAutoTrackExposureManager.m",
+    "BDAutoTracker/Classes/Exposure/Sources/BDAutoTrackExposureObserver.m",
+    "BDAutoTracker/Classes/Exposure/Sources/UIView+BDAutoTrackExposure.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Exposure_oc",
+  enable_modules = 1,
+  srcs = [
+    "Exposure_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Exposure_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Exposure_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Exposure",
+  deps = [
+    ":Exposure_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Exposure_lib",
+  deps = [
+    ":Exposure"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DevTools_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/DevTools/Sources/BDAutoTrack+DevTools.h",
+    "BDAutoTracker/Classes/DevTools/Sources/BDAutoTrackDevEnv.h",
+    "BDAutoTracker/Classes/DevTools/Sources/BDAutoTrackDevToolsHolder.h",
+    "BDAutoTracker/Classes/DevTools/Sources/BDAutoTrackForm.h",
+    "BDAutoTracker/Classes/DevTools/Sources/BDAutoTrackInspector.h",
+    "BDAutoTracker/Classes/DevTools/Sources/BDAutoTrackSummary.h",
+    "BDAutoTracker/Classes/DevTools/Sources/BDAutoTrackUtilities.h",
+    "BDAutoTracker/Classes/DevTools/Sources/Event/BDAutoTrackDevEvent.h",
+    "BDAutoTracker/Classes/DevTools/Sources/Event/BDAutoTrackDevEventCell.h",
+    "BDAutoTracker/Classes/DevTools/Sources/Event/BDAutoTrackDevEventController.h",
+    "BDAutoTracker/Classes/DevTools/Sources/Event/BDAutoTrackDevEventData.h",
+    "BDAutoTracker/Classes/DevTools/Sources/Logger/BDAutoTrackDevLogger.h",
+    "BDAutoTracker/Classes/DevTools/Sources/Logger/BDAutoTrackFileLogger.h",
+    "BDAutoTracker/Classes/DevTools/Sources/Logger/BDAutoTrackLoggerCell.h",
+    "BDAutoTracker/Classes/DevTools/Sources/Logger/BDAutoTrackVisualLogger.h",
+    "BDAutoTracker/Classes/DevTools/Sources/Monitor/BDAutoTrackDevToolsMonitor.h",
+    "BDAutoTracker/Classes/DevTools/Sources/Public/BDAutoTrackDevTools.h",
+    "BDAutoTracker/Classes/DevTools/Sources/UI/BDAutoTrackDropDownLabel.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DevTools_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DevTools_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DevTools_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "DevTools_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_DevTools-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_DevTools-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DevTools_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/DevTools/Sources/BDAutoTrack+DevTools.m",
+    "BDAutoTracker/Classes/DevTools/Sources/BDAutoTrackDevEnv.m",
+    "BDAutoTracker/Classes/DevTools/Sources/Event/BDAutoTrackDevEvent.m",
+    "BDAutoTracker/Classes/DevTools/Sources/Event/BDAutoTrackDevEventCell.m",
+    "BDAutoTracker/Classes/DevTools/Sources/Event/BDAutoTrackDevEventController.m",
+    "BDAutoTracker/Classes/DevTools/Sources/Event/BDAutoTrackDevEventData.m",
+    "BDAutoTracker/Classes/DevTools/Sources/Logger/BDAutoTrackDevLogger.m",
+    "BDAutoTracker/Classes/DevTools/Sources/Public/BDAutoTrackDevTools.m",
+    "BDAutoTracker/Classes/DevTools/Sources/BDAutoTrackDevToolsHolder.m",
+    "BDAutoTracker/Classes/DevTools/Sources/Monitor/BDAutoTrackDevToolsMonitor.m",
+    "BDAutoTracker/Classes/DevTools/Sources/UI/BDAutoTrackDropDownLabel.m",
+    "BDAutoTracker/Classes/DevTools/Sources/Logger/BDAutoTrackFileLogger.m",
+    "BDAutoTracker/Classes/DevTools/Sources/BDAutoTrackForm.m",
+    "BDAutoTracker/Classes/DevTools/Sources/BDAutoTrackInspector.m",
+    "BDAutoTracker/Classes/DevTools/Sources/Logger/BDAutoTrackLoggerCell.m",
+    "BDAutoTracker/Classes/DevTools/Sources/BDAutoTrackSummary.m",
+    "BDAutoTracker/Classes/DevTools/Sources/BDAutoTrackUtilities.m",
+    "BDAutoTracker/Classes/DevTools/Sources/Logger/BDAutoTrackVisualLogger.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DevTools_oc",
+  enable_modules = 1,
+  srcs = [
+    "DevTools_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "DevTools_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":DevTools_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":RangersAppLog_DevTools_RangersAppLogDevTools"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DevTools",
+  deps = [
+    ":DevTools_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "DevTools_lib",
+  deps = [
+    ":DevTools"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Encryptor_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Encryptor_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Encryptor_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Encryptor_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Encryptor_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Encryptor-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Encryptor-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Encryptor_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Encryptor_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Encryptor_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Encryptor",
+  deps = [
+    ":Encryptor_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Encryptor_lib",
+  deps = [
+    ":Encryptor"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Encryptor_VOLC_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/Encryptor/Volc/Sources/BDAutoTrackEncryptor.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Encryptor_VOLC_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/RangersAppLog/BDAutoTrackEncryptor.h",
+    "pod_support/Headers/Public/RangersAppLog/BDAutoTrackEncryptor.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Encryptor_VOLC_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Encryptor_VOLC_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = [
+    ":RangersAppLog_Encryptor_VOLC_VendoredStaticFrameworks"
+  ],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Encryptor_VOLC_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Encryptor_VOLC-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Encryptor_VOLC-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Encryptor_VOLC_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/Encryptor/Volc/Sources/BDAutoTrackEncryptor.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Encryptor_VOLC_oc",
+  enable_modules = 1,
+  srcs = [
+    "Encryptor_VOLC_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Encryptor_VOLC_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Encryptor_VOLC_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Encryptor_VOLC",
+  deps = [
+    ":Encryptor_VOLC_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Encryptor_VOLC_lib",
+  deps = [
+    ":Encryptor_VOLC"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Encryptor_SM2_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/Encryptor/SM2/Sources/BDAutoTrackEncryptorSM2.h",
+    "BDAutoTracker/Classes/Encryptor/SM2/Sources/GMObjC/GMObjC.h",
+    "BDAutoTracker/Classes/Encryptor/SM2/Sources/GMObjC/GMObjCDef.h",
+    "BDAutoTracker/Classes/Encryptor/SM2/Sources/GMObjC/GMSm2Bio.h",
+    "BDAutoTracker/Classes/Encryptor/SM2/Sources/GMObjC/GMSm2Utils.h",
+    "BDAutoTracker/Classes/Encryptor/SM2/Sources/GMObjC/GMSm3Utils.h",
+    "BDAutoTracker/Classes/Encryptor/SM2/Sources/GMObjC/GMSm4Utils.h",
+    "BDAutoTracker/Classes/Encryptor/SM2/Sources/GMObjC/GMUtils.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Encryptor_SM2_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Encryptor_SM2_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Encryptor_SM2_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = [
+    ":RangersAppLog_Encryptor_SM2_VendoredStaticFrameworks"
+  ],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Encryptor_SM2_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Encryptor_SM2-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Encryptor_SM2-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Encryptor_SM2_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/Encryptor/SM2/Sources/BDAutoTrackEncryptorSM2.m",
+    "BDAutoTracker/Classes/Encryptor/SM2/Sources/GMObjC/GMSm2Bio.m",
+    "BDAutoTracker/Classes/Encryptor/SM2/Sources/GMObjC/GMSm2Utils.m",
+    "BDAutoTracker/Classes/Encryptor/SM2/Sources/GMObjC/GMSm3Utils.m",
+    "BDAutoTracker/Classes/Encryptor/SM2/Sources/GMObjC/GMSm4Utils.m",
+    "BDAutoTracker/Classes/Encryptor/SM2/Sources/GMObjC/GMUtils.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Encryptor_SM2_oc",
+  enable_modules = 1,
+  srcs = [
+    "Encryptor_SM2_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Encryptor_SM2_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Encryptor_SM2_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Encryptor_SM2",
+  deps = [
+    ":Encryptor_SM2_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Encryptor_SM2_lib",
+  deps = [
+    ":Encryptor_SM2"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "OneID_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/OneID/Sources/BDAutoTrack+OneID.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "OneID_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "OneID_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "OneID_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "OneID_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_OneID-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_OneID-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "OneID_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/OneID/Sources/BDAutoTrack+OneID.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "OneID_oc",
+  enable_modules = 1,
+  srcs = [
+    "OneID_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "OneID_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":OneID_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "OneID",
+  deps = [
+    ":OneID_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "OneID_lib",
+  deps = [
+    ":OneID"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "GlobalRemoteID_hdrs",
+  srcs = [
+    "BDAutoTracker/Classes/GlobalRemoteID/Sources/BDAutoTrackGlobalDID.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "GlobalRemoteID_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "GlobalRemoteID_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "GlobalRemoteID_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "GlobalRemoteID_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_GlobalRemoteID-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_GlobalRemoteID-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "GlobalRemoteID_srcs",
+  srcs = [
+    "BDAutoTracker/Classes/GlobalRemoteID/Sources/BDAutoTrackGlobalDID.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "GlobalRemoteID_oc",
+  enable_modules = 1,
+  srcs = [
+    "GlobalRemoteID_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "GlobalRemoteID_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":GlobalRemoteID_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "GlobalRemoteID",
+  deps = [
+    ":GlobalRemoteID_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "GlobalRemoteID_lib",
+  deps = [
+    ":GlobalRemoteID"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Tests_hdrs",
+  srcs = [
+    "BDAutoTracker/Tests/AppLogTestTool.h",
+    "BDAutoTracker/Tests/Core/Database/FMDB/FMDBTempDBTests.h",
+    "BDAutoTracker/Tests/UITracker/BDUIAutoTrackTest.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Tests_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Tests_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Tests_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Tests_module_map",
+  module_map = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Tests-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RangersAppLog/RangersAppLog_Tests-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Tests_srcs",
+  srcs = [
+    "BDAutoTracker/Tests/AppLogTestTool.m",
+    "BDAutoTracker/Tests/UITracker/BDUIAutoTrackTest.m",
+    "BDAutoTracker/Tests/Core/Database/FMDB/FMDatabaseQueueTests.m",
+    "BDAutoTracker/Tests/Core/Database/FMDB/FMDatabaseTests.m",
+    "BDAutoTracker/Tests/Core/Database/FMDB/FMDBTempDBTests.m",
+    "BDAutoTracker/Tests/Core/Database/FMDB/FMResultSetTests.m",
+    "BDAutoTracker/Tests/Core/ABTest/TestABConfig.m",
+    "BDAutoTracker/Tests/Core/ABTest/TestABTestRequest.m",
+    "BDAutoTracker/Tests/Core/Activate/TestActivateRequest.m",
+    "BDAutoTracker/Tests/Core/ALink/TestALinkURL.m",
+    "BDAutoTracker/Tests/UITracker/Utility/TestAutoTrackCategory.m",
+    "BDAutoTracker/Tests/Core/TestBaseRequest.m",
+    "BDAutoTracker/Tests/Core/Batch/TestBatchPacker.m",
+    "BDAutoTracker/Tests/Core/Batch/TestBatchRequest.m",
+    "BDAutoTracker/Tests/Core/Batch/TestBatchSchedule.m",
+    "BDAutoTracker/Tests/Core/Batch/TestBatchService.m",
+    "BDAutoTracker/Tests/Core/Batch/TestBatchTimer.m",
+    "BDAutoTracker/Tests/UITracker/Utility/TestBDKeyWindow.m",
+    "BDAutoTracker/Tests/Core/Database/TestDatabase.m",
+    "BDAutoTracker/Tests/Core/Database/TestDatabaseService.m",
+    "BDAutoTracker/Tests/Utility/TestDefaults.m",
+    "BDAutoTracker/Tests/Utility/TestDeviceHelper.m",
+    "BDAutoTracker/Tests/Core/TestEvent.m",
+    "BDAutoTracker/Tests/Game/TestGameEvent.m",
+    "BDAutoTracker/Tests/UITracker/Utility/TestInjectJS.m",
+    "BDAutoTracker/Tests/Utility/TestKeychain.m",
+    "BDAutoTracker/Tests/Core/Config/TestLocalSettings.m",
+    "BDAutoTracker/Tests/Core/Service/TestLogger.m",
+    "BDAutoTracker/Tests/Core/Utility/TestMmapUtility.m",
+    "BDAutoTracker/Tests/Game/TestOhayooHeader.m",
+    "BDAutoTracker/Tests/Core/Utility/TestParameters.m",
+    "BDAutoTracker/Tests/Core/Session/TestPlaySession.m",
+    "BDAutoTracker/Tests/Core/ProfileAPI/TestProfileAPI.m",
+    "BDAutoTracker/Tests/Utility/TestReachability.m",
+    "BDAutoTracker/Tests/Core/Register/TestRegisterService.m",
+    "BDAutoTracker/Tests/Core/Config/TestRemoteConfig.m",
+    "BDAutoTracker/Tests/Core/Batch/TestRequestData.m",
+    "BDAutoTracker/Tests/Core/TestRequestURLs.m",
+    "BDAutoTracker/Tests/Core/Register/TestRgisterRequest.m",
+    "BDAutoTracker/Tests/Utility/TestSandBoxHelper.m",
+    "BDAutoTracker/Tests/Core/TestScheme.m",
+    "BDAutoTracker/Tests/Core/Service/TestService.m",
+    "BDAutoTracker/Tests/Core/Session/TestSession.m",
+    "BDAutoTracker/Tests/Core/Config/TestSettingsRequest.m",
+    "BDAutoTracker/Tests/Core/TestSpecialEvent.m",
+    "BDAutoTracker/Tests/Core/Trace/TestStatePersistancy.m",
+    "BDAutoTracker/Tests/Utility/TestSwizzle.m",
+    "BDAutoTracker/Tests/Utility/TestTimer.m",
+    "BDAutoTracker/Tests/Core/Trace/TestTraceDAO.m",
+    "BDAutoTracker/Tests/Core/Trace/TestTraceState.m",
+    "BDAutoTracker/Tests/Core/TestTrack.m",
+    "BDAutoTracker/Tests/UITracker/Utility/TestTrackInfoCategory.m",
+    "BDAutoTracker/Tests/Utility/TestUtility.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Tests_oc",
+  enable_modules = 1,
+  srcs = [
+    "Tests_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Tests_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":RangersAppLog_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RangersAppLog_private_includes",
+    ":RangersAppLog_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@OCMock//:OCMock_objc_interface",
+    "@XcodeCoverage//:XcodeCoverage_objc_interface",
+    "@OCMock//:OCMock_swift_interface",
+    "@XcodeCoverage//:XcodeCoverage_swift_interface",
+    ":Tests_objc_interface",
+    "@OCMock//:OCMock_module_map",
+    "@XcodeCoverage//:XcodeCoverage_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":RangersAppLog_Tests_RangersAppLog-Tests"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Tests",
+  deps = [
+    ":Tests_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Tests_lib",
+  deps = [
+    ":Tests"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_RangersAppLog_module_map",
+  module_map = "@RangersAppLog//:pod_support/Headers/Public/RangersAppLog/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@RangersAppLog//:pod_support/Headers/Public/RangersAppLog/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_RangersAppLog_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@RangersAppLog//:Core_objc_interface", "@RangersAppLog//:ET_objc_interface", "@RangersAppLog//:Encryptor_VOLC_objc_interface", "@RangersAppLog//:Filter_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_RangersAppLog",
+  target_name = "Lark",
+  module_name = "RangersAppLog",
+  hdrs = ["@RangersAppLog//:Core_pod_hdrs", "@RangersAppLog//:ET_pod_hdrs", "@RangersAppLog//:Encryptor_VOLC_pod_hdrs", "@RangersAppLog//:Filter_pod_hdrs"],
+  srcs = ["@RangersAppLog//:Core_srcs", "@RangersAppLog//:ET_srcs", "@RangersAppLog//:Encryptor_VOLC_srcs", "@RangersAppLog//:Filter_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DRangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "RangersAppLog_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "RangersAppLog_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["CoreGraphics", "Foundation", "Security", "CoreTelephony", "CoreFoundation", "SystemConfiguration", "WebKit", "UIKit"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = ["z", "sqlite3"],
+  data = ["@RangersAppLog//:RangersAppLog_Core_RangersAppLog"],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "RangersAppLog_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "RangersAppLog_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "RangersAppLog_dynamic", False),
+  tags = getattr(defs_external_objc_library, "RangersAppLog_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("RangersAppLog", {}),
+  visibility = ["//visibility:public"],
+)

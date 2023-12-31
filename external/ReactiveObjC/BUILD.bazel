@@ -1,0 +1,809 @@
+load('@build_bazel_rules_apple//apple:dtrace.bzl', 'dtrace_compile')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "ReactiveObjC_pod_hdrs",
+  srcs = [
+    ":ReactiveObjC_root_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "ReactiveObjC_private_includes",
+  include = [
+    "external/ReactiveObjC/pod_support/Headers/Private/ReactiveObjC/"
+  ],
+  deps = [],
+  external_name = "ReactiveObjC"
+)
+gen_includes(
+  name = "ReactiveObjC_public_includes",
+  include = [
+    "external/ReactiveObjC/pod_support/Headers/Public/ReactiveObjC/"
+  ],
+  deps = [],
+  external_name = "ReactiveObjC"
+)
+filegroup(
+  name = "_ReactiveObjC_hdrs",
+  srcs = [
+    ":ReactiveObjC_root_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "ReactiveObjC_xcode_hmapsource",
+  hdrs = [
+    ":_ReactiveObjC_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "ReactiveObjC_xcode_hmap",
+  dep = ":ReactiveObjC_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/ReactiveObjC/*-bitsky-generated.modulemap", "pod_support/Headers/Public/ReactiveObjC/*-bitsky-generated-umbrella.h"]))
+dtrace_compile(
+  name = "ReactiveObjC_dtrace_gen",
+  srcs = [
+    "ReactiveObjC/RACCompoundDisposableProvider.d",
+    "ReactiveObjC/RACSignalProvider.d"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "ReactiveObjC_custom_includes",
+  include = [
+    "__BAZEL_TARGET_BUILD_DIR__/ReactiveObjC_dtrace_gen/ReactiveObjC",
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "ReactiveObjC",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "ReactiveObjC_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":ReactiveObjC_xcode_hmap"
+  ],
+  external_name = "ReactiveObjC",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ReactiveObjC_root_hdrs",
+  srcs = [
+    "ReactiveObjC/MKAnnotationView+RACSignalSupport.h",
+    "ReactiveObjC/NSArray+RACSequenceAdditions.h",
+    "ReactiveObjC/NSData+RACSupport.h",
+    "ReactiveObjC/NSDictionary+RACSequenceAdditions.h",
+    "ReactiveObjC/NSEnumerator+RACSequenceAdditions.h",
+    "ReactiveObjC/NSFileHandle+RACSupport.h",
+    "ReactiveObjC/NSIndexSet+RACSequenceAdditions.h",
+    "ReactiveObjC/NSInvocation+RACTypeParsing.h",
+    "ReactiveObjC/NSNotificationCenter+RACSupport.h",
+    "ReactiveObjC/NSObject+RACDeallocating.h",
+    "ReactiveObjC/NSObject+RACDescription.h",
+    "ReactiveObjC/NSObject+RACKVOWrapper.h",
+    "ReactiveObjC/NSObject+RACLifting.h",
+    "ReactiveObjC/NSObject+RACPropertySubscribing.h",
+    "ReactiveObjC/NSObject+RACSelectorSignal.h",
+    "ReactiveObjC/NSOrderedSet+RACSequenceAdditions.h",
+    "ReactiveObjC/NSSet+RACSequenceAdditions.h",
+    "ReactiveObjC/NSString+RACKeyPathUtilities.h",
+    "ReactiveObjC/NSString+RACSequenceAdditions.h",
+    "ReactiveObjC/NSString+RACSupport.h",
+    "ReactiveObjC/NSURLConnection+RACSupport.h",
+    "ReactiveObjC/NSUserDefaults+RACSupport.h",
+    "ReactiveObjC/RACAnnotations.h",
+    "ReactiveObjC/RACArraySequence.h",
+    "ReactiveObjC/RACBehaviorSubject.h",
+    "ReactiveObjC/RACBlockTrampoline.h",
+    "ReactiveObjC/RACChannel.h",
+    "ReactiveObjC/RACCommand.h",
+    "ReactiveObjC/RACCompoundDisposable.h",
+    "ReactiveObjC/RACDelegateProxy.h",
+    "ReactiveObjC/RACDisposable.h",
+    "ReactiveObjC/RACDynamicSequence.h",
+    "ReactiveObjC/RACDynamicSignal.h",
+    "ReactiveObjC/RACEagerSequence.h",
+    "ReactiveObjC/RACEmptySequence.h",
+    "ReactiveObjC/RACEmptySignal.h",
+    "ReactiveObjC/RACErrorSignal.h",
+    "ReactiveObjC/RACEvent.h",
+    "ReactiveObjC/RACGroupedSignal.h",
+    "ReactiveObjC/RACImmediateScheduler.h",
+    "ReactiveObjC/RACIndexSetSequence.h",
+    "ReactiveObjC/RACKVOChannel.h",
+    "ReactiveObjC/RACKVOProxy.h",
+    "ReactiveObjC/RACKVOTrampoline.h",
+    "ReactiveObjC/RACMulticastConnection+Private.h",
+    "ReactiveObjC/RACMulticastConnection.h",
+    "ReactiveObjC/RACPassthroughSubscriber.h",
+    "ReactiveObjC/RACQueueScheduler+Subclass.h",
+    "ReactiveObjC/RACQueueScheduler.h",
+    "ReactiveObjC/RACReplaySubject.h",
+    "ReactiveObjC/RACReturnSignal.h",
+    "ReactiveObjC/RACScheduler+Private.h",
+    "ReactiveObjC/RACScheduler+Subclass.h",
+    "ReactiveObjC/RACScheduler.h",
+    "ReactiveObjC/RACScopedDisposable.h",
+    "ReactiveObjC/RACSequence.h",
+    "ReactiveObjC/RACSerialDisposable.h",
+    "ReactiveObjC/RACSignal+Operations.h",
+    "ReactiveObjC/RACSignal.h",
+    "ReactiveObjC/RACSignalSequence.h",
+    "ReactiveObjC/RACStream+Private.h",
+    "ReactiveObjC/RACStream.h",
+    "ReactiveObjC/RACStringSequence.h",
+    "ReactiveObjC/RACSubject.h",
+    "ReactiveObjC/RACSubscriber+Private.h",
+    "ReactiveObjC/RACSubscriber.h",
+    "ReactiveObjC/RACSubscriptingAssignmentTrampoline.h",
+    "ReactiveObjC/RACSubscriptionScheduler.h",
+    "ReactiveObjC/RACTargetQueueScheduler.h",
+    "ReactiveObjC/RACTestScheduler.h",
+    "ReactiveObjC/RACTuple.h",
+    "ReactiveObjC/RACTupleSequence.h",
+    "ReactiveObjC/RACUnarySequence.h",
+    "ReactiveObjC/RACUnit.h",
+    "ReactiveObjC/RACValueTransformer.h",
+    "ReactiveObjC/ReactiveObjC.h",
+    "ReactiveObjC/UIActionSheet+RACSignalSupport.h",
+    "ReactiveObjC/UIAlertView+RACSignalSupport.h",
+    "ReactiveObjC/UIBarButtonItem+RACCommandSupport.h",
+    "ReactiveObjC/UIButton+RACCommandSupport.h",
+    "ReactiveObjC/UICollectionReusableView+RACSignalSupport.h",
+    "ReactiveObjC/UIControl+RACSignalSupport.h",
+    "ReactiveObjC/UIControl+RACSignalSupportPrivate.h",
+    "ReactiveObjC/UIDatePicker+RACSignalSupport.h",
+    "ReactiveObjC/UIGestureRecognizer+RACSignalSupport.h",
+    "ReactiveObjC/UIImagePickerController+RACSignalSupport.h",
+    "ReactiveObjC/UIRefreshControl+RACCommandSupport.h",
+    "ReactiveObjC/UISegmentedControl+RACSignalSupport.h",
+    "ReactiveObjC/UISlider+RACSignalSupport.h",
+    "ReactiveObjC/UIStepper+RACSignalSupport.h",
+    "ReactiveObjC/UISwitch+RACSignalSupport.h",
+    "ReactiveObjC/UITableViewCell+RACSignalSupport.h",
+    "ReactiveObjC/UITableViewHeaderFooterView+RACSignalSupport.h",
+    "ReactiveObjC/UITextField+RACSignalSupport.h",
+    "ReactiveObjC/UITextView+RACSignalSupport.h",
+    "ReactiveObjC/extobjc/RACEXTKeyPathCoding.h",
+    "ReactiveObjC/extobjc/RACEXTRuntimeExtensions.h",
+    "ReactiveObjC/extobjc/RACEXTScope.h",
+    "ReactiveObjC/extobjc/RACmetamacros.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ReactiveObjC_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/ReactiveObjC/MKAnnotationView+RACSignalSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/NSArray+RACSequenceAdditions.h",
+    "pod_support/Headers/Private/ReactiveObjC/NSData+RACSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/NSDictionary+RACSequenceAdditions.h",
+    "pod_support/Headers/Private/ReactiveObjC/NSEnumerator+RACSequenceAdditions.h",
+    "pod_support/Headers/Private/ReactiveObjC/NSFileHandle+RACSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/NSIndexSet+RACSequenceAdditions.h",
+    "pod_support/Headers/Private/ReactiveObjC/NSInvocation+RACTypeParsing.h",
+    "pod_support/Headers/Private/ReactiveObjC/NSNotificationCenter+RACSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/NSObject+RACDeallocating.h",
+    "pod_support/Headers/Private/ReactiveObjC/NSObject+RACDescription.h",
+    "pod_support/Headers/Private/ReactiveObjC/NSObject+RACKVOWrapper.h",
+    "pod_support/Headers/Private/ReactiveObjC/NSObject+RACLifting.h",
+    "pod_support/Headers/Private/ReactiveObjC/NSObject+RACPropertySubscribing.h",
+    "pod_support/Headers/Private/ReactiveObjC/NSObject+RACSelectorSignal.h",
+    "pod_support/Headers/Private/ReactiveObjC/NSOrderedSet+RACSequenceAdditions.h",
+    "pod_support/Headers/Private/ReactiveObjC/NSSet+RACSequenceAdditions.h",
+    "pod_support/Headers/Private/ReactiveObjC/NSString+RACKeyPathUtilities.h",
+    "pod_support/Headers/Private/ReactiveObjC/NSString+RACSequenceAdditions.h",
+    "pod_support/Headers/Private/ReactiveObjC/NSString+RACSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/NSURLConnection+RACSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/NSUserDefaults+RACSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACAnnotations.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACArraySequence.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACBehaviorSubject.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACBlockTrampoline.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACChannel.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACCommand.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACCompoundDisposable.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACDelegateProxy.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACDisposable.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACDynamicSequence.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACDynamicSignal.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACEXTKeyPathCoding.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACEXTRuntimeExtensions.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACEXTScope.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACEagerSequence.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACEmptySequence.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACEmptySignal.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACErrorSignal.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACEvent.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACGroupedSignal.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACImmediateScheduler.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACIndexSetSequence.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACKVOChannel.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACKVOProxy.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACKVOTrampoline.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACMulticastConnection+Private.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACMulticastConnection.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACPassthroughSubscriber.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACQueueScheduler+Subclass.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACQueueScheduler.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACReplaySubject.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACReturnSignal.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACScheduler+Private.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACScheduler+Subclass.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACScheduler.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACScopedDisposable.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACSequence.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACSerialDisposable.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACSignal+Operations.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACSignal.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACSignalSequence.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACStream+Private.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACStream.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACStringSequence.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACSubject.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACSubscriber+Private.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACSubscriber.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACSubscriptingAssignmentTrampoline.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACSubscriptionScheduler.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACTargetQueueScheduler.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACTestScheduler.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACTuple.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACTupleSequence.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACUnarySequence.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACUnit.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACValueTransformer.h",
+    "pod_support/Headers/Private/ReactiveObjC/RACmetamacros.h",
+    "pod_support/Headers/Private/ReactiveObjC/ReactiveObjC.h",
+    "pod_support/Headers/Private/ReactiveObjC/UIActionSheet+RACSignalSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/UIAlertView+RACSignalSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/UIBarButtonItem+RACCommandSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/UIButton+RACCommandSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/UICollectionReusableView+RACSignalSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/UIControl+RACSignalSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/UIControl+RACSignalSupportPrivate.h",
+    "pod_support/Headers/Private/ReactiveObjC/UIDatePicker+RACSignalSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/UIGestureRecognizer+RACSignalSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/UIImagePickerController+RACSignalSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/UIRefreshControl+RACCommandSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/UISegmentedControl+RACSignalSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/UISlider+RACSignalSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/UIStepper+RACSignalSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/UISwitch+RACSignalSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/UITableViewCell+RACSignalSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/UITableViewHeaderFooterView+RACSignalSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/UITextField+RACSignalSupport.h",
+    "pod_support/Headers/Private/ReactiveObjC/UITextView+RACSignalSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/MKAnnotationView+RACSignalSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/NSArray+RACSequenceAdditions.h",
+    "pod_support/Headers/Public/ReactiveObjC/NSData+RACSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/NSDictionary+RACSequenceAdditions.h",
+    "pod_support/Headers/Public/ReactiveObjC/NSEnumerator+RACSequenceAdditions.h",
+    "pod_support/Headers/Public/ReactiveObjC/NSFileHandle+RACSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/NSIndexSet+RACSequenceAdditions.h",
+    "pod_support/Headers/Public/ReactiveObjC/NSInvocation+RACTypeParsing.h",
+    "pod_support/Headers/Public/ReactiveObjC/NSNotificationCenter+RACSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/NSObject+RACDeallocating.h",
+    "pod_support/Headers/Public/ReactiveObjC/NSObject+RACDescription.h",
+    "pod_support/Headers/Public/ReactiveObjC/NSObject+RACKVOWrapper.h",
+    "pod_support/Headers/Public/ReactiveObjC/NSObject+RACLifting.h",
+    "pod_support/Headers/Public/ReactiveObjC/NSObject+RACPropertySubscribing.h",
+    "pod_support/Headers/Public/ReactiveObjC/NSObject+RACSelectorSignal.h",
+    "pod_support/Headers/Public/ReactiveObjC/NSOrderedSet+RACSequenceAdditions.h",
+    "pod_support/Headers/Public/ReactiveObjC/NSSet+RACSequenceAdditions.h",
+    "pod_support/Headers/Public/ReactiveObjC/NSString+RACKeyPathUtilities.h",
+    "pod_support/Headers/Public/ReactiveObjC/NSString+RACSequenceAdditions.h",
+    "pod_support/Headers/Public/ReactiveObjC/NSString+RACSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/NSURLConnection+RACSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/NSUserDefaults+RACSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACAnnotations.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACArraySequence.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACBehaviorSubject.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACBlockTrampoline.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACChannel.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACCommand.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACCompoundDisposable.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACDelegateProxy.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACDisposable.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACDynamicSequence.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACDynamicSignal.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACEXTKeyPathCoding.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACEXTScope.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACEagerSequence.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACErrorSignal.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACEvent.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACGroupedSignal.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACImmediateScheduler.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACIndexSetSequence.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACKVOChannel.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACKVOProxy.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACKVOTrampoline.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACMulticastConnection.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACPassthroughSubscriber.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACQueueScheduler+Subclass.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACQueueScheduler.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACReplaySubject.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACReturnSignal.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACScheduler+Subclass.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACScheduler.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACScopedDisposable.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACSequence.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACSerialDisposable.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACSignal+Operations.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACSignal.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACSignalSequence.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACStream.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACStringSequence.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACSubject.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACSubscriber.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACSubscriptingAssignmentTrampoline.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACSubscriptionScheduler.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACTargetQueueScheduler.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACTestScheduler.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACTuple.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACTupleSequence.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACUnarySequence.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACUnit.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACValueTransformer.h",
+    "pod_support/Headers/Public/ReactiveObjC/RACmetamacros.h",
+    "pod_support/Headers/Public/ReactiveObjC/ReactiveObjC.h",
+    "pod_support/Headers/Public/ReactiveObjC/UIActionSheet+RACSignalSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/UIAlertView+RACSignalSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/UIBarButtonItem+RACCommandSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/UIButton+RACCommandSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/UICollectionReusableView+RACSignalSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/UIControl+RACSignalSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/UIDatePicker+RACSignalSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/UIGestureRecognizer+RACSignalSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/UIImagePickerController+RACSignalSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/UIRefreshControl+RACCommandSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/UISegmentedControl+RACSignalSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/UISlider+RACSignalSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/UIStepper+RACSignalSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/UISwitch+RACSignalSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/UITableViewCell+RACSignalSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/UITableViewHeaderFooterView+RACSignalSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/UITextField+RACSignalSupport.h",
+    "pod_support/Headers/Public/ReactiveObjC/UITextView+RACSignalSupport.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ReactiveObjC_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ReactiveObjC_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ReactiveObjC_module_map",
+  module_map = "pod_support/Headers/Public/ReactiveObjC/ReactiveObjC-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/ReactiveObjC/ReactiveObjC-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ReactiveObjC_root_srcs",
+  srcs = [
+    "ReactiveObjC/MKAnnotationView+RACSignalSupport.m",
+    "ReactiveObjC/NSArray+RACSequenceAdditions.m",
+    "ReactiveObjC/NSData+RACSupport.m",
+    "ReactiveObjC/NSDictionary+RACSequenceAdditions.m",
+    "ReactiveObjC/NSEnumerator+RACSequenceAdditions.m",
+    "ReactiveObjC/NSFileHandle+RACSupport.m",
+    "ReactiveObjC/NSIndexSet+RACSequenceAdditions.m",
+    "ReactiveObjC/NSInvocation+RACTypeParsing.m",
+    "ReactiveObjC/NSNotificationCenter+RACSupport.m",
+    "ReactiveObjC/NSObject+RACDeallocating.m",
+    "ReactiveObjC/NSObject+RACDescription.m",
+    "ReactiveObjC/NSObject+RACKVOWrapper.m",
+    "ReactiveObjC/NSObject+RACLifting.m",
+    "ReactiveObjC/NSObject+RACPropertySubscribing.m",
+    "ReactiveObjC/NSObject+RACSelectorSignal.m",
+    "ReactiveObjC/NSOrderedSet+RACSequenceAdditions.m",
+    "ReactiveObjC/NSSet+RACSequenceAdditions.m",
+    "ReactiveObjC/NSString+RACKeyPathUtilities.m",
+    "ReactiveObjC/NSString+RACSequenceAdditions.m",
+    "ReactiveObjC/NSString+RACSupport.m",
+    "ReactiveObjC/NSURLConnection+RACSupport.m",
+    "ReactiveObjC/NSUserDefaults+RACSupport.m",
+    "ReactiveObjC/RACArraySequence.m",
+    "ReactiveObjC/RACBehaviorSubject.m",
+    "ReactiveObjC/RACBlockTrampoline.m",
+    "ReactiveObjC/RACChannel.m",
+    "ReactiveObjC/RACCommand.m",
+    "ReactiveObjC/RACCompoundDisposable.m",
+    "ReactiveObjC/RACDelegateProxy.m",
+    "ReactiveObjC/RACDisposable.m",
+    "ReactiveObjC/RACDynamicSequence.m",
+    "ReactiveObjC/RACDynamicSignal.m",
+    "ReactiveObjC/RACEagerSequence.m",
+    "ReactiveObjC/RACEmptySequence.m",
+    "ReactiveObjC/RACEmptySignal.m",
+    "ReactiveObjC/RACErrorSignal.m",
+    "ReactiveObjC/RACEvent.m",
+    "ReactiveObjC/extobjc/RACEXTRuntimeExtensions.m",
+    "ReactiveObjC/RACGroupedSignal.m",
+    "ReactiveObjC/RACImmediateScheduler.m",
+    "ReactiveObjC/RACIndexSetSequence.m",
+    "ReactiveObjC/RACKVOChannel.m",
+    "ReactiveObjC/RACKVOProxy.m",
+    "ReactiveObjC/RACKVOTrampoline.m",
+    "ReactiveObjC/RACMulticastConnection.m",
+    "ReactiveObjC/RACPassthroughSubscriber.m",
+    "ReactiveObjC/RACQueueScheduler.m",
+    "ReactiveObjC/RACReplaySubject.m",
+    "ReactiveObjC/RACReturnSignal.m",
+    "ReactiveObjC/RACScheduler.m",
+    "ReactiveObjC/RACScopedDisposable.m",
+    "ReactiveObjC/RACSequence.m",
+    "ReactiveObjC/RACSerialDisposable.m",
+    "ReactiveObjC/RACSignal+Operations.m",
+    "ReactiveObjC/RACSignal.m",
+    "ReactiveObjC/RACSignalSequence.m",
+    "ReactiveObjC/RACStream.m",
+    "ReactiveObjC/RACStringSequence.m",
+    "ReactiveObjC/RACSubject.m",
+    "ReactiveObjC/RACSubscriber.m",
+    "ReactiveObjC/RACSubscriptingAssignmentTrampoline.m",
+    "ReactiveObjC/RACSubscriptionScheduler.m",
+    "ReactiveObjC/RACTargetQueueScheduler.m",
+    "ReactiveObjC/RACTestScheduler.m",
+    "ReactiveObjC/RACTuple.m",
+    "ReactiveObjC/RACTupleSequence.m",
+    "ReactiveObjC/RACUnarySequence.m",
+    "ReactiveObjC/RACUnit.m",
+    "ReactiveObjC/RACValueTransformer.m",
+    "ReactiveObjC/UIActionSheet+RACSignalSupport.m",
+    "ReactiveObjC/UIAlertView+RACSignalSupport.m",
+    "ReactiveObjC/UIBarButtonItem+RACCommandSupport.m",
+    "ReactiveObjC/UIButton+RACCommandSupport.m",
+    "ReactiveObjC/UICollectionReusableView+RACSignalSupport.m",
+    "ReactiveObjC/UIControl+RACSignalSupport.m",
+    "ReactiveObjC/UIControl+RACSignalSupportPrivate.m",
+    "ReactiveObjC/UIDatePicker+RACSignalSupport.m",
+    "ReactiveObjC/UIGestureRecognizer+RACSignalSupport.m",
+    "ReactiveObjC/UIImagePickerController+RACSignalSupport.m",
+    "ReactiveObjC/UIRefreshControl+RACCommandSupport.m",
+    "ReactiveObjC/UISegmentedControl+RACSignalSupport.m",
+    "ReactiveObjC/UISlider+RACSignalSupport.m",
+    "ReactiveObjC/UIStepper+RACSignalSupport.m",
+    "ReactiveObjC/UISwitch+RACSignalSupport.m",
+    "ReactiveObjC/UITableViewCell+RACSignalSupport.m",
+    "ReactiveObjC/UITableViewHeaderFooterView+RACSignalSupport.m",
+    "ReactiveObjC/UITextField+RACSignalSupport.m",
+    "ReactiveObjC/UITextView+RACSignalSupport.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ReactiveObjC_oc",
+  enable_modules = 1,
+  srcs = [
+    "ReactiveObjC_root_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "ReactiveObjC_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":ReactiveObjC_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":ReactiveObjC_private_includes",
+    ":ReactiveObjC_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":ReactiveObjC_dtrace_gen",
+    ":ReactiveObjC_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DReactiveObjC_POD_VERSION=@\\\"8888_3.1.0\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ReactiveObjC",
+  deps = [
+    ":ReactiveObjC_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ReactiveObjC_lib",
+  deps = [
+    ":ReactiveObjC"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_ReactiveObjC_module_map",
+  module_map = "@ReactiveObjC//:pod_support/Headers/Public/ReactiveObjC/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@ReactiveObjC//:pod_support/Headers/Public/ReactiveObjC/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_ReactiveObjC_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@ReactiveObjC//:ReactiveObjC_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_ReactiveObjC",
+  target_name = "Lark",
+  module_name = "ReactiveObjC",
+  hdrs = ["@ReactiveObjC//:ReactiveObjC_root_pod_hdrs"],
+  srcs = ["@ReactiveObjC//:ReactiveObjC_root_srcs"],
+  non_arc_srcs = [],
+  deps = ["@ReactiveObjC//:ReactiveObjC_dtrace_gen"],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DReactiveObjC_POD_VERSION=@\\\"8888_3.1.0\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "ReactiveObjC_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "ReactiveObjC_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["Foundation"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "ReactiveObjC_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "ReactiveObjC_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "ReactiveObjC_dynamic", False),
+  tags = getattr(defs_external_objc_library, "ReactiveObjC_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("ReactiveObjC", {}),
+  visibility = ["//visibility:public"],
+)

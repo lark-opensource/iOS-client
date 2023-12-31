@@ -1,0 +1,1 @@
+../../../../third_party/krypton/canvas/base/scoped_cftypedref.h

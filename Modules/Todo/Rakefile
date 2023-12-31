@@ -1,0 +1,543 @@
+# coding: utf-8
+require 'yaml'
+require 'set'
+
+# 对比 demo 与 lark podfile 依赖区别, 需要 demo 与 ios-client 在同一层级，或者复制一份Podfile.lock到当前目录
+task :compare do
+  # 解析 podlock 文件
+  def parsePodfileLock(path)
+    podfileLock = YAML.load_file(path)
+
+    pods = Hash.new
+
+    podfileLock["PODS"].each do |item|
+      if item.class == Hash
+        pod, version = parsePodAndVersion(item.keys[0])
+        pods[pod] = version
+      else
+        pod, version = parsePodAndVersion(item)
+        pods[pod] = version
+      end
+    end
+
+    return pods
+  end
+
+  # 解析 pod name 和 version
+  def parsePodAndVersion(message)
+    items = message.split(" ")
+    return items[0].split("/")[0], items[1]
+  end
+
+  module Color
+    Green = 1
+    Yellow = 2
+  end
+
+  # 添加输出颜色
+  def string(message, color)
+    if color == Color::Green
+      return "\033[32m#{message}\033[0m"
+    elsif color == Color::Yellow
+      return "\033[33m#{message}\033[0m"
+    end
+    return message
+  end
+
+  demoPods = parsePodfileLock('./Product/Calendar-dev/Podfile.lock')
+  larkPodsAddress = "Podfile.lock"
+  begin
+    larkPods = parsePodfileLock(larkPodsAddress)
+  rescue
+    larkPodsAddress = "../ios-client/Podfile.lock"
+    retry
+  end
+
+  onlyDemo, onlyLark, diff = Hash.new, Hash.new, Hash.new
+
+  demoPods.each do |key, value|
+    larkPod = larkPods[key]
+    if larkPod == nil
+      onlyDemo[key] = value
+    elsif larkPod != value then
+      diff[key] = "lark: " + string(larkPod, Color::Green) + "\t" + "demo: " + string(value, Color::Green)
+    end
+  end
+
+  larkPods.each do |key, value|
+    messengerPod = demoPods[key]
+    if messengerPod == nil
+      onlyLark[key] = value
+    end
+  end
+
+  localPods = `fd -e podspec -x basename {} .podspec`.split("\n")
+
+  puts string("Diff Local Pods:", Color::Yellow)
+  diff.each do |key, value|
+    if localPods.include?(key)
+      puts "%30s" % string(key, Color::Yellow) + ":\t" + value
+    end
+  end
+
+  puts "\n" + string("Diff Pods:", Color::Yellow)
+  diff.each do |key, value|
+    if !localPods.include?(key)
+      puts "%30s" % string(key, Color::Yellow) + ":\t" + value
+    end
+  end
+  puts "\n" + string("Only In Demo:", Color::Yellow)
+  onlyDemo.each do |key, value|
+    puts  "%30s" % string(key, Color::Yellow) + ":\t" + string(value, Color::Green)
+  end
+  puts "\n" + string("Only In Lark:", Color::Yellow)
+  onlyLark.each do |key, value|
+    puts  "%30s" % string(key, Color::Yellow) + ":\t" + string(value, Color::Green)
+  end
+end
+
+# 对比 demo 与 lark podfile 依赖区别并更新CalendarDemo.appspec, 需要 demo 与 ios-client 在同一层级，或者复制一份Podfile.lock到当前目录
+# 注意：只支持更新已有pod，不支持新增
+task :compare_and_update do
+  # 解析 podlock 文件
+  def parsePodfileLock(path)
+    podfileLock = YAML.load_file(path)
+
+    pods = Hash.new
+
+    podfileLock["PODS"].each do |item|
+      if item.class == Hash
+        pod, version = parsePodAndVersion(item.keys[0])
+        pods[pod] = version
+      else
+        pod, version = parsePodAndVersion(item)
+        pods[pod] = version
+      end
+    end
+
+    return pods
+  end
+
+  # 解析 pod name 和 version
+  def parsePodAndVersion(message)
+    items = message.split(" ")
+    return items[0].split("/")[0], items[1]
+  end
+
+  demoPods = parsePodfileLock('./Product/Calendar-dev/Podfile.lock')
+  larkPodsAddress = "./LarkDependency/Podfile.lock"
+  begin
+    larkPods = parsePodfileLock(larkPodsAddress)
+  rescue
+    puts "missing lark podfile.lock"
+  end
+
+  diff = Hash.new
+
+  demoPods.each do |key, value|
+    larkPod = larkPods[key]
+    if larkPod != nil && value != larkPod
+      diffKey = "pod " + "\'" + key + "\', " + demoPods[key].gsub("(", "\'").gsub(")", "\'")
+      diffValue = "pod " + "\'" + key + "\', " + larkPod.gsub("(", "\'").gsub(")", "\'")
+      diff[diffKey] = diffValue
+     end
+  end
+  cannotUpdate = Array.new
+  new_contents = File.read("./Product/Calendar-dev/Podfile")
+  diff.each do |key, value|
+    tempKey = key.dup
+    if tempKey.sub!("LarkInterface", "") != nil
+      cannotUpdate << '    LarkInterace 不升级，如需升级手动发版!!!'
+    else
+      if new_contents.gsub!(key,value) == nil
+          cannotUpdate << "    二级依赖 " + key + " -> " + value.gsub!(/pod[\s\S]+,/, "")
+      else
+          puts "### 升级 " + key + " -> " + value.gsub!(/pod[\s\S]+,/, "")
+      end
+    end
+  end
+  if cannotUpdate.size > 0 
+      puts "### 未升级依赖"
+      cannotUpdate.each do |value|
+        puts value
+      end
+  end
+  File.open("./Product/Calendar-dev/Podfile", "w") {|file| file.puts new_contents }
+  @updateSize = diff.size - cannotUpdate.size
+  puts "### 通过 Lark.podfile.lock 更新 Calendar.Podfile 依赖完成，更新依赖pod #@updateSize"
+end
+
+
+PROJECT_PATH = '.'
+
+class String
+  def red;    "\e[31m#{self}\e[0m" end
+  def green;  "\e[36m#{self}\e[0m" end
+  def blue;   "\e[34m#{self}\e[0m" end
+end
+
+task :help do
+  message = <<-HELP
+
+  ## 拉文案说明 ##
+
+  rake i18n 更新全部module的文案
+  rake "i18n[module]" module=calendar,todo,all 更新对应仓库的文案 
+  note: 引号不能省略
+
+  ## 发版说明 ##
+
+  - 发 pre_release 版 -
+  咱们约束 pre_release 版的形式都是 x.xx.xxx-alpha.x，譬如：3.41.0-alpha.0
+
+  两种姿势：
+  1. rake pre_release version='3.41.0-alpha.0'
+  Bizs/ 下的所有 pod 的 podspec 会被更新到 3.41.0-alpha.0
+  2. rake pre_release
+  Bizs/ 下的所有 pod 的 podspec 会被从 3.41.0-alpha.0 更新到 3.41.0-alpha.1
+
+  - 发 release 版 -
+  咱们约束 release 版的形式都是 x.xx.xxx，譬如：3.41.0
+
+  两种姿势：
+  1. rake release
+  将 Bizs 里的 pre-release 版本转为 release 版本
+  譬如 Bizs/ 下的所有 pod 的 podspec 会从 3.41.0-alpha.0 更新到 3.41.0
+  2. rake release version=3.41.1
+  譬如 Bizs/ 下的所有 pod 的 podspec 会被更新到 3.41.1
+
+  - 发 patch 版
+  
+  rake patch
+  升级 Bizs 里的所有 pod 的 patch 号码，譬如 3.41.2 -> 3.41.3
+
+  HELP
+  puts message.green
+end
+
+################################################################################
+# Fetch i18n                                                                  #
+################################################################################
+
+task :i18n, [:module] do |t, args|
+  pods = []
+  if args.module == nil || args.module.downcase == "all"
+    pods += [
+      'Calendar',
+      'CalendarFoundation',
+      'CalendarRichTextEditor',
+      'LarkDatePickerView',
+      'LarkTimeFormatUtils',
+      'Todo'
+    ]
+  elsif args.module.downcase == "calendar"
+    pods += [
+      'Calendar',
+      'CalendarFoundation',
+      'CalendarRichTextEditor'
+    ]
+  elsif args.module.downcase == "todo"
+    pods += [
+      'Todo'
+    ]
+  end
+
+  system("EEScaffold module i18n -n #{pods.join(',')}")
+end
+
+################################################################################
+# Publish Tasks                                                                #
+################################################################################
+
+task :publish do
+  # `find Bizs -name "*.podspec" -x basename {} .podspec`
+  ver_s = read_version_file
+  Dir.glob("#{PROJECT_PATH}/Bizs/**/*.podspec") do |file_path|
+    pod_name = File.basename(file_path).delete_suffix('.podspec')
+    system("EEScaffold module publish -n #{pod_name} -t #{ver_s} --skip-build --no-lint-project-git")
+  end
+end
+
+################################################################################
+# Version Tasks                                                                #
+################################################################################
+
+# 获取当前 version
+task :version do
+  ver_s = read_version_file
+  puts "current version: #{ver_s}".blue
+end
+
+# 将所有 Biz Pods 更新到 pre_release 版本（alpha 版本）。两种使用姿势：
+#   1. `rake pre_release version={version}`. 指定 alpha 版本
+#     eg: rake pre_release version=3.41.0-alpha.0
+#   2. `rake pre_release`. 基于当前的 alpha version 升级
+#     eg: 3.40.0-alpha.0 -> 3.40.0-alpha.1
+task :pre_release do
+  env_param = ENV['version']
+  if !env_param.nil? && !env_param.empty?
+    ver_s = env_param
+    unless Version.valid?(ver_s)
+      puts "版本号 `#{ver_s}` 不符合 semantic version 规范".red
+      exit(0)
+    end
+    v = Version.new(ver_s)
+    unless v.pre_release.nil? == false && v.pre_release.empty? == false && Version.alpha_regex =~ v.pre_release
+      puts "版本号 `#{ver_s}` 没有以 `-alpha.x` 结尾。正确的版本号譬如 `1.2.3-alpha.4`".red
+      exit(0)
+    end
+    update_podspec(ver_s)
+    write_version_file(ver_s)
+  else
+    old_ver_s = read_version_file
+    v = Version.new(old_ver_s)
+    puts "基于当前版本号升级..."
+    unless v.pre_release.nil? == false && v.pre_release.empty? == false && Version.alpha_regex =~ v.pre_release
+      puts "当前版本号 `#{old_ver_s}` 并非 alpha 版本号，无法直接升级".red
+      exit(0)
+    end
+    Version.alpha_regex =~ v.pre_release
+    alpha_num = Integer($1)
+    ver_s = "#{v.major}.#{v.minor}.#{v.patch}-alpha.#{alpha_num + 1}"
+    update_podspec(ver_s)
+    write_version_file(ver_s)
+  end
+end
+
+# 将所有 Biz Pods 更新到 pre_release 版本（alpha 版本）。两种使用姿势：
+#   1. `rake release version={version}`. 指定 release 版本
+#     eg: rake alpha version=3.41.0
+#   2. `rake release`. 将当前的 pre-release 版本转为 release 版本
+#     eg: 3.40.0-alpha.0 -> 3.40.0
+task :release do
+  env_param = ENV['version']
+  if !env_param.nil? && !env_param.empty?
+    ver_s = env_param
+    unless Version.valid?(ver_s)
+      puts "版本号 `#{ver_s}` 不符合 semantic version 规范".red
+      exit(0)
+    end
+    v = Version.new(ver_s)
+    unless ver_s == "#{v.major}.#{v.minor}.#{v.patch}"
+      puts "版本号 `#{ver_s}` 不符合 release version 规范".red
+      exit(0)
+    end
+    update_podspec(ver_s)
+    write_version_file(ver_s)
+  else
+    old_ver_s = read_version_file
+    v = Version.new(old_ver_s)
+    puts "基于当前 pre-release 版本号升级...".green
+    unless v.pre_release.nil? == false && v.pre_release.empty? == false && Version.alpha_regex =~ v.pre_release
+      puts "当前版本号 `#{old_ver_s}` 并非 alpha 版本号，无法直接升级".red
+      exit(0)
+    end
+    ver_s = "#{v.major}.#{v.minor}.#{v.patch}"
+    update_podspec(ver_s)
+    write_version_file(ver_s)
+  end
+end
+
+# 升级所有 Biz Pods 的 patch 版本号
+#   rake patch
+#   eg: 3.40.1 -> 3.40.2
+task :patch do
+  old_ver_s = read_version_file
+  v = Version.new(old_ver_s)
+  unless old_ver_s == "#{v.major}.#{v.minor}.#{v.patch}"
+    puts "当前版本号 `#{old_ver_s}`并非 release 版本号，不可以直接升级".red
+    exit(0)
+  end
+  ver_s = "#{v.major}.#{v.minor}.#{Integer(v.patch) + 1}"
+  update_podspec(ver_s)
+  write_version_file(ver_s)
+end
+
+################################################################################
+# Version Files                                                                #
+################################################################################
+
+VERSION_FILE_NAME = PROJECT_PATH + '/Bizs/version'
+
+def read_version_file
+  unless File.exist?(VERSION_FILE_NAME)
+    puts "#{VERSION_FILE_NAME} not exists".red
+    exit(0)
+  end
+  ver_s = File.read(VERSION_FILE_NAME)
+  unless !ver_s.nil? && !ver_s.empty?
+    puts "content in #{VERSION_FILE_NAME} should not be empty".red
+  end
+  unless Version.valid?(ver_s)
+    puts "content in #{VERSION_FILE_NAME} should not be invalid".red
+  end
+  ver_s
+end
+
+def write_version_file(ver_s)
+  old_ver_s = read_version_file
+  File.write(VERSION_FILE_NAME, ver_s)
+  puts "update version succeed. #{old_ver_s} -> #{ver_s}".blue
+end
+
+def update_podspec(ver_s)
+  Dir.glob("#{PROJECT_PATH}/Bizs/**/*.podspec").each do |path|
+    podspec = File.open(path).read
+    version = podspec[/s\.version\s*=\s*['"]([^'"]+)['"]/, 1]
+    File.write(path, podspec.sub!(version, ver_s))
+  end
+end
+
+################################################################################
+# Version Class                                                                #
+################################################################################
+
+# semantic version
+class Version
+  # 参考：https://regexr.com/39s32
+  @@regex = /^((([0-9]+)\.([0-9]+)\.([0-9]+)(?:-([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)$/
+  @@alpha_regex = /^alpha\.([0-9]+)$/
+
+  def self.regex
+    @@regex
+  end
+
+  def self.alpha_regex
+    @@alpha_regex
+  end
+
+  def self.valid?(str)
+    if regex =~ str
+      true
+    else
+      false
+    end
+  end
+
+  def to_s
+    str = "major: #{major}, minor: #{minor}, patch: #{patch}"
+    str += ", pre_release: #{pre_release}" unless pre_release.nil?
+    str += ", build_meta: #{build_meta}" unless build_meta.nil?
+    str
+  end
+
+  attr_accessor :major, :minor, :patch, :pre_release, :build_meta
+
+  def initialize(str = '1.2.3')
+    Version.regex =~ str
+    @major = $3
+    @minor = $4
+    @patch = $5
+    @pre_release = $6
+    @build_meta = $7
+  end
+end
+
+
+################################################################################
+# Check I18N                                                                   #
+################################################################################
+
+def path_for_lang(lang, root_path)
+  "#{root_path}/#{lang}.strings"
+end
+
+# 从 path 中读取文案的 keys
+def read_keys_for_lang(lang, root_path)
+  regex = /^"([A-Za-z0-9\+\/]{3})" = /
+  path = path_for_lang(lang, root_path)
+  keys = Set.new
+  unless File.exist?(path)
+    puts "#{path} is not exists".red
+    return keys
+  end
+  File.open(path).each do |line|
+    if regex =~ line
+      keys.add $1
+    end
+  end
+  keys
+end
+
+def read_origin_keys_from_bundle(path)
+  regex = /LocalizedString\(key: "([A-Za-z0-9\+\/]{3})", originalKey: "(\w+)"\)/
+  keys = Hash.new
+  unless File.exist?(path)
+    puts "#{path} is not exists".red
+    return keys
+  end
+  File.open(path).each do |line|
+    if regex =~ line
+      keys[$1] = $2
+    end
+  end
+  keys
+end
+
+# 检查缺失的文案
+#   eg: rake check_i18n module=todo
+#   eg: rake check_i18n module=calendar
+task :check_i18n do
+  return unless ENV['module'] != nil
+  module_name = ENV['module'].downcase
+  comps = []
+  if module_name == 'todo'
+    comps = [
+      # resource: 包含文案源文件 *.strings 文件的目录
+      # bundle: 生成的的 .swift 文件，从中获取简短 key 和原始 key 的映射
+      { :name => 'Todo', :resource => 'Bizs/Todo/auto_resources', :bundle => 'Bizs/Todo/src/configurations/BundleI18n.swift' }
+    ]
+  elsif module_name == 'calendar'
+    comps = [
+      { :name => 'Calendar', :resource => 'Bizs/Calendar/auto_resources', :bundle => 'Bizs/Calendar/src/configurations/BundleI18n.swift' },
+      { :name => 'CalendarFoundation', :resource => 'Bizs/CalendarFoundation/auto_resources', :bundle => 'Bizs/CalendarFoundation/src/configurations/BundleI18n.swift' },
+      { :name => 'CalendarRichTextEditor', :resource => 'Bizs/CalendarRichTextEditor/auto_resources', :bundle => 'Bizs/CalendarRichTextEditor/src/configurations/BundleI18n.swift' }
+    ]
+  end
+  comps.each do |comp|
+    name = comp[:name]
+    resource_dir_path = comp[:resource]  # resource dir path
+    bundle_path = comp[:bundle]
+    originKeys = read_origin_keys_from_bundle(bundle_path)
+    unless Dir.exist?(resource_dir_path)
+      puts "#{resource_dir_path} is not exists".red
+      next
+    end
+    base_lang = 'zh-CN'
+    base_keys = read_keys_for_lang(base_lang, resource_dir_path)
+    langs = []
+    Dir.glob("#{resource_dir_path}/*.strings") do |file_path|
+      langs.push File.basename(file_path).delete_suffix('.strings')
+    end
+
+    missing_keys = Hash.new
+    langs.sort.each do |lang|
+      next unless lang != base_lang
+      check_keys = read_keys_for_lang(lang, resource_dir_path)
+      (check_keys ^ base_keys).each do |key|
+        if missing_keys[key] == nil 
+          missing_keys[key] = Set.new
+        end
+        missing_keys[key].add(lang)
+      end
+    end
+
+    # replace keys to originKeys
+    old_keys = missing_keys.keys
+    old_keys.each do |key|
+      next unless originKeys.has_key?(key)
+      new_key = originKeys[key]
+      if new_key != key then
+        missing_keys[new_key] = missing_keys[key]
+        missing_keys.delete(key)
+      end
+    end
+
+    items = missing_keys.keys.sort.map { |key| "\n  - " + "#{key}".blue + ": " + "#{missing_keys[key].to_a.sort.join(', ')}" }
+    if items.empty? then
+      puts "✅ Pod.#{name} 没有缺失的文案！".green + "\n"
+    else
+      puts "❌ Pod.#{name} 存在文案缺失哦！如下：".red + "#{items.join()}" + "\n"
+    end
+  end
+end

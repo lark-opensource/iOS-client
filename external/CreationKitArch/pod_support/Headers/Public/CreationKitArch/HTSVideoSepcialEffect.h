@@ -1,0 +1,1 @@
+../../../../CameraArch/Common/Model/HTSVideoSepcialEffect.h

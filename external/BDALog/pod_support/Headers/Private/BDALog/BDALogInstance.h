@@ -1,0 +1,1 @@
+../../../../BDALog/Classes/Private/Core/BDALogInstance.h

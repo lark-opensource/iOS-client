@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/PrivateServices/URLSettings/Common/HMDURLSettingsProtocol.h

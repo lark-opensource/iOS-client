@@ -1,0 +1,96 @@
+{
+  "name": "ByteDanceKit",
+  "version": "2.2.10",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "http://code.byted.org/ugc/ByteDanceKit.git",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "Fang Wei": "fangwei.02@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:ugc/ByteDanceKit.git",
+    "commit": "42cb1cfe5ec72ae9aad5bbac24e281c8304d8797"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "requires_arc": true,
+  "default_subspecs": "Foundation",
+  "frameworks": [
+    "Accelerate",
+    "CoreTelephony",
+    "QuartzCore",
+    "CoreGraphics",
+    "SystemConfiguration",
+    "CoreImage",
+    "CoreText",
+    "Security"
+  ],
+  "subspecs": [
+    {
+      "name": "UIKit",
+      "source_files": [
+        "ByteDanceKit/Classes/UIKit/*.{h,m}",
+        "ByteDanceKit/Classes/UIKit/**/*.{h,m}"
+      ],
+      "dependencies": {
+        "ByteDanceKit/Foundation": []
+      },
+      "frameworks": "UIKit"
+    },
+    {
+      "name": "Foundation",
+      "source_files": [
+        "ByteDanceKit/Classes/Foundation/*.{h,m}",
+        "ByteDanceKit/Classes/*.{h,m}"
+      ],
+      "public_header_files": [
+        "ByteDanceKit/Classes/Foundation/*.h",
+        "ByteDanceKit/Classes/*.h"
+      ]
+    },
+    {
+      "name": "Utilities",
+      "dependencies": {
+        "ByteDanceKit/Foundation": []
+      },
+      "source_files": [
+        "ByteDanceKit/Classes/Utilities/*.{h,m}"
+      ],
+      "public_header_files": [
+        "ByteDanceKit/Classes/Utilities/*.h"
+      ],
+      "frameworks": [
+        "CoreTelephony",
+        "SystemConfiguration",
+        "CFNetwork"
+      ]
+    },
+    {
+      "name": "Legacy",
+      "source_files": [
+        "ByteDanceKit/Classes/Legacy/*.{h,m}"
+      ],
+      "dependencies": {
+        "ByteDanceKit/Foundation": []
+      },
+      "frameworks": "UIKit"
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "1515",
+    "app_id": "9999"
+  },
+  "repoId": "1515",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "ByteDanceKit_POD_VERSION=@\\\"9999_2.2.10\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "ByteDanceKit_POD_VERSION=@\\\"9999_2.2.10\\\""
+  }
+}

@@ -1,0 +1,119 @@
+@startuml
+
+class NewBootManager #lightblue {
+    public static let shared = NewBootManager()
+    internal var launchers: [String: Launcher] = [:]
+    /// 持有identifier排重，持有daemon task
+    internal var globalTaskRepo = BootGlobalTaskRepo()
+    /// 全局启动上下文
+    public let context = GlobalBootContext()
+    /// 每一次启动上下文
+    public var connectedContexts: [String: BootContext] = [:]
+    /// 外部依赖
+    public var dependency: BootDependency = BootManagerDependency()
+    /// 调度器，选择执行线程
+    internal let scheduler = BootTaskScheduler()
+    --
+    // 创建BootContext, 启动或者创建scene时调用
+    boot()
+    // boot或者切换账户调用。创建新的launcher
+    customBoot()
+    register(Task.Type)
+    --
+    // - 切换API
+    switchAccount()
+    login()
+    launchGuide()
+}
+
+class Launcher {
+    隔离运行环境
+    ==
+    // NOTE: 进入切换用户流程会重建并运行，但是context可能复用
+    init(context: BootContext)
+    let taskRepo = BootTaskRepo()
+    var flowArray: [BootFlow] = []
+    --
+    executeFlow(flowType, task?)
+}
+class BootContext {
+    // 唯一ID
+    public var contextID: String
+    public private(set) var globelContext: GlobalBootContext
+    resetUser()
+}
+class GlobalBootContext {
+    /// 是否后台启动
+    public var isLightlyActive = false
+    /// 是否启动直接登录
+    public var isFastLogin = false
+    /// 当前UserID
+    public var currentUserID: String?
+    /// 是否切租户
+    public var isSwitchAccount = false
+    /// 是否来自启动页
+    public var isBootFromGuide = false
+    /// 是否是回滚登出
+    public var isRollbackLogout = false
+    /// 启动项
+    public var launchOptions: [UIApplication.LaunchOptionsKey: Any]?
+    --
+    reset()
+    resetUser()
+}
+
+class BootFlow {
+
+}
+class BootTask #orange {
+    接入方大量的任务配置
+    ==
+    /// App生命周期，是否只执行一次
+    open var runOnlyOnce: Bool { return false }
+    /// User生命周期，是否只执行一次
+    open var runOnlyOnceInUserScope: Bool { return true }
+    /// 上面控制的是不同task实例是否可以重复创建task并运行
+    /// 但是每一个Task创建后只会运行一次
+}
+
+class BootTaskRepo {
+    enqueue(identifier, Launcher, FlowType)
+    dequeue(identifier) -> BootTask?
+}
+
+class BootTaskRegistry {
+    register(identifier)
+    // 创建，但不负责保存
+    resolve(identifier)
+}
+
+class TaskConfig {
+    由BootManagerConfig配置关联flow和顺序
+}
+
+NewBootManager *-- "1" GlobalBootContext
+NewBootManager *-- "n" BootContext
+NewBootManager *-- "n" Launcher
+NewBootManager *-- BootGlobalTaskRepo
+
+Launcher *-- BootTaskRepo
+Launcher o- BootContext
+Launcher --> BootFlow
+BootFlow *-- "n" TaskConfig
+BootFlow -> BootTaskRepo
+
+BootTaskRepo *-- "n" BootTask
+
+NewBootManager --> BootTaskRegistry : register
+BootTaskRepo --> BootTaskRegistry : resolve
+/' BootTaskRepo --> BootGlobalTaskRepo '/
+
+BootContext o-- GlobalBootContext
+
+BootTask <|-- FlowBootTask
+BootTask <|-- AsyncBootTask
+BootTask <|-- BranchBootTask
+
+FlowBootTask <|-- FirstRenderAndIdelTask
+
+@enduml

@@ -1,0 +1,1 @@
+../../../../AMapLocationKit.framework/Headers/AMapLocationManager.h

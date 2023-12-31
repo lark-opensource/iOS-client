@@ -1,0 +1,1 @@
+../../../../CameraClient/MobileInfra/Service/ImageAlbumEdit/ACCVideoPublishAsImageAlbumProtocol.h

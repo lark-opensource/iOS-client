@@ -1,0 +1,1 @@
+../../../../Darwin/iOS/Lynx/Public/LynxSettingsManager.h

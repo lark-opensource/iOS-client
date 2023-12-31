@@ -1,0 +1,1 @@
+../../../../CameraClient/MVPComponents/Recorder/GestureComponent/GestureRecognizer/ACCRecordTapGestureRecognizer.h

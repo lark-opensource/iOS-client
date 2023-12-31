@@ -1,0 +1,1 @@
+../../../../BDTicketGuard/Classes/Inner/BDTicketGuard+AdapterInner.h

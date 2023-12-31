@@ -1,0 +1,1 @@
+../../../../BDWebImage/Classes/Cache/Public/BDImageCache.h

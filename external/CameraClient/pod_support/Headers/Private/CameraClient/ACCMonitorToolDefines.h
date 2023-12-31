@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/Common/Utility/ACCMonitorToolDefines.h

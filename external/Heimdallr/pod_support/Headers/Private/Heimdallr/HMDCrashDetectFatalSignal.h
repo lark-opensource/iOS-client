@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/CrashCapture/Common/Private/HMDCrashKit/Detect/Internal/Signal/HMDCrashDetectFatalSignal.h

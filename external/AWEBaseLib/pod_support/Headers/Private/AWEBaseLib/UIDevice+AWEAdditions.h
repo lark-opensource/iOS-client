@@ -1,0 +1,1 @@
+../../../../AWEBaseLib/Classes/UIDevice/UIDevice+AWEAdditions.h

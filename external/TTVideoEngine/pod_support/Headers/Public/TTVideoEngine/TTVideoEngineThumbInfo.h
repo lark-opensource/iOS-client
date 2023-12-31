@@ -1,0 +1,1 @@
+../../../../TTVideoEngine/Classes/ModelFormatJson/TTVideoEngineThumbInfo.h

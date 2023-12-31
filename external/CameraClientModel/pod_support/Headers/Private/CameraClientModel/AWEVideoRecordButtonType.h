@@ -1,0 +1,1 @@
+../../../../CameraClientModel/AWEVideoRecordButtonType.h

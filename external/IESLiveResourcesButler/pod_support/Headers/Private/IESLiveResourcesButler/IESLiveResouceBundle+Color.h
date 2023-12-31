@@ -1,0 +1,1 @@
+../../../../IESLiveResourcesButler/Classes/AssetTypes/IESLiveResouceBundle+Color.h

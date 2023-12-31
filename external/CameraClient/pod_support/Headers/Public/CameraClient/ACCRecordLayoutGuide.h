@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/Record/Manager/Layout/ACCRecordLayoutGuide.h

@@ -1,0 +1,58 @@
+{
+  "name": "lottie-ios",
+  "version": "2.6.5",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://github.com/airbnb/lottie-ios",
+  "license": {
+    "type": "Apache"
+  },
+  "authors": {
+    "Brandon Withrow": "buba447@gmail.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:ugc/lottie-ios.git",
+    "commit": "1c37d4a6fcc5381af729b2470d8405130a6689b7"
+  },
+  "platforms": {
+    "ios": "8.0",
+    "osx": "10.10",
+    "tvos": "9.0"
+  },
+  "source_files": "lottie-ios/Classes/**/*",
+  "osx": {
+    "exclude_files": [
+      "lottie-ios/Classes/PublicHeaders/LOTAnimationTransitionController.h",
+      "lottie-ios/Classes/Private/LOTAnimationTransitionController.m",
+      "lottie-ios/Classes/PublicHeaders/LOTCacheProvider.h",
+      "lottie-ios/Classes/Private/LOTCacheProvider.m",
+      "lottie-ios/Classes/PublicHeaders/LOTAnimatedSwitch.h",
+      "lottie-ios/Classes/Private/LOTAnimatedSwitch.m",
+      "lottie-ios/Classes/PublicHeaders/LOTAnimatedControl.h",
+      "lottie-ios/Classes/Private/LOTAnimatedControl.m"
+    ],
+    "frameworks": [
+      "AppKit",
+      "CoreVideo"
+    ]
+  },
+  "public_header_files": "lottie-ios/Classes/PublicHeaders/*.h",
+  "ios": {
+    "frameworks": "UIKit"
+  },
+  "module_name": "Lottie",
+  "header_dir": "Lottie",
+  "_bytebus_platform": {
+    "repo_id": "11991",
+    "app_id": "9999"
+  },
+  "repoId": "11991",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "lottie_ios_POD_VERSION=@\\\"9999_2.6.5\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "lottie_ios_POD_VERSION=@\\\"9999_2.6.5\\\""
+  }
+}

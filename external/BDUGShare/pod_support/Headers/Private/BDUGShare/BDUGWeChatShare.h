@@ -1,0 +1,1 @@
+../../../../BDUGShare/Classes/BDUGShareBasic/WeChatShare/BDUGWeChatShare.h

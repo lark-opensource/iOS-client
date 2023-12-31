@@ -1,0 +1,1035 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "ReactCommon_pod_hdrs",
+  srcs = [
+    ":ReactCommon_root_pod_hdrs",
+    ":jscallinvoker_pod_hdrs",
+    ":turbomodule_pod_hdrs",
+    ":turbomodule_core_pod_hdrs",
+    ":turbomodule_samples_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "ReactCommon_private_includes",
+  include = [
+    "external/ReactCommon/pod_support/Headers/Private/ReactCommon/"
+  ],
+  deps = [],
+  external_name = "ReactCommon"
+)
+gen_includes(
+  name = "ReactCommon_public_includes",
+  include = [
+    "external/ReactCommon/pod_support/Headers/Public/ReactCommon/"
+  ],
+  deps = [],
+  external_name = "ReactCommon"
+)
+filegroup(
+  name = "_ReactCommon_hdrs",
+  srcs = [
+    ":ReactCommon_root_hdrs",
+    ":jscallinvoker_hdrs",
+    ":turbomodule_hdrs",
+    ":turbomodule_core_hdrs",
+    ":turbomodule_samples_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "ReactCommon_xcode_hmapsource",
+  hdrs = [
+    ":ReactCommon_root_hdrs",
+    ":jscallinvoker_hdrs",
+    ":turbomodule_core_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "ReactCommon_xcode_hmap",
+  dep = ":ReactCommon_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/ReactCommon/*-bitsky-generated.modulemap", "pod_support/Headers/Public/ReactCommon/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "ReactCommon_custom_includes",
+  include = [
+    "external/boost-for-react-native",
+    "external/Folly",
+    "external/DoubleConversion",
+    "external/React-Core/pod_support/Headers/Private/React-Core",
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "ReactCommon",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "ReactCommon_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":ReactCommon_xcode_hmap"
+  ],
+  external_name = "ReactCommon",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ReactCommon_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ReactCommon_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ReactCommon_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ReactCommon_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ReactCommon_module_map",
+  module_map = "pod_support/Headers/Public/ReactCommon/ReactCommon-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/ReactCommon/ReactCommon-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ReactCommon_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "ReactCommon_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":ReactCommon_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":ReactCommon_private_includes",
+    ":ReactCommon_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":ReactCommon_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=c++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ReactCommon",
+  deps = [
+    ":ReactCommon_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ReactCommon_lib",
+  deps = [
+    ":ReactCommon"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "jscallinvoker_hdrs",
+  srcs = [
+    "ReactCommon/jscallinvoker/ReactCommon/BridgeJSCallInvoker.h",
+    "ReactCommon/jscallinvoker/ReactCommon/JSCallInvoker.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "jscallinvoker_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/ReactCommon/ReactCommon/BridgeJSCallInvoker.h",
+    "pod_support/Headers/Private/ReactCommon/ReactCommon/JSCallInvoker.h",
+    "pod_support/Headers/Public/ReactCommon/ReactCommon/BridgeJSCallInvoker.h",
+    "pod_support/Headers/Public/ReactCommon/ReactCommon/JSCallInvoker.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "jscallinvoker_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "jscallinvoker_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "jscallinvoker_module_map",
+  module_map = "pod_support/Headers/Public/ReactCommon/ReactCommon_jscallinvoker-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/ReactCommon/ReactCommon_jscallinvoker-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "jscallinvoker_srcs",
+  srcs = [
+    "ReactCommon/jscallinvoker/ReactCommon/BridgeJSCallInvoker.cpp"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "jscallinvoker_oc",
+  enable_modules = 1,
+  srcs = [
+    "jscallinvoker_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "jscallinvoker_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":ReactCommon_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":ReactCommon_private_includes",
+    ":ReactCommon_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@DoubleConversion//:DoubleConversion_objc_interface",
+    "@Folly//:Folly_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@React-cxxreact//:React-cxxreact_objc_interface",
+    "@DoubleConversion//:DoubleConversion_swift_interface",
+    "@Folly//:Folly_swift_interface",
+    "@glog//:glog_swift_interface",
+    "@React-cxxreact//:React-cxxreact_swift_interface",
+    ":jscallinvoker_objc_interface",
+    "@DoubleConversion//:DoubleConversion_module_map",
+    "@Folly//:Folly_module_map",
+    "@glog//:glog_module_map",
+    "@React-cxxreact//:React-cxxreact_module_map"
+  ],
+  per_label_options = [
+    ".*ReactCommon/jscallinvoker/ReactCommon/BridgeJSCallInvoker.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=c++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "jscallinvoker",
+  deps = [
+    ":jscallinvoker_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "jscallinvoker_lib",
+  deps = [
+    ":jscallinvoker"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "turbomodule_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "turbomodule_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "turbomodule_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "turbomodule_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "turbomodule_module_map",
+  module_map = "pod_support/Headers/Public/ReactCommon/ReactCommon_turbomodule-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/ReactCommon/ReactCommon_turbomodule-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "turbomodule_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "turbomodule_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":ReactCommon_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":ReactCommon_private_includes",
+    ":ReactCommon_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@DoubleConversion//:DoubleConversion_objc_interface",
+    "@Folly//:Folly_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@React-Core//:React-Core_objc_interface",
+    "@React-cxxreact//:React-cxxreact_objc_interface",
+    "@React-jsi//:React-jsi_objc_interface",
+    "@DoubleConversion//:DoubleConversion_swift_interface",
+    "@Folly//:Folly_swift_interface",
+    "@glog//:glog_swift_interface",
+    "@React-Core//:React-Core_swift_interface",
+    "@React-cxxreact//:React-cxxreact_swift_interface",
+    "@React-jsi//:React-jsi_swift_interface",
+    ":turbomodule_objc_interface",
+    "@DoubleConversion//:DoubleConversion_module_map",
+    "@Folly//:Folly_module_map",
+    "@glog//:glog_module_map",
+    "@React-Core//:React-Core_module_map",
+    "@React-cxxreact//:React-cxxreact_module_map",
+    "@React-jsi//:React-jsi_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=c++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "turbomodule",
+  deps = [
+    ":turbomodule_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "turbomodule_lib",
+  deps = [
+    ":turbomodule"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "turbomodule_core_hdrs",
+  srcs = [
+    "ReactCommon/turbomodule/core/LongLivedObject.h",
+    "ReactCommon/turbomodule/core/TurboCxxModule.h",
+    "ReactCommon/turbomodule/core/TurboModule.h",
+    "ReactCommon/turbomodule/core/TurboModuleBinding.h",
+    "ReactCommon/turbomodule/core/TurboModuleUtils.h",
+    "ReactCommon/turbomodule/core/platform/ios/RCTTurboModule.h",
+    "ReactCommon/turbomodule/core/platform/ios/RCTTurboModuleManager.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "turbomodule_core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/ReactCommon/ReactCommon/LongLivedObject.h",
+    "pod_support/Headers/Private/ReactCommon/ReactCommon/RCTTurboModule.h",
+    "pod_support/Headers/Private/ReactCommon/ReactCommon/RCTTurboModuleManager.h",
+    "pod_support/Headers/Private/ReactCommon/ReactCommon/TurboCxxModule.h",
+    "pod_support/Headers/Private/ReactCommon/ReactCommon/TurboModule.h",
+    "pod_support/Headers/Private/ReactCommon/ReactCommon/TurboModuleBinding.h",
+    "pod_support/Headers/Private/ReactCommon/ReactCommon/TurboModuleUtils.h",
+    "pod_support/Headers/Public/ReactCommon/ReactCommon/LongLivedObject.h",
+    "pod_support/Headers/Public/ReactCommon/ReactCommon/RCTTurboModule.h",
+    "pod_support/Headers/Public/ReactCommon/ReactCommon/RCTTurboModuleManager.h",
+    "pod_support/Headers/Public/ReactCommon/ReactCommon/TurboCxxModule.h",
+    "pod_support/Headers/Public/ReactCommon/ReactCommon/TurboModule.h",
+    "pod_support/Headers/Public/ReactCommon/ReactCommon/TurboModuleBinding.h",
+    "pod_support/Headers/Public/ReactCommon/ReactCommon/TurboModuleUtils.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "turbomodule_core_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "turbomodule_core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "turbomodule_core_module_map",
+  module_map = "pod_support/Headers/Public/ReactCommon/ReactCommon_turbomodule_core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/ReactCommon/ReactCommon_turbomodule_core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "turbomodule_core_srcs",
+  srcs = [
+    "ReactCommon/turbomodule/core/LongLivedObject.cpp",
+    "ReactCommon/turbomodule/core/platform/ios/RCTTurboModule.mm",
+    "ReactCommon/turbomodule/core/platform/ios/RCTTurboModuleManager.mm",
+    "ReactCommon/turbomodule/core/TurboCxxModule.cpp",
+    "ReactCommon/turbomodule/core/TurboModule.cpp",
+    "ReactCommon/turbomodule/core/TurboModuleBinding.cpp",
+    "ReactCommon/turbomodule/core/TurboModuleUtils.cpp"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "turbomodule_core_oc",
+  enable_modules = 1,
+  srcs = [
+    "turbomodule_core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "turbomodule_core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":ReactCommon_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":ReactCommon_private_includes",
+    ":ReactCommon_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@DoubleConversion//:DoubleConversion_objc_interface",
+    "@Folly//:Folly_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@React-Core//:React-Core_objc_interface",
+    "@React-cxxreact//:React-cxxreact_objc_interface",
+    "@React-jsi//:React-jsi_objc_interface",
+    "@DoubleConversion//:DoubleConversion_swift_interface",
+    "@Folly//:Folly_swift_interface",
+    "@glog//:glog_swift_interface",
+    "@React-Core//:React-Core_swift_interface",
+    "@React-cxxreact//:React-cxxreact_swift_interface",
+    "@React-jsi//:React-jsi_swift_interface",
+    ":turbomodule_core_objc_interface",
+    "@DoubleConversion//:DoubleConversion_module_map",
+    "@Folly//:Folly_module_map",
+    "@glog//:glog_module_map",
+    "@React-Core//:React-Core_module_map",
+    "@React-cxxreact//:React-cxxreact_module_map",
+    "@React-jsi//:React-jsi_module_map"
+  ],
+  per_label_options = [
+    ".*ReactCommon/turbomodule/core/LongLivedObject.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/turbomodule/core/TurboCxxModule.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/turbomodule/core/TurboModule.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/turbomodule/core/TurboModuleBinding.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/turbomodule/core/TurboModuleUtils.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/turbomodule/core/platform/ios/RCTTurboModule.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/turbomodule/core/platform/ios/RCTTurboModuleManager.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=c++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "turbomodule_core",
+  deps = [
+    ":turbomodule_core_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "turbomodule_core_lib",
+  deps = [
+    ":turbomodule_core"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "turbomodule_samples_hdrs",
+  srcs = [
+    "ReactCommon/turbomodule/samples/NativeSampleTurboCxxModuleSpecJSI.h",
+    "ReactCommon/turbomodule/samples/SampleTurboCxxModule.h",
+    "ReactCommon/turbomodule/samples/platform/ios/RCTNativeSampleTurboModuleSpec.h",
+    "ReactCommon/turbomodule/samples/platform/ios/RCTSampleTurboCxxModule.h",
+    "ReactCommon/turbomodule/samples/platform/ios/RCTSampleTurboModule.h",
+    "ReactCommon/turbomodule/samples/platform/ios/SampleTurboCxxModuleLegacyImpl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "turbomodule_samples_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "turbomodule_samples_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "turbomodule_samples_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "turbomodule_samples_module_map",
+  module_map = "pod_support/Headers/Public/ReactCommon/ReactCommon_turbomodule_samples-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/ReactCommon/ReactCommon_turbomodule_samples-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "turbomodule_samples_srcs",
+  srcs = [
+    "ReactCommon/turbomodule/samples/NativeSampleTurboCxxModuleSpecJSI.cpp",
+    "ReactCommon/turbomodule/samples/platform/ios/RCTNativeSampleTurboModuleSpec.mm",
+    "ReactCommon/turbomodule/samples/platform/ios/RCTSampleTurboCxxModule.mm",
+    "ReactCommon/turbomodule/samples/platform/ios/RCTSampleTurboModule.mm",
+    "ReactCommon/turbomodule/samples/SampleTurboCxxModule.cpp",
+    "ReactCommon/turbomodule/samples/platform/ios/SampleTurboCxxModuleLegacyImpl.cpp"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "turbomodule_samples_oc",
+  enable_modules = 1,
+  srcs = [
+    "turbomodule_samples_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "turbomodule_samples_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":ReactCommon_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":ReactCommon_private_includes",
+    ":ReactCommon_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@DoubleConversion//:DoubleConversion_objc_interface",
+    "@Folly//:Folly_objc_interface",
+    "@glog//:glog_objc_interface",
+    "@React-Core//:React-Core_objc_interface",
+    "@React-cxxreact//:React-cxxreact_objc_interface",
+    "@React-jsi//:React-jsi_objc_interface",
+    "@DoubleConversion//:DoubleConversion_swift_interface",
+    "@Folly//:Folly_swift_interface",
+    "@glog//:glog_swift_interface",
+    "@React-Core//:React-Core_swift_interface",
+    "@React-cxxreact//:React-cxxreact_swift_interface",
+    "@React-jsi//:React-jsi_swift_interface",
+    ":turbomodule_samples_objc_interface",
+    "@DoubleConversion//:DoubleConversion_module_map",
+    "@Folly//:Folly_module_map",
+    "@glog//:glog_module_map",
+    "@React-Core//:React-Core_module_map",
+    "@React-cxxreact//:React-cxxreact_module_map",
+    "@React-jsi//:React-jsi_module_map"
+  ],
+  per_label_options = [
+    ".*ReactCommon/turbomodule/samples/NativeSampleTurboCxxModuleSpecJSI.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/turbomodule/samples/SampleTurboCxxModule.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/turbomodule/samples/platform/ios/RCTNativeSampleTurboModuleSpec.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/turbomodule/samples/platform/ios/RCTSampleTurboCxxModule.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/turbomodule/samples/platform/ios/RCTSampleTurboModule.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/turbomodule/samples/platform/ios/SampleTurboCxxModuleLegacyImpl.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=c++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "turbomodule_samples",
+  deps = [
+    ":turbomodule_samples_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "turbomodule_samples_lib",
+  deps = [
+    ":turbomodule_samples"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_ReactCommon_module_map",
+  module_map = "@ReactCommon//:pod_support/Headers/Public/ReactCommon/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@ReactCommon//:pod_support/Headers/Public/ReactCommon/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_ReactCommon_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@ReactCommon//:jscallinvoker_objc_interface", "@ReactCommon//:turbomodule_core_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_ReactCommon",
+  target_name = "Lark",
+  module_name = "ReactCommon",
+  hdrs = ["@ReactCommon//:jscallinvoker_pod_hdrs", "@ReactCommon//:turbomodule_core_pod_hdrs"],
+  srcs = ["@ReactCommon//:jscallinvoker_srcs", "@ReactCommon//:turbomodule_core_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["DoubleConversion", "Folly", "glog", "React-cxxreact", "React-Core", "React-jsi"],
+  per_label_options = [".*ReactCommon/jscallinvoker/ReactCommon/BridgeJSCallInvoker.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/turbomodule/core/LongLivedObject.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/turbomodule/core/TurboCxxModule.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/turbomodule/core/TurboModule.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/turbomodule/core/TurboModuleBinding.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/turbomodule/core/TurboModuleUtils.cpp@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/turbomodule/core/platform/ios/RCTTurboModule.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation",
+    ".*ReactCommon/turbomodule/core/platform/ios/RCTTurboModuleManager.mm@-DFOLLY_NO_CONFIG,-DFOLLY_MOBILE=1,-DFOLLY_USE_LIBCPP=1,-Wno-comma,-Wno-shorten-64-to-32,-Wno-documentation"],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "ReactCommon_copts", []),
+  cxxopts = ["-std=c++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "ReactCommon_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "ReactCommon_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "ReactCommon_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "ReactCommon_dynamic", False),
+  tags = getattr(defs_external_objc_library, "ReactCommon_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("ReactCommon", {}),
+  visibility = ["//visibility:public"],
+)

@@ -1,0 +1,114 @@
+@startuml sub
+
+interface ReactionComponentContext {
+    +currentChatterId: String
+}
+
+class ReactionViewComponent<ReactionComponentContext> {
+    +context: ReactionComponentContext
+    --
+    +isComplex: Bool
+    +isSelfSizing: Bool
+    +sizeToFit(_ size) -> CGSize
+    +create(_ rect) -> ReactionView
+    +update(view)
+    +willReceiveProps(_ old, _ new) -> Bool
+}
+
+class ReactionView {
+
+}
+
+ReactionViewComponent "1" *-- "1" ReactionComponentContext
+ReactionViewComponent .. ReactionView : represent
+
+interface ReactionViewModelContext {
+    +chat: Chat?
+    +scene: ContextScene
+    +reactionAPI: ReactionAPI
+    +currentChatterId: String
+}
+
+class ReactionViewModel<ReactionViewModelContext> {
+    +context: ReactionViewModelContext
+    --
+    +reactions: [Reaction]
+    +reactionDidTapped(_ reactionVM, tapType)
+    +getReactionChatterDisplayName(_ chatter) -> String
+}
+
+class ReactionComponentBinder<ReactionComponentContext> {
+    +component: ComponentWithContext<C>
+    +buildComponent(key, context)
+    +update(with vm, key)
+}
+
+ReactionComponentBinder .. ReactionViewComponent : connect to
+ReactionViewModel "1" *-- "1" ReactionViewModelContext
+ReactionViewModel "1" *-- "1" ReactionComponentBinder
+
+interface ReactionContext {
+
+}
+
+ReactionContext --|> ReactionComponentContext
+ReactionContext --|> ReactionViewModelContext
+
+class ReactionComponentFactory<ReactionContext> {
+    +{static} subType: SubType
+    +context: ReactionContext
+    --
+    +canCreate(with message) -> Bool
+    +create(with message) -> MessageSubViewModel<C>
+    +registerMenuItems(with menuManager)
+}
+
+ReactionComponentFactory "1" *-- "1" ReactionContext
+ReactionComponentFactory . ReactionViewModel : create
+
+@enduml
+
+@startuml context
+
+interface PageAPI {
+    +chat: BehaviorRelay<Chat>
+    +scene: ContextScene
+    --
+    +updateCell(by messageId)
+    +insertAt(by message)
+    +reply(message)
+}
+
+PageAPI --|> UIViewController
+
+interface MessageMenuManager {
+    +register(_ item)
+    +show(vc, message, types, info)
+}
+
+class PageContext {
+    +resolver: Resolver
+    +pageAPI: PageAPI
+    +menuManager: MessageMenuManager
+}
+
+PageContext "1" *-- "1" MessageMenuManager
+PageContext "1" *-- "1" PageAPI
+
+class ThreadContext {
+
+}
+
+class ChatContext {
+
+}
+
+class MessageDetailContext {
+
+}
+
+ThreadContext --|> PageContext
+ChatContext --|> PageContext
+MessageDetailContext --|> PageContext
+
+@enduml

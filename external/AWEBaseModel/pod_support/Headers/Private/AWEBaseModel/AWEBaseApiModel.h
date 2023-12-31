@@ -1,0 +1,1 @@
+../../../../AWEBaseModel/Classes/AWEBaseApiModel.h

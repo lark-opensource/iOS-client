@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/CrashCapture/Common/Private/HMDCrashKit/Upload/HMDCrashEventLogger+URLPathProvider.h

@@ -1,0 +1,1 @@
+../../../../AMapFoundationKit.framework/Headers/AMapURLSearchConfig.h

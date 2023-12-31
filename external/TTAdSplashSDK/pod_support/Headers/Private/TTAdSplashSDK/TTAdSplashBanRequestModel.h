@@ -1,0 +1,1 @@
+../../../../TTAdSplashSDK/Classes/model/TTAdSplashBanRequestModel.h

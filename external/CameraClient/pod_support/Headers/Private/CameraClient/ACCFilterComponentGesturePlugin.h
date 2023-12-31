@@ -1,0 +1,1 @@
+../../../../CameraClient/ComponentPlugins/Record/Filter/Gesture/ACCFilterComponentGesturePlugin.h

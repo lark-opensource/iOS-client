@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme
+   LastUpgradeVersion = "1210"
+   version = "1.3">
+   <BuildAction
+      parallelizeBuildables = "YES"
+      buildImplicitDependencies = "YES">
+      <PreActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "[BD-build-infer]"
+               scriptText = "export BD_ENTRY_SCRIPT=&quot;$0:A&quot;; if [ -f ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_sync.sh ];then   bash ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_sync.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- || echo &quot;skip&quot;; fi; [ ! -d ~/Library/Caches/com.bytedance.buildinfra/common ] &amp;&amp; mkdir -p ~/Library/Caches/com.bytedance.buildinfra/common; curl -s -S -f https://ios.bytedance.net/wlapi/tosDownload/iosbinary/indexstore/pre_build_hook_async.sh -o ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_async.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- &amp; if [ -f ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_async.sh ];then   bash ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_async.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- &amp;; fi; "
+               shellToInvoke = "/bin/zsh">
+            </ActionContent>
+         </ExecutionAction>
+      </PreActions>
+      <PostActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "[BD-build-infer]"
+               scriptText = "export BD_ENTRY_SCRIPT=&quot;$0:A&quot;; if [ -f ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_sync.sh ];then   bash ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_sync.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- || echo &quot;skip&quot;; fi; [ ! -d ~/Library/Caches/com.bytedance.buildinfra/common ] &amp;&amp; mkdir -p ~/Library/Caches/com.bytedance.buildinfra/common; curl -s -S -f https://ios.bytedance.net/wlapi/tosDownload/iosbinary/indexstore/post_build_hook_async.sh -o ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_async.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- &amp;; if [ -f ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_async.sh ];then   bash ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_async.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- &amp;; fi; "
+               shellToInvoke = "/bin/zsh">
+            </ActionContent>
+         </ExecutionAction>
+      </PostActions>
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "845EEAADD4D0E4CF10CCF8C7D4806501"
+               BuildableName = "LarkMinutes.app"
+               BlueprintName = "LarkMinutesDemo"
+               ReferencedContainer = "container:LarkMinutes.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <TestAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      codeCoverageEnabled = "YES"
+      onlyGenerateCoverageForSpecifiedTargets = "YES">
+      <AdditionalOptions>
+         <AdditionalOption
+            key = "MallocStackLogging"
+            value = ""
+            isEnabled = "YES">
+         </AdditionalOption>
+         <AdditionalOption
+            key = "PrefersMallocStackLoggingLite"
+            value = ""
+            isEnabled = "YES">
+         </AdditionalOption>
+      </AdditionalOptions>
+      <CodeCoverageTargets>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "28A0BB8D827D202C9F90CC7F6716BDD0"
+            BuildableName = "LarkCore.framework"
+            BlueprintName = "LarkCore"
+            ReferencedContainer = "container:../Pods/LarkCore.xcodeproj">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "2D5D9FDFA9112E36D22FC16D8E6AA663"
+            BuildableName = "LarkSDK.framework"
+            BlueprintName = "LarkSDK"
+            ReferencedContainer = "container:../Pods/LarkSDK.xcodeproj">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "484AC84B0F276A0CF29B95FED1EAA587"
+            BuildableName = "LarkMessageCore.framework"
+            BlueprintName = "LarkMessageCore"
+            ReferencedContainer = "container:../Pods/LarkMessageCore.xcodeproj">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "D2FF942248C08A3E20DCE16930CBD5EF"
+            BuildableName = "LarkSDKInterface.framework"
+            BlueprintName = "LarkSDKInterface"
+            ReferencedContainer = "container:../Pods/LarkSDKInterface.xcodeproj">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "4501C47EABF26A9806473D2C4DDE4FC6"
+            BuildableName = "LarkAttachmentUploader.framework"
+            BlueprintName = "LarkAttachmentUploader"
+            ReferencedContainer = "container:../Pods/LarkAttachmentUploader.xcodeproj">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "08B758565B341856EF9176F4C7D48FC3"
+            BuildableName = "LarkMessengerInterface.framework"
+            BlueprintName = "LarkMessengerInterface"
+            ReferencedContainer = "container:../Pods/LarkMessengerInterface.xcodeproj">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "65A0FD65A45606B5A61C768EA24BF383"
+            BuildableName = "LarkChat.framework"
+            BlueprintName = "LarkChat"
+            ReferencedContainer = "container:../Pods/LarkChat.xcodeproj">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "8E70E7F87EDD3192210D51AF0E5949DA"
+            BuildableName = "LarkFile.framework"
+            BlueprintName = "LarkFile"
+            ReferencedContainer = "container:../Pods/LarkFile.xcodeproj">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "F37F99C18C89510C45B784793A8E75D2"
+            BuildableName = "LarkForward.framework"
+            BlueprintName = "LarkForward"
+            ReferencedContainer = "container:../Pods/LarkForward.xcodeproj">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "3B8E724D2AB78E648AAA281E3F0FDBC2"
+            BuildableName = "LarkMessenger.framework"
+            BlueprintName = "LarkMessenger"
+            ReferencedContainer = "container:../Pods/LarkMessenger.xcodeproj">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "0D73C99925EE5CDB5096DA033FEEFD1A"
+            BuildableName = "LarkWeb.framework"
+            BlueprintName = "LarkWeb"
+            ReferencedContainer = "container:Pods/LarkWeb.xcodeproj">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "F917C5F392F351F1DC485B522E3A522A"
+            BuildableName = "LarkFinance.framework"
+            BlueprintName = "LarkFinance"
+            ReferencedContainer = "container:../Pods/LarkFinance.xcodeproj">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "82B8CB3463FB7F38FB078FAAE339AF4A"
+            BuildableName = "LarkChatSetting.framework"
+            BlueprintName = "LarkChatSetting"
+            ReferencedContainer = "container:../Pods/LarkChatSetting.xcodeproj">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "8CB0A870C34DC8A15D286334CE0D26A4"
+            BuildableName = "LarkThread.framework"
+            BlueprintName = "LarkThread"
+            ReferencedContainer = "container:../Pods/LarkThread.xcodeproj">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "D3130E08958D191CB0A6E9942ECDD251"
+            BuildableName = "LarkContact.framework"
+            BlueprintName = "LarkContact"
+            ReferencedContainer = "container:../Pods/LarkContact.xcodeproj">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "E4F5149092D31A108624CD91E1CAF54C"
+            BuildableName = "LarkFeed.framework"
+            BlueprintName = "LarkFeed"
+            ReferencedContainer = "container:../Pods/LarkFeed.xcodeproj">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "3F8CE4664A8301198D6164387C0BF1FD"
+            BuildableName = "LarkSearchFilter.framework"
+            BlueprintName = "LarkSearchFilter"
+            ReferencedContainer = "container:../Pods/LarkSearchFilter.xcodeproj">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "435B2C63C70D7419CF8486E76EDA961D"
+            BuildableName = "LarkMine.framework"
+            BlueprintName = "LarkMine"
+            ReferencedContainer = "container:../Pods/LarkMine.xcodeproj">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "09511C5F827225F775C729C65947D039"
+            BuildableName = "LarkSearch.framework"
+            BlueprintName = "LarkSearch"
+            ReferencedContainer = "container:../Pods/LarkSearch.xcodeproj">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "465873D1B42B1553113AACEDCB21EA99"
+            BuildableName = "LarkUrgent.framework"
+            BlueprintName = "LarkUrgent"
+            ReferencedContainer = "container:../Pods/LarkUrgent.xcodeproj">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "D7C4D141E80FF06A990C73DB4550E266"
+            BuildableName = "LarkQRCode.framework"
+            BlueprintName = "LarkQRCode"
+            ReferencedContainer = "container:../Pods/LarkQRCode.xcodeproj">
+         </BuildableReference>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "ECEC1650834CC75C7A4E2DD03522AE22"
+            BuildableName = "LarkAudio.framework"
+            BlueprintName = "LarkAudio"
+            ReferencedContainer = "container:../Pods/LarkAudio.xcodeproj">
+         </BuildableReference>
+      </CodeCoverageTargets>
+      <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "A2F39ACD5DCE63F0192D750DF5FB95C4"
+               BuildableName = "LarkMinutesUnitTest.xctest"
+               BlueprintName = "LarkMinutesUnitTest"
+               ReferencedContainer = "container:LarkMinutes.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+      </Testables>
+   </TestAction>
+   <LaunchAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      launchStyle = "0"
+      useCustomWorkingDirectory = "NO"
+      ignoresPersistentStateOnLaunch = "NO"
+      debugDocumentVersioning = "YES"
+      debugServiceExtension = "internal"
+      allowLocationSimulation = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "845EEAADD4D0E4CF10CCF8C7D4806501"
+            BuildableName = "LarkMinutes.app"
+            BlueprintName = "LarkMinutesDemo"
+            ReferencedContainer = "container:LarkMinutes.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "DYLD_PRINT_STATISTICS"
+            value = "1"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "DYLD_PRINT_INITIALIZERS"
+            value = "1"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "DYLD_PRINT_STATISTICS_DETAILS"
+            value = "1"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
+      <AdditionalOptions>
+         <AdditionalOption
+            key = "MallocStackLogging"
+            value = ""
+            isEnabled = "YES">
+         </AdditionalOption>
+         <AdditionalOption
+            key = "PrefersMallocStackLoggingLite"
+            value = ""
+            isEnabled = "YES">
+         </AdditionalOption>
+      </AdditionalOptions>
+   </LaunchAction>
+   <ProfileAction
+      buildConfiguration = "Release"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      savedToolIdentifier = ""
+      useCustomWorkingDirectory = "NO"
+      debugDocumentVersioning = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "845EEAADD4D0E4CF10CCF8C7D4806501"
+            BuildableName = "LarkMinutes.app"
+            BlueprintName = "LarkMinutesDemo"
+            ReferencedContainer = "container:LarkMinutes.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </ProfileAction>
+   <AnalyzeAction
+      buildConfiguration = "Debug">
+   </AnalyzeAction>
+   <ArchiveAction
+      buildConfiguration = "Release"
+      revealArchiveInOrganizer = "YES">
+   </ArchiveAction>
+</Scheme>

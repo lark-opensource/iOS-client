@@ -1,0 +1,117 @@
+require_relative '../lib/install_lib'
+require 'optparse'
+require_relative '../lib/patch.rb'
+require_relative '../lib/bitsky_install.rb'
+
+options = {
+  project_dir: Dir.pwd,
+  bitsky_external_relative: 'bitsky_external',
+  need_pod_install: true,
+  generate_xcodeproj: false,
+}
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: example.rb [options]"
+
+  opts.on("-p", "--project-dir DIR", "Project directory") do |v|
+    options[:project_dir] = v
+  end
+
+  opts.on("-c", "--cache-dir DIR", "Cache directory") do |v|
+    options[:cache_dir_relative] = v
+  end
+
+  opts.on("-b", "--bitsky-dir DIR", "Bitsky directory") do |v|
+    options[:bitsky_external_relative] = v
+  end
+
+  opts.on("-n", "--need-pod-install BOOLEAN", "Need pod install") do |v|
+    options[:need_pod_install] = v.downcase == 'true'
+  end
+
+  opts.on("-g", "--generate-xcodeproj", "Generate xcodeproj for bazel") do |v|
+    options[:generate_xcodeproj] = v
+  end
+
+end.parse!
+
+puts options
+
+project_dir = options[:project_dir]
+cache_dir_relative = options[:cache_dir_relative]
+bitsky_external_relative = options[:bitsky_external_relative]
+need_pod_install = options[:need_pod_install]
+generate_xcodeproj = options.fetch(:generate_xcodeproj, false)
+
+git_root = `git rev-parse --show-toplevel`.strip 
+cache_dir = cache_dir_relative.nil? ? (git_root + "/external") : "#{project_dir}/#{cache_dir_relative}"
+bitsky_external = "#{project_dir}/#{bitsky_external_relative}"
+
+# 切换到工程目录
+Dir.chdir project_dir
+
+# 生成Podfile.lock
+if need_pod_install
+  shell_command = <<~SHELL
+set -ex
+
+export USE_SWIFT_BINARY="false"
+export REMOTE_CACHE_ENABLE="false"
+if which orbit > /dev/null; then
+    orbit pod install
+else
+  if [[ -e /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk ]]; then
+    SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk bundle install
+  else
+    DEVELOPER_DIR= bundle install
+  fi
+  bundle exec pod install
+fi
+SHELL
+  raise 'pod install failed!' unless system(shell_command)
+end
+
+# 解析Podfile.lock
+parse_result = parse_pod_version(project_dir + '/Podfile.lock')
+first_party_spec_hash = parse_result[0]
+third_party_version_hash = parse_result[1]
+
+# 下载二三方组件所有组件 TODO: 支持全局目录缓存
+third_party_spec_hash = download_pods(third_party_version_hash, cache_dir, bitsky_external)
+
+# 将一方组件软链到bitsky_external
+first_party_spec_hash = soft_link_first_party_pods(first_party_spec_hash, bitsky_external)
+
+# 如果是本地开发，生成 lldb source map，调试使用
+generate_lldb_source_map(first_party_spec_hash, bitsky_external)
+
+# 将podspec转BUILD
+reletive_path = git_root + '/bin/lib/lark-project/lib/lark/project/environment.rb'
+require reletive_path
+framework_pods = ::Lark::Project::Environment.instance.force_enable_module_names + ["DVEFoundationKit"]
+convert_podspec_to_build(first_party_spec_hash, third_party_spec_hash, framework_pods, bitsky_external, project_dir + '/Podfile.lock')
+
+# 生成module.json
+generate_module_json(project_dir + '/Podfile.lock', "module.json")
+
+# 生成WORKSPACE
+
+# 生成BUILD
+
+# 生成 xcodeproj
+if generate_xcodeproj
+  # 生成工程默认用 Debug 和 simulator
+  configuration="Debug"
+  sdk="simulator"
+  cpu_type = `uname -m`.strip
+  if cpu_type == "arm64" # Apple Silicon 默认 sim arm64
+    archs = "sim_arm64"
+  else
+    archs = "x86_64"
+  end
+  bitsky_command = "bitsky "
+  bitsky_command += "generate"
+  bitsky_command += " --configuration #{configuration} --sdk #{sdk} --archs #{archs}"
+  puts bitsky_command
+  raise "Generate xcodeproj failed" unless system(bitsky_command)
+end

@@ -1,0 +1,1 @@
+../../../../../../../src/google/protobuf/io/strtod.h

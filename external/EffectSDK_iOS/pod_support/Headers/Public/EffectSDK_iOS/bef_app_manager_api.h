@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_app_manager_api.h

@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_effect_public_avatar_drive_define.h

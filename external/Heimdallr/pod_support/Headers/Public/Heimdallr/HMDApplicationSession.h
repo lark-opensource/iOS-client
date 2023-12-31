@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/HMDSession/Common/Public/HMDApplicationSession.h

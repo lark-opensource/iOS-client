@@ -1,0 +1,1 @@
+../../../../Beauty/Manager/AWEComposerBeautyEffectDownloader.h

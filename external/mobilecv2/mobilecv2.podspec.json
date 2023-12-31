@@ -1,0 +1,61 @@
+{
+  "_bytebus_platform": {
+    "repo_id": "942",
+    "app_id": "9999"
+  },
+  "osx": {
+    "header_mappings_dir": "mac/include/",
+    "vendored_libraries": "mac/libmobilecv2.a",
+    "preserve_paths": "mac/include/**/*{.h,.hpp}",
+    "source_files": "mac/include/mobilecv2/**/*{.h,.hpp}"
+  },
+  "name": "mobilecv2",
+  "license": {
+    "text": "            mobilecv2. All Rights Reserved.\n",
+    "type": "Proprietary"
+  },
+  "platforms": {
+    "osx": "10.9",
+    "ios": "8.0"
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "mobilecv2_POD_VERSION=@\\\"9999_1.8.28\\\""
+  },
+  "requires_arc": false,
+  "ios": {
+    "header_mappings_dir": "ios/include/mobilecv2",
+    "vendored_libraries": "ios/libmobilecv2.a",
+    "preserve_paths": "ios/include/**/*{.h,.hpp}",
+    "frameworks": [
+      "Accelerate",
+      "AssetsLibrary"
+    ],
+    "source_files": "ios/include/mobilecv2/**/*{.h,.hpp}"
+  },
+  "extra": {
+    "bytedance_source_depends": {
+      "project": "mobilecv",
+      "git": "git@code.byted.org:lab-cv/mobilecv.git",
+      "extra": {},
+      "sha1": "455e9d0ca346a634a684b9842d0f772583260640"
+    }
+  },
+  "summary": "framework_summary",
+  "libraries": "c++",
+  "source": {
+    "commit": "46f1ea1c1bac002149f2aaafdf1c535aa68d6e28",
+    "git": "git@code.byted.org:lab-cv/mobilecv2-sdk.git"
+  },
+  "version": "1.8.28",
+  "authors": {
+    "liuchundian": "liuchundian@bytedance.com"
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "mobilecv2_POD_VERSION=@\\\"9999_1.8.28\\\""
+  },
+  "homepage": "https://code.byted.org/lab-cv/mobilecv2-sdk",
+  "repoId": "942",
+  "description": "framework_description"
+}

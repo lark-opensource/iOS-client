@@ -1,0 +1,1 @@
+../../../../CameraArch/Record/View/CaptureAnimation/AWEAnimatedRecordButton.h

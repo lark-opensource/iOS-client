@@ -1,0 +1,1 @@
+../../../../MemoryGraphCapture/Classes/Core/AWEMemoryClassItem.hpp

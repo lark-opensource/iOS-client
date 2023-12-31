@@ -1,0 +1,1 @@
+../../../../SDWebImage/Private/SDWebImageTransitionInternal.h

@@ -1,0 +1,12 @@
+# Copyright 2022 The Lynx Authors. All rights reserved.
+import("//LynxDevtool/devtool.gni")
+
+devtool_source_set("common") {
+  sources = []
+  if (is_android) {
+    sources += [
+      "android/lynx_inspector_owner_native_glue.cc",
+      "android/lynx_inspector_owner_native_glue.h",
+    ]
+  }
+}

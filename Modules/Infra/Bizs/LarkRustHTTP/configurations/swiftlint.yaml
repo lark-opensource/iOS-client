@@ -1,0 +1,49 @@
+included:
+  - src
+disabled_rules:
+  - cyclomatic_complexity          # 过于严格和死板，复杂度通过文件长度和函数长度已经足够了
+  - nesting                        # 会限制局部私有类型和方法封装的使用。这部分代码组织结构完全可以交给开发人员判断。不用限制
+  - notification_center_detachment # 多次调用notification的removeObserver并没有什么副作用。不应该限制开发人员进行更精确的监听生命周期控制
+  - type_body_length               # 限制文件和方法长度就足够了。
+opt_in_rules:
+  # style & autocorrect 有利于风格统一且可自动修复，应当开启
+  - attributes
+  # - closure_end_indentation # 可能和xcode的indent冲突。还是以xcode为准吧，不然容易变来变去的。
+  - closure_spacing
+  - explicit_init
+  # - literal_expression_end_indentation # 可能和xcode的indent冲突。还是以xcode为准吧，不然容易变来变去的。
+  - nimble_operator
+  - number_separator
+  - operator_usage_whitespace
+  - redundant_nil_coalescing
+  - untyped_error_in_catch
+  # performance & style 有利于风格统一，避免性能浪费，推荐开启
+  - contains_over_first_not_nil
+  - empty_count
+  - first_where
+  # convention
+  - fatal_error_message # 应当给予错误信息，使错误更明确
+  - missing_docs # 模块输出的接口，应当有相应的文档
+  # lint 可以检测一些坑。应当开启
+  - overridden_super_call
+  # AST
+  # - unused_import
+  # - unused_private_declaration
+file_length:
+  ignore_comment_only_lines: true # 不应该限制文件内的注释大小
+# 以下lint具体数值可以自行调节。推荐默认值
+# function_body_length: [40, 100]
+# function_parameter_count: [5, 8]
+# line_length: [120, 200]
+line_length:
+  # warning: 120
+  # error: 200
+  ignores_urls: true # URL应该保持完整，不换行
+identifier_name:
+  min_length: 2
+  excluded:
+    - i # 用于index，for循环等，c系语言惯例
+    - j # 用于index，for循环等，c系语言惯例
+    - k # 用于index，for循环等，kv缩写
+    - v # 用于临时持有计算结果，避免重复计算, 帮助排版等。同时强调这个临时变量不重要且马上会被使用到。
+large_tuple: 3

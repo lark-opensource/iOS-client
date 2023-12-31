@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayAbility/PayManage/BankCardCenter/Base/AuthVerify/Model/CJPayBizAuthInfoModel.h

@@ -1,0 +1,490 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "libpng_pod_hdrs",
+  srcs = [
+    ":libpng_root_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "libpng_private_includes",
+  include = [
+    "external/libpng/pod_support/Headers/Private/libpng/"
+  ],
+  deps = [],
+  external_name = "libpng"
+)
+gen_includes(
+  name = "libpng_public_includes",
+  include = [
+    "external/libpng/pod_support/Headers/Public/libpng/"
+  ],
+  deps = [],
+  external_name = "libpng"
+)
+filegroup(
+  name = "_libpng_hdrs",
+  srcs = [
+    ":libpng_root_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "libpng_xcode_hmapsource",
+  hdrs = [
+    ":_libpng_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "libpng_xcode_hmap",
+  dep = ":libpng_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/libpng/*-bitsky-generated.modulemap", "pod_support/Headers/Public/libpng/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "libpng_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "libpng",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "libpng_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":libpng_xcode_hmap"
+  ],
+  external_name = "libpng",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libpng_root_hdrs",
+  srcs = [
+    "png.h",
+    "pngconf.h",
+    "pngdebug.h",
+    "pnginfo.h",
+    "pnglibconf.h",
+    "pngpriv.h",
+    "pngstruct.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libpng_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/libpng/png.h",
+    "pod_support/Headers/Private/libpng/pngconf.h",
+    "pod_support/Headers/Private/libpng/pngdebug.h",
+    "pod_support/Headers/Private/libpng/pnginfo.h",
+    "pod_support/Headers/Private/libpng/pnglibconf.h",
+    "pod_support/Headers/Private/libpng/pngpriv.h",
+    "pod_support/Headers/Private/libpng/pngstruct.h",
+    "pod_support/Headers/Public/libpng/png.h",
+    "pod_support/Headers/Public/libpng/pngconf.h",
+    "pod_support/Headers/Public/libpng/pngdebug.h",
+    "pod_support/Headers/Public/libpng/pnglibconf.h",
+    "pod_support/Headers/Public/libpng/pngstruct.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libpng_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libpng_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "libpng_module_map",
+  module_map = "pod_support/Headers/Public/libpng/libpng-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/libpng/libpng-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libpng_root_srcs",
+  srcs = [
+    "arm/arm_init.c",
+    "arm/filter_neon.S",
+    "arm/filter_neon_intrinsics.c",
+    "intel/filter_sse2_intrinsics.c",
+    "intel/intel_init.c",
+    "png.c",
+    "pngerror.c",
+    "pngget.c",
+    "pngmem.c",
+    "pngread.c",
+    "pngrio.c",
+    "pngrtran.c",
+    "pngrutil.c",
+    "pngset.c",
+    "pngtrans.c",
+    "pngwio.c",
+    "pngwrite.c",
+    "pngwtran.c",
+    "pngwutil.c"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libpng_oc",
+  enable_modules = 1,
+  srcs = [
+    "libpng_root_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "libpng_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_dylibs = [
+    "z"
+  ],
+  deps = [
+    ":libpng_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":libpng_private_includes",
+    ":libpng_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":libpng_objc_interface"
+  ],
+  per_label_options = [
+    ".*arm/arm_init.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*arm/filter_neon.S@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*arm/filter_neon_intrinsics.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*intel/filter_sse2_intrinsics.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*intel/intel_init.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*png.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngerror.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngget.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngmem.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngread.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngrio.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngrtran.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngrutil.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngset.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngtrans.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngwio.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngwrite.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngwtran.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngwutil.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libpng",
+  deps = [
+    ":libpng_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "libpng_lib",
+  deps = [
+    ":libpng"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_libpng_module_map",
+  module_map = "@libpng//:pod_support/Headers/Public/libpng/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@libpng//:pod_support/Headers/Public/libpng/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_libpng_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@libpng//:libpng_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_libpng",
+  target_name = "Lark",
+  module_name = "libpng",
+  hdrs = ["@libpng//:libpng_root_pod_hdrs"],
+  srcs = ["@libpng//:libpng_root_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [".*arm/arm_init.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*arm/filter_neon.S@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*arm/filter_neon_intrinsics.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*intel/filter_sse2_intrinsics.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*intel/intel_init.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*png.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngerror.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngget.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngmem.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngread.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngrio.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngrtran.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngrutil.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngset.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngtrans.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngwio.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngwrite.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngwtran.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict",
+    ".*pngwutil.c@-DPNG_NO_CONFIG_H,-DHAVE_DLFCN_H=1,-DHAVE_INTTYPES_H=1,-DHAVE_LIBZ=1,-DHAVE_MEMORY_H=1,-DHAVE_MEMSET=1,-DHAVE_POW=1,-DHAVE_STDINT_H=1,-DHAVE_STDLIB_H=1,-DHAVE_STRINGS_H=1,-DHAVE_STRING_H=1,-DHAVE_SYS_STAT_H=1,-DHAVE_SYS_TYPES_H=1,-DHAVE_UNISTD_H=1,-DSTDC_HEADERS=1,-Drestrict=__restrict"],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "libpng_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "libpng_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = ["z"],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "libpng_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "libpng_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "libpng_dynamic", False),
+  tags = getattr(defs_external_objc_library, "libpng_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("libpng", {}),
+  visibility = ["//visibility:public"],
+)

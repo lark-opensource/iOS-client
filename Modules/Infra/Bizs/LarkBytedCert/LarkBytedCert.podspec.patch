@@ -1,0 +1,207 @@
+debug_dependency 'CryptoSwift', '1.1.3', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency "byted_cert", "4.1.1.8-bugfix", :subspecs => ['jsbridge', 'offline', 'download']
+debug_dependency 'BDJSBridgeAuthManager', '1.2.0.1-binary'
+debug_dependency "BDSword", "1.0.0.1-binary"
+debug_dependency 'RustPB', '3.43.2'
+debug_dependency 'LarkModel', '3.42.9'
+
+debug_cocoapods do
+  ruby_code "do binary patch", <<-'CUSTOM_PATCH'
+  ENV['EESC_ONLY_BINARY_REPO'] = '1' # 为了约束二进制使用的repo
+  source 'git@code.byted.org:lark/binary_v532.git' if EEScaffold::Swift.version == "5.3.2"
+
+  patch do
+    if EEScaffold::Swift.version == "5.3.2"
+      use_binary_repo 'git@code.byted.org:lark/binary_v532.git'
+    else
+      use_binary_repo 'git@code.byted.org:ee/pods_specs.git'
+    end
+
+    if ["5.3", "5.3.2"].include? EEScaffold::Swift.version.to_s
+      %W[RustPB ServerPB SwiftProtobuf].each { |name| binary name }
+    end
+  end
+  CUSTOM_PATCH
+
+  pre_install "patch build settings", <<-'PRE_INSTALL'
+  use_whold_module = false
+  # fix: add search path for these cross module include headers
+  should_fix_include_headers = {
+    'TTVideoEditor' => ['KVOController', 'Heimdallr'],
+    'TTVideoEngine' => ['TTPlayerSDK', 'TTVideoSetting'],
+    'ConfigCenter' => ['FMDB'],
+    'AFgzipRequestSerializer' => ['AFNetworking', 'Godzippa'],
+    'Heimdallr' => ['BDAlogProtocol', 'TTMacroManager', 'BDALog', 'SSZipArchive'],
+    'BDAlogProtocol' => ['BDALog'],
+    'TTMicroApp' => true,
+    'CJPay' => true,
+    'CJComponents' => true,
+    'SAMKeychain' => true,
+    'LarkFinance' => true,
+    'LarkMessenger' => true,
+    'EEMicroAppSDK' => true, # 直接头文件和模块混用，需要改代码, 光改搜索路径还不行
+    'JsSDK' => true, # 依赖了EEMicroAppSDK
+    'LarkMicroApp' => true,
+    # indirect dependency
+    'TTNetworkManager' => ['AFNetworking', 'Godzippa'],
+    'LarkOpenPlatform' => true,
+    'TTBaseLib' => ['OpenUDID'],
+    'QRCode' => ['smash'],
+    'Lynx' => true,
+    'LarkSnsShare' => ['BDUGShare'],
+    'LarkAccount' => true,
+    'IESGeckoKitDebug' => ['IESGeckoKit'],
+  }
+
+  fix_modular_include = Set[
+    'TTNetworkManager',
+    'EEMicroAppSDK',
+    'JsSDK',
+    'LarkMicroApp',
+    'Lynx',
+    'LarkOpenPlatform',
+    'WeiboSDK',
+    'WechatSDK',
+    'TencentQQSDK',
+    'BDUGShare',
+    'LarkContact',
+    'BDABTestSDK',
+    'LarkFinance',
+    'CJPay',
+    'CJComponents',
+    'SAMKeychain',
+    'TTVideoEditor',
+    'QRCode',
+    'byted_cert',
+    'LarkSnsShare',
+    'LarkAccount',
+    'LarkMessenger',
+    'IESGeckoKitDebug',
+    'LarkBytedCert'
+  ]
+
+  tobsdk_flags = Set[
+    'TTInstallService',
+    'TTTracker',
+    'LarkTracker'
+  ]
+  mail_target = Set[
+    'MailSDK'
+  ]
+
+  # @type [Hash{String => Pod::PodTarget}]
+  pod_targets_by_name = installer.pod_targets.group_by(&:pod_name)
+  header_search_paths_of_pods = lambda do |pod_target|
+    return unless config = should_fix_include_headers[pod_target.name]
+    # use true to represent all dependency
+    included_targets = case config
+                       when true then pod_target.recursive_dependent_targets
+                       when Hash then
+                         pod_targets_by_name.values_at(*config[:recursive]).compact.flatten(1)
+                           .flat_map {|pt| [pt] + pt.recursive_dependent_targets}
+                           .uniq
+                       when Array then
+                         pod_targets_by_name.values_at(*config).compact.flatten(1)
+                       else
+                         raise "unsupported"
+                       end
+    return nil if included_targets.empty?
+
+    # 1.9 BuildSettings 按config区分，先兼容一下
+    if Gem::Version.new(Pod::VERSION) < Gem::Version.new('1.9')
+      pt_build_settings = lambda do |pod_target|
+        pod_target.build_settings
+      end
+    else
+      pt_build_settings = lambda do |pod_target|
+        pod_target.build_settings[:release]
+      end
+    end
+
+    headers = []
+    # @param pt [Pod::PodTarget]
+    included_targets.each do |pt|
+      if pt.requires_frameworks? && pt.should_build?
+        headers.push pt_build_settings[pt].framework_header_search_path
+      else
+        # the above code use direct include header, not <module/header.h>
+        headers.push "${PODS_ROOT}/Headers/Public"
+        headers.push "${PODS_ROOT}/Headers/Public/#{pt.pod_name}"
+        # append vendored frameworks header
+        headers.concat(pt_build_settings[pt].file_accessors.flat_map(&:vendored_frameworks).map { |f|
+          File.join '${PODS_ROOT}', f.relative_path_from(pt.sandbox.root), "Headers"
+        })
+      end
+    end
+    headers.uniq
+  end
+
+  # lint: if generate multiple scoped pod_target, downstream pod don't know choose which
+  duplicate_pod_targets = pod_targets_by_name.values.select { |a| a.length > 1 }
+  duplicate_pod_targets.each do |a|
+    Pod::UI.warn "Duplicate Pod target with different subspecs, defined in:"
+    a.each do |pod_target|
+      Pod::UI.warn "  - #{pod_target.name}(#{pod_target.specs.map(&:name).join(", ")}) contained in: #{pod_target.target_definitions.map(&:name).join(', ')}"
+    end
+  end
+  raise "Currently Not Support Duplicate Pod Targets" unless duplicate_pod_targets.empty?
+
+  installer.pod_targets.each do |pod_target|
+    attributes_hash = pod_target.root_spec.attributes_hash
+    pod_target_xcconfig = (attributes_hash['pod_target_xcconfig'] ||= {})
+
+    pod_target_xcconfig['SWIFT_VERSION'] = '5.3'
+    pod_target_xcconfig['WARNING_CFLAGS'] ||= ''
+    pod_target_xcconfig['WARNING_CFLAGS'] += ' -Wno-nullability-completeness -Wno-nonnull'
+    pod_target_xcconfig['OTHER_SWIFT_FLAGS'] ||= ''
+    pod_target_xcconfig['OTHER_SWIFT_FLAGS'] += ' -Xcc -Wno-nullability-completeness'
+    pod_target_xcconfig['ASSETCATALOG_COMPILER_OPTIMIZATION'] = 'space'
+
+    pod_target_xcconfig['CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED'] = 'NO'
+
+    pod_target_xcconfig['SWIFT_COMPILATION_MODE'] ||= 'wholemodule'
+
+    if headers = header_search_paths_of_pods[pod_target]
+      pod_target_xcconfig['SYSTEM_HEADER_SEARCH_PATHS'] = headers.join(' ')
+    end
+    if fix_modular_include.include? pod_target.name
+      pod_target_xcconfig['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = "YES"
+      # CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES 只对objc生效，swift需要额外参数禁掉error
+      pod_target_xcconfig['OTHER_SWIFT_FLAGS'] += ' -Xcc -Wno-error=non-modular-include-in-framework-module'
+    end
+    if tobsdk_flags.include? pod_target.name
+      pod_target_xcconfig['GCC_PREPROCESSOR_DEFINITIONS'] ||= ''
+      pod_target_xcconfig['GCC_PREPROCESSOR_DEFINITIONS'] += ' TOBSDK=1'
+    end
+
+    pod_target_xcconfig['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] ||= '$(inherited)'
+    pod_target_xcconfig['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] += ' USE_BASE_IMP'
+
+    if mail_target.include? pod_target.name
+      pod_target_xcconfig['GCC_PREPROCESSOR_DEFINITIONS'] ||= ''
+      pod_target_xcconfig['GCC_PREPROCESSOR_DEFINITIONS'] += ' PROJECT_DIR=\""$PROJECT_DIR\/"\"'
+    end
+
+    pod_target_xcconfig['PSEUDO'] = '2' if ENV['PSEUDO'] == '1'
+  end
+  PRE_INSTALL
+
+  post_install "post patch build settings", <<-'POST_INSTALL'
+  installer.generated_projects.each do |project|
+    project.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '11.0'
+      config.build_settings['SWIFT_VERSION'] = '5.3'
+      config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
+      config.build_settings['CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER'] = 'NO'
+    end
+    project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings.delete 'SWIFT_VERSION'
+        config.build_settings.delete 'IPHONEOS_DEPLOYMENT_TARGET'
+        config.build_settings.delete 'EXCLUDED_ARCHS'
+        config.build_settings.delete 'CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER'
+      end
+    end
+  end
+  POST_INSTALL
+end

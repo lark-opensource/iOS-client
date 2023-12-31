@@ -1,0 +1,41 @@
+{
+    "default_subspecs": "Core", 
+    "description": "A set of shared base classes for video cloud.", 
+    "platforms": {
+        "osx": "10.11", 
+        "ios": "8.0"
+    }, 
+    "summary": "A set of shared base classes for video cloud.", 
+    "source": {
+        "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/custombinary/1537/VCBaseKit/1.1.0/VCBaseKit.zip"
+    }, 
+    "version": "1.1.0", 
+    "authors": {
+        "baishuai": "baishuai@bytedance.com"
+    }, 
+    "source_code": {
+        "commit": "0596ccf", 
+        "git": "git@code.byted.org:ttmp/vcbasekit.git"
+    }, 
+    "static_framework": true, 
+    "homepage": "https://code.byted.org/ttmp/vcbasekit", 
+    "subspecs": [
+        {
+            "osx": {
+                "vendored_libraries": "lib_macos/*.{a}"
+            }, 
+            "ios": {
+                "vendored_libraries": "lib/*.{a}"
+            }, 
+            "name": "Core"
+        }, 
+        {
+            "xcconfig": {
+                "HEADER_SEARCH_PATHS": "$(inherited) \"${PODS_ROOT}/VCBaseKit/include/vcbasekit\""
+            }, 
+            "name": "Header", 
+            "source_files": "include/**/*.h"
+        }
+    ], 
+    "name": "VCBaseKit"
+}

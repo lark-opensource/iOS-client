@@ -1,0 +1,6 @@
+eval_tonic 'pod_pre_install_0.0'
+debug_dependency 'Nocilla',  :git => 'https://github.com/onevcat/Nocilla.git', :branch => 'swift4'
+
+debug_cocoapods do
+  ruby_code "lint", "disable_swiftlint!"
+end

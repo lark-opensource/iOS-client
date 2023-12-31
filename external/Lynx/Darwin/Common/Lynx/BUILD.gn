@@ -1,0 +1,239 @@
+# Copyright 2022 The Lynx Authors. All rights reserved.
+
+assert(is_ios || is_mac)
+
+if (target_cpu == "arm" || target_cpu == "arm64") {
+  import("//build/config/arm.gni")
+}
+import("//Lynx/Lynx.gni")
+
+common_lynx_shared_sources = [
+  "Base/LynxBacktrace.mm",
+  "Base/LynxComponent.m",
+  "Base/LynxComponentRegistry.m",
+  "Base/LynxConverter+LynxCSSType.m",
+  "Base/LynxConverter+UI.m",
+  "Base/LynxConverter.m",
+  "Base/LynxExternalResourceFetcherWrapper.mm",
+  "Base/LynxGetUIResultDarwin.m",
+  "Base/LynxLog.mm",
+  "Base/LynxPageReloadHelper.mm",
+  "Base/LynxPerformance.m",
+  "Base/LynxResourceServiceFetcher.mm",
+  "Base/LynxThreadManager.mm",
+  "Base/LynxTraceEvent.mm",
+  "Base/LynxVersion.m",
+  "CoreJsLoaderManager.m",
+  "DevtoolWrapper/CustomizedMessage.mm",
+  "DevtoolWrapper/LynxDevtool.mm",
+  "DevtoolWrapper/LynxDevtoolUtils.mm",
+  "DevtoolWrapper/LynxInspectorManagerDarwin.h",
+  "DevtoolWrapper/LynxInspectorManagerDarwin.mm",
+  "DevtoolWrapper/LynxMemoryListener.m",
+  "Event/LynxEvent.m",
+  "Event/LynxTouchEvent.m",
+  "LepusApiActorManager.h",
+  "LepusApiActorManager.mm",
+  "LynxConfig.mm",
+  "LynxConfigInfo.m",
+  "LynxContext.mm",
+  "LynxDebugger.m",
+  "LynxEnv.mm",
+  "LynxError.m",
+  "LynxErrorCode.m",
+  "LynxGenericReportInfo.m",
+  "LynxGlobalObserver+Internal.h",
+  "LynxGroup.mm",
+  "LynxLifecycleDispatcher.m",
+  "LynxLifecycleTracker.m",
+  "LynxScreenMetrics.m",
+  "LynxServiceInfo.m",
+  "LynxTemplateBundle+Converter.h",
+  "LynxTemplateBundle.mm",
+  "LynxTemplateData+Converter.h",
+  "LynxTemplateData.mm",
+  "LynxTemplateRenderDelegateExternal.m",
+  "LynxTheme.m",
+  "Module/JSModule+Internal.h",
+  "Module/JSModule.mm",
+  "Module/LynxSetModule.mm",
+  "Navigator/LynxBaseCardManager+Private.h",
+  "Navigator/LynxBaseCardManager.m",
+  "Navigator/LynxCardManager.m",
+  "Navigator/LynxNavigator.m",
+  "Navigator/LynxRoute.m",
+  "Navigator/NavigationModule.m",
+  "Navigator/cache/LynxLruCache.m",
+  "Navigator/cache/LynxLruCacheNode.m",
+  "Performance/LynxExtraTiming.m",
+  "Performance/LynxTimingHandler.h",
+  "Performance/LynxTimingHandler.m",
+  "Public/Base/LynxBacktrace.h",
+  "Public/Base/LynxCSSType.h",
+  "Public/Base/LynxClassAliasDefines.h",
+  "Public/Base/LynxComponent.h",
+  "Public/Base/LynxComponentRegistry.h",
+  "Public/Base/LynxConverter+LynxCSSType.h",
+  "Public/Base/LynxConverter+UI.h",
+  "Public/Base/LynxConverter.h",
+  "Public/Base/LynxDefines.h",
+  "Public/Base/LynxExternalResourceFetcherWrapper.h",
+  "Public/Base/LynxForegroundProtocol.h",
+  "Public/Base/LynxGetUIResultDarwin.h",
+  "Public/Base/LynxLog.h",
+  "Public/Base/LynxPageReloadHelper.h",
+  "Public/Base/LynxPageReloadHelperProto.h",
+  "Public/Base/LynxPerformance.h",
+  "Public/Base/LynxResourceFetcher.h",
+  "Public/Base/LynxResourceServiceFetcher.h",
+  "Public/Base/LynxThreadManager.h",
+  "Public/Base/LynxTraceEvent.h",
+  "Public/Base/LynxVersion.h",
+  "Public/CoreJsLoaderManager.h",
+  "Public/DevtoolWrapper/CustomizedMessage.h",
+  "Public/DevtoolWrapper/LynxBaseInspectorOwner.h",
+  "Public/DevtoolWrapper/LynxBaseInspectorOwnerNG.h",
+  "Public/DevtoolWrapper/LynxBaseLogBoxProxy.h",
+  "Public/DevtoolWrapper/LynxBasePerfMonitor.h",
+  "Public/DevtoolWrapper/LynxBaseRedBox.h",
+  "Public/DevtoolWrapper/LynxDevtool+Internal.h",
+  "Public/DevtoolWrapper/LynxDevtool.h",
+  "Public/DevtoolWrapper/LynxDevtoolUtils.h",
+  "Public/DevtoolWrapper/LynxMemoryListener.h",
+  "Public/Event/LynxEvent.h",
+  "Public/Event/LynxTouchEvent.h",
+  "Public/LynxConfig.h",
+  "Public/LynxConfigInfo.h",
+  "Public/LynxContext.h",
+  "Public/LynxDebugger.h",
+  "Public/LynxDynamicComponentFetcher.h",
+  "Public/LynxEnv.h",
+  "Public/LynxEnvKey.h",
+  "Public/LynxError.h",
+  "Public/LynxErrorCode.h",
+  "Public/LynxGenericReportInfo.h",
+  "Public/LynxGlobalObserver.h",
+  "Public/LynxGroup.h",
+  "Public/LynxLifecycleDispatcher.h",
+  "Public/LynxLifecycleTracker.h",
+  "Public/LynxScreenMetrics.h",
+  "Public/LynxServiceInfo.h",
+  "Public/LynxTemplateBundle.h",
+  "Public/LynxTemplateData.h",
+  "Public/LynxTemplateProvider.h",
+  "Public/LynxTemplateRenderDelegate.h",
+  "Public/LynxTemplateRenderDelegateExternal.h",
+  "Public/LynxTemplateRenderProtocol.h",
+  "Public/LynxTheme.h",
+  "Public/LynxViewClient.h",
+  "Public/LynxViewInternal.h",
+  "Public/Module/JSModule.h",
+  "Public/Module/LynxContextModule.h",
+  "Public/Module/LynxModule.h",
+  "Public/Module/LynxSetModule.h",
+  "Public/Navigator/LynxBaseCardManager.h",
+  "Public/Navigator/LynxCardManager.h",
+  "Public/Navigator/LynxHolder.h",
+  "Public/Navigator/LynxNavigator.h",
+  "Public/Navigator/LynxRoute.h",
+  "Public/Navigator/LynxSchemaInterceptor.h",
+  "Public/Navigator/NavigationModule.h",
+  "Public/Navigator/cache/LynxLruCache.h",
+  "Public/Navigator/cache/LynxLruCacheNode.h",
+  "Public/Performance/LynxExtraTiming.h",
+  "Public/Resource/LynxProviderRegistry.h",
+  "Public/Resource/LynxResourceCallback.h",
+  "Public/Resource/LynxResourceProvider.h",
+  "Public/Resource/LynxResourceRequest.h",
+  "Public/Resource/LynxResourceResponse.h",
+  "Public/Service/LynxService.h",
+  "Public/Service/LynxServiceAppLogProtocol.h",
+  "Public/Service/LynxServiceDevProtocol.h",
+  "Public/Service/LynxServiceHybridAPIProtocol.h",
+  "Public/Service/LynxServiceImageProtocol.h",
+  "Public/Service/LynxServiceMonitorProtocol.h",
+  "Public/Service/LynxServiceProtocol.h",
+  "Public/Service/LynxServiceResourceProtocol.h",
+  "Public/Service/LynxServiceResourceRequestOperationProtocol.h",
+  "Public/Service/LynxServiceResourceRequestParameters.h",
+  "Public/Service/LynxServiceResourceResponseProtocol.h",
+  "Public/Service/LynxServiceSettingsProtocol.h",
+  "Public/Service/LynxServiceSettingsProtocol.m",
+  "Public/Service/LynxServiceTrackEventProtocol.h",
+  "Public/Service/LynxServiceTrailProtocol.h",
+  "Public/Trace/LynxTraceController.h",
+  "Public/Trace/LynxTraceEventWrapper.h",
+  "Public/Utils/LynxColorUtils.h",
+  "Public/Utils/LynxHtmlEscape.h",
+  "Public/Utils/LynxPerformanceUtils.h",
+  "Public/Utils/LynxSizeValue.h",
+  "Public/Utils/LynxUnitUtils.h",
+  "Public/Utils/LynxVersionUtils.h",
+  "Public/Utils/LynxWeakProxy.h",
+  "Public/Utils/ThreadSafeDictionary/LynxThreadSafeDictionary.h",
+  "Resource/LynxProviderRegistry.m",
+  "Resource/LynxResourceRequest.m",
+  "Resource/LynxResourceResponse.m",
+  "Service/LynxService.m",
+  "Service/LynxServiceResourceRequestParameters.m",
+  "TemplateRenderCallbackProtocol.h",
+  "Trace/LynxTraceController.mm",
+  "Trace/LynxTraceEventWrapper.mm",
+  "Utils/LynxColorUtils.mm",
+  "Utils/LynxConvertUtils.h",
+  "Utils/LynxConvertUtils.m",
+  "Utils/LynxHtmlEscape.m",
+  "Utils/LynxPerformanceUtils.m",
+  "Utils/LynxSizeValue.m",
+  "Utils/LynxUnitUtils.m",
+  "Utils/LynxVersionUtils.mm",
+  "Utils/LynxWeakProxy.m",
+  "Utils/ThreadSafeDictionary/LynxThreadSafeDictionary.m",
+]
+
+source_set("lynx") {
+  include_dirs = [ "//Lynx/tasm" ]
+
+  sources = common_lynx_shared_sources
+
+  cflags_objcc = [ "-std=gnu++17" ]
+  cflags_cc = [ "-std=gnu++17" ]
+
+  configs -= [ "//build/config/compiler:cxx_version_default" ]
+  public_configs = [
+    "//Darwin:darwin_include_config",
+    "//Darwin:darwin_flag_config",
+    "//Lynx:config",
+  ]
+
+  public_deps = [
+    "//Darwin/Common/LazyLoad:lazy_load",
+    "//Lynx:lynx_native",
+    "//Lynx/inspector:inspector",
+    "//third_party/rapidjson",
+  ]
+}
+
+if (enable_gen_podspec) {
+  gen_subspec_file("common_lynx_podspec") {
+    exclude_files = [
+      "Darwin/Common/Lynx/*UnitTest.m",
+      "Darwin/Common/Lynx/*UnitTest.mm",
+    ]
+
+    module_name = "Lynx"
+    parent_path = "subspecs"
+
+    podspec_name = ""
+    if (is_ios) {
+      podspec_name = "Framework"
+    } else if (is_mac) {
+      podspec_name = "MacOSFramework"
+    }
+
+    rebase_private_headers = []
+    private_header_files = rebase_private_headers
+    public_header_files = "Darwin/Common/Lynx/**/*.h"
+    sources = common_lynx_shared_sources
+  }
+}

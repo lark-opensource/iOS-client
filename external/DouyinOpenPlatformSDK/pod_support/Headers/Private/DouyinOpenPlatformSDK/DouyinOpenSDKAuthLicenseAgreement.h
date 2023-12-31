@@ -1,0 +1,1 @@
+../../../../DouyinOpenPlatformSDK/Classes/Auth/Inner/DouyinOpenSDKAuthLicenseAgreement.h

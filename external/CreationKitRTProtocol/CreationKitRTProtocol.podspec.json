@@ -1,0 +1,92 @@
+{
+  "name": "CreationKitRTProtocol",
+  "version": "19.9.0.4-alpha.5-larktest.1.binary",
+  "summary": "base",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://code.byted.org/ugc/CreativeKit",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "hehai": "hehai.howie@bytedance.com"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/aweme-rock/rock_binary/privatethird_binary_repo/CreationKitRTProtocol/19.9.0.4-alpha.5-larktest.1.binary/1675771342/CreationKitRTProtocol.tar.xz"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "default_subspecs": [
+    "CameraService",
+    "EditService"
+  ],
+  "preserve_paths": [
+    "rock_document/**/*.{h,m,mm,cpp,hpp,swift}",
+    "rock_document/rock-document-files.txt"
+  ],
+  "source_code": {
+    "git": "git@code.byted.org:ugc/CreativeKit.git",
+    "commit": "192d9298bdda767ba440fddcf555f539b4d66580"
+  },
+  "binary_type": "rock",
+  "package_env": {
+    "id": null,
+    "xcode": "Xcode 14.0\nBuild version 14A309\n"
+  },
+  "subspecs": [
+    {
+      "name": "CameraService",
+      "source_files": "RuntimeProtocol/CameraService/**/*.{h,m,mm,c}",
+      "frameworks": "Foundation",
+      "dependencies": {
+        "TTVideoEditor/Core": [
+
+        ],
+        "TTVideoEditor/IESMMEffect": [
+
+        ],
+        "CreativeKit": [
+
+        ]
+      },
+      "vendored_libraries": [
+        "RuntimeProtocol/CameraService/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "RuntimeProtocol/CameraService/**/*.o",
+          "libCreationKitRTProtocol-b8726d2.a"
+        ]
+      }
+    },
+    {
+      "name": "EditService",
+      "source_files": "RuntimeProtocol/EditService/**/*.{h,m,mm,c}",
+      "frameworks": [
+        "Foundation",
+        "AVFoundation"
+      ],
+      "dependencies": {
+        "EffectPlatformSDK/ModelDistribute": [
+
+        ]
+      },
+      "vendored_libraries": [
+        "RuntimeProtocol/EditService/**/*.o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "RuntimeProtocol/EditService/**/*.o",
+          "libCreationKitRTProtocol-4c84007.a"
+        ]
+      }
+    }
+  ]
+}

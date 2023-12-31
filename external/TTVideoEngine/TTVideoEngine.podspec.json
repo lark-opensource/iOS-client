@@ -1,0 +1,265 @@
+{
+  "_bytebus_platform": {
+    "repo_id": "573",
+    "app_id": "9999"
+  },
+  "vendored_libraries": "TTVideoEngine/Classes/*.{a}",
+  "default_subspecs": "Base",
+  "description": "framework_description",
+  "license": {
+    "type": "MIT"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "extra": {
+    "bytedance_source_depends": [
+      {
+        "binary_md5": "e380c4ac67e5ee086a90a5db26c74478",
+        "git": "https://code.byted.org/TTVideo/ttvideoplayer",
+        "binary_name": "libTTVideoDecode.a",
+        "module": "TTVideoDecode",
+        "sha1": "c5e5849db662518555aaa4cd764ff96bed971f97"
+      },
+      {
+        "binary_md5": "380adba1e5906b634d89192069d797e1",
+        "git": "https://sysrepo.byted.org/CodeProtection/bytecrypto",
+        "binary_name": "libByteCryptoND.a",
+        "module": "ByteCryptoND",
+        "sha1": "32cf683ae63e6aa7521e57e025f8bdd16ce90f56"
+      }
+    ]
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "TTVideoEngine_POD_VERSION=@\\\"9999_1.10.108.111-lark\\\""
+  },
+  "summary": "framework_summary",
+  "source": {
+    "commit": "59485386435dfadcf796ff4acd58215c6ea9088b",
+    "git": "git@code.byted.org:TTVideo/ttvideoplayer.git"
+  },
+  "version": "1.10.108.111-lark",
+  "dependencies": {
+    "TTNetworkPredict/interface": [
+      "0.5.2"
+    ],
+    "VCVodSettings": [
+      ">=0.3.1"
+    ],
+    "MDLMediaDataLoader": [
+      ">=1.1.107.13"
+    ],
+    "TTPlayerSDK": [
+      "2.10.108.212-lark"
+    ],
+    "VCNVCloudNetwork": [
+      ">=5.0.3-net3"
+    ],
+    "TTTopSignature": [
+      "~>0.0.4"
+    ],
+    "VCPreloadStrategy": [],
+    "ABRInterface": [
+      "~>2.2.7"
+    ],
+    "BDAlogProtocol": []
+  },
+  "authors": {
+    "guikunzhi": "guikunzhi@bytedance.com"
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "TTVideoEngine_POD_VERSION=@\\\"9999_1.10.108.111-lark\\\""
+  },
+  "homepage": "https://wiki.bytedance.com/pages/viewpage.action?pageId=53814999",
+  "repoId": "573",
+  "subspecs": [
+    {
+      "private_header_files": [
+        "TTVideoEngine/Classes/NewLogger/*.h"
+      ],
+      "name": "NewLogger",
+      "source_files": [
+        "TTVideoEngine/Classes/NewLogger/*.h",
+        "TTVideoEngine/Classes/NewLogger/*.{m,mm,c}"
+      ]
+    },
+    {
+      "private_header_files": [
+        "TTVideoEngine/Classes/TraceReport/*.h"
+      ],
+      "name": "TraceReport",
+      "dependencies": {
+        "BDTrackerProtocol": []
+      },
+      "source_files": [
+        "TTVideoEngine/Classes/TraceReport/*.h",
+        "TTVideoEngine/Classes/TraceReport/*.{m,mm,c}"
+      ]
+    },
+    {
+      "libraries": "sqlite3",
+      "vendored_libraries": "TTVideoEngine/Classes/*.{a}",
+      "private_header_files": [
+        "TTVideoEngine/Classes/Private/**/*.h"
+      ],
+      "name": "Private",
+      "source_files": [
+        "TTVideoEngine/Classes/Private/**/*.h",
+        "TTVideoEngine/Classes/Private/**/*.{m,mm,c}"
+      ]
+    },
+    {
+      "public_header_files": [
+        "TTVideoEngine/Classes/Public/**/*.h"
+      ],
+      "name": "Public",
+      "source_files": [
+        "TTVideoEngine/Classes/Public/**/*.h",
+        "TTVideoEngine/Classes/Public/**/*.{m,mm,c}"
+      ]
+    },
+    {
+      "public_header_files": [
+        "TTVideoEngine/Classes/ModelFormatJson/**/*.h"
+      ],
+      "name": "OldModel",
+      "source_files": [
+        "TTVideoEngine/Classes/ModelFormatJson/**/*.h",
+        "TTVideoEngine/Classes/ModelFormatJson/**/*.{m,mm,c}"
+      ]
+    },
+    {
+      "public_header_files": [
+        "TTVideoEngine/Classes/Debug/*.h"
+      ],
+      "name": "DebugTools",
+      "source_files": [
+        "TTVideoEngine/Classes/Debug/*.h",
+        "TTVideoEngine/Classes/Debug/*.{m,mm,c}"
+      ]
+    },
+    {
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "GPB_USE_PROTOBUF_FRAMEWORK_IMPORTS=1 "
+      },
+      "public_header_files": [
+        "TTVideoEngine/Classes/ModelFormatPb/**/*.h"
+      ],
+      "dependencies": {
+        "Protobuf": [
+          "~>3.6.1"
+        ],
+        "TTVideoEngine/OldModel": []
+      },
+      "name": "NewModel",
+      "source_files": [
+        "TTVideoEngine/Classes/ModelFormatPb/**/*.h",
+        "TTVideoEngine/Classes/ModelFormatPb/**/*.{m,mm,c}"
+      ]
+    },
+    {
+      "public_header_files": [
+        "TTVideoEngine/Classes/EnvConfig/Base/*.h",
+        "TTVideoEngine/Classes/DualCore/Base/*.h"
+      ],
+      "dependencies": {
+        "TTVideoEngine/Public": [],
+        "TTVideoEngine/Private": [],
+        "TTVideoEngine/NewLogger": [],
+        "TTVideoEngine/TraceReport": [],
+        "TTVideoEngine/OldModel": []
+      },
+      "name": "Base",
+      "source_files": [
+        "TTVideoEngine/Classes/EnvConfig/Base/*.{h,m,mm,c}",
+        "TTVideoEngine/Classes/DualCore/Base/*.{h,m,mm,c}"
+      ]
+    },
+    {
+      "public_header_files": [
+        "TTVideoEngine/Classes/DualCore/RearGuard/*.h"
+      ],
+      "name": "DualCore",
+      "source_files": [
+        "TTVideoEngine/Classes/DualCore/RearGuard/*.{h,m,mm,c}"
+      ]
+    },
+    {
+      "private_header_files": [
+        "TTVideoEngine/Classes/EnvConfig/Boe/*.h"
+      ],
+      "name": "Boe",
+      "dependencies": {
+        "TTVideoEngine/Base": []
+      },
+      "source_files": [
+        "TTVideoEngine/Classes/EnvConfig/Boe/*.{h,m,mm,c}"
+      ]
+    },
+    {
+      "private_header_files": [
+        "TTVideoEngine/Classes/EnvConfig/CN/*.h"
+      ],
+      "name": "CN",
+      "dependencies": {
+        "TTVideoEngine/Base": []
+      },
+      "source_files": [
+        "TTVideoEngine/Classes/EnvConfig/CN/*.{h,m,mm,c}"
+      ]
+    },
+    {
+      "private_header_files": [
+        "TTVideoEngine/Classes/EnvConfig/SG/*.h"
+      ],
+      "name": "SG",
+      "dependencies": {
+        "TTVideoEngine/Base": []
+      },
+      "source_files": [
+        "TTVideoEngine/Classes/EnvConfig/SG/*.{h,m,mm,c}"
+      ]
+    },
+    {
+      "private_header_files": [
+        "TTVideoEngine/Classes/EnvConfig/UE/*.h"
+      ],
+      "name": "UE",
+      "dependencies": {
+        "TTVideoEngine/Base": []
+      },
+      "source_files": [
+        "TTVideoEngine/Classes/EnvConfig/UE/*.{h,m,mm,c}"
+      ]
+    },
+    {
+      "private_header_files": [
+        "TTVideoEngine/Classes/NetworkPredictor/*.h"
+      ],
+      "name": "NetworkPredictor",
+      "dependencies": {
+        "TTVideoEngine/Public": []
+      },
+      "source_files": [
+        "TTVideoEngine/Classes/NetworkPredictor/*.h",
+        "TTVideoEngine/Classes/NetworkPredictor/*.{m,mm}"
+      ]
+    },
+    {
+      "private_header_files": [
+        "TTVideoEngine/Classes/VR/*.h"
+      ],
+      "name": "VR",
+      "dependencies": {
+        "TTVideoEngine/Public": []
+      },
+      "source_files": [
+        "TTVideoEngine/Classes/VR/*.h",
+        "TTVideoEngine/Classes/VR/*.{m,mm}"
+      ]
+    }
+  ],
+  "name": "TTVideoEngine"
+}

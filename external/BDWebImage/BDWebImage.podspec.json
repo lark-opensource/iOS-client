@@ -1,0 +1,296 @@
+{
+  "name": "BDWebImage",
+  "version": "1.8.30.1",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "http://toutiao.com",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "liushibin": "liushibin@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:iOS_Library/BDWebImage.git",
+    "commit": "615c2fb586910afae71f6c1109771c588bf47898"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "default_subspecs": [
+    "Core",
+    "Download/Chromium",
+    "Decoder",
+    "Monitor/Heimdallr",
+    "BDBase"
+  ],
+  "pod_target_xcconfig": {
+    "ARCHS": "$(ARCHS_STANDARD)",
+    "EXCLUDED_ARCHS[sdk=iphonesimulator*]": "arm64 i386",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDWebImage_POD_VERSION=@\\\"9999_1.8.30.1\\\""
+  },
+  "testspecs": [
+    {
+      "name": "Tests",
+      "test_type": "unit",
+      "source_files": "BDWebImage/mPaaS/Tests/*.{h,m}",
+      "resources": "BDWebImage/mPaaS/Tests/resource/*",
+      "dependencies": {
+        "BDWebImage/SDAdapter": [],
+        "BDWebImage/SDInterface": [],
+        "BDALog": [],
+        "OCMock": [
+          "~> 3.4.3"
+        ],
+        "XcodeCoverage": [
+          ">= 1.3.2"
+        ],
+        "OHHTTPStubs": [
+          "6.1.0"
+        ],
+        "YYWebImage": []
+      },
+      "frameworks": [
+        "UIKit",
+        "Foundation"
+      ]
+    }
+  ],
+  "subspecs": [
+    {
+      "name": "Core",
+      "requires_arc": true,
+      "source_files": [
+        "BDWebImage/Classes/*.{h,m,mm}",
+        "BDWebImage/Classes/Public/*.{h,m,mm}",
+        "BDWebImage/Classes/Cache/*.{h,m}",
+        "BDWebImage/Classes/Cache/Public/*.{h,m}",
+        "BDWebImage/Classes/Extentions/*.{h,m}",
+        "BDWebImage/Classes/Extentions/Public/*.{h,m}",
+        "BDWebImage/Classes/Transform/Public/*.{h,m}",
+        "BDWebImage/Classes/Monitor/*.{h,m}",
+        "BDWebImage/Classes/Public/Internal/BDWebImage.h",
+        "BDWebImage/Classes/Public/ToB/BDWebImageToB.h"
+      ],
+      "public_header_files": [
+        "BDWebImage/Classes/*.h",
+        "BDWebImage/Classes/Cache/*.h",
+        "BDWebImage/Classes/Cache/Public/*.h",
+        "BDWebImage/Classes/Extentions/*.h",
+        "BDWebImage/Classes/Extentions/Public/*.h",
+        "BDWebImage/Classes/Transform/Public/*.h",
+        "BDWebImage/Classes/Monitor/*.h",
+        "BDWebImage/Classes/Public/*.h",
+        "BDWebImage/Classes/Public/Internal/BDWebImage.h",
+        "BDWebImage/Classes/Public/ToB/BDWebImageToB.h"
+      ],
+      "frameworks": [
+        "Foundation",
+        "UIKit",
+        "Accelerate",
+        "CoreServices",
+        "CoreGraphics"
+      ],
+      "libraries": "iconv",
+      "dependencies": {
+        "BDAlogProtocol": [],
+        "MMKV": [],
+        "BDWebImage/BDBase": []
+      }
+    },
+    {
+      "name": "BDBase",
+      "source_files": [
+        "BDWebImage/Classes/BDBase/*.{h,m,mm}",
+        "BDWebImage/Classes/BDBase/Internal/*.{h,m,mm}",
+        "BDWebImage/Classes/BDBase/Config/**/*.{h,m,mm}"
+      ],
+      "public_header_files": [
+        "BDWebImage/Classes/BDBase/*.h",
+        "BDWebImage/Classes/BDBase/Internal/*.h",
+        "BDWebImage/Classes/BDBase/Config/**/*.h"
+      ]
+    },
+    {
+      "name": "Monitor",
+      "subspecs": [
+        {
+          "name": "Heimdallr",
+          "source_files": "",
+          "dependencies": {
+            "Heimdallr": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Download",
+      "subspecs": [
+        {
+          "name": "DownloadBase",
+          "source_files": [
+            "BDWebImage/Classes/Download/*.{h,m,mm}",
+            "BDWebImage/Classes/Download/Public/*.{h,m,mm}"
+          ],
+          "dependencies": {
+            "BDWebImage/Core": [],
+            "BDWebImage/BDBase": []
+          }
+        },
+        {
+          "name": "URLSession",
+          "source_files": "BDWebImage/Classes/Download/URLSession/*.{h,m,mm}",
+          "dependencies": {
+            "BDWebImage/Download/DownloadBase": []
+          }
+        },
+        {
+          "name": "Chromium",
+          "source_files": "BDWebImage/Classes/Download/Chromium/*.{h,m,mm}",
+          "libraries": "iconv",
+          "dependencies": {
+            "BDWebImage/Download/DownloadBase": [],
+            "TTNetworkManager": [
+              ">= 2.2.8.53"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Decoder",
+      "source_files": "BDWebImage/Classes/Decoder/Public/*.{h,m,mm}",
+      "private_header_files": "BDWebImage/Classes/Decoder/*private.h",
+      "libraries": "iconv",
+      "dependencies": {
+        "libwebp": [],
+        "BDWebImage/Core": []
+      },
+      "frameworks": [
+        "UIKit",
+        "ImageIO",
+        "Foundation",
+        "CoreServices"
+      ]
+    },
+    {
+      "name": "HEIC",
+      "source_files": "BDWebImage/Classes/Decoder/HEIC/*.{h,m,mm}",
+      "dependencies": {
+        "BDWebImage/Decoder": [],
+        "libttheif_ios": [
+          ">= 1.0.6"
+        ]
+      }
+    },
+    {
+      "name": "SR",
+      "source_files": "BDWebImage/Classes/Decoder/SR/**/*.{h,m,mm}",
+      "public_header_files": "BDWebImage/Classes/Decoder/SR/Public/*.h",
+      "dependencies": {
+        "BDWebImage/Core": []
+      },
+      "vendored_libraries": "BDWebImage/Classes/Decoder/SR/*.a"
+    },
+    {
+      "name": "AVIF",
+      "subspecs": [
+        {
+          "name": "DAV1D",
+          "source_files": "BDWebImage/Classes/Decoder/AVIF/*.{h,m,mm}",
+          "dependencies": {
+            "BDWebImage/Decoder": [],
+            "libavif/libdav1d": []
+          },
+          "pod_target_xcconfig": {
+            "HEADER_SEARCH_PATHS": "$(inherited) ${PODS_ROOT}/libavif/include"
+          }
+        }
+      ]
+    },
+    {
+      "name": "SDAdapter",
+      "source_files": "BDWebImage/Classes/Adapter/SDWebImage/*.{h,m,mm}",
+      "dependencies": {
+        "SDWebImage": [],
+        "BDWebImage/Core": [],
+        "BDWebImage/Download": [],
+        "BDWebImage/Decoder": [],
+        "BDWebImage/Monitor/Heimdallr": []
+      },
+      "frameworks": [
+        "Foundation",
+        "UIKit"
+      ],
+      "subspecs": [
+        {
+          "name": "SDMonitor",
+          "source_files": "BDWebImage/Classes/Adapter/SDWebImage/Monitor/*.{h,m,mm}",
+          "dependencies": {
+            "SDWebImage": [
+              "< 5.0.0"
+            ],
+            "BDWebImage/Core": [],
+            "YYCache": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "SDInterface",
+      "source_files": "BDWebImage/Classes/Adapter/SDInterface/*.{h,m,mm}",
+      "dependencies": {
+        "BDWebImage/Core": [],
+        "BDWebImage/Download/Chromium": []
+      }
+    },
+    {
+      "name": "WeakNet",
+      "source_files": "BDWebImage/Classes/WeakNet/*.{h,m}",
+      "dependencies": {
+        "BDCatower/Core": []
+      }
+    },
+    {
+      "name": "mPaaS",
+      "subspecs": [
+        {
+          "name": "Task",
+          "frameworks": "Foundation",
+          "dependencies": {
+            "BDStartUp/Base": [],
+            "BDWebImage/Core": [],
+            "BDWebImage/Download/Chromium": [],
+            "BDWebImage/Decoder": []
+          },
+          "source_files": "BDWebImage/mPaaS/Task/**/*.{h,m,c}",
+          "public_header_files": "BDWebImage/mPaaS/Task/**/*.h"
+        },
+        {
+          "name": "Debug",
+          "frameworks": "Foundation",
+          "dependencies": {
+            "BDStartUp/Debug": [],
+            "BDWebImage/Core": [],
+            "BDWebImage/Download/Chromium": [],
+            "BDWebImage/Decoder": [],
+            "Masonry": []
+          },
+          "source_files": "BDWebImage/mPaaS/Debug/**/*.{h,m,c}",
+          "public_header_files": "BDWebImage/mPaaS/Debug/**/*.h",
+          "resources": "BDWebImage/mPaaS/Debug/Images/*"
+        }
+      ]
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "1080",
+    "app_id": "9999"
+  },
+  "repoId": "1080",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "BDWebImage_POD_VERSION=@\\\"9999_1.8.30.1\\\""
+  }
+}

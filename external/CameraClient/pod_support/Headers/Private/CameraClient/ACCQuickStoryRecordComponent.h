@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraComponents/Recorder/QuickStory/ACCQuickStoryRecordComponent.h

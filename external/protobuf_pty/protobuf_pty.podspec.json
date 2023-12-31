@@ -1,0 +1,76 @@
+{
+  "osx": {
+    "vendored_libraries": "ios-arch-osx/*_protobuf_pty_*awesome_*.a"
+  },
+  "cocoapods_version": ">= 1.0",
+  "platforms": {
+    "watchos": "2.0",
+    "osx": "10.9",
+    "ios": "8.0"
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "protobuf_pty_POD_VERSION=@\\\"9999_0.0.3\\\""
+  },
+  "pod_target_xcconfig": {
+    "USE_HEADERMAP": "NO",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "\"$(inherited)\" \"HAVE_PTHREAD=1\" protobuf_pty_POD_VERSION=@\\\"9999_0.0.3\\\""
+  },
+  "_bytebus_platform": {
+    "repo_id": "31495",
+    "app_id": "9999"
+  },
+  "watchos": {
+    "vendored_libraries": "ios-arch-watchos/*_protobuf_pty_*awesome_*.a"
+  },
+  "header_mappings_dir": "src",
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/9999/protobuf_pty/0.0.3.1-binary/protobuf_pty.framework.tar.xz"
+  },
+  "version": "0.0.3.1-binary",
+  "source_files": [
+    "src/google/protobuf/*.{h,cc,inc}",
+    "src/google/protobuf/stubs/*.{h,cc}",
+    "src/google/protobuf/io/*.{h,cc}",
+    "src/google/protobuf/util/*.{h,cc}",
+    "src/google/protobuf/util/internal/*.{h,cc}"
+  ],
+  "homepage": "https://github.com/google/protobuf",
+  "repoId": "31495",
+  "exclude_files": [
+    "src/google/**/*_test.{h,cc,inc}",
+    "src/google/**/*_unittest.{h,cc}",
+    "src/google/protobuf/test_util*.{h,cc}",
+    "src/google/protobuf/map_lite_test_util.{h,cc}",
+    "src/google/protobuf/map_test_util*.{h,cc,inc}"
+  ],
+  "prepare_command": "curl https://ios.bytedance.net/wlapi/tosDownload/iosbinary/platform/master/awesomecommand_xz.sh | bash ;",
+  "description": "framework_description",
+  "xcconfig": {
+    "USER_HEADER_SEARCH_PATHS": "\"${PODS_ROOT}/src\""
+  },
+  "ios": {
+    "frameworks": [
+      "UIKit",
+      "Foundation",
+      "JavaScriptCore"
+    ],
+    "vendored_libraries": "ios-arch-iphone/*_protobuf_pty_*awesome_*.a"
+  },
+  "authors": {
+    "The Protocol Buffers contributors": "protobuf@googlegroups.com"
+  },
+  "source_code": {
+    "commit": "8307af5471dee4eb42f90343597a59172daff640",
+    "git": "git@code.byted.org:MobileAI/protobuf.git"
+  },
+  "build_type": "system",
+  "name": "protobuf_pty",
+  "license": "3-Clause BSD License",
+  "build_file_count": 81,
+  "preserve_paths": [
+    "**/*.bwp"
+  ],
+  "summary": "framework_summary"
+}

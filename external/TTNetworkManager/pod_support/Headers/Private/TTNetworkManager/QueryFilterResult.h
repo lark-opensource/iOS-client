@@ -1,0 +1,1 @@
+../../../../Pod/Classes/TTNetworkBase/QueryFilter/QueryFilterResult.h

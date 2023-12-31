@@ -1,0 +1,1 @@
+../../../../CreativeKit/CameraArch/Tools/Resource/NSString+CameraClientResource.h

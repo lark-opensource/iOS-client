@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_effect_3d_object_manipulate_api.h

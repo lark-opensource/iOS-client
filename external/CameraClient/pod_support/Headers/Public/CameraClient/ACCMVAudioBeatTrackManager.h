@@ -1,0 +1,1 @@
+../../../../CameraClient/MVPComponents/Edit/Video/Music/ACCMVAudioBeatTrackManager.h

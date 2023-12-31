@@ -1,0 +1,10 @@
+platform :ios, '11.0'
+
+source 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+source 'git@code.byted.org:iOS_Library/privatethird_source_repo'
+source 'git@code.byted.org:ee/pods_specs.git'
+
+target 'LarkMediaDev' do
+  use_modular_headers!
+  pod 'LarkMedia', :subspecs => ['Core', 'Debug', 'Load', 'Track', 'Hook', 'API', 'Rx'], :path => './../Modules/LarkMedia'
+end

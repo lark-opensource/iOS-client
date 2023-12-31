@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/Record/View/AWERecordLoadingView.h

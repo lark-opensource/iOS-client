@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/Common/Manager/AWEEffectPlatformManager+Download.h

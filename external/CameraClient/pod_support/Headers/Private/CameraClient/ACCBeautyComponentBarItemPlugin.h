@@ -1,0 +1,1 @@
+../../../../CameraClient/ComponentPlugins/Record/Beauty/UI/ACCBeautyComponentBarItemPlugin.h

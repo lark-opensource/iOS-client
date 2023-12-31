@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayComponent/Base/BaseNetWork/Request/CJPaySignSetMemberFirstPayTypeRequest.h

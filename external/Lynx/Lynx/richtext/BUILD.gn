@@ -1,0 +1,25 @@
+# Copyright 2021 The Lynx Authors. All rights reserved.
+
+import("//Lynx/Lynx.gni")
+
+lynx_source_set("richtext") {
+  include_dirs = [
+    "//third_party/little-xml/include",
+  ]
+  sources = [
+    "//third_party/little-xml/src/lxml_reader.cc",
+    "//third_party/little-xml/src/lxml_writer.cc",
+    "//Lynx/richtext/rich_text_node.cc",
+    "//Lynx/richtext/rich_text_node.h",
+    "//Lynx/richtext/rich_text_parser.cc",
+    "//Lynx/richtext/rich_text_parser.h",
+  ]
+  cflags = [
+    "-Wno-reorder",
+    "-Wno-newline-eof",
+  ]
+  cflags_cc = [
+    "-Wno-reorder",
+    "-Wno-newline-eof",
+  ]
+}

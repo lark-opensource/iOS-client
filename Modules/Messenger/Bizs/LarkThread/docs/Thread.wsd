@@ -1,0 +1,110 @@
+@startuml thread
+
+class CellViewModelFactory {
+    -messageSubFactories: [MessageSubFactory]
+    +context: Context
+    ..
+    +create(TimeInterval) -> CellViewModel
+    +create(Message) -> CellViewModel
+    +registerMenuItems()
+    +registerServices()
+}
+
+class MessageSubFactory {
+    +context: Context
+    ..
+    +canCreate(Message) -> Bool
+    +create(Message) -> MessageSubViewModel
+    +registerMenuItems()
+    +registerServices()
+}
+
+CellViewModelFactory "1" *-- "n" MessageSubFactory
+CellViewModelFactory . TimeCellViewModel : Creates
+CellViewModelFactory . SystemCellViewModel : Creates
+CellViewModelFactory . MessageCellViewModel : Creates
+
+MessageSubFactory . MessageSubViewModel : Creates
+
+
+class ViewModel {
+    +parent: ViewModel?
+    +children: [ViewModel]
+    +addChild(ViewModel)
+    +removeFromParent()
+    ..
+    +willDisplay()
+    +didEndDisplay()
+    +didSelect()
+    +onResize()
+}
+
+class TimeCellViewModel {
+
+}
+
+class SystemCellViewModel {
+
+}
+
+class MessageCellViewModel {
+    +identifier: String
+    +content: MessageSubViewModel
+    +subvms: [SubType: MessageSubViewModel]
+    --
+    +menuTypes() -> [MenuType]
+    +update(Message)
+    +resetContent(MessageSubViewModel)
+    +resetSubvms([SubType: MessageSubViewModel])
+}
+
+class CellViewModel {
+    +identifier: String
+    +renderer: ASComponentRenderer
+    +context: Context
+    --
+    +calculateRenderer()
+    +dequeueReusableCell(UITableView, String) -> MessageCommonCell
+}
+
+class MessageSubViewModel {
+    +message: Message
+    +context: Context
+    +component: Component
+    --
+    +menuTypes() -> [MenuType]
+    +update(Message)
+}
+
+MessageCellViewModel "1" *-- "n" MessageSubViewModel
+
+TimeCellViewModel --|> CellViewModel
+SystemCellViewModel --|> CellViewModel
+MessageCellViewModel --|> CellViewModel
+
+CellViewModel --|> ViewModel
+MessageSubViewModel --|> ViewModel
+
+@enduml
+
+@startuml context
+class PageAPI {
+    +register([MenuItem])
+}
+
+class MessageMenuManager {
+    +register(MessageMenuItem)
+    +show(UIViewController, Message, [MenuType], MessageMenuInfo)
+}
+
+class Context {
+    +resolver: Resolver
+    +pageAPI: PageAPI?
+    +menuManager: MessageMenuManager?
+    +dispatcher: RequestDispatcher
+}
+
+Context "1" *-- "1" PageAPI
+Context "1" *-- "1" MessageMenuManager
+
+@enduml

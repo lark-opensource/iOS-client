@@ -1,0 +1,531 @@
+load('@build_bazel_rules_apple//apple:resources.bzl', 'apple_resource_group')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "ADFeelGood_pod_hdrs",
+  srcs = [
+    ":ADFeelGood_root_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "ADFeelGood_private_includes",
+  include = [
+    "external/ADFeelGood/pod_support/Headers/Private/ADFeelGood/"
+  ],
+  deps = [],
+  external_name = "ADFeelGood"
+)
+gen_includes(
+  name = "ADFeelGood_public_includes",
+  include = [
+    "external/ADFeelGood/pod_support/Headers/Public/ADFeelGood/"
+  ],
+  deps = [],
+  external_name = "ADFeelGood"
+)
+filegroup(
+  name = "_ADFeelGood_hdrs",
+  srcs = [
+    ":ADFeelGood_root_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "ADFeelGood_xcode_hmapsource",
+  hdrs = [
+    ":_ADFeelGood_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "ADFeelGood_xcode_hmap",
+  dep = ":ADFeelGood_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/ADFeelGood/*-bitsky-generated.modulemap", "pod_support/Headers/Public/ADFeelGood/*-bitsky-generated-umbrella.h"]))
+apple_resource_group(
+  name = "ADFeelGood_resource_group",
+  resources = glob(
+    [
+      "ADFeelGood/ADFeelGood.bundle/**"
+    ]
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "ADFeelGood_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "ADFeelGood",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "ADFeelGood_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":ADFeelGood_xcode_hmap"
+  ],
+  external_name = "ADFeelGood",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ADFeelGood_root_hdrs",
+  srcs = [
+    "ADFeelGood/ADFeelGoodSDK.h",
+    "ADFeelGood/JSBridge/ADFGBridge/ADFGBridgeCommand.h",
+    "ADFeelGood/JSBridge/ADFGBridge/ADFGBridgeDefines.h",
+    "ADFeelGood/JSBridge/ADFGBridge/ADFGBridgeForwarding.h",
+    "ADFeelGood/JSBridge/ADFGBridge/ADFGBridgePlugin.h",
+    "ADFeelGood/JSBridge/ADFGBridge/ADFGBridgeRegister.h",
+    "ADFeelGood/JSBridge/ADFGBridgeName/ADFeelGoodBridgeNameDefines.h",
+    "ADFeelGood/JSBridge/Helper/ADFGCommonMacros.h",
+    "ADFeelGood/JSBridge/Helper/ADFGUserAgentHelper.h",
+    "ADFeelGood/JSBridge/WebView/ADFGBridgeEngine.h",
+    "ADFeelGood/JSBridge/WebView/ADFGWebViewBridgeEngine.h",
+    "ADFeelGood/Manager/ADFeelGoodManager.h",
+    "ADFeelGood/Manager/Model/ADFGWebModel.h",
+    "ADFeelGood/Manager/Model/ADFeelGoodConfig+Private.h",
+    "ADFeelGood/Manager/Model/ADFeelGoodConfig.h",
+    "ADFeelGood/Manager/Model/ADFeelGoodInfo+Private.h",
+    "ADFeelGood/Manager/Model/ADFeelGoodInfo.h",
+    "ADFeelGood/Manager/Model/ADFeelGoodOpenModel+Private.h",
+    "ADFeelGood/Manager/Model/ADFeelGoodOpenModel.h",
+    "ADFeelGood/Manager/Webview/ADFGLoadResource.h",
+    "ADFeelGood/Manager/Webview/ADFGWebView.h",
+    "ADFeelGood/Manager/Webview/ADFeelGoodParamKeysDefine.h",
+    "ADFeelGood/Manager/Webview/ADFeelGoodURLConfig.h",
+    "ADFeelGood/Manager/Webview/ADFeelGoodViewController.h",
+    "ADFeelGood/Manager/Webview/ADFeelGoodWebHeader.h",
+    "ADFeelGood/Manager/Webview/UIViewController+ADFGPageMonitor.h",
+    "ADFeelGood/Utils/ADFGError.h",
+    "ADFeelGood/Utils/ADFGUtils.h",
+    "ADFeelGood/Utils/NSArray+ADFGAdditions.h",
+    "ADFeelGood/Utils/NSDictionary+ADFGAdditions.h",
+    "ADFeelGood/Utils/UIDevice+ADFGAdditions.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ADFeelGood_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/ADFeelGood/ADFGBridgeCommand.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFGBridgeDefines.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFGBridgeEngine.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFGBridgeForwarding.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFGBridgePlugin.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFGBridgeRegister.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFGCommonMacros.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFGError.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFGLoadResource.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFGUserAgentHelper.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFGUtils.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFGWebModel.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFGWebView.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFGWebViewBridgeEngine.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFeelGoodBridgeNameDefines.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFeelGoodConfig+Private.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFeelGoodConfig.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFeelGoodInfo+Private.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFeelGoodInfo.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFeelGoodManager.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFeelGoodOpenModel+Private.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFeelGoodOpenModel.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFeelGoodParamKeysDefine.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFeelGoodSDK.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFeelGoodURLConfig.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFeelGoodViewController.h",
+    "pod_support/Headers/Private/ADFeelGood/ADFeelGoodWebHeader.h",
+    "pod_support/Headers/Private/ADFeelGood/NSArray+ADFGAdditions.h",
+    "pod_support/Headers/Private/ADFeelGood/NSDictionary+ADFGAdditions.h",
+    "pod_support/Headers/Private/ADFeelGood/UIDevice+ADFGAdditions.h",
+    "pod_support/Headers/Private/ADFeelGood/UIViewController+ADFGPageMonitor.h",
+    "pod_support/Headers/Public/ADFeelGood/ADFGWebModel.h",
+    "pod_support/Headers/Public/ADFeelGood/ADFGWebView.h",
+    "pod_support/Headers/Public/ADFeelGood/ADFeelGoodConfig.h",
+    "pod_support/Headers/Public/ADFeelGood/ADFeelGoodInfo.h",
+    "pod_support/Headers/Public/ADFeelGood/ADFeelGoodManager.h",
+    "pod_support/Headers/Public/ADFeelGood/ADFeelGoodOpenModel.h",
+    "pod_support/Headers/Public/ADFeelGood/ADFeelGoodSDK.h",
+    "pod_support/Headers/Public/ADFeelGood/ADFeelGoodWebHeader.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ADFeelGood_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ADFeelGood_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ADFeelGood_module_map",
+  module_map = "pod_support/Headers/Public/ADFeelGood/ADFeelGood-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/ADFeelGood/ADFeelGood-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ADFeelGood_root_srcs",
+  srcs = [
+    "ADFeelGood/JSBridge/ADFGBridgeName/ADFeelGoodBridgeNameDefines.m",
+    "ADFeelGood/Manager/Model/ADFeelGoodConfig+Private.m",
+    "ADFeelGood/Manager/Model/ADFeelGoodConfig.m",
+    "ADFeelGood/Manager/Model/ADFeelGoodInfo+Private.m",
+    "ADFeelGood/Manager/Model/ADFeelGoodInfo.m",
+    "ADFeelGood/Manager/ADFeelGoodManager.m",
+    "ADFeelGood/Manager/Model/ADFeelGoodOpenModel+Private.m",
+    "ADFeelGood/Manager/Model/ADFeelGoodOpenModel.m",
+    "ADFeelGood/Manager/Webview/ADFeelGoodParamKeysDefine.m",
+    "ADFeelGood/Manager/Webview/ADFeelGoodURLConfig.m",
+    "ADFeelGood/Manager/Webview/ADFeelGoodViewController.m",
+    "ADFeelGood/JSBridge/ADFGBridge/ADFGBridgeCommand.m",
+    "ADFeelGood/JSBridge/ADFGBridge/ADFGBridgeForwarding.m",
+    "ADFeelGood/JSBridge/ADFGBridge/ADFGBridgePlugin.m",
+    "ADFeelGood/JSBridge/ADFGBridge/ADFGBridgeRegister.m",
+    "ADFeelGood/JSBridge/Helper/ADFGCommonMacros.m",
+    "ADFeelGood/Manager/Webview/ADFGLoadResource.m",
+    "ADFeelGood/JSBridge/Helper/ADFGUserAgentHelper.m",
+    "ADFeelGood/Utils/ADFGUtils.m",
+    "ADFeelGood/Manager/Model/ADFGWebModel.m",
+    "ADFeelGood/Manager/Webview/ADFGWebView.m",
+    "ADFeelGood/JSBridge/WebView/ADFGWebViewBridgeEngine.m",
+    "ADFeelGood/Utils/NSArray+ADFGAdditions.m",
+    "ADFeelGood/Utils/NSDictionary+ADFGAdditions.m",
+    "ADFeelGood/Utils/UIDevice+ADFGAdditions.m",
+    "ADFeelGood/Manager/Webview/UIViewController+ADFGPageMonitor.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ADFeelGood_oc",
+  enable_modules = 1,
+  srcs = [
+    "ADFeelGood_root_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "ADFeelGood_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation"
+  ],
+  deps = [
+    ":ADFeelGood_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":ADFeelGood_private_includes",
+    ":ADFeelGood_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":ADFeelGood_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DADFeelGood_POD_VERSION=@\\\"9999_2.1.18-alpha.4-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  data = [
+    ":ADFeelGood_resource_group"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ADFeelGood",
+  deps = [
+    ":ADFeelGood_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ADFeelGood_lib",
+  deps = [
+    ":ADFeelGood"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_ADFeelGood_module_map",
+  module_map = "@ADFeelGood//:pod_support/Headers/Public/ADFeelGood/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@ADFeelGood//:pod_support/Headers/Public/ADFeelGood/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_ADFeelGood_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@ADFeelGood//:ADFeelGood_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_ADFeelGood",
+  target_name = "Lark",
+  module_name = "ADFeelGood",
+  hdrs = ["@ADFeelGood//:ADFeelGood_root_pod_hdrs"],
+  srcs = ["@ADFeelGood//:ADFeelGood_root_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DADFeelGood_POD_VERSION=@\\\"9999_2.1.18-alpha.4-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "ADFeelGood_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "ADFeelGood_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["UIKit", "Foundation"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = ["@ADFeelGood//:ADFeelGood_resource_group"],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "ADFeelGood_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "ADFeelGood_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "ADFeelGood_dynamic", False),
+  tags = getattr(defs_external_objc_library, "ADFeelGood_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("ADFeelGood", {}),
+  visibility = ["//visibility:public"],
+)

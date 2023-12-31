@@ -1,0 +1,1 @@
+../../../../TSPrivacyKit/Classes/Core/Events/Model/TSPKAPIModel.h

@@ -1,0 +1,30 @@
+type: pipeline # 必填, 表示类型为pipeline
+
+jobs:
+  build_verify:
+    display_name: build_verify
+    type: exec  # exec 任务
+    env:
+      type: freestyle
+      name: bits_ios
+    failed_approvers:
+      - huangjianming@bytedance.com
+    script:
+      - git branch -D ${CUSTOM_CI_COMMIT_TARGET_REF_NAME} || echo "${CUSTOM_CI_COMMIT_TARGET_REF_NAME}本地分支不存在"
+      - git checkout ${CUSTOM_CI_COMMIT_TARGET_REF_NAME}
+      - git merge --no-ff ${WORKFLOW_REPO_COMMIT} -m "temp merge"
+      - git log -n 2 --first-parent
+      - ruby -v
+      - rm -rf Logs/
+      - export GYM_BUILDLOG_PATH=Logs/gym
+      - pwd
+      - bundle install --path=./.temp
+      - ls ./Pods
+      - env
+      - export DEVELOPER_DIR=/Applications/Xcode-12.app/Contents/Developer
+      - /usr/bin/xcodebuild -version
+      - export TMPDIR=`pwd`
+      - make release
+      - make test-release
+      #- make test-compatibility
+

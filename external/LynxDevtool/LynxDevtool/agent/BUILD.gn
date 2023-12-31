@@ -1,0 +1,78 @@
+# Copyright 2022 The Lynx Authors. All rights reserved.
+import("//LynxDevtool/devtool.gni")
+
+# devtool_agent_shared_sources
+devtool_agent_shared_sources = [
+  "agent_constants.h",
+  "devtool_agent_base.h",
+  "devtool_agent_ng.cc",
+  "devtool_agent_ng.h",
+  "domain_agent/inspector_agent.cc",
+  "domain_agent/inspector_agent.h",
+  "domain_agent/inspector_agent_base.h",
+  "domain_agent/inspector_ark_recorder_agent.cc",
+  "domain_agent/inspector_ark_recorder_agent.h",
+  "domain_agent/inspector_ark_replay_agent.cc",
+  "domain_agent/inspector_ark_replay_agent.h",
+  "domain_agent/inspector_component_agent.cc",
+  "domain_agent/inspector_component_agent.h",
+  "domain_agent/inspector_css_agent_ng.cc",
+  "domain_agent/inspector_css_agent_ng.h",
+  "domain_agent/inspector_debugger_agent.cc",
+  "domain_agent/inspector_debugger_agent.h",
+  "domain_agent/inspector_dom_agent_ng.cc",
+  "domain_agent/inspector_dom_agent_ng.h",
+  "domain_agent/inspector_ui_tree_agent.cc",
+  "domain_agent/inspector_ui_tree_agent.h",
+  "domain_agent/inspector_heap_profiler_agent.cc",
+  "domain_agent/inspector_heap_profiler_agent.h",
+  "domain_agent/inspector_input_agent.cc",
+  "domain_agent/inspector_input_agent.h",
+  "domain_agent/inspector_io_agent.cc",
+  "domain_agent/inspector_io_agent.h",
+  "domain_agent/inspector_layer_tree_agent_ng.cc",
+  "domain_agent/inspector_layer_tree_agent_ng.h",
+  "domain_agent/inspector_layout_agent.cc",
+  "domain_agent/inspector_layout_agent.h",
+  "domain_agent/inspector_log_agent.cc",
+  "domain_agent/inspector_log_agent.h",
+  "domain_agent/inspector_lynx_agent_ng.cc",
+  "domain_agent/inspector_lynx_agent_ng.h",
+  "domain_agent/inspector_memory_agent.cc",
+  "domain_agent/inspector_memory_agent.h",
+  "domain_agent/inspector_overlay_agent_ng.cc",
+  "domain_agent/inspector_overlay_agent_ng.h",
+  "domain_agent/inspector_page_agent_ng.cc",
+  "domain_agent/inspector_page_agent_ng.h",
+  "domain_agent/inspector_performance_agent.cc",
+  "domain_agent/inspector_performance_agent.h",
+  "domain_agent/inspector_profiler_agent.cc",
+  "domain_agent/inspector_profiler_agent.h",
+  "domain_agent/inspector_runtime_agent.cc",
+  "domain_agent/inspector_runtime_agent.h",
+  "domain_agent/inspector_template_agent.cc",
+  "domain_agent/inspector_template_agent.h",
+  "domain_agent/inspector_tracing_agent.cc",
+  "domain_agent/inspector_tracing_agent.h",
+  "domain_agent/system_info_agent.cc",
+  "domain_agent/system_info_agent.h",
+]
+
+if (is_android) {
+  devtool_agent_shared_sources += [
+    "android/devtool_agent_android.cc",
+    "android/devtool_agent_android.h",
+  ]
+} else if (is_win) {
+  devtool_agent_shared_sources += [
+    "win/devtool_agent_win.cc",
+    "win/devtool_agent_win.h",
+  ]
+}
+
+# devtool_agent_shared_sources end
+
+devtool_source_set("agent") {
+  sources = devtool_agent_shared_sources
+  deps = [ "//third_party/zlib" ]
+}

@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme
+   LastUpgradeVersion = "1400"
+   version = "1.3">
+   <BuildAction
+      parallelizeBuildables = "YES"
+      buildImplicitDependencies = "YES">
+      <PreActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "[BD-build-infer]"
+               scriptText = "export BD_ENTRY_SCRIPT=&quot;$0:A&quot;;
+if [ -f ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_sync.sh ];then
+  bash ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_sync.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- || echo &quot;skip&quot;;
+fi;
+[ ! -d ~/Library/Caches/com.bytedance.buildinfra/common ] &amp;&amp; mkdir -p ~/Library/Caches/com.bytedance.buildinfra/common;
+curl -s -S -f https://ios.bytedance.net/wlapi/tosDownload/iosbinary/indexstore/pre_build_hook_async.sh -o ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_async.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- &amp;
+if [ -f ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_async.sh ];then
+  bash ~/Library/Caches/com.bytedance.buildinfra/common/pre_build_hook_async.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- &amp;;
+fi;
+"
+               shellToInvoke = "/bin/zsh">
+            </ActionContent>
+         </ExecutionAction>
+      </PreActions>
+      <PostActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "[BD-build-infer]"
+               scriptText = "export BD_ENTRY_SCRIPT=&quot;$0:A&quot;;
+if [ -f ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_sync.sh ];then
+  bash ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_sync.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- || echo &quot;skip&quot;;
+fi;
+[ ! -d ~/Library/Caches/com.bytedance.buildinfra/common ] &amp;&amp; mkdir -p ~/Library/Caches/com.bytedance.buildinfra/common;
+curl -s -S -f https://ios.bytedance.net/wlapi/tosDownload/iosbinary/indexstore/post_build_hook_async.sh -o ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_async.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- &amp;;
+if [ -f ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_async.sh ];then
+  bash ~/Library/Caches/com.bytedance.buildinfra/common/post_build_hook_async.sh 0&lt;/dev/null &gt;&amp;- 2&gt;&amp;- &amp;;
+fi;
+"
+               shellToInvoke = "/bin/zsh">
+            </ActionContent>
+         </ExecutionAction>
+      </PostActions>
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "2B16884F285056CA0004567D"
+               BuildableName = "SCDemo.app"
+               BlueprintName = "SCDemo"
+               ReferencedContainer = "container:SCDemo.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <TestAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      codeCoverageEnabled = "YES">
+      <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "F2CAC69D3F915EBBB392337CA07B1B56"
+               BuildableName = "LarkExpressionEngine-Unit-Tests.xctest"
+               BlueprintName = "LarkExpressionEngine-Unit-Tests"
+               ReferencedContainer = "container:Pods/LarkExpressionEngine.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "57CD04244752184E2D89052782F7568D"
+               BuildableName = "LarkPolicyEngine-Unit-Tests.xctest"
+               BlueprintName = "LarkPolicyEngine-Unit-Tests"
+               ReferencedContainer = "container:Pods/LarkPolicyEngine.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C2CFF96E756220C52E6CAE8008036E1A"
+               BuildableName = "LarkSensitivityControl-Unit-Tests.xctest"
+               BlueprintName = "LarkSensitivityControl-Unit-Tests"
+               ReferencedContainer = "container:Pods/LarkSensitivityControl.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "2A339E26EB92A5C3A00992F6ADB521AF"
+               BuildableName = "LarkSecurityAudit-Unit-Tests.xctest"
+               BlueprintName = "LarkSecurityAudit-Unit-Tests"
+               ReferencedContainer = "container:Pods/LarkSecurityAudit.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "9CBD2FD82BF998B5A2FB8680FB65A3F7"
+               BuildableName = "LarkSecurityCompliance-Unit-Tests.xctest"
+               BlueprintName = "LarkSecurityCompliance-Unit-Tests"
+               ReferencedContainer = "container:Pods/LarkSecurityCompliance.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "07DB7D38D6A26EF96B316E21F09F72FE"
+               BuildableName = "LarkPrivacyMonitor-Unit-Tests.xctest"
+               BlueprintName = "LarkPrivacyMonitor-Unit-Tests"
+               ReferencedContainer = "container:Pods/LarkPrivacyMonitor.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+      </Testables>
+   </TestAction>
+   <LaunchAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      launchStyle = "0"
+      useCustomWorkingDirectory = "NO"
+      ignoresPersistentStateOnLaunch = "NO"
+      debugDocumentVersioning = "YES"
+      debugServiceExtension = "internal"
+      allowLocationSimulation = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "2B16884F285056CA0004567D"
+            BuildableName = "SCDemo.app"
+            BlueprintName = "SCDemo"
+            ReferencedContainer = "container:SCDemo.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </LaunchAction>
+   <ProfileAction
+      buildConfiguration = "Release"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      savedToolIdentifier = ""
+      useCustomWorkingDirectory = "NO"
+      debugDocumentVersioning = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "2B16884F285056CA0004567D"
+            BuildableName = "SCDemo.app"
+            BlueprintName = "SCDemo"
+            ReferencedContainer = "container:SCDemo.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </ProfileAction>
+   <AnalyzeAction
+      buildConfiguration = "Debug">
+   </AnalyzeAction>
+   <ArchiveAction
+      buildConfiguration = "Release"
+      revealArchiveInOrganizer = "YES">
+   </ArchiveAction>
+</Scheme>

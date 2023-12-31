@@ -1,0 +1,114 @@
+{
+  "default_subspecs": [
+    "Core"
+  ],
+  "platforms": {
+    "osx": "10.15",
+    "ios": "8.0"
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "VideoTemplate_POD_VERSION=@\\\"9999_4.0.171.6-bugfix\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "VideoTemplate_POD_VERSION=@\\\"9999_4.0.171.6-bugfix\\\""
+  },
+  "_bytebus_platform": {
+    "repo_id": "6157",
+    "app_id": "9999"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/9999/VideoTemplate/4.0.171.6-bugfix.1.binary/VideoTemplate.framework.tar.xz"
+  },
+  "version": "4.0.171.6-bugfix.1.binary",
+  "homepage": "https://github.com/lixingpeng/VideoTemplate",
+  "repoId": "6157",
+  "subspecs": [
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_Core_*awesome_*.a"
+      },
+      "public_header_files": "cut_ios/Headers/Core/**/*.h",
+      "name": "Core",
+      "resource_bundles": {
+        "VideoTemplate": [
+          "Assets/**/*.{xcassets,bundle,plist}"
+        ]
+      },
+      "preserve_paths": [
+        "thirdparty/nlohmann/**/*.{c,h,mm,m,cpp,hpp}",
+        "thirdparty/sha1/*.{c,h,mm,m,cpp,hpp}",
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Core_*awesome_*.a"
+      },
+      "dependencies": {
+        "EffectPlatformSDK/ModelDistribute": [],
+        "ArtistOpenPlatformSDK/Effect": [],
+        "TTVideoEditor/LVCutTemplate": [],
+        "NLEPlatform": [],
+        "TemplateConsumer/Cutsame": []
+      },
+      "source_files": [
+        "cut/include/**/*.{c,h,mm,m,cpp,hpp}",
+        "cut/src/**/*.{c,h,mm,m,cpp}",
+        "thirdparty/sha1/*.hpp",
+        "thirdparty/nlohmann/*.hpp",
+        "thirdparty/nlohmann/**/*.hpp",
+        "thirdparty/zip/**/*.{c,h,mm,m,cpp}",
+        "cut_ios/Headers/Core/**/*.{c,h,mm,m}",
+        "cut_ios/Classes/Core/**/*.{c,h,mm,m,cpp}",
+        "cut_ios/Classes/util/**/*.{c,h,mm,m,cpp}"
+      ],
+      "exclude_files": "cut/include/cdom/model/autogen/*.{c,cpp,h,hpp}"
+    },
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_GamePlay_*awesome_*.a"
+      },
+      "public_header_files": "cut_ios/GamePlay/**/*.h",
+      "name": "GamePlay",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_GamePlay_*awesome_*.a"
+      },
+      "source_files": "cut_ios/GamePlay/**/*.{c,h,mm,m}"
+    }
+  ],
+  "prepare_command": "curl https://ios.bytedance.net/wlapi/tosDownload/iosbinary/platform/master/awesomecommand_xz.sh | bash ;",
+  "description": "framework_description",
+  "xcconfig": {
+    "CC": "clang",
+    "CXX": "clang++",
+    "HEADER_SEARCH_PATHS": "\"${PODS_TARGET_SRCROOT}/thirdparty\" \"${PODS_TARGET_SRCROOT}/cut/include\" \"${PODS_TARGET_SRCROOT}/cut/src\" \"${PODS_TARGET_SRCROOT}/cut_ios/Classes\"",
+    "OTHER_LDFLAGS": "-lc++"
+  },
+  "ios": {
+    "frameworks": [
+      "UIKit",
+      "Foundation",
+      "JavaScriptCore"
+    ]
+  },
+  "authors": {
+    "lixingpeng": "lixingpeng@bytedance.com"
+  },
+  "source_code": {
+    "commit": "2d8e5f784f0b08e093711f95089bb54b3828426f",
+    "git": "git@code.byted.org:ugc/cutsame.git"
+  },
+  "build_type": "system",
+  "name": "VideoTemplate",
+  "license": {
+    "type": "MIT"
+  },
+  "build_file_count": 226,
+  "preserve_paths": [
+    "**/*.bwp"
+  ],
+  "summary": "framework_summary"
+}

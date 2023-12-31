@@ -1,0 +1,147 @@
+{
+  "default_subspecs": [
+    "Core"
+  ],
+  "platforms": {
+    "osx": "10.11.0",
+    "ios": "9.0"
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "Napi_POD_VERSION=@\\\"9999_2.0.7.5-bugfix\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "Napi_POD_VERSION=@\\\"9999_2.0.7.5-bugfix\\\""
+  },
+  "_bytebus_platform": {
+    "repo_id": "14166",
+    "app_id": "9999"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/9999/Napi/2.0.7.5-bugfix.1.binary/Napi.framework.tar.xz"
+  },
+  "version": "2.0.7.5-bugfix.1.binary",
+  "homepage": "https://code.byted.org/developer/napi",
+  "repoId": "14166",
+  "subspecs": [
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_Core_*awesome_*.a"
+      },
+      "public_header_files": [
+        "napi/*.h",
+        "napi/common/*.h"
+      ],
+      "name": "Core",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Core_*awesome_*.a"
+      },
+      "source_files": [
+        "napi/*.{h,cc}",
+        "napi/common/*.{h,cc}"
+      ]
+    },
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_Env_*awesome_*.a"
+      },
+      "public_header_files": "napi/env/*.h",
+      "name": "Env",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Env_*awesome_*.a"
+      },
+      "dependencies": {
+        "Napi/Core": []
+      },
+      "source_files": "napi/env/*.{h,cc}"
+    },
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_JSC_*awesome_*.a"
+      },
+      "public_header_files": "napi/jsc/napi_env_jsc.h",
+      "name": "JSC",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_JSC_*awesome_*.a"
+      },
+      "dependencies": {
+        "Napi/Core": []
+      },
+      "source_files": "napi/jsc/*.{h,cc}"
+    },
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_V8_*awesome_*.a"
+      },
+      "public_header_files": "napi/v8/*.h",
+      "name": "V8",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_V8_*awesome_*.a"
+      },
+      "compiler_flags": "-D_NAPI_V8_EXPORT_SOURCE_ONLY_",
+      "dependencies": {
+        "Napi/Core": []
+      },
+      "source_files": "napi/v8/*.{h,cc}"
+    },
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_QuickJS_*awesome_*.a"
+      },
+      "public_header_files": "napi/quickjs/*.h",
+      "name": "QuickJS",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_QuickJS_*awesome_*.a"
+      },
+      "dependencies": {
+        "Napi/Core": [],
+        "vmsdk/quickjs": [
+          ">=1.5.6"
+        ]
+      },
+      "source_files": [
+        "napi/quickjs/*.{h,cc}"
+      ]
+    }
+  ],
+  "prepare_command": "curl https://ios.bytedance.net/wlapi/tosDownload/iosbinary/platform/master/awesomecommand_xz.sh | bash ;",
+  "description": "framework_description",
+  "ios": {
+    "frameworks": [
+      "UIKit",
+      "Foundation",
+      "JavaScriptCore"
+    ]
+  },
+  "authors": "郝有峰 <haoyoufeng@bytedance.com>",
+  "source_code": {
+    "commit": "ca2452f48985be38c391b3b1b0ad16f2e2e084cc",
+    "git": "git@code.byted.org:developer/napi.git"
+  },
+  "build_type": "system",
+  "name": "Napi",
+  "license": "MIT",
+  "build_file_count": 8,
+  "preserve_paths": [
+    "**/*.bwp"
+  ],
+  "compiler_flags": "-Wall",
+  "summary": "framework_summary",
+  "requires_arc": false
+}

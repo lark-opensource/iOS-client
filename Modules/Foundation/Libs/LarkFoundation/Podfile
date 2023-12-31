@@ -1,0 +1,43 @@
+ # Uncomment the next line to define a global platform for your project
+platform :ios, '11.0'
+inhibit_all_warnings!
+
+source 'https://github.com/CocoaPods/Specs.git'
+source 'git@code.byted.org:ee/pods_specs.git'
+
+target 'LarkFoundation' do
+  use_frameworks!
+  pod 'RxSwift', '4.3.1'
+  pod 'LarkCompatible'
+end
+
+target 'LarkFoundationDemo' do
+  # Comment the next line if you're not using Swift and don't want to use dynamic frameworks
+  use_frameworks!
+  # Pods for LarkFoundationDemo
+  pod 'LarkFoundation', :path => './'
+end
+
+target 'LarkFoundationResourceDemo' do
+  use_frameworks!
+  pod 'LarkFoundation/Resource', :path => './'
+end
+
+target 'LarkFoundationUtilsDemo' do
+  use_frameworks!
+  pod 'LarkFoundation/Utils', :path => './'
+end
+
+pre_install do |installer|
+  force_use_static_framwork(installer)
+    #patch build settings
+    installer.pod_targets.each do |pod_target|
+    attributes_hash = pod_target.root_spec.attributes_hash
+    pod_target_xcconfig = (attributes_hash['pod_target_xcconfig'] ||= {})
+    # enable binary support verify
+    pod_target_xcconfig['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
+  end
+end
+
+post_install do |installer|
+end

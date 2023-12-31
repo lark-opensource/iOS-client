@@ -1,0 +1,667 @@
+{
+  "name": "CJPay",
+  "version": "6.8.8-rc.48",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "http://www.wenxingonline.com/",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "wangxinhua": "wangxinhua@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:caijing_ios/cjpay.git",
+    "commit": "1b1da1524ff6d123a8e971e943daf21007051cee"
+  },
+  "platforms": {
+    "ios": "10.0"
+  },
+  "default_subspecs": "PayBiz/PayBizBase",
+  "static_framework": true,
+  "pod_target_xcconfig": {
+    "DEFINES_MODULE": "YES",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "CJPay_POD_VERSION=@\\\"9999_6.8.8-rc.48\\\""
+  },
+  "subspecs": [
+    {
+      "name": "IAP",
+      "source_files": "CJPay/Classes/PayDesk/IAP/**/*",
+      "public_header_files": "CJPay/Classes/PayDesk/IAP/**/*.h",
+      "dependencies": {
+        "CJPay/KitBase": [],
+        "CJPay/ComponentBase": [],
+        "SAMKeychain": [],
+        "CJPay/PayWebView": []
+      }
+    },
+    {
+      "name": "PayBiz",
+      "subspecs": [
+        {
+          "name": "PayBizBase",
+          "requires_arc": true,
+          "source_files": "CJPay/Classes/PayDesk/PayBiz/PayBizBase/**/*",
+          "public_header_files": "CJPay/Classes/PayDesk/PayBiz/PayBizBase/**/*.h",
+          "frameworks": [
+            "Foundation",
+            "UIKit"
+          ],
+          "dependencies": {
+            "CJPay/PayCore/Base": [],
+            "CJPay/PayWebView": [],
+            "CJPay/PayHybridContainer": [],
+            "CJPay/PayCancelRetain": []
+          }
+        },
+        {
+          "name": "PayBizHybrid",
+          "requires_arc": true,
+          "source_files": "CJPay/Classes/PayDesk/PayBiz/PayBizHybrid/**/*",
+          "public_header_files": "CJPay/Classes/PayDesk/PayBiz/PayBizHybrid/**/*.h",
+          "dependencies": {
+            "CJPay/PayBiz/PayBizBase": [],
+            "CJPay/Hybrid": []
+          }
+        },
+        {
+          "name": "PayBizDYPay",
+          "requires_arc": true,
+          "source_files": "CJPay/Classes/PayDesk/PayBiz/PayBizDYPay/**/*",
+          "public_header_files": "CJPay/Classes/PayDesk/PayBiz/PayBizDYPay/**/*.h",
+          "dependencies": {
+            "CJPay/VerifyModules/Biopayment": [],
+            "CJPay/PayBiz/PayBizBase": [],
+            "CJPay/PayAgain": [],
+            "CJPay/PayResultGuide": [],
+            "CJPay/PayManage": [],
+            "CJPay/DouPayProcess": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "FastPay",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayDesk/FastPay/**/*",
+      "public_header_files": "CJPay/Classes/PayDesk/FastPay/**/*.h",
+      "frameworks": [
+        "Foundation",
+        "UIKit"
+      ],
+      "dependencies": {
+        "CJPay/PayAgain": [],
+        "CJPay/PayManage": [],
+        "CJPay/PayBiz/PayBizBase": []
+      }
+    },
+    {
+      "name": "H5PayDesk",
+      "requires_arc": true,
+      "public_header_files": "CJPay/Classes/PayDesk/H5PayDesk/**/*.h",
+      "source_files": "CJPay/Classes/PayDesk/H5PayDesk/**/*.{h,m,mm}",
+      "dependencies": {
+        "CJPay/PayCore/AliPay": [],
+        "CJPay/PayWebView": []
+      }
+    },
+    {
+      "name": "BDPay",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayDesk/BDPay/**/*.{h,m,mm}",
+      "public_header_files": "CJPay/Classes/PayDesk/BDPay/**/*.h",
+      "dependencies": {
+        "CJPay/PayResultGuide": [],
+        "CJPay/PayManage": [],
+        "CJPay/VerifyModules/VerifyModulesBase": []
+      }
+    },
+    {
+      "name": "DouyinPay",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayDesk/DyPay/**/*.{h,m,mm}",
+      "public_header_files": "CJPay/Classes/PayDesk/DyPay/**/*.h",
+      "dependencies": {
+        "CJPay/PayManage": [],
+        "CJPay/VerifyModules/Biopayment": [],
+        "CJPay/DouPayProcess": []
+      }
+    },
+    {
+      "name": "UserCenter",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayDesk/UserCenter/**/*.{h,m,mm}",
+      "public_header_files": "CJPay/Classes/PayDesk/UserCenter/**/*.h",
+      "dependencies": {
+        "CJPay/PayManage": [],
+        "CJPay/VerifyModules/VerifyModulesBase": []
+      }
+    },
+    {
+      "name": "SignPay",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayDesk/SignPay/**/*.{h,m,mm}",
+      "public_header_files": "CJPay/Classes/PayDesk/SignPay/**/*.h",
+      "dependencies": {
+        "CJPay/PayBiz/PayBizDYPay": [],
+        "CJPay/Outer": []
+      }
+    },
+    {
+      "name": "UniteSign",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayDesk/UniteSign/**/*.{h,m,mm}",
+      "public_header_files": "CJPay/Classes/PayDesk/UniteSign/**/*.h",
+      "dependencies": {
+        "CJPay/PayBiz/PayBizDYPay": [],
+        "CJPay/Outer": []
+      }
+    },
+    {
+      "name": "Outer",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayDesk/Outer/**/*.{h,m,mm}",
+      "public_header_files": "CJPay/Classes/PayDesk/Outer/**/*.h",
+      "dependencies": {
+        "CJPay/PayBiz/PayBizDYPay": []
+      }
+    },
+    {
+      "name": "ECommercePay",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayDesk/ECommercePay/**/*.{h,m,mm}",
+      "public_header_files": "CJPay/Classes/PayDesk/ECommercePay/**/*.h",
+      "dependencies": {
+        "CJPay/VerifyModules/Biopayment": [],
+        "CJPay/PayManage": [],
+        "CJPay/PayAgain": [],
+        "CJPay/PayResultGuide": [],
+        "CJPay/TransferPay": [],
+        "CJPay/DouPayProcess": []
+      }
+    },
+    {
+      "name": "SuperPay",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayDesk/SuperPay/**/*.{h,m,mm}",
+      "public_header_files": "CJPay/Classes/PayDesk/SuperPay/**/*.h",
+      "dependencies": {
+        "Masonry": [],
+        "CJPay/PayCore/Base": [],
+        "CJPay/PayBiz/PayBizDYPay": []
+      }
+    },
+    {
+      "name": "PayCore",
+      "subspecs": [
+        {
+          "name": "Base",
+          "requires_arc": true,
+          "source_files": "CJPay/Classes/PayChannel/Base/**/*.{h,m,mm}",
+          "public_header_files": "CJPay/Classes/PayChannel/Base/**/*.h",
+          "dependencies": {
+            "Masonry": [],
+            "CJPay/ComponentBase": []
+          }
+        },
+        {
+          "name": "AliPay",
+          "requires_arc": true,
+          "source_files": "CJPay/Classes/PayChannel/AliPay/**/*.{h,m,mm}",
+          "public_header_files": "CJPay/Classes/PayChannel/AliPay/**/*.h",
+          "dependencies": {
+            "AlipaySDK": [
+              ">= 2.0.4"
+            ],
+            "CJPay/PayCore/Base": [],
+            "TTBridgeUnify/TTBridgeAuthManager/Core": [],
+            "TTBridgeUnify/TTBridge": []
+          }
+        },
+        {
+          "name": "DyPay",
+          "requires_arc": true,
+          "source_files": "CJPay/Classes/PayChannel/DyPay/**/*.{h,m,mm}",
+          "public_header_files": "CJPay/Classes/PayChannel/DyPay/**/*.h",
+          "dependencies": {
+            "DypaySDK": [
+              ">= 0.0.5"
+            ],
+            "CJPay/PayCore/Base": [],
+            "TTBridgeUnify/TTBridgeAuthManager/Core": []
+          }
+        },
+        {
+          "name": "WXPay",
+          "requires_arc": true,
+          "source_files": "CJPay/Classes/PayChannel/WXPay/*.{h,m,mm}",
+          "public_header_files": "CJPay/Classes/PayChannel/WXPay/*.h",
+          "dependencies": {
+            "WechatSDK": [
+              ">= 0.3.4"
+            ],
+            "CJPay/PayCore/Base": [],
+            "CJPay/PayWebView": []
+          }
+        },
+        {
+          "name": "QRCodePay",
+          "requires_arc": true,
+          "source_files": "CJPay/Classes/PayChannel/QRCodePay/*.{h,m,mm}",
+          "public_header_files": "CJPay/Classes/PayChannel/QRCodePay/*.h",
+          "dependencies": {
+            "Masonry": [],
+            "CJPay/PayAbilityBase": [],
+            "CJPay/PayCore/Base": [],
+            "ByteDanceKit/UIKit": [],
+            "BDWebImage/Download": [],
+            "BDWebImage/Decoder": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "VerifyModules",
+      "subspecs": [
+        {
+          "name": "VerifyModulesBase",
+          "requires_arc": true,
+          "source_files": "CJPay/Classes/PayAbility/VerifyModule/VerifyBase/**/*",
+          "public_header_files": "CJPay/Classes/PayAbility/VerifyModule/VerifyBase/**/*.h",
+          "dependencies": {
+            "CJPay/PayManage": [],
+            "CJPay/PayCancelRetain": []
+          }
+        },
+        {
+          "name": "Biopayment",
+          "requires_arc": true,
+          "source_files": "CJPay/Classes/PayAbility/VerifyModule/Biopayment/**/*",
+          "public_header_files": "CJPay/Classes/PayAbility/VerifyModule/Biopayment/**/*.h",
+          "dependencies": {
+            "CJPay/VerifyModules/VerifyModulesBase": [],
+            "CJPay/PayResultGuide": [],
+            "SAMKeychain": [],
+            "TTBridgeUnify/TTBridge": []
+          },
+          "frameworks": "LocalAuthentication"
+        }
+      ]
+    },
+    {
+      "name": "PayWebView",
+      "requires_arc": true,
+      "public_header_files": "CJPay/Classes/PayAbility/PayWebView/**/*.h",
+      "source_files": "CJPay/Classes/PayAbility/PayWebView/**/*",
+      "dependencies": {
+        "CJPay/Loading": [],
+        "CJPay/ComponentBase": [],
+        "CJPay/Isec": [],
+        "CJPay/PayAbilityBase": [],
+        "SSZipArchive": [],
+        "TTBridgeUnify/TTBridgeAuthManager": [],
+        "TTBridgeUnify/UnifiedWebView": [],
+        "TTBridgeUnify/TTBridge": [],
+        "TTBridgeUnify/WebView": [],
+        "BDWebKit/SecureLink": [
+          ">=1.1.0"
+        ],
+        "BDWebKit/Core": [],
+        "IESWebViewMonitor": [
+          ">= 1.3.16"
+        ],
+        "IESWebViewMonitor/CustomInterface/WebInterface": [],
+        "BDJSBridgeAuthManager/Core": [],
+        "BDWebKit/Interceptor": [],
+        "IESJSBridgeCore/Core": [],
+        "BDXBridgeKit/Core": []
+      },
+      "frameworks": "PhotosUI"
+    },
+    {
+      "name": "PayHybridContainer",
+      "requires_arc": true,
+      "public_header_files": "CJPay/Classes/PayAbility/PayHybridContainer/**/*.h",
+      "source_files": "CJPay/Classes/PayAbility/PayHybridContainer/**/*",
+      "dependencies": {
+        "CJPay/PayAbilityBase": []
+      }
+    },
+    {
+      "name": "Hybrid",
+      "source_files": "CJPay/Classes/PayAbility/Hybrid/**/*",
+      "public_header_files": "CJPay/Classes/PayAbility/Hybrid/**/*.h",
+      "dependencies": {
+        "CJPay/PayWebView": [],
+        "Puzzle/Core": [],
+        "Puzzle/Container": [],
+        "Puzzle/LynxMonitor": [],
+        "Puzzle/Bridge": [],
+        "Puzzle/PerformanceMonitor": [],
+        "BDXBridgeKit/Core": [],
+        "BDXBridgeKit/Containers": [],
+        "BDXBridgeKit/Engines/TTBridgeUnifyAdapter": [],
+        "BDXBridgeKit/Methods": [],
+        "HybridKit": []
+      }
+    },
+    {
+      "name": "LocalCardOCR",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayAbility/LocalCardOCR/**/*",
+      "public_header_files": "CJPay/Classes/PayAbility/LocalCardOCR/**/*.h",
+      "dependencies": {
+        "CJPay/PayWebView": [],
+        "CJPay/KitBase": [],
+        "PIPOVisionOCRKit": [],
+        "Pitaya/CoreBase": [],
+        "Pitaya/Domestic": [],
+        "Pitaya/PyMiniNumpy": [],
+        "Pitaya/PyMinMobileCVBaseOnNumpy": []
+      }
+    },
+    {
+      "name": "UnionBindCard",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayAbility/UnionBindCard/**/*.{h,m,mm}",
+      "public_header_files": "CJPay/Classes/PayAbility/UnionBindCard/**/*.h",
+      "dependencies": {
+        "CJPay/PayManage": [],
+        "CJPay/VerifyModules/VerifyModulesBase": []
+      }
+    },
+    {
+      "name": "NativeBindCard",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayAbility/NativeBindCard/**/*.{h,m,mm}",
+      "public_header_files": "CJPay/Classes/PayAbility/NativeBindCard/**/*.h",
+      "dependencies": {
+        "CJPay/PayManage": [],
+        "CJPay/VerifyModules/VerifyModulesBase": []
+      }
+    },
+    {
+      "name": "PayResultGuide",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayAbility/PayResultGuide/**/*.{h,m,mm}",
+      "public_header_files": "CJPay/Classes/PayAbility/PayResultGuide/**/*.h",
+      "dependencies": {
+        "CJPay/PayManage": [],
+        "CJPay/VerifyModules/VerifyModulesBase": []
+      }
+    },
+    {
+      "name": "PayAgain",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayAbility/PayAgain/**/*.{h,m,mm}",
+      "public_header_files": "CJPay/Classes/PayAbility/PayAgain/**/*.h",
+      "dependencies": {
+        "CJPay/PayManage": [],
+        "CJPay/PayCancelRetain": [],
+        "CJPay/VerifyModules/VerifyModulesBase": []
+      }
+    },
+    {
+      "name": "PayCancelRetain",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayAbility/PayCancelRetain/**/*.{h,m,mm}",
+      "public_header_files": "CJPay/Classes/PayAbility/PayCancelRetain/**/*.h",
+      "dependencies": {
+        "CJPay/PayAbilityBase": []
+      }
+    },
+    {
+      "name": "PayManage",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayAbility/PayManage/**/*.{h,m,mm}",
+      "public_header_files": "CJPay/Classes/PayAbility/PayManage/**/*.h",
+      "dependencies": {
+        "CJPay/PayAbilityBase": [],
+        "CJPay/PayWebView": []
+      }
+    },
+    {
+      "name": "TransferPay",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayAbility/TransferPay/**/*.{h,m,mm}",
+      "public_header_files": "CJPay/Classes/PayAbility/TransferPay/**/*.h",
+      "dependencies": {
+        "CJPay/PayAbilityBase": [],
+        "CJPay/VerifyModules/VerifyModulesBase": []
+      }
+    },
+    {
+      "name": "MyBankCard",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayAbility/MyBankCard/**/*.{h,m,mm}",
+      "public_header_files": "CJPay/Classes/PayAbility/MyBankCard/**/*.h",
+      "dependencies": {
+        "CJPay/PayManage": [],
+        "CJPay/NativeBindCard": []
+      }
+    },
+    {
+      "name": "DouPayProcess",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayAbility/DouPayProcess/**/*.{h,m,mm}",
+      "public_header_files": "CJPay/Classes/PayAbility/DouPayProcess/**/*.h",
+      "dependencies": {
+        "CJPay/PayManage": [],
+        "CJPay/VerifyModules/VerifyModulesBase": [],
+        "CJPay/PayAgain": [],
+        "CJPay/PayCancelRetain": [],
+        "CJPay/PayResultGuide": []
+      }
+    },
+    {
+      "name": "PayAbilityBase",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayAbility/Base/**/*",
+      "public_header_files": "CJPay/Classes/PayAbility/Base/**/*.h",
+      "dependencies": {
+        "CJPay/Loading": [],
+        "CJPay/ComponentBase": []
+      }
+    },
+    {
+      "name": "Extensions",
+      "subspecs": [
+        {
+          "name": "ExtensionsBase",
+          "dependencies": {
+            "CJPay/KitBase": []
+          }
+        },
+        {
+          "name": "UI",
+          "dependencies": {
+            "CJPay/ComponentBase": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Loading",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayComponent/Loading/**/*",
+      "public_header_files": "CJPay/Classes/PayComponent/Loading/**/*.h",
+      "dependencies": {
+        "CJPay/ComponentBase": []
+      }
+    },
+    {
+      "name": "AIEngine",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayComponent/AIEngine/**/*",
+      "public_header_files": "CJPay/Classes/PayComponent/AIEngine/**/*.h",
+      "dependencies": {
+        "CJPay/KitBase": [],
+        "Pitaya/CoreBase": []
+      }
+    },
+    {
+      "name": "ComponentBase",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayComponent/Base/**/*",
+      "public_header_files": "CJPay/Classes/PayComponent/Base/**/*.h",
+      "frameworks": [
+        "Foundation",
+        "UIKit",
+        "PhotosUI"
+      ],
+      "dependencies": {
+        "CJPay/KitBase": [],
+        "CJPay/Resource": [],
+        "Masonry": [],
+        "BDWebImage/Decoder": [],
+        "BDWebKit/Falcon": [],
+        "IESGeckoKit/Core": [
+          ">= 3.4.0"
+        ]
+      }
+    },
+    {
+      "name": "KitBase",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayKit/Base/**/*",
+      "public_header_files": "CJPay/Classes/PayKit/Base/**/*.h",
+      "dependencies": {
+        "TTReachability": [],
+        "BDTrackerProtocol": [],
+        "Heimdallr/TTMonitor": [],
+        "Heimdallr/ALog": [],
+        "Gaia": [],
+        "ByteDanceKit/Foundation": [],
+        "ByteDanceKit/UIKit": [],
+        "BDWebImage/Core": [],
+        "JSONModel": [],
+        "TTNetworkManager": [],
+        "BDAlogProtocol": [],
+        "BDNetworkTag": []
+      }
+    },
+    {
+      "name": "ABTest",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayKit/ABTest/*.{h,m,mm}",
+      "public_header_files": "CJPay/Classes/PayKit/ABTest/*.h",
+      "frameworks": [
+        "Foundation",
+        "UIKit"
+      ],
+      "dependencies": {
+        "Gaia": [],
+        "BDCommonABTestSDK": [],
+        "CJPay/KitBase": []
+      }
+    },
+    {
+      "name": "SafePay",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayKit/SafePay/*",
+      "public_header_files": "CJPay/Classes/PayKit/SafePay/*.h",
+      "dependencies": {
+        "CJPay/KitBase": [],
+        "CJPay/Isec": [],
+        "CJPay/ComponentBase": []
+      }
+    },
+    {
+      "name": "BPEA",
+      "subspecs": [
+        {
+          "name": "baseBPEA",
+          "requires_arc": true,
+          "source_files": "CJPay/Classes/PayKit/BPEA/baseBPEA/*",
+          "public_header_files": "CJPay/Classes/PayKit/BPEA/baseBPEA/*.h",
+          "frameworks": [
+            "Foundation",
+            "UIKit",
+            "PhotosUI"
+          ],
+          "dependencies": {
+            "BDPolicyKit/Base": [],
+            "BDPolicyKit/PolicyEntry/Pasteboard": [],
+            "BDPolicyKit/PolicyEntry/AppJump": [],
+            "BDPolicyKit/PolicyEntry/Camera": [],
+            "BDPolicyKit/PolicyEntry/ThreadCert": [],
+            "BDPolicyKit/PolicyEntry/AlbumPrivacy": [],
+            "BDPolicyKit/Cert/Simple": [],
+            "CJPay/KitBase": []
+          }
+        },
+        {
+          "name": "hybridBPEA",
+          "requires_arc": true,
+          "source_files": "CJPay/Classes/PayKit/BPEA/hybridBPEA/*",
+          "public_header_files": "CJPay/Classes/PayKit/BPEA/hybridBPEA/*.h",
+          "frameworks": [
+            "Foundation",
+            "UIKit",
+            "PhotosUI"
+          ],
+          "dependencies": {
+            "CJPay/BPEA/baseBPEA": [],
+            "BDPolicyKit/Cert/Hybrid": [],
+            "IESSecurityPlugins/BPEA/TTBridgeBPEA": [
+              ">=1.3.4"
+            ],
+            "TTBridgeUnify/TTBridge": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Resource",
+      "resource_bundles": {
+        "CJPay": [
+          "CJPay/Resource/Fonts/*.ttf",
+          "CJPay/Resource/Language/**/*.strings",
+          "CJPay/Resource/Image.xcassets"
+        ]
+      },
+      "pod_target_xcconfig": {
+        "ASSETCATALOG_COMPILER_OPTIMIZATION": "space"
+      }
+    },
+    {
+      "name": "Localized",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayKit/Localized/*",
+      "public_header_files": "CJPay/Classes/PayKit/Localized/*.h",
+      "dependencies": {
+        "CJPay/KitBase": [],
+        "CJPay/Resource": []
+      }
+    },
+    {
+      "name": "Isec",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayKit/Engima/Isec/*.{h,m}",
+      "public_header_files": "CJPay/Classes/PayKit/Engima/Isec/*.h",
+      "vendored_frameworks": "CJPay/Classes/PayKit/Engima/Isec/isecgm.xcframework",
+      "dependencies": {
+        "CJPay/KitBase": []
+      }
+    },
+    {
+      "name": "Tfcc",
+      "requires_arc": true,
+      "source_files": "CJPay/Classes/PayKit/Engima/Tfcc/**/*",
+      "public_header_files": "CJPay/Classes/PayKit/Engima/Tfcc/**/*.h",
+      "dependencies": {
+        "tfccsdk/tfccsm": []
+      }
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "590",
+    "app_id": "9999"
+  },
+  "repoId": "590",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "CJPay_POD_VERSION=@\\\"9999_6.8.8-rc.48\\\""
+  }
+}

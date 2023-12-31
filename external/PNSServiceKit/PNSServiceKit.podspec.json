@@ -1,0 +1,125 @@
+{
+  "name": "PNSServiceKit",
+  "version": "1.1.16",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://github.com/chirenhua/PNSServiceKit",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "chirenhua": "chirenhua@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:ugc/PNSServiceKit.git",
+    "commit": "2ad2cbaa2ecdfe93a316f64bc56f918a5afc2734"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "default_subspecs": "Service",
+  "subspecs": [
+    {
+      "name": "Service",
+      "source_files": "PNSServiceKit/Classes/Public/Service/**/*",
+      "public_header_files": "PNSServiceKit/Classes/Public/Service/**/*.h"
+    },
+    {
+      "name": "Protocol",
+      "source_files": "PNSServiceKit/Classes/Public/Protocol/**/*",
+      "public_header_files": "PNSServiceKit/Classes/Public/Protocol/**/*.h"
+    },
+    {
+      "name": "Impls",
+      "subspecs": [
+        {
+          "name": "UserExceptionImpl",
+          "source_files": "PNSServiceKit/Classes/Private/Impl/UserExceptionImpl/**/*",
+          "private_header_files": "PNSServiceKit/Classes/Private/Impl/UserExceptionImpl/**/*.h",
+          "dependencies": {
+            "Heimdallr/UserException": []
+          }
+        },
+        {
+          "name": "BacktraceImpl",
+          "source_files": "PNSServiceKit/Classes/Private/Impl/BacktraceImpl/**/*",
+          "private_header_files": "PNSServiceKit/Classes/Private/Impl/BacktraceImpl/**/*.h",
+          "dependencies": {
+            "Heimdallr/HMDCaptureBacktrace": [],
+            "Heimdallr/UserException": [],
+            "Heimdallr/Log": [],
+            "Heimdallr/Mach": []
+          }
+        },
+        {
+          "name": "KVStoreImpl",
+          "source_files": "PNSServiceKit/Classes/Private/Impl/KVStoreImpl/**/*",
+          "private_header_files": "PNSServiceKit/Classes/Private/Impl/KVStoreImpl/**/*.h",
+          "dependencies": {
+            "MMKV": []
+          }
+        },
+        {
+          "name": "LoggerImpl",
+          "source_files": "PNSServiceKit/Classes/Private/Impl/LoggerImpl/**/*",
+          "private_header_files": "PNSServiceKit/Classes/Private/Impl/LoggerImpl/**/*.h",
+          "dependencies": {
+            "Heimdallr/ALog": [],
+            "BDAlogProtocol": []
+          }
+        },
+        {
+          "name": "LogUploaderImpl",
+          "source_files": "PNSServiceKit/Classes/Private/Impl/LogUploaderImpl/**/*",
+          "private_header_files": "PNSServiceKit/Classes/Private/Impl/LogUploaderImpl/**/*.h"
+        },
+        {
+          "name": "MonitorImpl",
+          "source_files": "PNSServiceKit/Classes/Private/Impl/MonitorImpl/**/*",
+          "private_header_files": "PNSServiceKit/Classes/Private/Impl/MonitorImpl/**/*.h",
+          "dependencies": {
+            "Heimdallr/TTMonitor": []
+          }
+        },
+        {
+          "name": "NetworkImpl",
+          "source_files": "PNSServiceKit/Classes/Private/Impl/NetworkImpl/**/*",
+          "private_header_files": "PNSServiceKit/Classes/Private/Impl/NetworkImpl/**/*.h",
+          "dependencies": {
+            "TTReachability": []
+          }
+        },
+        {
+          "name": "SettingImpl",
+          "source_files": "PNSServiceKit/Classes/Private/Impl/SettingImpl/**/*",
+          "private_header_files": "PNSServiceKit/Classes/Private/Impl/SettingImpl/**/*.h",
+          "dependencies": {
+            "TTKitchen/Core": [],
+            "TTKitchen/MMKV": []
+          }
+        },
+        {
+          "name": "TrackerImpl",
+          "source_files": "PNSServiceKit/Classes/Private/Impl/TrackerImpl/**/*",
+          "private_header_files": "PNSServiceKit/Classes/Private/Impl/TrackerImpl/**/*.h",
+          "dependencies": {
+            "BDTrackerProtocol": []
+          }
+        }
+      ]
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "31065",
+    "app_id": "9999"
+  },
+  "repoId": "31065",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "PNSServiceKit_POD_VERSION=@\\\"9999_1.1.16\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "PNSServiceKit_POD_VERSION=@\\\"9999_1.1.16\\\""
+  }
+}

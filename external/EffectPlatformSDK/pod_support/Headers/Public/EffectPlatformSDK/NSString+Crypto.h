@@ -1,0 +1,1 @@
+../../../../EffectPlatformSDK/Core/Utils/NSString+Crypto.h

@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/Common/Manager/AWEEffectPlatformManagerDelegateImpl.h

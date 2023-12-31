@@ -1,0 +1,1580 @@
+{
+  "name": "Lynx",
+  "version": "2.10.19-lark.1-bugfix",
+  "summary": "framework_summary",
+  "homepage": "https://code.byted.org/lynx/template-assembler",
+  "license": "MIT",
+  "authors": "Lynx",
+  "source": {
+    "git": "git@code.byted.org:lynx/template-assembler.git",
+    "commit": "1af3f30572463c5c8f60074dd4aad566a908afc4"
+  },
+  "requires_arc": true,
+  "default_subspecs": "Framework",
+  "compiler_flags": [
+    "-Wall",
+    "-Wextra",
+    "-Wno-unused-parameter",
+    "-Wmissing-field-initializers",
+    "-Wshorten-64-to-32",
+    "-fno-rtti"
+  ],
+  "pod_target_xcconfig": {
+    "GCC_PREPROCESSOR_DEFINITIONS": "OS_IOS=1 Lynx_POD_VERSION=@\\\"9999_2.10.19-lark.1-bugfix\\\"",
+    "CLANG_CXX_LANGUAGE_STANDARD": "gnu++17",
+    "OTHER_CPLUSPLUSFLAGS": "-fno-aligned-allocation",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS[config=Release]": "$(inherited) NDEBUG=1"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "ios": {
+    "frameworks": [
+      "WebKit",
+      "AudioToolbox"
+    ]
+  },
+  "prepare_command": "if [ -f \"./tools/lynx_tools/lcm\" ]; then\n  tools/lynx_tools/lcm sync .\nfi\nif [ -f \"./package.json\" ]; then\n  tools/oliver/lynx-kernel/build.sh ios Darwin/iOS/JSAssets/release/lynx_core.js Darwin/iOS/JSAssets/debug/lynx_core_dev.js \n  tools/oliver/lynx-canvas/build.sh ios Darwin/iOS/JSAssets/release/lynx_canvas.js Darwin/iOS/JSAssets/debug/lynx_canvas_dev.js \nfi",
+  "testspecs": [
+    {
+      "name": "UnitTests",
+      "test_type": "unit",
+      "source_files": [
+        "Darwin/iOS/Lynx/*UnitTest.{h,m,mm}",
+        "Darwin/iOS/Lynx/**/*UnitTest.{h,m,mm}",
+        "Darwin/Common/Lynx/*UnitTest.{h,m,mm}",
+        "Darwin/Common/Lynx/**/*UnitTest.{h,m,mm}",
+        "Darwin/Common/Lynx/**/*UnitTestUtils.{h,m,mm}",
+        "Darwin/iOS/Lynx/**/*UnitTestUtils.{h,m,mm}",
+        "Darwin/iOS/LynxImage/*UnitTest.{h,m,mm}",
+        "Darwin/iOS/LynxImage/**/*UnitTest.{h,m,mm}",
+        "Lynx/jsbridge/ios/piper/*_unittest.{h,m,mm}"
+      ],
+      "private_header_files": [
+        "Darwin/iOS/Lynx/*UnitTest.h",
+        "Darwin/iOS/Lynx/**/*UnitTest.h",
+        "Darwin/Common/Lynx/*UnitTest.h",
+        "Darwin/Common/Lynx/**/*UnitTest.h",
+        "Darwin/iOS/Lynx/**/*UnitTestUtils.h",
+        "Darwin/iOS/LynxImage/*UnitTest.h",
+        "Darwin/iOS/LynxImage/**/*UnitTest.h",
+        "Lynx/jsbridge/ios/piper/*_unittest.h"
+      ],
+      "scheme": {
+        "code_coverage": true
+      },
+      "resource_bundles": {
+        "TestResource": [
+          "Darwin/iOS/LynxExample/LynxExample/Resource/template-bundle/*.js",
+          "Darwin/iOS/LynxExample/LynxExample/Resource/JSAssets/*.js"
+        ]
+      },
+      "dependencies": {
+        "Lynx/Framework": [],
+        "XcodeCoverage": [],
+        "OCMock": []
+      }
+    }
+  ],
+  "subspecs": [
+    {
+      "name": "LazyLoad",
+      "source_files": "Darwin/Common/LazyLoad/**/*",
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "LYNX_LAZY_LOAD=1"
+      }
+    },
+    {
+      "name": "Framework",
+      "compiler_flags": [
+        "-Wall",
+        "-Wextra",
+        "-Wno-unused-parameter",
+        "-Wmissing-field-initializers",
+        "-Werror"
+      ],
+      "source_files": [
+        "Darwin/iOS/Lynx/**/*",
+        "Darwin/Common/Lynx/**/*",
+        "Darwin/iOS/LynxImage/**/*"
+      ],
+      "public_header_files": [
+        "Darwin/iOS/Lynx/Public/**/*.h",
+        "Darwin/Common/Lynx/Public/**/*.h"
+      ],
+      "private_header_files": [
+        "Darwin/iOS/Lynx/Event/LynxEventHandler+Internal.h",
+        "Darwin/iOS/Lynx/Event/LynxTouchHandler+Internal.h",
+        "Darwin/iOS/Lynx/LynxContext+Internal.h",
+        "Darwin/iOS/Lynx/LynxConfig+Internal.h",
+        "Darwin/iOS/Lynx/UI/LynxBasicShape.h",
+        "Darwin/iOS/Lynx/UI/LynxUIExposure+Internal.h",
+        "Darwin/iOS/Lynx/UI/LynxUIContext+Internal.h",
+        "Darwin/iOS/Lynx/UI/LynxUIIntersectionObserver.h",
+        "Darwin/iOS/Lynx/UI/LynxUIIntersectionObserver+Internal.h",
+        "Darwin/Common/Lynx/Module/JSModule+Internal.h",
+        "Darwin/Common/Lynx/LynxTemplateData+Converter.h",
+        "Darwin/Common/Lynx/LynxGlobalObserver+Internal.h",
+        "Darwin/iOS/Lynx/LynxView+Internal+cpp.h",
+        "Darwin/iOS/Lynx/Module/LynxExposureModule.h",
+        "Darwin/iOS/Lynx/Module/LynxAccessibilityModule.h",
+        "Darwin/iOS/Lynx/Module/LynxIntersectionObserverModule.h",
+        "Darwin/iOS/Lynx/Module/LynxUIMethodModule.h",
+        "Darwin/iOS/Lynx/Module/LynxSetModule.h",
+        "Darwin/iOS/Lynx/Module/LynxResourceModule.h",
+        "Darwin/iOS/Lynx/LynxTemplateRender+Internal.h",
+        "Darwin/iOS/Lynx/LynxSSRHelper.h",
+        "Darwin/Common/Lynx/Utils/LynxConvertUtils.h",
+        "Darwin/Common/Lynx/Performance/LynxTimingHandler.h",
+        "Darwin/Common/Lynx/DevtoolWrapper/LynxInspectorManagerDarwin.h",
+        "Darwin/iOS/Lynx/PaintingContextProxy.h",
+        "Darwin/iOS/Lynx/ShadowNode/LynxUILayoutTick.h",
+        "Darwin/Common/Lynx/LepusApiActorManager.h",
+        "Darwin/Common/Lynx/Navigator/LynxBaseCardManager+Private.h",
+        "Darwin/Common/Lynx/TemplateRenderCallbackProtocol.h",
+        "Darwin/Common/Lynx/LynxTemplateBundle+Converter.h"
+      ],
+      "frameworks": "UIKit",
+      "exclude_files": [
+        "Darwin/iOS/Lynx/Helium/",
+        "Darwin/iOS/Lynx/Helium/*",
+        "Darwin/iOS/Lynx/Network/*",
+        "Darwin/iOS/Lynx/Recorder/LynxRecorder.{h,mm}",
+        "Darwin/iOS/LynxImage/*UnitTest.{h,m,mm}",
+        "Darwin/iOS/LynxImage/**/*UnitTest.{h,m,mm}",
+        "Darwin/iOS/Lynx/*UnitTest.{h,m,mm}",
+        "Darwin/iOS/Lynx/**/*UnitTest.{h,m,mm}",
+        "Darwin/iOS/Lynx/**/*UnitTestUtils.{h,m,mm}",
+        "Darwin/Common/Lynx/*UnitTest.{h,m,mm}",
+        "Darwin/Common/Lynx/**/*UnitTest.{h,m,mm}"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "RAPIDJSON_HAS_STDSTRING=1                                                                    RAPIDJSON_NAMESPACE=lynx::rapidjson                                                                    RAPIDJSON_NAMESPACE_BEGIN=\"namespace lynx{namespace rapidjson{\"                                                                    RAPIDJSON_NAMESPACE_END=\"}};namespace rapidjson=::lynx::rapidjson;\"                                                                    JS_ENGINE_TYPE=1                                                                    NDEBUG=1                                                                   __ENABLE_INSPECTOR__=1                                                                    LYNX_ENABLE_TRACING=0                                                                    LYNX_ENABLE_FROZEN_MODE=0                                                                    OS_POSIX=1                                                                   LYNX_ENABLE_TRACING_BACKEND_NATIVE=0"
+      },
+      "dependencies": {
+        "Lynx/Native": [],
+        "Lynx/LazyLoad": [],
+        "vmsdk/monitor/core": []
+      }
+    },
+    {
+      "name": "Net",
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "__ENABLE_LYNX_NET__=1"
+      },
+      "source_files": [
+        "Lynx/jsbridge/network/network_module.*",
+        "Lynx/jsbridge/network/url_encoder.*",
+        "Lynx/jsbridge/network/request_interceptor_darwin.*",
+        "Darwin/iOS/Lynx/Network/*"
+      ],
+      "private_header_files": "Lynx/jsbridge/network/*.h"
+    },
+    {
+      "name": "RichText",
+      "source_files": [
+        "Lynx/richtext/*",
+        "Darwin/iOS/LynxRichText/**/*",
+        "third_party/little-xml/include/*",
+        "third_party/little-xml/src/*"
+      ],
+      "private_header_files": [
+        "Lynx/richtext/*.{h,hpp}",
+        "Darwin/iOS/LynxRichText/**/*.{h,hpp}",
+        "third_party/little-xml/include/*.{h,hpp}"
+      ],
+      "exclude_files": [
+        "Lynx/richtext/*unittest.cc",
+        "Darwin/iOS/LynxRichText/**/*UnitTest.{m,mm}"
+      ],
+      "dependencies": {
+        "Lynx/Native": []
+      }
+    },
+    {
+      "name": "Air",
+      "source_files": [
+        "Lynx/tasm/air/air_element/*",
+        "Lynx/tasm/air/air_factory.*",
+        "Lynx/tasm/air/air_touch_event_handler.*",
+        "Lynx/tasm/air/bridge/ios/**/*",
+        "Lynx/tasm/air/lepus_task_manager.*",
+        "Lynx/tasm/air/runtime/**/*"
+      ],
+      "private_header_files": "Lynx/tasm/air/**/*.h",
+      "exclude_files": [
+        "Lynx/tasm/air/**/*unittest.cc",
+        "Lynx/tasm/air/*unittest.cc"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "ENABLE_AIR=1"
+      }
+    },
+    {
+      "name": "NapiBinding",
+      "compiler_flags": [
+        "-Wall",
+        "-Wextra",
+        "-Wno-unused-parameter",
+        "-Wmissing-field-initializers",
+        "-Werror"
+      ],
+      "header_mappings_dir": "Lynx",
+      "frameworks": "JavaScriptCore",
+      "libraries": "stdc++",
+      "subspecs": [
+        {
+          "name": "Common",
+          "private_header_files": [
+            "Lynx/jsbridge/napi/*.h",
+            "Lynx/jsbridge/napi/**/*.h"
+          ],
+          "source_files": [
+            "Lynx/jsbridge/napi/array_buffer_view.h",
+            "Lynx/jsbridge/napi/base.h",
+            "Lynx/jsbridge/napi/callback_helper.*",
+            "Lynx/jsbridge/napi/exception_message.*",
+            "Lynx/jsbridge/napi/exception_state.h",
+            "Lynx/jsbridge/napi/napi_bench_object.h",
+            "Lynx/jsbridge/napi/napi_environment.*",
+            "Lynx/jsbridge/napi/napi_loader_js.*",
+            "Lynx/jsbridge/napi/napi_runtime_proxy.*",
+            "Lynx/jsbridge/napi/napi_runtime_proxy_quickjs_factory.h",
+            "Lynx/jsbridge/napi/napi_runtime_proxy_v8_factory.*",
+            "Lynx/jsbridge/napi/native_value_traits.*",
+            "Lynx/jsbridge/napi/shim/shim_napi.h",
+            "Lynx/jsbridge/napi/shim/shim_napi_env.h",
+            "Lynx/jsbridge/napi/shim/shim_napi_runtime.h",
+            "Lynx/jsbridge/napi/napi_base_wrap.*"
+          ],
+          "pod_target_xcconfig": {
+            "GCC_PREPROCESSOR_DEFINITIONS": "NAPI_DISABLE_CPP_RTTI NAPI_DISABLE_CPP_EXCEPTIONS __ENABLE_NAPI_BINDING__=1",
+            "HEADER_SEARCH_PATHS": "\"${PODS_TARGET_SRCROOT}/third_party/NativeScript/include/\""
+          },
+          "dependencies": {
+            "Lynx/Native": [],
+            "vmsdk/napi/env": []
+          }
+        },
+        {
+          "name": "JSC",
+          "source_files": [
+            "Lynx/jsbridge/napi/napi_runtime_proxy_jsc.*",
+            "Lynx/jsbridge/napi/shim/shim_napi_env_jsc.h"
+          ],
+          "private_header_files": [
+            "Lynx/jsbridge/napi/napi_runtime_proxy_jsc.{h,hpp}",
+            "Lynx/jsbridge/napi/shim/shim_napi_env_jsc.h"
+          ],
+          "dependencies": {
+            "Lynx/NapiBinding/Common": [],
+            "vmsdk/napi/jsc": []
+          }
+        },
+        {
+          "name": "QuickJS",
+          "private_header_files": [
+            "Lynx/jsbridge/napi/napi_runtime_proxy_quickjs.h",
+            "Lynx/jsbridge/napi/shim/shim_napi_env_quickjs.h"
+          ],
+          "source_files": [
+            "Lynx/jsbridge/napi/napi_runtime_proxy_quickjs.*",
+            "Lynx/jsbridge/napi/shim/shim_napi_env_quickjs.h"
+          ],
+          "dependencies": {
+            "Lynx/NapiBinding/Common": [],
+            "vmsdk/napi/quickjs": []
+          },
+          "pod_target_xcconfig": {
+            "HEADER_SEARCH_PATHS": "\"${PODS_ROOT}/Headers/Public/vmsdk/quickjs/include\""
+          }
+        }
+      ]
+    },
+    {
+      "name": "Worklet",
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "__ENABLE_LEPUSNG_WORKLET__=1"
+      },
+      "source_files": [
+        "Lynx/css/css_decoder.{h,cc}",
+        "Lynx/jsbridge/bindings/worklet/*.{h,cc}",
+        "Lynx/worklet/base/*.{h,cc}",
+        "Lynx/worklet/*.{h,cc}"
+      ],
+      "private_header_files": [
+        "Lynx/css/css_decoder.h",
+        "Lynx/jsbridge/bindings/worklet/*.h",
+        "Lynx/worklet/base/*.h",
+        "Lynx/worklet/*.h"
+      ],
+      "exclude_files": "Lynx/worklet/test/*",
+      "dependencies": {
+        "Lynx/NapiBinding/QuickJS": [],
+        "vmsdk/quickjs": []
+      }
+    },
+    {
+      "name": "JSRuntime",
+      "compiler_flags": [
+        "-Wall",
+        "-Wextra",
+        "-Wno-unused-parameter",
+        "-Wmissing-field-initializers",
+        "-Werror"
+      ],
+      "header_mappings_dir": "Lynx",
+      "frameworks": "JavaScriptCore",
+      "libraries": "stdc++",
+      "private_header_files": "Lynx/jsbridge/**/*.h",
+      "exclude_files": "Lynx/jsbridge/**/*_unittest.*",
+      "source_files": [
+        "Lynx/jsbridge/runtime/*",
+        "Lynx/jsbridge/ios/*",
+        "Lynx/jsbridge/ios/**/*",
+        "Lynx/jsbridge/runtime/ios/lynx_module_darwin.*",
+        "Lynx/jsbridge/bindings/big_int/*",
+        "Lynx/jsbridge/bindings/*",
+        "Lynx/jsbridge/jsi/*",
+        "Lynx/jsbridge/jsc/*",
+        "Lynx/jsbridge/utils/*",
+        "Lynx/jsbridge/module/*",
+        "Lynx/jsbridge/appbrand/app_brand_coordinator.h",
+        "Lynx/jsbridge/appbrand/jsc/*",
+        "Lynx/jsbridge/appbrand/js_thread_provider.*",
+        "Lynx/jsbridge/appbrand/runtime_provider.*",
+        "Lynx/jsbridge/appbrand/app_brand_js_task_runner.*",
+        "Lynx/jsbridge/appbrand/app_brand_runtime_maker.*",
+        "Lynx/jsbridge/appbrand/jsruntime_provider_export.*",
+        "Lynx/jsbridge/js_exception.h",
+        "Lynx/jsbridge/java_script_debugger.h",
+        "Lynx/jsbridge/lepus_context_observer.h",
+        "Lynx/jsbridge/js_executor.h",
+        "Lynx/jsbridge/jsi_executor.h",
+        "Lynx/jsbridge/jsi_executor.cc",
+        "Lynx/jsbridge/javascript_source_loader.h",
+        "Lynx/jsbridge/platform_value.h",
+        "Lynx/jsbridge/utils/utils.h",
+        "Lynx/jsbridge/lynx_console_helper.h",
+        "Lynx/jsbridge/**/*_unittest.*"
+      ],
+      "dependencies": {
+        "Lynx/Native": []
+      }
+    },
+    {
+      "name": "ExternalJSProvider",
+      "public_header_files": [
+        "Lynx/jsbridge/appbrand/js_thread_provider.h",
+        "Lynx/jsbridge/appbrand/jsc/jsc_provider.h",
+        "Lynx/jsbridge/appbrand/jsruntime_provider_export.h"
+      ],
+      "dependencies": {
+        "Lynx/JSRuntime": []
+      }
+    },
+    {
+      "name": "ReleaseResource",
+      "resource_bundles": {
+        "LynxResources": [
+          "Darwin/iOS/JSAssets/release/lynx_core.js",
+          "Darwin/iOS/JSAssets/release/lynx_canvas.js"
+        ]
+      }
+    },
+    {
+      "name": "Native",
+      "compiler_flags": [
+        "-Wall",
+        "-Wextra",
+        "-Wno-documentation",
+        "-Wno-unused-parameter",
+        "-Wmissing-field-initializers",
+        "-Werror"
+      ],
+      "header_mappings_dir": "Lynx",
+      "libraries": "stdc++",
+      "preserve_paths": [
+        "build/util/*",
+        "Lynx/config/*"
+      ],
+      "script_phases": [
+        {
+          "name": "config_h",
+          "execution_position": "before_compile",
+          "output_files": [
+            "${TARGET_BUILD_DIR}/Lynx/gen/Lynx/config/config.h"
+          ],
+          "script": "\n          [ ! -d ${TARGET_BUILD_DIR}/Lynx/gen/Lynx/config ] && {\n            mkdir -p ${TARGET_BUILD_DIR}/Lynx/gen/Lynx/config\n          };\n          ${PODS_TARGET_SRCROOT}/build/util/write_cmake_config.py \\\n          -o ${TARGET_BUILD_DIR}/Lynx/gen/Lynx/config/config.h \\\n          ${PODS_TARGET_SRCROOT}/Lynx/config/config.h.in \\\n          HOST_OSTYPE=HOST_IOS \\\n          LYNX_DEBUG=0 \\\n          ENABLE_ARK_REPLAY=__ENABLE_ARK_REPLAY__ \\\n          ENABLE_HMR=__ENABLE_HMR__ \\\n          ENABLE_ARK_RECORDER=__ENABLE_ARK_RECORDER__ \\\n          ENABLE_INSPECTOR=__ENABLE_INSPECTOR__ \\\n          INSPECTOR_TEST=__INSPECTOR_TEST__ \\\n          ENABLE_LEPUSNG_WORKLET=__ENABLE_LEPUSNG_WORKLET__ \\\n          ENABLE_NAPI_BINDING=__ENABLE_NAPI_BINDING__ \\\n          ENABLE_KRYPTON_EFFECT=__ENABLE_KRYPTON_EFFECT__ \\\n          ENABLE_KRYPTON_AURUM=__ENABLE_KRYPTON_AURUM__ \\\n          ENABLE_KRYPTON_RECORDER=__ENABLE_KRYPTON_RECORDER__ \\\n          ENABLE_NEW_ANIMATOR_TRANSFORM=1 \\\n          ENABLE_KRYPTON_RTC=__ENABLE_KRYPTON_RTC__ \\\n        "
+        },
+        {
+          "name": "feature_h",
+          "execution_position": "before_compile",
+          "output_files": [
+            "${TARGET_BUILD_DIR}/Lynx/gen/Lynx/config/feature.h"
+          ],
+          "script": "\n          ${PODS_TARGET_SRCROOT}/build/util/write_cmake_config.py \\\n          -o ${TARGET_BUILD_DIR}/Lynx/gen/Lynx/config/feature.h \\\n          ${PODS_TARGET_SRCROOT}/Lynx/config/feature.h.in \\\n        "
+        }
+      ],
+      "pod_target_xcconfig": {
+        "HEADER_SEARCH_PATHS": "\"${PODS_TARGET_SRCROOT}/Lynx/\"                                 \"${PODS_TARGET_SRCROOT}/\"                                 \"${PODS_ROOT}/vmsdk\"                                 \"${TARGET_BUILD_DIR}/Lynx/gen/Lynx\""
+      },
+      "subspecs": [
+        {
+          "name": "base",
+          "private_header_files": "Lynx/base/**/*.h",
+          "source_files": [
+            "Lynx/base/algorithm.h",
+            "Lynx/base/any.h",
+            "Lynx/base/atomic_ref_count.h",
+            "Lynx/base/auto_reset.h",
+            "Lynx/base/base_export.h",
+            "Lynx/base/big_endian.h",
+            "Lynx/base/closure.h",
+            "Lynx/base/compiler_specific.h",
+            "Lynx/base/file_utils.*",
+            "Lynx/base/io_buffer.h",
+            "Lynx/base/io_buffer.cc",
+            "Lynx/base/lazy_instance.h",
+            "Lynx/base/ordered_hash.h",
+            "Lynx/base/ordered_map.h",
+            "Lynx/base/lynx_ordered_map.h",
+            "Lynx/base/position.h",
+            "Lynx/base/path_utils.h",
+            "Lynx/base/rand_util.*",
+            "Lynx/base/ref_counted.h",
+            "Lynx/base/ref_counted_ptr.h",
+            "Lynx/base/sha1.h",
+            "Lynx/base/sha1.cc",
+            "Lynx/base/size.h",
+            "Lynx/base/sorted_for_each.h",
+            "Lynx/base/sys_byteorder.h",
+            "Lynx/base/to_underlying.h",
+            "Lynx/base/vector2d.h",
+            "Lynx/base/weak_ptr.h",
+            "Lynx/base/no_destructor.h",
+            "Lynx/base/lynx_env.*",
+            "Lynx/base/Darwin/logging_darwin.h",
+            "Lynx/base/Darwin/logging_darwin.mm",
+            "Lynx/base/debug/backtrace.*",
+            "Lynx/base/debug/error_code.h",
+            "Lynx/base/debug/lynx_assert.h",
+            "Lynx/base/debug/lynx_error.*",
+            "Lynx/base/float_comparison.h",
+            "Lynx/base/log/alog_wrapper.cc",
+            "Lynx/base/log/alog_wrapper.h",
+            "Lynx/base/log/logging.h",
+            "Lynx/base/log/logging.cpp",
+            "Lynx/base/log/log_stream.*",
+            "Lynx/base/string/string_number_convert.*",
+            "Lynx/base/string/string_utils.*",
+            "Lynx/base/task/*",
+            "Lynx/base/threading/thread_local.h",
+            "Lynx/base/threading/task_runner_manufactor.*",
+            "Lynx/base/threading/thread_merger.*",
+            "Lynx/base/thread/timed_task.h",
+            "Lynx/base/thread/timed_task.cc",
+            "Lynx/base/timer/time_utils.*",
+            "Lynx/base/iOS/lynx_env_darwin.*",
+            "Lynx/base/json/*",
+            "Lynx/base/observer/*",
+            "Lynx/base/perf_collector.h",
+            "Lynx/base/perf_collector.cc",
+            "Lynx/base/geometry/*",
+            "Lynx/base/trace_event/trace_event.h",
+            "Lynx/base/trace_event/trace_backend.h",
+            "Lynx/base/trace_event/trace_backend.cc",
+            "Lynx/base/trace_event/instance_counter_trace.h",
+            "Lynx/base/trace_event/instance_counter_trace.cc",
+            "Lynx/base/trace_event/cpu_info_trace.h",
+            "Lynx/base/trace_event/cpu_info_trace.cc",
+            "Lynx/base/trace_event/trace_controller.h",
+            "Lynx/base/trace_event/trace_controller.cc",
+            "Lynx/base/trace_event/perfetto_trace_backend.h"
+          ],
+          "exclude_files": [
+            "Lynx/**/*testing*",
+            "Lynx/**/*unittest.cc"
+          ]
+        },
+        {
+          "name": "fml",
+          "private_header_files": [
+            "third_party/fml/*.h",
+            "third_party/fml/**/*.h",
+            "third_party/fml/**/**/*.h"
+          ],
+          "source_files": [
+            "third_party/fml/build_config.h",
+            "third_party/fml/closure.h",
+            "third_party/fml/delayed_task.cc",
+            "third_party/fml/delayed_task.h",
+            "third_party/fml/macros.h",
+            "third_party/fml/make_copyable.h",
+            "third_party/fml/memory/ref_counted.h",
+            "third_party/fml/memory/ref_counted_internal.h",
+            "third_party/fml/memory/ref_ptr.h",
+            "third_party/fml/memory/ref_ptr_internal.h",
+            "third_party/fml/memory/task_runner_checker.cc",
+            "third_party/fml/memory/task_runner_checker.h",
+            "third_party/fml/message_loop.cc",
+            "third_party/fml/message_loop.h",
+            "third_party/fml/message_loop_impl.cc",
+            "third_party/fml/message_loop_impl.h",
+            "third_party/fml/message_loop_task_queues.cc",
+            "third_party/fml/message_loop_task_queues.h",
+            "third_party/fml/synchronization/waitable_event.cc",
+            "third_party/fml/synchronization/waitable_event.h",
+            "third_party/fml/task_queue_id.h",
+            "third_party/fml/task_runner.cc",
+            "third_party/fml/task_runner.h",
+            "third_party/fml/task_source.cc",
+            "third_party/fml/task_source.h",
+            "third_party/fml/task_source_grade.h",
+            "third_party/fml/thread.cc",
+            "third_party/fml/thread.h",
+            "third_party/fml/thread_local.cc",
+            "third_party/fml/thread_local.h",
+            "third_party/fml/time/time_delta.h",
+            "third_party/fml/time/time_point.cc",
+            "third_party/fml/time/time_point.h",
+            "third_party/fml/wakeable.h",
+            "third_party/fml/platform/thread_config_setter.h",
+            "third_party/fml/platform/darwin/*"
+          ],
+          "exclude_files": "third_party/fml/platform/**/*unittests.*"
+        },
+        {
+          "name": "parser",
+          "private_header_files": "Lynx/parser/**/*.h",
+          "source_files": "Lynx/parser/input_stream.*",
+          "exclude_files": "Lynx/parser/*unittest.cc"
+        },
+        {
+          "name": "starlight",
+          "private_header_files": "Lynx/starlight/**/*.h",
+          "source_files": "Lynx/starlight/**/*",
+          "exclude_files": [
+            "Lynx/starlight/**/*testing*",
+            "Lynx/starlight/**/*unittest.cc"
+          ]
+        },
+        {
+          "name": "lepus",
+          "private_header_files": "Lynx/lepus/**/*.h",
+          "source_files": [
+            "Lynx/lepus/builtin.*",
+            "Lynx/lepus/base_api.*",
+            "Lynx/lepus/exception.*",
+            "Lynx/lepus/context.*",
+            "Lynx/lepus/code_generator.*",
+            "Lynx/lepus/heap.h",
+            "Lynx/lepus/guard.h",
+            "Lynx/lepus/function.*",
+            "Lynx/lepus/function_api.*",
+            "Lynx/lepus/lepus_string.*",
+            "Lynx/lepus/op_code.h",
+            "Lynx/lepus/math_api.h",
+            "Lynx/lepus/scanner.*",
+            "Lynx/lepus/parser.*",
+            "Lynx/lepus/switch.*",
+            "Lynx/lepus/string_util.h",
+            "Lynx/lepus/string_api.*",
+            "Lynx/lepus/string_api.h",
+            "Lynx/lepus/string_api.cc",
+            "Lynx/lepus/table_api.*",
+            "Lynx/lepus/semantic_analysis.*",
+            "Lynx/lepus/vm_context.*",
+            "Lynx/lepus/visitor.h",
+            "Lynx/lepus/marco.h",
+            "Lynx/lepus/value.*",
+            "Lynx/lepus/value-inl.h",
+            "Lynx/lepus/utils.h",
+            "Lynx/lepus/upvalue.h",
+            "Lynx/lepus/token.h",
+            "Lynx/lepus/table.*",
+            "Lynx/lepus/regexp.*",
+            "Lynx/lepus/regexp_api.h",
+            "Lynx/lepus/regexp_api.cc",
+            "Lynx/lepus/cutils.h",
+            "Lynx/lepus/syntax_tree.*",
+            "Lynx/lepus/vm.*",
+            "Lynx/lepus/table.*",
+            "Lynx/lepus/array.*",
+            "Lynx/lepus/array_api.h",
+            "Lynx/lepus/array_api.cc",
+            "Lynx/lepus/js_object.h",
+            "Lynx/lepus/js_object.cc",
+            "Lynx/lepus/byte_array.h",
+            "Lynx/lepus/byte_array.cc",
+            "Lynx/lepus/date_api.h",
+            "Lynx/lepus/json_api.h",
+            "Lynx/lepus/table_api.h",
+            "Lynx/lepus/output_stream.*",
+            "Lynx/lepus/json_parser.*",
+            "Lynx/lepus/lepus_global.*",
+            "Lynx/lepus/common.*",
+            "Lynx/lepus/binary_reader.*",
+            "Lynx/lepus/base_binary_reader.*",
+            "Lynx/lepus/context_binary_reader.*",
+            "Lynx/lepus/binary_input_stream.*",
+            "Lynx/lepus/lepus_date.h",
+            "Lynx/lepus/lepus_date.cc",
+            "Lynx/lepus/lepus_date_api.h",
+            "Lynx/lepus/lepus_date_api.cc",
+            "Lynx/lepus/path_parser.h",
+            "Lynx/lepus/quick_context.h",
+            "Lynx/lepus/qjs_callback.cc",
+            "Lynx/lepus/qjs_callback.h",
+            "Lynx/lepus/lepus_error_helper.h",
+            "Lynx/lepus/lepus_error_helper.cc",
+            "Lynx/lepus/jsvalue_helper.h",
+            "Lynx/lepus/debugger_base.h",
+            "Lynx/lepus/lepus_inspector.h",
+            "Lynx/lepus/tt_tm.h"
+          ],
+          "exclude_files": [
+            "Lynx/**/*testing*",
+            "Lynx/**/*unittest.cc"
+          ],
+          "dependencies": {
+            "vmsdk/quickjs": [
+              ">=1.0.3"
+            ]
+          },
+          "pod_target_xcconfig": {
+            "HEADER_SEARCH_PATHS": "\"${PODS_TARGET_SRCROOT}/vmsdk/\" \"${PODS_ROOT}/vmsdk/\" \"${PODS_ROOT}/\""
+          }
+        },
+        {
+          "name": "amoeba",
+          "private_header_files": [
+            "Lynx/css/**/*.h",
+            "Lynx/style/**/*.h"
+          ],
+          "source_files": [
+            "Lynx/style/*.{h,cc}",
+            "Lynx/css/content_data.*",
+            "Lynx/css/css_selector_constants.*",
+            "Lynx/css/css_parser_token.*",
+            "Lynx/css/css_keyframes_token.*",
+            "Lynx/css/css_font_face_token.*",
+            "Lynx/css/css_sheet.*",
+            "Lynx/css/css_color.*",
+            "Lynx/css/css_debug_msg.*",
+            "Lynx/css/css_property.*",
+            "Lynx/css/css_style_sheet_manager.*",
+            "Lynx/css/css_fragment.*",
+            "Lynx/css/css_fragment_decorator.*",
+            "Lynx/css/css_value.{h,cc}",
+            "Lynx/css/css_variable_handler.{h,cc}",
+            "Lynx/css/parser/*.h",
+            "Lynx/css/parser/animation_direction_handler.cc",
+            "Lynx/css/parser/animation_fill_mode_handler.cc",
+            "Lynx/css/parser/animation_iteration_count_handler.cc",
+            "Lynx/css/parser/animation_name_handler.cc",
+            "Lynx/css/parser/animation_parser_utils.cc",
+            "Lynx/css/parser/animation_play_state_handler.cc",
+            "Lynx/css/parser/animation_property_handler.cc",
+            "Lynx/css/parser/animation_shorthand_handler.cc",
+            "Lynx/css/parser/aspect_ratio_handler.cc",
+            "Lynx/css/parser/background_clip_handler.cc",
+            "Lynx/css/parser/background_image_handler.cc",
+            "Lynx/css/parser/background_origin_handler.cc",
+            "Lynx/css/parser/background_position_handler.cc",
+            "Lynx/css/parser/background_repeat_handler.cc",
+            "Lynx/css/parser/background_shorthand_handler.cc",
+            "Lynx/css/parser/background_size_handler.cc",
+            "Lynx/css/parser/bool_handler.cc",
+            "Lynx/css/parser/border_handler.cc",
+            "Lynx/css/parser/text_stroke_handler.cc",
+            "Lynx/css/parser/border_radius_handler.cc",
+            "Lynx/css/parser/border_style_handler.cc",
+            "Lynx/css/parser/border_width_handler.cc",
+            "Lynx/css/parser/color_handler.cc",
+            "Lynx/css/parser/css_string_parser.cc",
+            "Lynx/css/parser/css_string_scanner.cc",
+            "Lynx/css/parser/clip_path_handler.cc",
+            "Lynx/css/parser/cursor_handler.cc",
+            "Lynx/css/parser/enum_handler.cc",
+            "Lynx/css/parser/filter_handler.cc",
+            "Lynx/css/parser/flex_flow_handler.cc",
+            "Lynx/css/parser/flex_handler.cc",
+            "Lynx/css/parser/font_length_handler.cc",
+            "Lynx/css/parser/four_sides_shorthand_handler.cc",
+            "Lynx/css/parser/grid_position_handler.cc",
+            "Lynx/css/parser/grid_template_handler.cc",
+            "Lynx/css/parser/length_handler.cc",
+            "Lynx/css/parser/line_shorthand_handler.cc",
+            "Lynx/css/parser/list_gap_handler.cc",
+            "Lynx/css/parser/mask_image_handler.cc",
+            "Lynx/css/parser/number_handler.cc",
+            "Lynx/css/parser/relative_align_handler.cc",
+            "Lynx/css/parser/shadow_handler.cc",
+            "Lynx/css/parser/string_handler.cc",
+            "Lynx/css/parser/text_decoration_handler.cc",
+            "Lynx/css/parser/time_handler.cc",
+            "Lynx/css/parser/timing_function_handler.cc",
+            "Lynx/css/parser/transform_handler.cc",
+            "Lynx/css/parser/transform_origin_handler.cc",
+            "Lynx/css/parser/transition_shorthand_handler.cc",
+            "Lynx/css/parser/vertical_align_handler.cc",
+            "Lynx/css/shared_css_fragment.*",
+            "Lynx/css/unit_handler.*",
+            "Lynx/css/ng/invalidation/invalidation_set.cc",
+            "Lynx/css/ng/invalidation/invalidation_set.h",
+            "Lynx/css/ng/invalidation/rule_invalidation_set.cc",
+            "Lynx/css/ng/invalidation/rule_invalidation_set.h",
+            "Lynx/css/ng/matcher/selector_matcher.cc",
+            "Lynx/css/ng/matcher/selector_matcher.h",
+            "Lynx/css/ng/parser/ascii_ctype.h",
+            "Lynx/css/ng/selector/lynx_css_selector.cc",
+            "Lynx/css/ng/selector/lynx_css_selector.h",
+            "Lynx/css/ng/selector/lynx_css_selector_empty.cc",
+            "Lynx/css/ng/selector/lynx_css_selector_extra_data.cc",
+            "Lynx/css/ng/selector/lynx_css_selector_extra_data.h",
+            "Lynx/css/ng/selector/lynx_css_selector_list.cc",
+            "Lynx/css/ng/selector/lynx_css_selector_list.h",
+            "Lynx/css/ng/style/rule_set.*",
+            "Lynx/css/ng/style/rule_data.*",
+            "Lynx/css/ng/style/style_rule.h",
+            "Lynx/css/ng/css_utils.*"
+          ],
+          "exclude_files": [
+            "Lynx/css/css_decoder.cc",
+            "Lynx/css/css_decoder.h"
+          ]
+        },
+        {
+          "name": "tasm",
+          "private_header_files": [
+            "Lynx/tasm/**/*.h",
+            "Lynx/shell/**/*.h",
+            "Lynx/ssr/**/*.h",
+            "third_party/krypton/glue/*.h",
+            "Lynx/shared_data/**/*.h"
+          ],
+          "source_files": [
+            "Lynx/tasm/lynx_trace_event.h",
+            "Lynx/tasm/template_assembler.*",
+            "Lynx/tasm/template_entry.*",
+            "Lynx/tasm/touch_event_handler.*",
+            "Lynx/tasm/lynx_get_ui_result.h",
+            "Lynx/tasm/lynx_view_data_manager.*",
+            "Lynx/tasm/moulds.h",
+            "Lynx/tasm/attribute_holder.*",
+            "Lynx/tasm/page_config.h",
+            "Lynx/tasm/component_config.h",
+            "Lynx/tasm/page_delegate.h",
+            "Lynx/tasm/lynx_env_config.*",
+            "Lynx/tasm/config.*",
+            "Lynx/tasm/ios/*.*",
+            "Lynx/tasm/i18n.*",
+            "Lynx/tasm/compile_options.h",
+            "Lynx/tasm/header_ext_info.h",
+            "Lynx/tasm/template_binary_reader.*",
+            "Lynx/tasm/template_binary.*",
+            "Lynx/tasm/template_themed.h",
+            "Lynx/tasm/script_executor.*",
+            "Lynx/tasm/renderer.*",
+            "Lynx/tasm/list_component_info.*",
+            "Lynx/tasm/renderer_template.h",
+            "Lynx/tasm/value_utils.*",
+            "Lynx/tasm/template_data.*",
+            "Lynx/tasm/renderer_functions.*",
+            "Lynx/tasm/renderer_functions_def.h",
+            "Lynx/tasm/component_attributes.*",
+            "Lynx/tasm/react/catalyzer.*",
+            "Lynx/tasm/react/dynamic_css_configs.h",
+            "Lynx/tasm/react/dynamic_css_styles_manager.*",
+            "Lynx/tasm/react/dynamic_direction_styles_manager.*",
+            "Lynx/tasm/react/event.h",
+            "Lynx/tasm/react/event.cc",
+            "Lynx/tasm/react/layout_scheduler.h",
+            "Lynx/tasm/react/layout_node.*",
+            "Lynx/tasm/react/element.*",
+            "Lynx/tasm/react/radon_element.*",
+            "Lynx/tasm/react/element_container.*",
+            "Lynx/tasm/react/layout_context.*",
+            "Lynx/tasm/react/painting_context.*",
+            "Lynx/tasm/react/element_manager.*",
+            "Lynx/tasm/base/*.*",
+            "Lynx/tasm/react/fiber/*.*",
+            "Lynx/tasm/selector/fiber_element_selector.*",
+            "Lynx/tasm/react/pipeline_option.h",
+            "Lynx/tasm/react/prop_bundle.h",
+            "Lynx/tasm/react/platform_extra_bundle.h",
+            "Lynx/tasm/react/ios/painting_context_darwin.*",
+            "Lynx/tasm/react/ios/layout_context_darwin.*",
+            "Lynx/tasm/react/ios/prop_bundle_darwin.*",
+            "Lynx/tasm/react/ios/platform_extra_bundle_darwin.*",
+            "Lynx/tasm/react/ios/lepus_value_converter.*",
+            "Lynx/tasm/react/list_node.*",
+            "Lynx/tasm/react/select_element_token.*",
+            "Lynx/tasm/dynamic_component/dynamic_component_loader.*",
+            "Lynx/tasm/dynamic_component/ios/dynamic_component_loader_darwin.*",
+            "Lynx/tasm/air/bridge/air_module_handler.*",
+            "Lynx/tasm/lepus_api_actor/lepus_api_actor.*",
+            "Lynx/tasm/lepus_api_actor/ios/*",
+            "Lynx/tasm/page_proxy.*",
+            "Lynx/tasm/radon/base_component.*",
+            "Lynx/tasm/radon/list_reuse_pool.*",
+            "Lynx/tasm/radon/radon_node.*",
+            "Lynx/tasm/radon/radon_page.*",
+            "Lynx/tasm/radon/radon_base.*",
+            "Lynx/tasm/radon/radon_factory.*",
+            "Lynx/tasm/radon/radon_if_node.*",
+            "Lynx/tasm/radon/radon_for_node.*",
+            "Lynx/tasm/radon/radon_component.*",
+            "Lynx/tasm/radon/radon_slot.*",
+            "Lynx/tasm/radon/radon_dispatch_option.*",
+            "Lynx/tasm/radon/radon_dynamic_component.*",
+            "Lynx/tasm/radon/radon_list_base.*",
+            "Lynx/tasm/radon/radon_diff_list_node.*",
+            "Lynx/tasm/radon/radon_diff_list_node2.*",
+            "Lynx/tasm/radon/radon_list_node.*",
+            "Lynx/tasm/radon/radon_types.h",
+            "Lynx/tasm/radon/set_css_variable_op.h",
+            "Lynx/tasm/radon/node_selector.*",
+            "Lynx/tasm/radon/node_select_options.*",
+            "Lynx/tasm/radon/node_path_info.*",
+            "Lynx/tasm/selector/element_selector.*",
+            "Lynx/tasm/selector/select_result.*",
+            "Lynx/tasm/selector/selector_item.*",
+            "Lynx/tasm/css_patching.*",
+            "Lynx/tasm/generator/version.h",
+            "Lynx/tasm/generator/ttml_constant.h",
+            "Lynx/tasm/recorder/recorder_controller.*",
+            "Lynx/tasm/replay/replay_controller.*",
+            "Lynx/tasm/observer/*",
+            "Lynx/tasm/diff_algorithm.h",
+            "Lynx/tasm/fluency/fluency_tracer.*",
+            "Lynx/shell/lynx_shell.*",
+            "Lynx/shell/lynx_engine.*",
+            "Lynx/shell/lynx_data_dispatcher.h",
+            "Lynx/shell/runtime_mediator.*",
+            "Lynx/shell/tasm_mediator.*",
+            "Lynx/shell/lynx_card_cache_data_manager.*",
+            "Lynx/shell/lynx_card_cache_data_op.*",
+            "Lynx/shell/lynx_runtime_actor_holder.*",
+            "Lynx/shell/native_facade.h",
+            "Lynx/shell/lynx_actor.h",
+            "Lynx/shell/lynx_actor_specialization.h",
+            "Lynx/shell/module_delegate_impl.*",
+            "Lynx/shell/external_source_loader.h",
+            "Lynx/shell/lynx_ui_operation_queue.*",
+            "Lynx/shell/lynx_ui_operation_async_queue.*",
+            "Lynx/shell/dynamic_ui_operation_queue.*",
+            "Lynx/shell/ios/native_facade_darwin.*",
+            "Lynx/shell/ios/js_proxy_darwin.*",
+            "Lynx/shell/common/vsync_monitor.*",
+            "Lynx/shell/ios/vsync_monitor_darwin.*",
+            "Lynx/shell/ios/external_source_loader_darwin.*",
+            "Lynx/shell/layout_mediator.*",
+            "Lynx/shell/tasm_operation_queue.*",
+            "Lynx/shell/tasm_operation_queue_async.*",
+            "Lynx/shell/thread_mode_auto_switch.*",
+            "Lynx/ssr/dom_reconstruct_utils.*",
+            "Lynx/ssr/ssr_binary_reader.*",
+            "Lynx/ssr/ssr_node_key.h",
+            "third_party/krypton/glue/*",
+            "Lynx/tasm/binary_decoder/*",
+            "Lynx/tasm/event_report_tracker.*",
+            "Lynx/tasm/timing.*",
+            "Lynx/shared_data/*"
+          ],
+          "exclude_files": [
+            "Lynx/**/*testing*",
+            "Lynx/**/*unittest.cc"
+          ]
+        },
+        {
+          "name": "animation",
+          "source_files": [
+            "Lynx/animation/*",
+            "Lynx/animation/util/cubic_bezier.*"
+          ],
+          "private_header_files": [
+            "Lynx/animation/*.{h,hpp}",
+            "Lynx/animation/util/cubic_bezier.{h,hpp}"
+          ],
+          "exclude_files": "Lynx/animation/*unittest.cc"
+        },
+        {
+          "name": "transforms",
+          "source_files": "Lynx/transforms/*",
+          "private_header_files": "Lynx/transforms/*.{h,hpp}",
+          "exclude_files": "Lynx/transforms/*unittest.cc"
+        },
+        {
+          "name": "third_party",
+          "header_mappings_dir": "third_party",
+          "header_dir": "third_party",
+          "private_header_files": "third_party/**/*.h",
+          "subspecs": [
+            {
+              "name": "perfetto",
+              "source_files": [
+                "third_party/perfetto/include/perfetto/base/*.h",
+                "third_party/perfetto/include/perfetto/base/build_configs/bazel/perfetto_build_flags.h",
+                "third_party/perfetto/include/perfetto/protozero/*.h",
+                "third_party/perfetto/gen/protos/perfetto/trace/track_event/*.h",
+                "third_party/perfetto/src/base/logging.cc",
+                "third_party/perfetto/src/base/perfetto_time.cc",
+                "third_party/perfetto/src/protozero/message.cc",
+                "third_party/perfetto/src/protozero/message_arena.cc",
+                "third_party/perfetto/src/protozero/scattered_stream_writer.cc"
+              ],
+              "private_header_files": "third_party/perfetto/**/*.h",
+              "pod_target_xcconfig": {
+                "HEADER_SEARCH_PATHS": "\"${PODS_TARGET_SRCROOT}/third_party/perfetto/include/\"                                                                \"${PODS_TARGET_SRCROOT}/third_party/perfetto/gen/\"                                                                \"${PODS_TARGET_SRCROOT}/third_party/perfetto/include/perfetto/base/build_configs/bazel\""
+              }
+            },
+            {
+              "name": "rapidjson",
+              "source_files": "third_party/rapidjson/**/*",
+              "exclude_files": [
+                "third_party/rapidjson/msinttypes/*",
+                "third_party/rapidjson/internal/pow10_unittest.cc"
+              ],
+              "private_header_files": "third_party/rapidjson/**/*.h"
+            },
+            {
+              "name": "modp64",
+              "libraries": "stdc++",
+              "source_files": [
+                "third_party/modp_b64/modp_b64.h",
+                "third_party/modp_b64/modp_b64.cc",
+                "third_party/modp_b64/modp_b64_data.h"
+              ],
+              "private_header_files": "third_party/modp_b64/**/*.h"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Inspector",
+      "compiler_flags": [
+        "-Wall",
+        "-Wextra",
+        "-Wno-unused-parameter",
+        "-Wmissing-field-initializers",
+        "-Werror"
+      ],
+      "source_files": [
+        "Lynx/inspector/*",
+        "Lynx/inspector/observer/*"
+      ],
+      "private_header_files": [
+        "Lynx/inspector/*.h",
+        "Lynx/inspector/observer/*.h"
+      ],
+      "header_mappings_dir": "Lynx",
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "__INSPECTOR_TEST__=1",
+        "HEADER_SEARCH_PATHS": "\"${PODS_TARGET_SRCROOT}/Lynx/\""
+      }
+    },
+    {
+      "name": "BDLynx",
+      "subspecs": [
+        {
+          "name": "Core",
+          "public_header_files": "Darwin/iOS/BDLynx/BDLynx/Classes/Core/**/*.h",
+          "source_files": "Darwin/iOS/BDLynx/BDLynx/Classes/Core/**/*.{h,m,mm}",
+          "dependencies": {
+            "Lynx/Framework": [],
+            "Lynx/Native": [],
+            "Lynx/JSRuntime": [],
+            "Lynx/ReleaseResource": [],
+            "Lynx/BDLynxBridge": [],
+            "TTNetworkManager": [
+              ">= 4.0"
+            ],
+            "Lynx/BDLynx/Reporter": [],
+            "BDALog": [],
+            "Heimdallr/TTMonitor": []
+          }
+        },
+        {
+          "name": "Gecko",
+          "public_header_files": "Darwin/iOS/BDLynx/BDLynx/Classes/Gecko/**/*.h",
+          "source_files": "Darwin/iOS/BDLynx/BDLynx/Classes/Gecko/**/*.{h,m,mm}",
+          "dependencies": {
+            "Lynx/BDLynx/Core": []
+          }
+        },
+        {
+          "name": "Component",
+          "public_header_files": "Darwin/iOS/BDLynx/BDLynx/Classes/Component/**/*.h",
+          "source_files": "Darwin/iOS/BDLynx/BDLynx/Classes/Component/**/*.{h,m,mm}",
+          "dependencies": {
+            "Lynx/BDLynx/Core": []
+          }
+        },
+        {
+          "name": "Tag",
+          "public_header_files": "Darwin/iOS/BDLynx/BDLynx/Classes/Tag/**/*.h",
+          "source_files": "Darwin/iOS/BDLynx/BDLynx/Classes/Tag/**/*.{h,m,mm}",
+          "dependencies": {
+            "Lynx/BDLynx/Core": []
+          }
+        },
+        {
+          "name": "ImageLoader",
+          "public_header_files": "Darwin/iOS/BDLynx/BDLynx/Classes/ImageLoader/**/*.h",
+          "source_files": "Darwin/iOS/BDLynx/BDLynx/Classes/ImageLoader/**/*.{h,m,mm}",
+          "dependencies": {
+            "Lynx/BDLynx/Core": [],
+            "BDWebImage": []
+          }
+        },
+        {
+          "name": "Reporter",
+          "public_header_files": "Darwin/iOS/BDLynx/BDLynx/Classes/Reporter/**/*.h",
+          "source_files": "Darwin/iOS/BDLynx/BDLynx/Classes/Reporter/**/*.{h,m,mm}",
+          "dependencies": {
+            "BDTrackerProtocol": []
+          }
+        },
+        {
+          "name": "TTNet",
+          "dependencies": {
+            "TTNetworkManager": []
+          },
+          "source_files": "Darwin/iOS/BDLynx/BDLynx/Classes/TTNet/**/*",
+          "public_header_files": "Darwin/iOS/BDLynx/BDLynx/Classes/TTNet/**/*.h"
+        }
+      ]
+    },
+    {
+      "name": "BDLynxBridge",
+      "public_header_files": "Darwin/Common/BDLynxBridge/BDLynxBridge/Classes/**/*.h",
+      "source_files": "Darwin/Common/BDLynxBridge/BDLynxBridge/Classes/**/*.{h,m,mm}",
+      "dependencies": {
+        "Lynx/Framework": [],
+        "Lynx/Native": [],
+        "Lynx/JSRuntime": [],
+        "Lynx/ReleaseResource": []
+      }
+    },
+    {
+      "name": "BDConfig",
+      "public_header_files": "Darwin/iOS/BDLynx/BDLynx/Classes/Config/**/*.h",
+      "subspecs": [
+        {
+          "name": "CN",
+          "source_files": "Darwin/iOS/BDLynx/BDLynx/Classes/Config/CN/*.{h,m,mm}",
+          "dependencies": {
+            "Lynx/Framework": [],
+            "ByteDanceKit/UIKit": []
+          }
+        },
+        {
+          "name": "OS",
+          "source_files": "Darwin/iOS/BDLynx/BDLynx/Classes/Config/OS/*.{h,m,mm}",
+          "dependencies": {
+            "Lynx/Framework": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Helium",
+      "public_header_files": "Darwin/iOS/Lynx/Helium/LynxHelium.h",
+      "source_files": [
+        "Darwin/iOS/Lynx/Helium/LynxHelium.{h,mm}"
+      ],
+      "dependencies": {
+        "Lynx/JSRuntime": [],
+        "Lynx/Native/base": [],
+        "TTHelium/core": [
+          ">=7.1.2"
+        ]
+      }
+    },
+    {
+      "name": "HeliumEffectPlatform",
+      "dependencies": {
+        "Lynx/Helium": []
+      }
+    },
+    {
+      "name": "LepusNG",
+      "header_mappings_dir": "Lynx",
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "__ENABLE_LEPUSNG__=1 LYNX_DEV LYNX_SIMPLIFY=0",
+        "HEADER_SEARCH_PATHS": "\"${PODS_TARGET_SRCROOT}/vmsdk/\" \"${PODS_ROOT}/vmsdk/\""
+      },
+      "source_files": [
+        "Lynx/lepus/jsvalue_helper.cc",
+        "Lynx/lepus/quick_context.*",
+        "Lynx/tasm/renderer_ng.cc"
+      ],
+      "private_header_files": "Lynx/lepus/**/*.h",
+      "dependencies": {
+        "Lynx/Native": [],
+        "vmsdk/quickjs": [
+          ">=1.0.3"
+        ]
+      }
+    },
+    {
+      "name": "Replay",
+      "header_mappings_dir": "Lynx",
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "__ENABLE_ARK_REPLAY__=1"
+      },
+      "source_files": [
+        "Lynx/tasm/replay/ark_test_replay.*",
+        "Lynx/tasm/replay/lynx_module_manager_testbench.*",
+        "Lynx/tasm/replay/lynx_callback_testbench.*",
+        "Lynx/tasm/replay/lynx_module_testbench.*",
+        "Lynx/tasm/replay/lynx_module_binding_testbench.*"
+      ],
+      "dependencies": {
+        "Lynx/Native": []
+      }
+    },
+    {
+      "name": "HMR",
+      "header_mappings_dir": "Lynx",
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "__ENABLE_HMR__=1"
+      },
+      "source_files": "Lynx/lepus/quick_context.cc",
+      "private_header_files": "Lynx/lepus/**/*.h",
+      "dependencies": {
+        "Lynx/Native": []
+      }
+    },
+    {
+      "name": "Krypton",
+      "subspecs": [
+        {
+          "name": "Core",
+          "pod_target_xcconfig": {
+            "HEADER_SEARCH_PATHS": "\"${PODS_TARGET_SRCROOT}/third_party/krypton/\"",
+            "GCC_PREPROCESSOR_DEFINITIONS": "NAPI_DISABLE_CPP_RTTI NANOVG_GLES3_IMPLEMENTATION"
+          },
+          "public_header_files": "Darwin/iOS/LynxKrypton/**/*.h",
+          "private_header_files": "third_party/krypton/**/*.h",
+          "frameworks": "CoreMotion",
+          "source_files": [
+            "Darwin/iOS/LynxKrypton/KryptonService.h",
+            "Darwin/iOS/LynxKrypton/KryptonApp.{h,mm}",
+            "Darwin/iOS/LynxKrypton/DownStreamListener.h",
+            "Darwin/iOS/LynxKrypton/LynxCanvasDownStreamManager.{h,mm}",
+            "Darwin/iOS/LynxKrypton/LynxCanvasView.{h,mm}",
+            "Darwin/iOS/LynxKrypton/LynxKryptonApp.{h,mm}",
+            "Darwin/iOS/LynxKrypton/LynxKryptonLoader.{h,mm}",
+            "Darwin/iOS/LynxKrypton/LynxKryptonEffect.{h,mm}",
+            "Darwin/iOS/LynxKrypton/LynxKryptonEffectDemo.mm",
+            "Darwin/iOS/LynxKrypton/LynxUICanvas.{h,mm}",
+            "Darwin/iOS/LynxKrypton/service/KryptonCameraService.h",
+            "Darwin/iOS/LynxKrypton/service/KryptonLoaderService.h",
+            "Darwin/iOS/LynxKrypton/service/KryptonVideoPlayerService.h",
+            "Darwin/iOS/LynxKrypton/service/KryptonPermissionService.h",
+            "Darwin/iOS/LynxKrypton/service/KryptonMediaRecorderService.h",
+            "third_party/krypton/glue/**/*",
+            "third_party/krypton/canvas/background_lock.h",
+            "third_party/krypton/canvas/bitmap.*",
+            "third_party/krypton/canvas/bound_rect.*",
+            "third_party/krypton/canvas/canvas_context.h",
+            "third_party/krypton/canvas/canvas_element.*",
+            "third_party/krypton/canvas/canvas_element_event_handler.*",
+            "third_party/krypton/canvas/canvas_image_source.*",
+            "third_party/krypton/canvas/canvas_app.*",
+            "third_party/krypton/canvas/canvas_options.*",
+            "third_party/krypton/canvas/canvas_resource_provider.*",
+            "third_party/krypton/canvas/canvas_ui_proxy.*",
+            "third_party/krypton/canvas/canvas_view.*",
+            "third_party/krypton/canvas/event.h",
+            "third_party/krypton/canvas/event_target.*",
+            "third_party/krypton/canvas/gyroscope.*",
+            "third_party/krypton/canvas/hardware_manager.*",
+            "third_party/krypton/canvas/image_data.*",
+            "third_party/krypton/canvas/image_element.*",
+            "third_party/krypton/canvas/image_element_texture_source.*",
+            "third_party/krypton/canvas/instance_guard.h",
+            "third_party/krypton/canvas/offscreen_canvas.*",
+            "third_party/krypton/canvas/platform_view_observer.*",
+            "third_party/krypton/canvas/raster.*",
+            "third_party/krypton/canvas/surface_client.*",
+            "third_party/krypton/canvas/surface_registry.*",
+            "third_party/krypton/canvas/texture_observer.h",
+            "third_party/krypton/canvas/texture_source.*",
+            "third_party/krypton/canvas/base/*",
+            "third_party/krypton/canvas/gpu/command_buffer/*",
+            "third_party/krypton/canvas/gpu/command_buffer_ng/align_helper.h",
+            "third_party/krypton/canvas/gpu/command_buffer_ng/command_invoker.h",
+            "third_party/krypton/canvas/gpu/command_buffer_ng/client_service_id_registry.h",
+            "third_party/krypton/canvas/gpu/command_buffer_ng/gl_interface_client.h",
+            "third_party/krypton/canvas/gpu/command_buffer_ng/gl_remote_interface_service.*",
+            "third_party/krypton/canvas/gpu/command_buffer_ng/writable_buffer.*",
+            "third_party/krypton/canvas/gpu/command_buffer_ng/runnable_buffer.*",
+            "third_party/krypton/canvas/gpu/gl/*",
+            "third_party/krypton/canvas/gpu/virtualization/*",
+            "third_party/krypton/canvas/gpu/frame_buffer.*",
+            "third_party/Krypton/canvas/gpu/gl_constants.{h,cc}",
+            "third_party/krypton/canvas/gpu/gl_context.*",
+            "third_party/krypton/canvas/gpu/gl_device_attributes.*",
+            "third_party/krypton/canvas/gpu/gl_global_device_attributes.*",
+            "third_party/krypton/canvas/gpu/gl_surface.*",
+            "third_party/krypton/canvas/gpu/gl_context_share_group.*",
+            "third_party/krypton/canvas/gpu/gl_virtual_context.*",
+            "third_party/krypton/canvas/gpu/texture_shader.*",
+            "third_party/krypton/canvas/gpu/gl_initializer.*",
+            "third_party/krypton/canvas/image/*.h",
+            "third_party/krypton/canvas/ios/gl_context_ios.{h,mm}",
+            "third_party/krypton/canvas/ios/gl_surface_ios.{h,mm}",
+            "third_party/krypton/canvas/ios/gl_surface_cv_pixel_buffer.{h,mm}",
+            "third_party/krypton/canvas/ios/canvas_app_ios.{h,mm}",
+            "third_party/krypton/canvas/ios/canvas_manager_ios.{h,mm}",
+            "third_party/krypton/canvas/ios/hardware_manager_ios.{h,mm}",
+            "third_party/krypton/canvas/ios/software_surface_ios.{h,mm}",
+            "third_party/krypton/canvas/ios/texture_util_ios.mm",
+            "third_party/krypton/canvas/ios/gl_context_share_group_ios.*",
+            "third_party/krypton/canvas/loader/*",
+            "third_party/krypton/canvas/media/**/*",
+            "third_party/krypton/canvas/platform/camera_option.*",
+            "third_party/krypton/canvas/platform/camera_context.*",
+            "third_party/krypton/canvas/platform/resource_loader.*",
+            "third_party/krypton/canvas/platform/permission_manager.*",
+            "third_party/krypton/canvas/platform/video_player_context.*",
+            "third_party/krypton/canvas/platform/ios/resource_loader_ios.*",
+            "third_party/krypton/canvas/platform/ios/camera_context_ios.*",
+            "third_party/krypton/canvas/platform/ios/video_player_context_ios.*",
+            "third_party/krypton/canvas/platform/ios/video_context_texture_cache.*",
+            "third_party/krypton/canvas/platform/ios/pixel_buffer.*",
+            "third_party/krypton/canvas/platform/ios/permission_manager_ios.*",
+            "third_party/krypton/canvas/platform/ios/KryptonLLog.*",
+            "third_party/krypton/canvas/platform/ios/KryptonDefaultCamera.*",
+            "third_party/krypton/canvas/platform/ios/KryptonDefaultPermissionService.*",
+            "third_party/krypton/canvas/platform/ios/KryptonDefaultVideoPlayer.*",
+            "third_party/krypton/canvas/shaders/*",
+            "third_party/krypton/canvas/surface/*",
+            "third_party/krypton/canvas/util/utils.*",
+            "third_party/krypton/canvas/util/texture_util.*",
+            "third_party/krypton/canvas/util/texture_format_convertor.*",
+            "third_party/krypton/canvas/util/count_down_waitable_event.*",
+            "third_party/krypton/canvas/util/math_utils.*",
+            "third_party/krypton/canvas/util/nanovg_util.*",
+            "third_party/krypton/canvas/util/css_tokenizer.*",
+            "third_party/krypton/canvas/util/css_font_parser.*",
+            "third_party/krypton/canvas/util/string_utils.*",
+            "third_party/krypton/canvas/util/js_object_pair.*",
+            "third_party/krypton/canvas/util/font_util.*",
+            "third_party/krypton/canvas/util/typeface.*",
+            "third_party/krypton/canvas/webgl/*",
+            "third_party/krypton/canvas/2d/*",
+            "third_party/krypton/canvas/2d/lite/*",
+            "third_party/krypton/canvas/2d/lite/nanovg/include/*",
+            "third_party/krypton/canvas/2d/lite/nanovg/src/nanovg.cc",
+            "third_party/krypton/canvas/2d/lite/nanovg/src/coretext_drawer.mm",
+            "third_party/krypton/canvas/text/font_collection.*",
+            "third_party/krypton/canvas/text/font_registry.*",
+            "third_party/krypton/canvas/text/font_util.*",
+            "third_party/krypton/canvas/text/typeface.*",
+            "third_party/krypton/canvas/workaround/runtime_flags_for_workaround.*",
+            "third_party/krypton/jsbridge/bindings/canvas/canvas_module.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_bound_rect.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_canvas_context.{h,cc}",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_canvas_element.{h,cc}",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_canvas_gradient.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_canvas_pattern.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_canvas_rendering_context_2d.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_dom_matrix_2d_init.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_dom_matrix.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_event.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_event_target.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_image.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_image_data.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_image_element.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_media_stream.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_offscreen_canvas.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_read_file_callback.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_text_metrics.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_video_element.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_video_load_options.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_webgl_active_info.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_webgl_program.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_webgl_shader.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_webgl_texture.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_webgl_buffer.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_webgl_framebuffer.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_webgl_renderbuffer.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_webgl_rendering_context.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_webgl_context_attributes.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_webgl_uniform_location.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_webgl_shader_precision_format.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_webgl_vertex_array_object_oes.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_get_user_media_callback.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_request_permission_callback.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_preload_plugin_callback.*",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_gyroscope.*",
+            "CoreMotion"
+          ],
+          "dependencies": {
+            "Lynx/NapiBinding/JSC": [],
+            "Lynx/Native": []
+          },
+          "exclude_files": "Darwin/iOS/LynxKrypton/LynxKryptonEffect*"
+        },
+        {
+          "name": "EffectRender",
+          "public_header_files": "Darwin/iOS/LynxKrypton/LynxKryptonEffect.h",
+          "pod_target_xcconfig": {
+            "GCC_PREPROCESSOR_DEFINITIONS": "__ENABLE_KRYPTON_EFFECT__=1"
+          },
+          "source_files": [
+            "Darwin/iOS/LynxKrypton/LynxKryptonEffect*.{mm,h}",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_effect_detector.*",
+            "third_party/krypton/effect/krypton_effect_helper.*",
+            "third_party/krypton/effect/krypton_effect_bindings.*",
+            "third_party/krypton/effect/krypton_effect_detector.*",
+            "third_party/krypton/effect/krypton_effect_hooks.*",
+            "third_party/krypton/effect/krypton_effect_utils.*",
+            "third_party/krypton/effect/krypton_effect.*",
+            "third_party/krypton/effect/krypton_amazing_hooks.*",
+            "third_party/krypton/effect/krypton_effect_executor.h",
+            "third_party/krypton/effect/krypton_effect_message_channel.h",
+            "third_party/krypton/effect/krypton_effect_output_struct.h",
+            "third_party/krypton/effect/krypton_effect_pfunc.*",
+            "third_party/krypton/effect/krypton_effect_resource_downloader.*",
+            "third_party/krypton/effect/krypton_effect_texture_registry.*",
+            "third_party/krypton/effect/krypton_effect_wrapper.*",
+            "third_party/krypton/effect/krypton_effect_video_context.*",
+            "third_party/krypton/effect/krypton_effect_camera_context.*",
+            "third_party/krypton/effect/krypton_effect_detector_impl.*",
+            "third_party/krypton/effect/krypton_effect_helper_impl.*",
+            "third_party/krypton/effect/ios/krypton_amazing_hooks_ios.*",
+            "third_party/krypton/effect/ios/krypton_effect_ios.*",
+            "third_party/krypton/effect/ios/krypton_effect_message_channel_ios.*",
+            "third_party/krypton/effect/ios/krypton_effect_resource_downloader_ios.*",
+            "third_party/krypton/effect/krypton_effect_video_output.*"
+          ],
+          "dependencies": {
+            "Lynx/Krypton/Core": [],
+            "EffectSDK_iOS": [],
+            "EffectPlatformSDK/Core": [],
+            "EffectPlatformSDK/ModelDistribute": [],
+            "SSZipArchive": []
+          }
+        },
+        {
+          "name": "AurumCore",
+          "private_header_files": [
+            "third_party/krypton/aurum/**/*.{h,hpp}",
+            "third_party/krypton/deps/**/*.{h,hpp}"
+          ],
+          "pod_target_xcconfig": {
+            "GCC_PREPROCESSOR_DEFINITIONS": "__ENABLE_KRYPTON_AURUM__=1"
+          },
+          "source_files": [
+            "third_party/krypton/aurum/*.{cc,h}",
+            "third_party/krypton/aurum/audio_node/*.hpp",
+            "third_party/krypton/aurum/loader/buffer_loader.cc",
+            "third_party/krypton/aurum/loader/platform_loader.{cc,h}",
+            "third_party/krypton/aurum/loader/loader_data.h",
+            "third_party/krypton/aurum/encoder/wav_encoder.cc",
+            "third_party/krypton/aurum/encoder/cv_encoder.mm",
+            "third_party/krypton/aurum/decoder/wav.cc",
+            "third_party/krypton/aurum/decoder/*.h",
+            "third_party/krypton/aurum/darwin/*.{mm,h}",
+            "third_party/krypton/aurum/util/*.{hpp}",
+            "third_party/krypton/aurum/decoder/vtdecoder.cc",
+            "third_party/krypton/aurum/decoder/mp4_parser.cc",
+            "third_party/krypton/aurum/decoder/m4a_chunk_loader.cc",
+            "third_party/krypton/aurum/effect/*.{cc,h,mm}",
+            "third_party/krypton/deps/aurum/resampler/**/*.{cc,c,h}",
+            "third_party/krypton/deps/aurum/dsp/**/*.{cc,c,h}",
+            "third_party/krypton/deps/aurum/cocore/coroutine_context.h"
+          ],
+          "dependencies": {
+            "Lynx/Native": [],
+            "audiosdk": []
+          },
+          "frameworks": [
+            "JavaScriptCore",
+            "AVFoundation",
+            "Accelerate",
+            "CoreMedia",
+            "AudioToolbox",
+            "CoreAudio"
+          ]
+        },
+        {
+          "name": "AurumLibs",
+          "ios": {
+            "vendored_libraries": "third_party/krypton/deps/aurum/cocore/libcocore.a"
+          }
+        },
+        {
+          "name": "Recorder",
+          "pod_target_xcconfig": {
+            "GCC_PREPROCESSOR_DEFINITIONS": "__ENABLE_KRYPTON_RECORDER__=1"
+          },
+          "source_files": [
+            "third_party/krypton/recorder/media_recorder*.*",
+            "third_party/krypton/recorder/ios/KryptonDefaultMediaRecorder.{h,mm}",
+            "third_party/krypton/recorder/ios/media_recorder_darwin.{h,mm}",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_media_recorder*.*"
+          ],
+          "private_header_files": [
+            "third_party/krypton/recorder/**/*.{h,hpp}",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_media_recorder*.h"
+          ],
+          "dependencies": {
+            "Lynx/Krypton/Core": []
+          }
+        },
+        {
+          "name": "Rtc",
+          "pod_target_xcconfig": {
+            "GCC_PREPROCESSOR_DEFINITIONS": "__ENABLE_KRYPTON_RTC__=1"
+          },
+          "source_files": [
+            "third_party/krypton/rtc/krypton_rtc_engine.{h,cc}",
+            "third_party/krypton/rtc/krypton_rtc_helper_impl.{h,cc}",
+            "third_party/krypton/rtc/krypton_rtc_event_handler.{h,cc}",
+            "third_party/krypton/rtc/krypton_rtc_helper.{h,cc}",
+            "third_party/krypton/rtc/darwin/krypton_rtc_darwin.{h,mm}",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_rtc_engine.{h,cc}"
+          ],
+          "private_header_files": [
+            "third_party/krypton/rtc/**/*.{h,hpp}",
+            "third_party/krypton/jsbridge/bindings/canvas/napi_rtc*.h"
+          ],
+          "dependencies": {
+            "Lynx/Krypton/AurumCore": []
+          },
+          "ios": {
+            "dependencies": {
+              "ByteRtcSDK/Core": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AnimaX",
+      "subspecs": [
+        {
+          "name": "Common",
+          "header_mappings_dir": "third_party",
+          "dependencies": {
+            "Lynx/Krypton/Core": []
+          },
+          "pod_target_xcconfig": {
+            "HEADER_SEARCH_PATHS": "\"${PODS_TARGET_SRCROOT}/third_party\""
+          },
+          "private_header_files": [
+            "third_party/animax/animation/**/*.h",
+            "third_party/animax/animator/**/*.h",
+            "third_party/animax/base/**/*.h",
+            "third_party/animax/bridge/**/*.h",
+            "third_party/animax/content/**/*.h",
+            "third_party/animax/ios/**/*.h",
+            "third_party/animax/layer/**/*.h",
+            "third_party/animax/model/**/*.h",
+            "third_party/animax/parser/**/*.h",
+            "third_party/animax/render/*.h",
+            "third_party/animax/render/include/*.h",
+            "third_party/animax/resource/**/*.h"
+          ],
+          "source_files": [
+            "third_party/animax/animation/**/*.{h,cc}",
+            "third_party/animax/animator/**/*.{h,cc}",
+            "third_party/animax/base/**/*.{h,cc}",
+            "third_party/animax/bridge/**/*.{h,cc}",
+            "third_party/animax/content/**/*.{h,cc}",
+            "third_party/animax/ios/**/*.{h,m,mm}",
+            "third_party/animax/layer/**/*.{h,cc}",
+            "third_party/animax/model/**/*.{h,cc}",
+            "third_party/animax/parser/**/*.{h,cc}",
+            "third_party/animax/render/*.{h,cc}",
+            "third_party/animax/render/include/*.{h,cc}",
+            "third_party/animax/resource/**/*.{h,cc}"
+          ]
+        },
+        {
+          "name": "SkiaBackend",
+          "header_mappings_dir": "third_party",
+          "dependencies": {
+            "Lynx/AnimaX/Common": []
+          },
+          "pod_target_xcconfig": {
+            "GCC_PREPROCESSOR_DEFINITIONS": "RENDER_ENABLE_SKIA=1",
+            "HEADER_SEARCH_PATHS": "\"${PODS_TARGET_SRCROOT}/third_party/skia_includes\"                                                             \"${PODS_TARGET_SRCROOT}/third_party\""
+          },
+          "private_header_files": [
+            "third_party/animax/render/skia/*.h",
+            "third_party/skia_includes/include/c/*.h",
+            "third_party/skia_includes/include/codec/*.h",
+            "third_party/skia_includes/include/config/*.h",
+            "third_party/skia_includes/include/core/*.h",
+            "third_party/skia_includes/include/docs/*.h",
+            "third_party/skia_includes/include/effects/*.h",
+            "third_party/skia_includes/include/encode/*.h",
+            "third_party/skia_includes/include/gpu/**/*.h",
+            "third_party/skia_includes/include/pathops/*.h",
+            "third_party/skia_includes/include/ports/*.h",
+            "third_party/skia_includes/include/private/*.h",
+            "third_party/skia_includes/include/sksl/*.h",
+            "third_party/skia_includes/include/svg/*.h",
+            "third_party/skia_includes/include/third_party/**/*.h",
+            "third_party/skia_includes/include/utils/*.h"
+          ],
+          "source_files": [
+            "third_party/animax/render/skia/*.{h,cc}",
+            "third_party/skia_includes/include/c/*.h",
+            "third_party/skia_includes/include/codec/*.h",
+            "third_party/skia_includes/include/config/*.h",
+            "third_party/skia_includes/include/core/*.h",
+            "third_party/skia_includes/include/docs/*.h",
+            "third_party/skia_includes/include/effects/*.h",
+            "third_party/skia_includes/include/encode/*.h",
+            "third_party/skia_includes/include/gpu/**/*.h",
+            "third_party/skia_includes/include/pathops/*.h",
+            "third_party/skia_includes/include/ports/*.h",
+            "third_party/skia_includes/include/private/*.h",
+            "third_party/skia_includes/include/sksl/*.h",
+            "third_party/skia_includes/include/svg/*.h",
+            "third_party/skia_includes/include/third_party/**/*.h",
+            "third_party/skia_includes/include/utils/*.h"
+          ],
+          "ios": {
+            "vendored_libraries": "third_party/skia_includes/lib/ios/arm64/libskia.a"
+          }
+        },
+        {
+          "name": "SkityBackend",
+          "header_mappings_dir": "third_party",
+          "dependencies": {
+            "Lynx/AnimaX/Common": [],
+            "skity": []
+          },
+          "pod_target_xcconfig": {
+            "GCC_PREPROCESSOR_DEFINITIONS": "RENDER_ENABLE_SKITY=1",
+            "HEADER_SEARCH_PATHS": "\"${PODS_TARGET_SRCROOT}/third_party\""
+          },
+          "private_header_files": "third_party/animax/render/skity/*.h",
+          "source_files": "third_party/animax/render/skity/*.{h,cc}"
+        }
+      ]
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "2193",
+    "app_id": "9999"
+  },
+  "repoId": "2193",
+  "description": "framework_description",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "Lynx_POD_VERSION=@\\\"9999_2.10.19-lark.1-bugfix\\\""
+  }
+}

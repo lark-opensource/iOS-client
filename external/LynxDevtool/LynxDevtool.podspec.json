@@ -1,0 +1,543 @@
+{
+  "name": "LynxDevtool",
+  "version": "2.10.19-lark.1-bugfix",
+  "summary": "framework_summary",
+  "homepage": "https://code.byted.org/lynx/template-assembler",
+  "license": "MIT",
+  "authors": "Lynx",
+  "source": {
+    "git": "git@code.byted.org:lynx/template-assembler.git",
+    "commit": "1af3f30572463c5c8f60074dd4aad566a908afc4"
+  },
+  "requires_arc": true,
+  "compiler_flags": [
+    "-Wall",
+    "-Wextra",
+    "-Wno-unused-parameter",
+    "-Wshorten-64-to-32",
+    "-fno-rtti"
+  ],
+  "pod_target_xcconfig": {
+    "GCC_PREPROCESSOR_DEFINITIONS": "OS_IOS=1 LynxDevtool_POD_VERSION=@\\\"9999_2.10.19-lark.1-bugfix\\\"",
+    "CLANG_CXX_LANGUAGE_STANDARD": "gnu++17",
+    "OTHER_CPLUSPLUSFLAGS": "-fno-aligned-allocation",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS[config=Release]": "$(inherited) NDEBUG=1"
+  },
+  "prepare_command": "if [ -f \"./tools/lynx_tools/lcm\" ]; then\n  tools/lynx_tools/lcm sync -f .\nfi",
+  "platforms": {
+    "ios": "9.0"
+  },
+  "testspecs": [
+    {
+      "name": "UnitTests",
+      "test_type": "unit",
+      "source_files": [
+        "Darwin/iOS/LynxDevtool/**/*UnitTest.{m,mm}",
+        "Darwin/Common/LynxDevtool/**/*UnitTest.{m,mm}"
+      ],
+      "scheme": {
+        "code_coverage": true
+      },
+      "dependencies": {
+        "LynxDevtool/Framework": [],
+        "XcodeCoverage": [],
+        "OCMock": []
+      }
+    }
+  ],
+  "subspecs": [
+    {
+      "name": "Framework",
+      "source_files": [
+        "Darwin/iOS/LynxDevtool/*",
+        "Darwin/iOS/LynxDevtool/**/*",
+        "Darwin/Common/LynxDevtool/*",
+        "Darwin/Common/LynxDevtool/**/*"
+      ],
+      "exclude_files": [
+        "Darwin/Common/LynxDevtool/RedBox/",
+        "Darwin/Common/LynxDevtool/RedBox/*",
+        "Darwin/Common/LynxDevtool/LogBox/*",
+        "Darwin/iOS/LynxDevtool/**/*UnitTest.{m,mm}"
+      ],
+      "dependencies": {
+        "Lynx/Framework": [],
+        "Lynx/Native": [],
+        "Lynx/Inspector": [],
+        "Lynx/JSRuntime": [],
+        "LynxDevtool/Native": [],
+        "DebugRouter": [
+          ">= 2.0.33"
+        ]
+      },
+      "frameworks": [
+        "UIKit",
+        "IOKit"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "RAPIDJSON_HAS_STDSTRING=1                                                                    RAPIDJSON_NAMESPACE=lynx::rapidjson                                                                    RAPIDJSON_NAMESPACE_BEGIN=\"namespace lynx{namespace rapidjson{\"                                                                    RAPIDJSON_NAMESPACE_END=\"}};namespace rapidjson=::lynx::rapidjson;\"                                                                    JS_ENGINE_TYPE=1                                                                    NDEBUG=1                                                                   __ENABLE_INSPECTOR__=1                                                                    ENABLE_TRACING=0                                                                   ENABLE_TRACING_BACKEND_NATIVE=0                                                                   ENABLE_PERFETTO_TRACING=0                                                                   __INSPECTOR_TEST__=1                                                                    OS_POSIX=1",
+        "HEADER_SEARCH_PATHS": "\"${PODS_TARGET_SRCROOT}/vmsdk/\" \"${PODS_ROOT}/vmsdk/\" \"${PODS_ROOT}/\""
+      },
+      "compiler_flags": [
+        "-Wno-documentation",
+        "-Wno-deprecated"
+      ]
+    },
+    {
+      "name": "RedBoxFramework",
+      "source_files": [
+        "Darwin/Common/LynxDevtool/RedBox/*",
+        "Darwin/Common/LynxDevtool/LogBox/*"
+      ],
+      "private_header_files": [
+        "Darwin/Common/LynxDevtool/RedBox/*.h",
+        "Darwin/Common/LynxDevtool/LogBox/*.h"
+      ],
+      "dependencies": {
+        "LynxDevtool/LynxCore": []
+      },
+      "pod_target_xcconfig": {
+        "HEADER_SEARCH_PATHS": "\"${PODS_TARGET_SRCROOT}/LynxDevtool/\""
+      }
+    },
+    {
+      "name": "NapiBinding",
+      "compiler_flags": [
+        "-Wall",
+        "-Wextra",
+        "-Wno-unused-parameter",
+        "-Werror",
+        "-Wno-documentation"
+      ],
+      "header_mappings_dir": "Lynx",
+      "frameworks": "JavaScriptCore",
+      "libraries": "stdc++",
+      "subspecs": [
+        {
+          "name": "Common",
+          "source_files": [
+            "Lynx/jsbridge/napi/array_buffer_view.h",
+            "Lynx/jsbridge/napi/base.h",
+            "Lynx/jsbridge/napi/callback_helper.*",
+            "Lynx/jsbridge/napi/exception_message.*",
+            "Lynx/jsbridge/napi/exception_state.h",
+            "Lynx/jsbridge/napi/napi_environment.*",
+            "Lynx/jsbridge/napi/napi_loader_js.*",
+            "Lynx/jsbridge/napi/napi_runtime_proxy.*",
+            "Lynx/jsbridge/napi/napi_runtime_proxy_quickjs_factory.h",
+            "Lynx/jsbridge/napi/napi_runtime_proxy_v8_factory.*",
+            "Lynx/jsbridge/napi/native_value_traits.*",
+            "Lynx/jsbridge/napi/shim/shim_napi.h",
+            "Lynx/jsbridge/napi/shim/shim_napi_env.h",
+            "Lynx/jsbridge/napi/shim/shim_napi_runtime.h",
+            "Lynx/jsbridge/napi/napi_base_wrap.*"
+          ],
+          "pod_target_xcconfig": {
+            "GCC_PREPROCESSOR_DEFINITIONS": "NAPI_DISABLE_CPP_RTTI NAPI_DISABLE_CPP_EXCEPTIONS __ENABLE_NAPI_BINDING__=1"
+          },
+          "dependencies": {
+            "Lynx/Native": [],
+            "vmsdk/napi/env": []
+          }
+        },
+        {
+          "name": "V8",
+          "source_files": [
+            "Lynx/jsbridge/napi/jsbinding_napi_v8_ios_imp.cc",
+            "Lynx/jsbridge/napi/napi_runtime_proxy_v8.*",
+            "Lynx/jsbridge/napi/shim/shim_napi_env_v8.h"
+          ],
+          "dependencies": {
+            "LynxDevtool/NapiBinding/Common": []
+          },
+          "ios": {
+            "dependencies": {
+              "vmsdk/napi/v8": [],
+              "LynxDevtool/NativeScript": []
+            }
+          },
+          "osx": {
+            "dependencies": {
+              "vmsdkMacOS/napi/v8": []
+            }
+          }
+        },
+        {
+          "name": "QuickJS",
+          "header_mappings_dir": "LynxDevtool",
+          "private_header_files": "LynxDevtool/jsbridge/napi/napi_runtime_proxy_quickjs_factory_impl.h",
+          "source_files": "LynxDevtool/jsbridge/napi/napi_runtime_proxy_quickjs_factory_impl.*",
+          "dependencies": {
+            "Lynx/NapiBinding/QuickJS": [],
+            "vmsdk/quickjs": [],
+            "LynxDevtool/LynxCore": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Worklet",
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "__ENABLE_LEPUSNG_WORKLET__=1"
+      },
+      "source_files": [
+        "Lynx/css/css_decoder.{h,cc}",
+        "Lynx/jsbridge/bindings/worklet/*.{h,cc}",
+        "Lynx/worklet/base/*.{h,cc}",
+        "Lynx/worklet/*.{h,cc}"
+      ],
+      "exclude_files": "Lynx/worklet/test/*",
+      "dependencies": {
+        "LynxDevtool/NapiBinding/QuickJS": [],
+        "vmsdk/quickjs": []
+      }
+    },
+    {
+      "name": "Native",
+      "header_mappings_dir": "LynxDevtool",
+      "libraries": "stdc++",
+      "private_header_files": [
+        "LynxDevtool/base/*.h",
+        "LynxDevtool/agent/*.h",
+        "LynxDevtool/agent/domain_agent/*.h",
+        "LynxDevtool/element/*.h",
+        "LynxDevtool/thread/*.h",
+        "LynxDevtool/common/*.h",
+        "LynxDevtool/config/*.h"
+      ],
+      "source_files": [
+        "LynxDevtool/base/*",
+        "LynxDevtool/agent/*",
+        "LynxDevtool/agent/domain_agent/*",
+        "LynxDevtool/element/*",
+        "LynxDevtool/thread/*",
+        "LynxDevtool/common/*",
+        "LynxDevtool/config/*",
+        "Lynx/css/css_decoder.{h,cc}"
+      ],
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "OS_IOS=1",
+        "HEADER_SEARCH_PATHS": "\"${TARGET_BUILD_DIR}/Devtool/gen/Lynx\""
+      },
+      "dependencies": {
+        "LynxDevtool/LynxCore": [],
+        "LynxDevtool/ThirdParty": []
+      },
+      "compiler_flags": [
+        "-Wno-documentation",
+        "-Wno-deprecated"
+      ],
+      "preserve_paths": [
+        "build/util/*",
+        "Lynx/config/*"
+      ],
+      "script_phases": [
+        {
+          "name": "config_h",
+          "execution_position": "before_compile",
+          "output_files": [
+            "${TARGET_BUILD_DIR}/Devtool/gen/Lynx/config/config.h"
+          ],
+          "script": "\n          [ ! -d ${TARGET_BUILD_DIR}/Devtool/gen/Lynx/config ] && {\n            mkdir -p ${TARGET_BUILD_DIR}/Devtool/gen/Lynx/config\n          };\n          ${PODS_TARGET_SRCROOT}/build/util/write_cmake_config.py \\\n          -o ${TARGET_BUILD_DIR}/Devtool/gen/Lynx/config/config.h \\\n          ${PODS_TARGET_SRCROOT}/Lynx/config/config.h.in \\\n          HOST_OSTYPE=HOST_IOS \\\n          LYNX_DEBUG=0 \\\n          ENABLE_ARK_REPLAY=__ENABLE_ARK_REPLAY__ \\\n          ENABLE_HMR=__ENABLE_HMR__ \\\n          ENABLE_ARK_RECORDER=__ENABLE_ARK_RECORDER__ \\\n          ENABLE_INSPECTOR=__ENABLE_INSPECTOR__ \\\n          INSPECTOR_TEST=__INSPECTOR_TEST__ \\\n          ENABLE_LEPUSNG_WORKLET=__ENABLE_LEPUSNG_WORKLET__ \\\n          ENABLE_NAPI_BINDING=__ENABLE_NAPI_BINDING__ \\\n          ENABLE_NEW_ANIMATOR_TRANSFORM=1 \\\n        "
+        },
+        {
+          "name": "feature_h",
+          "execution_position": "before_compile",
+          "output_files": [
+            "${TARGET_BUILD_DIR}/Devtool/gen/Lynx/config/feature.h"
+          ],
+          "script": "\n          ${PODS_TARGET_SRCROOT}/build/util/write_cmake_config.py \\\n          -o ${TARGET_BUILD_DIR}/Devtool/gen/Lynx/config/feature.h \\\n          ${PODS_TARGET_SRCROOT}/Lynx/config/feature.h.in \\\n        "
+        }
+      ],
+      "subspecs": [
+        {
+          "name": "third_party",
+          "header_mappings_dir": "third_party",
+          "header_dir": "third_party",
+          "subspecs": [
+            {
+              "name": "rapidjson",
+              "source_files": "third_party/rapidjson/**/*",
+              "exclude_files": [
+                "third_party/rapidjson/msinttypes/*",
+                "third_party/rapidjson/internal/pow10_unittest.cc"
+              ],
+              "public_header_files": "Darwin/iOS/Lynx/LynxView.h"
+            },
+            {
+              "name": "krypton",
+              "source_files": "third_party/krypton/glue/*.h"
+            }
+          ]
+        },
+        {
+          "name": "js_debug",
+          "pod_target_xcconfig": {
+            "HEADER_SEARCH_PATHS": "\"${PODS_TARGET_SRCROOT}\" \"${PODS_TARGET_SRCROOT}/third_party/NativeScript/\" \"${PODS_TARGET_SRCROOT}/third_party/NativeScript/include/\" \"${PODS_TARGET_SRCROOT}/third_party/NativeScript/inspector/\"",
+            "GCC_PREPROCESSOR_DEFINITIONS": "__ENABLE_LEPUSNG__=1 LYNX_DEV LYNX_SIMPLIFY=0 ENABLE_QUICKJS_DEBUGGER"
+          },
+          "source_files": [
+            "LynxDevtool/jsbridge/js_debug/*",
+            "LynxDevtool/jsbridge/js_debug/lepus/*",
+            "LynxDevtool/jsbridge/js_debug/quickjs_base/*",
+            "LynxDevtool/jsbridge/js_debug/quickjs/**/*",
+            "LynxDevtool/jsbridge/js_debug/lepusng/*",
+            "LynxDevtool/jsbridge/js_debug/lepusng/debugger/*"
+          ],
+          "dependencies": {
+            "vmsdk/quickjs_debugger": [],
+            "vmsdk/quickjs_heapprofiler": [],
+            "LynxDevtool/LynxCore": [],
+            "LynxDevtool/NapiBinding/QuickJS": []
+          }
+        },
+        {
+          "name": "Tracing",
+          "source_files": [
+            "LynxDevtool/tracing/platform/fps_trace_plugin_darwin.h",
+            "LynxDevtool/tracing/platform/fps_trace_plugin_darwin.mm",
+            "LynxDevtool/tracing/platform/frameview_trace_plugin_darwin.h",
+            "LynxDevtool/tracing/platform/frameview_trace_plugin_darwin.mm",
+            "LynxDevtool/tracing/platform/instance_trace_plugin_darwin.h",
+            "LynxDevtool/tracing/platform/instance_trace_plugin_darwin.mm",
+            "third_party/perfetto/include/perfetto/base/*.h",
+            "third_party/perfetto/include/perfetto/base/build_configs/bazel/perfetto_build_flags.h",
+            "third_party/perfetto/include/perfetto/protozero/*.h",
+            "third_party/perfetto/gen/protos/perfetto/trace/track_event/*.h",
+            "third_party/perfetto/perfetto.h",
+            "LynxDevtool/tracing/frame_trace_service.h",
+            "LynxDevtool/tracing/frame_trace_service.cc",
+            "LynxDevtool/tracing/instance_counter_trace_impl.h",
+            "LynxDevtool/tracing/instance_counter_trace_impl.cc",
+            "LynxDevtool/tracing/trace_event_devtool.h"
+          ],
+          "private_header_files": [
+            "third_party/perfetto/**/*.h",
+            "LynxDevtool/tracing/**/*.h"
+          ],
+          "pod_target_xcconfig": {
+            "GCC_PREPROCESSOR_DEFINITIONS": "LYNX_ENABLE_TRACING=1",
+            "HEADER_SEARCH_PATHS": "\"${PODS_TARGET_SRCROOT}/\"                                                             \"${PODS_TARGET_SRCROOT}/third_party/perfetto/\"                                                             \"${PODS_TARGET_SRCROOT}/third_party/perfetto/include/\"                                                             \"${PODS_TARGET_SRCROOT}/third_party/perfetto/gen/\"                                                             \"${PODS_TARGET_SRCROOT}/third_party/perfetto/include/perfetto/base/build_configs/bazel\""
+          },
+          "dependencies": {
+            "LynxDevtool/LynxCore": []
+          }
+        },
+        {
+          "name": "Quickjs",
+          "pod_target_xcconfig": {
+            "HEADER_SEARCH_PATHS": "\"${PODS_TARGET_SRCROOT}/Lynx/lepus/quickjs/include\""
+          },
+          "exclude_files": [
+            "Lynx/jsbridge/quickjs/quickjs_cache_maker_compatible_unittest.cc",
+            "Lynx/jsbridge/quickjs/quickjs_cache_manager_unittest.cc",
+            "Lynx/jsbridge/quickjs/quickjs_helper_unittest.cc",
+            "Lynx/jsbridge/jscache/meta_data_unittest.cc",
+            "Lynx/jsbridge/jscache/js_cache_manager_facade_unittest.cc"
+          ],
+          "source_files": [
+            "Lynx/jsbridge/quickjs/**/*",
+            "Lynx/jsbridge/jscache/**/*",
+            "Lynx/base/md5.*"
+          ],
+          "dependencies": {
+            "LynxDevtool/LynxCore": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "NativeScript",
+      "subspecs": [
+        {
+          "name": "Core",
+          "header_mappings_dir": "third_party",
+          "header_dir": "third_party",
+          "source_files": [
+            "third_party/NativeScript/include/*",
+            "third_party/NativeScript/include/**/*",
+            "third_party/NativeScript/include/**/**/*",
+            "third_party/NativeScript/include/**/**/**/*",
+            "third_party/NativeScript/include/**/**/**/**/*",
+            "third_party/NativeScript/inspector/*",
+            "third_party/NativeScript/inspector/**/*",
+            "third_party/NativeScript/inspector/**/**/*",
+            "third_party/NativeScript/inspector/**/**/**/*",
+            "third_party/NativeScript/inspector/**/**/**/**/*"
+          ],
+          "compiler_flags": "-Wno-conversion -fno-objc-arc -Wno-documentation",
+          "pod_target_xcconfig": {
+            "HEADER_SEARCH_PATHS": "\"${PODS_TARGET_SRCROOT}/third_party/NativeScript/\" \"${PODS_TARGET_SRCROOT}/third_party/NativeScript/inspector\" \"${PODS_TARGET_SRCROOT}/third_party/NativeScript/include\"",
+            "OTHER_LINKER_FLAGS": "v8_snapshot torque_generated_initializers v8_base_without_compiler v8_compiler v8_libbase v8_libplatform v8_libsampler"
+          },
+          "vendored_libraries": [
+            "third_party/NativeScript/lib/iOS/libinspector_protocol.a",
+            "third_party/NativeScript/lib/iOS/libtorque_generated_initializers.a",
+            "third_party/NativeScript/lib/iOS/libv8_base_without_compiler.a",
+            "third_party/NativeScript/lib/iOS/libv8_compiler.a",
+            "third_party/NativeScript/lib/iOS/libv8_libbase.a",
+            "third_party/NativeScript/lib/iOS/libv8_libplatform.a",
+            "third_party/NativeScript/lib/iOS/libv8_libsampler.a",
+            "third_party/NativeScript/lib/iOS/libv8_snapshot.a"
+          ],
+          "dependencies": {
+            "LynxDevtool/Native": [],
+            "LynxDevtool/NativeScript/V8": [],
+            "LynxDevtool/LynxCore": []
+          }
+        },
+        {
+          "name": "V8",
+          "header_mappings_dir": "LynxDevtool",
+          "source_files": [
+            "LynxDevtool/jsbridge/js_debug/v8/**/*",
+            "Lynx/jsbridge/v8/**/*"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Helium",
+      "dependencies": {
+        "LynxDevtool/LynxCore": []
+      }
+    },
+    {
+      "name": "DebugResource",
+      "resource_bundles": {
+        "LynxDebugResources": [
+          "Darwin/iOS/JSAssets/debug/lynx_core_dev.js",
+          "Darwin/iOS/JSAssets/debug/lynx_canvas_dev.js",
+          "Darwin/iOS/JSAssets/debug/lynx_orbit_laser.js",
+          "Darwin/iOS/JSAssets/debug/lynxCoreJSBundleCheck",
+          "Darwin/iOS/JSAssets/debug/logbox/notification_cancel.png",
+          "Darwin/iOS/JSAssets/debug/redbox"
+        ]
+      }
+    },
+    {
+      "name": "ThirdPartyCommon",
+      "vendored_libraries": "third_party/NativeScript/lib/libffi.a"
+    },
+    {
+      "name": "ThirdParty",
+      "header_mappings_dir": "LynxDevtool",
+      "libraries": "stdc++",
+      "pod_target_xcconfig": {
+        "HEADER_SEARCH_PATHS": "\"${PODS_TARGET_SRCROOT}/third_party/jsoncpp/include\" \"${PODS_ROOT}/Headers/Private/LynxDevtool/third_party/\" \"${PODS_TARGET_SRCROOT}/LynxDevtool/\" \"${PODS_TARGET_SRCROOT}/Lynx/\" \"${PODS_ROOT}/Headers/Private/Lynx\" \"${PODS_ROOT}/vmsdk\" \"${PODS_ROOT}/Lynx\" \"${PODS_ROOT}/Lynx/Lynx\" \"${PODS_ROOT}/Lynx/Native\""
+      },
+      "dependencies": {
+        "LynxDevtool/LynxCore": []
+      },
+      "subspecs": [
+        {
+          "name": "jsoncpp",
+          "header_mappings_dir": "third_party",
+          "header_dir": "third_party",
+          "source_files": [
+            "third_party/jsoncpp/include/json/*.h",
+            "third_party/jsoncpp/src/lib_json/json_tool.h",
+            "third_party/jsoncpp/src/lib_json/json_reader.cpp",
+            "third_party/jsoncpp/src/lib_json/json_value.cpp",
+            "third_party/jsoncpp/src/lib_json/json_writer.cpp",
+            "third_party/jsoncpp/src/lib_json/json_valueiterator.inl"
+          ],
+          "compiler_flags": [
+            "-Wno-documentation",
+            "-Wno-deprecated"
+          ]
+        },
+        {
+          "name": "zlib",
+          "header_mappings_dir": "third_party",
+          "header_dir": "third_party",
+          "libraries": "stdc++",
+          "source_files": [
+            "third_party/zlib/*.h",
+            "third_party/zlib/*.c"
+          ],
+          "exclude_files": [
+            "third_party/zlib/crc_folding.c",
+            "third_party/zlib/x86.c",
+            "third_party/zlib/fill_window_sse.c"
+          ],
+          "compiler_flags": [
+            "-Wno-conversion",
+            "-Wno-comma"
+          ]
+        },
+        {
+          "name": "modp64",
+          "header_mappings_dir": "third_party",
+          "header_dir": "third_party",
+          "libraries": "stdc++",
+          "source_files": [
+            "third_party/modp_b64/modp_b64.h",
+            "third_party/modp_b64/modp_b64.cc",
+            "third_party/modp_b64/modp_b64_data.h"
+          ],
+          "private_header_files": "third_party/modp_b64/**/*.h"
+        },
+        {
+          "name": "fml",
+          "header_mappings_dir": "third_party",
+          "header_dir": "third_party",
+          "source_files": [
+            "third_party/fml/*.h",
+            "third_party/fml/memory/*.h",
+            "third_party/fml/synchronization/*.h",
+            "third_party/fml/time/*.h",
+            "third_party/fml/platform/darwin/*.h"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Krypton",
+      "dependencies": {
+        "LynxDevtool/NapiBinding/V8": [],
+        "LynxDevtool/NapiBinding/QuickJS": [],
+        "vmsdk/quickjs": []
+      }
+    },
+    {
+      "name": "LynxCore",
+      "header_mappings_dir": "Lynx",
+      "private_header_files": "Lynx/**/*.h",
+      "source_files": [
+        "Lynx/**/*.h",
+        "Lynx/base/rand_util.cc"
+      ],
+      "exclude_files": [
+        "Lynx/css/android/**/*",
+        "Lynx/inspector/android/**/*",
+        "Lynx/shell/android/**/*",
+        "Lynx/jsbridge/android/**/*",
+        "Lynx/tasm/react/android/**/*",
+        "Lynx/tasm/dynamic_component/android/**/*",
+        "Lynx/base/android/**/*",
+        "Lynx/build/gen/**/*",
+        "Lynx/shell/ios/**/*",
+        "Lynx/jsbridge/ios/**/*",
+        "Lynx/jsbridge/network/**/*",
+        "Lynx/tasm/ios/**/*",
+        "Lynx/tasm/react/renderkit/**/*",
+        "Lynx/tasm/**/ios/**/*",
+        "Lynx/base/Darwin/**/*",
+        "Lynx/base/iOS/**/*",
+        "Lynx/base/trace_event/platform/**/*"
+      ]
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "7183",
+    "app_id": "9999"
+  },
+  "repoId": "7183",
+  "description": "framework_description",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "LynxDevtool_POD_VERSION=@\\\"9999_2.10.19-lark.1-bugfix\\\""
+  }
+}

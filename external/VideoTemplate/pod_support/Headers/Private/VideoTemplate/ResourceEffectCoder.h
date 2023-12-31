@@ -1,0 +1,1 @@
+../../../../cut/src/player/ResourceEffectCoder.h

@@ -1,0 +1,2054 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "PNSServiceKit_pod_hdrs",
+  srcs = [
+    ":PNSServiceKit_root_pod_hdrs",
+    ":Service_pod_hdrs",
+    ":Protocol_pod_hdrs",
+    ":Impls_pod_hdrs",
+    ":Impls_UserExceptionImpl_pod_hdrs",
+    ":Impls_BacktraceImpl_pod_hdrs",
+    ":Impls_KVStoreImpl_pod_hdrs",
+    ":Impls_LoggerImpl_pod_hdrs",
+    ":Impls_LogUploaderImpl_pod_hdrs",
+    ":Impls_MonitorImpl_pod_hdrs",
+    ":Impls_NetworkImpl_pod_hdrs",
+    ":Impls_SettingImpl_pod_hdrs",
+    ":Impls_TrackerImpl_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "PNSServiceKit_private_includes",
+  include = [
+    "external/PNSServiceKit/pod_support/Headers/Private/PNSServiceKit/"
+  ],
+  deps = [],
+  external_name = "PNSServiceKit"
+)
+gen_includes(
+  name = "PNSServiceKit_public_includes",
+  include = [
+    "external/PNSServiceKit/pod_support/Headers/Public/PNSServiceKit/"
+  ],
+  deps = [],
+  external_name = "PNSServiceKit"
+)
+filegroup(
+  name = "_PNSServiceKit_hdrs",
+  srcs = [
+    ":PNSServiceKit_root_hdrs",
+    ":Service_hdrs",
+    ":Protocol_hdrs",
+    ":Impls_hdrs",
+    ":Impls_UserExceptionImpl_hdrs",
+    ":Impls_BacktraceImpl_hdrs",
+    ":Impls_KVStoreImpl_hdrs",
+    ":Impls_LoggerImpl_hdrs",
+    ":Impls_LogUploaderImpl_hdrs",
+    ":Impls_MonitorImpl_hdrs",
+    ":Impls_NetworkImpl_hdrs",
+    ":Impls_SettingImpl_hdrs",
+    ":Impls_TrackerImpl_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "PNSServiceKit_xcode_hmapsource",
+  hdrs = [
+    ":PNSServiceKit_root_hdrs",
+    ":Impls_hdrs",
+    ":Impls_BacktraceImpl_hdrs",
+    ":Impls_KVStoreImpl_hdrs",
+    ":Impls_LoggerImpl_hdrs",
+    ":Impls_LogUploaderImpl_hdrs",
+    ":Impls_MonitorImpl_hdrs",
+    ":Impls_NetworkImpl_hdrs",
+    ":Impls_SettingImpl_hdrs",
+    ":Impls_TrackerImpl_hdrs",
+    ":Impls_UserExceptionImpl_hdrs",
+    ":Protocol_hdrs",
+    ":Service_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "PNSServiceKit_xcode_hmap",
+  dep = ":PNSServiceKit_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/PNSServiceKit/*-bitsky-generated.modulemap", "pod_support/Headers/Public/PNSServiceKit/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "PNSServiceKit_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "PNSServiceKit",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "PNSServiceKit_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":PNSServiceKit_xcode_hmap"
+  ],
+  external_name = "PNSServiceKit",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "PNSServiceKit_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "PNSServiceKit_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "PNSServiceKit_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "PNSServiceKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "PNSServiceKit_module_map",
+  module_map = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "PNSServiceKit_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "PNSServiceKit_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":PNSServiceKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":PNSServiceKit_private_includes",
+    ":PNSServiceKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":PNSServiceKit_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DPNSServiceKit_POD_VERSION=@\\\"9999_1.1.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "PNSServiceKit",
+  deps = [
+    ":PNSServiceKit_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "PNSServiceKit_lib",
+  deps = [
+    ":PNSServiceKit"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Service_hdrs",
+  srcs = [
+    "PNSServiceKit/Classes/Public/Service/PNSServiceCenter+private.h",
+    "PNSServiceKit/Classes/Public/Service/PNSServiceCenter.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Service_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/PNSServiceKit/PNSServiceCenter+private.h",
+    "pod_support/Headers/Private/PNSServiceKit/PNSServiceCenter.h",
+    "pod_support/Headers/Public/PNSServiceKit/PNSServiceCenter+private.h",
+    "pod_support/Headers/Public/PNSServiceKit/PNSServiceCenter.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Service_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Service_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Service_module_map",
+  module_map = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Service-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Service-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Service_srcs",
+  srcs = [
+    "PNSServiceKit/Classes/Public/Service/PNSServiceCenter.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Service_oc",
+  enable_modules = 1,
+  srcs = [
+    "Service_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Service_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":PNSServiceKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":PNSServiceKit_private_includes",
+    ":PNSServiceKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Service_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DPNSServiceKit_POD_VERSION=@\\\"9999_1.1.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Service",
+  deps = [
+    ":Service_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Service_lib",
+  deps = [
+    ":Service"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Protocol_hdrs",
+  srcs = [
+    "PNSServiceKit/Classes/Public/Protocol/PNSAPIRespondProtocol.h",
+    "PNSServiceKit/Classes/Public/Protocol/PNSBacktraceProtocol.h",
+    "PNSServiceKit/Classes/Public/Protocol/PNSKVStoreProtocol.h",
+    "PNSServiceKit/Classes/Public/Protocol/PNSLogUploaderProtocol.h",
+    "PNSServiceKit/Classes/Public/Protocol/PNSLoggerProtocol.h",
+    "PNSServiceKit/Classes/Public/Protocol/PNSMonitorProtocol.h",
+    "PNSServiceKit/Classes/Public/Protocol/PNSNetworkProtocol.h",
+    "PNSServiceKit/Classes/Public/Protocol/PNSPolicyDecisionProtocol.h",
+    "PNSServiceKit/Classes/Public/Protocol/PNSQueryIdProtocol.h",
+    "PNSServiceKit/Classes/Public/Protocol/PNSRuleEngineProtocol.h",
+    "PNSServiceKit/Classes/Public/Protocol/PNSSettingProtocol.h",
+    "PNSServiceKit/Classes/Public/Protocol/PNSTrackerProtocol.h",
+    "PNSServiceKit/Classes/Public/Protocol/PNSUserExceptionProtocol.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Protocol_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/PNSServiceKit/PNSAPIRespondProtocol.h",
+    "pod_support/Headers/Private/PNSServiceKit/PNSBacktraceProtocol.h",
+    "pod_support/Headers/Private/PNSServiceKit/PNSKVStoreProtocol.h",
+    "pod_support/Headers/Private/PNSServiceKit/PNSLogUploaderProtocol.h",
+    "pod_support/Headers/Private/PNSServiceKit/PNSLoggerProtocol.h",
+    "pod_support/Headers/Private/PNSServiceKit/PNSMonitorProtocol.h",
+    "pod_support/Headers/Private/PNSServiceKit/PNSNetworkProtocol.h",
+    "pod_support/Headers/Private/PNSServiceKit/PNSPolicyDecisionProtocol.h",
+    "pod_support/Headers/Private/PNSServiceKit/PNSQueryIdProtocol.h",
+    "pod_support/Headers/Private/PNSServiceKit/PNSRuleEngineProtocol.h",
+    "pod_support/Headers/Private/PNSServiceKit/PNSSettingProtocol.h",
+    "pod_support/Headers/Private/PNSServiceKit/PNSTrackerProtocol.h",
+    "pod_support/Headers/Private/PNSServiceKit/PNSUserExceptionProtocol.h",
+    "pod_support/Headers/Public/PNSServiceKit/PNSAPIRespondProtocol.h",
+    "pod_support/Headers/Public/PNSServiceKit/PNSBacktraceProtocol.h",
+    "pod_support/Headers/Public/PNSServiceKit/PNSKVStoreProtocol.h",
+    "pod_support/Headers/Public/PNSServiceKit/PNSLogUploaderProtocol.h",
+    "pod_support/Headers/Public/PNSServiceKit/PNSLoggerProtocol.h",
+    "pod_support/Headers/Public/PNSServiceKit/PNSMonitorProtocol.h",
+    "pod_support/Headers/Public/PNSServiceKit/PNSNetworkProtocol.h",
+    "pod_support/Headers/Public/PNSServiceKit/PNSPolicyDecisionProtocol.h",
+    "pod_support/Headers/Public/PNSServiceKit/PNSQueryIdProtocol.h",
+    "pod_support/Headers/Public/PNSServiceKit/PNSRuleEngineProtocol.h",
+    "pod_support/Headers/Public/PNSServiceKit/PNSSettingProtocol.h",
+    "pod_support/Headers/Public/PNSServiceKit/PNSTrackerProtocol.h",
+    "pod_support/Headers/Public/PNSServiceKit/PNSUserExceptionProtocol.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Protocol_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Protocol_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Protocol_module_map",
+  module_map = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Protocol-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Protocol-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Protocol_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Protocol_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":PNSServiceKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":PNSServiceKit_private_includes",
+    ":PNSServiceKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Protocol_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DPNSServiceKit_POD_VERSION=@\\\"9999_1.1.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Protocol",
+  deps = [
+    ":Protocol_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Protocol_lib",
+  deps = [
+    ":Protocol"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Impls_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Impls_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Impls_module_map",
+  module_map = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Impls-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Impls-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Impls_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Impls_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":PNSServiceKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":PNSServiceKit_private_includes",
+    ":PNSServiceKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Impls_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DPNSServiceKit_POD_VERSION=@\\\"9999_1.1.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Impls",
+  deps = [
+    ":Impls_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Impls_lib",
+  deps = [
+    ":Impls"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_UserExceptionImpl_hdrs",
+  srcs = [
+    "PNSServiceKit/Classes/Private/Impl/UserExceptionImpl/PNSUserExceptionImpl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_UserExceptionImpl_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/PNSServiceKit/PNSUserExceptionImpl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Impls_UserExceptionImpl_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Impls_UserExceptionImpl_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Impls_UserExceptionImpl_module_map",
+  module_map = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Impls_UserExceptionImpl-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Impls_UserExceptionImpl-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_UserExceptionImpl_srcs",
+  srcs = [
+    "PNSServiceKit/Classes/Private/Impl/UserExceptionImpl/PNSUserExceptionImpl.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Impls_UserExceptionImpl_oc",
+  enable_modules = 1,
+  srcs = [
+    "Impls_UserExceptionImpl_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Impls_UserExceptionImpl_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":PNSServiceKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":PNSServiceKit_private_includes",
+    ":PNSServiceKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Heimdallr//:UserException_objc_interface",
+    "@Heimdallr//:UserException_swift_interface",
+    ":Impls_UserExceptionImpl_objc_interface",
+    "@Heimdallr//:UserException_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DPNSServiceKit_POD_VERSION=@\\\"9999_1.1.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Impls_UserExceptionImpl",
+  deps = [
+    ":Impls_UserExceptionImpl_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Impls_UserExceptionImpl_lib",
+  deps = [
+    ":Impls_UserExceptionImpl"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_BacktraceImpl_hdrs",
+  srcs = [
+    "PNSServiceKit/Classes/Private/Impl/BacktraceImpl/PNSBacktraceImpl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_BacktraceImpl_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/PNSServiceKit/PNSBacktraceImpl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Impls_BacktraceImpl_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Impls_BacktraceImpl_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Impls_BacktraceImpl_module_map",
+  module_map = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Impls_BacktraceImpl-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Impls_BacktraceImpl-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_BacktraceImpl_srcs",
+  srcs = [
+    "PNSServiceKit/Classes/Private/Impl/BacktraceImpl/PNSBacktraceImpl.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Impls_BacktraceImpl_oc",
+  enable_modules = 1,
+  srcs = [
+    "Impls_BacktraceImpl_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Impls_BacktraceImpl_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":PNSServiceKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":PNSServiceKit_private_includes",
+    ":PNSServiceKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Heimdallr//:HMDCaptureBacktrace_objc_interface",
+    "@Heimdallr//:Log_objc_interface",
+    "@Heimdallr//:Mach_objc_interface",
+    "@Heimdallr//:UserException_objc_interface",
+    "@Heimdallr//:HMDCaptureBacktrace_swift_interface",
+    "@Heimdallr//:Log_swift_interface",
+    "@Heimdallr//:Mach_swift_interface",
+    "@Heimdallr//:UserException_swift_interface",
+    ":Impls_BacktraceImpl_objc_interface",
+    "@Heimdallr//:HMDCaptureBacktrace_module_map",
+    "@Heimdallr//:Log_module_map",
+    "@Heimdallr//:Mach_module_map",
+    "@Heimdallr//:UserException_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DPNSServiceKit_POD_VERSION=@\\\"9999_1.1.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Impls_BacktraceImpl",
+  deps = [
+    ":Impls_BacktraceImpl_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Impls_BacktraceImpl_lib",
+  deps = [
+    ":Impls_BacktraceImpl"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_KVStoreImpl_hdrs",
+  srcs = [
+    "PNSServiceKit/Classes/Private/Impl/KVStoreImpl/PNSKVStoreImpl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_KVStoreImpl_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/PNSServiceKit/PNSKVStoreImpl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Impls_KVStoreImpl_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Impls_KVStoreImpl_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Impls_KVStoreImpl_module_map",
+  module_map = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Impls_KVStoreImpl-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Impls_KVStoreImpl-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_KVStoreImpl_srcs",
+  srcs = [
+    "PNSServiceKit/Classes/Private/Impl/KVStoreImpl/PNSKVStoreImpl.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Impls_KVStoreImpl_oc",
+  enable_modules = 1,
+  srcs = [
+    "Impls_KVStoreImpl_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Impls_KVStoreImpl_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":PNSServiceKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":PNSServiceKit_private_includes",
+    ":PNSServiceKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@MMKV//:MMKV_objc_interface",
+    "@MMKV//:MMKV_swift_interface",
+    ":Impls_KVStoreImpl_objc_interface",
+    "@MMKV//:MMKV_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DPNSServiceKit_POD_VERSION=@\\\"9999_1.1.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Impls_KVStoreImpl",
+  deps = [
+    ":Impls_KVStoreImpl_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Impls_KVStoreImpl_lib",
+  deps = [
+    ":Impls_KVStoreImpl"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_LoggerImpl_hdrs",
+  srcs = [
+    "PNSServiceKit/Classes/Private/Impl/LoggerImpl/PNSLoggerImpl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_LoggerImpl_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/PNSServiceKit/PNSLoggerImpl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Impls_LoggerImpl_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Impls_LoggerImpl_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Impls_LoggerImpl_module_map",
+  module_map = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Impls_LoggerImpl-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Impls_LoggerImpl-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_LoggerImpl_srcs",
+  srcs = [
+    "PNSServiceKit/Classes/Private/Impl/LoggerImpl/PNSLoggerImpl.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Impls_LoggerImpl_oc",
+  enable_modules = 1,
+  srcs = [
+    "Impls_LoggerImpl_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Impls_LoggerImpl_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":PNSServiceKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":PNSServiceKit_private_includes",
+    ":PNSServiceKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@Heimdallr//:ALog_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@Heimdallr//:ALog_swift_interface",
+    ":Impls_LoggerImpl_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@Heimdallr//:ALog_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DPNSServiceKit_POD_VERSION=@\\\"9999_1.1.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Impls_LoggerImpl",
+  deps = [
+    ":Impls_LoggerImpl_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Impls_LoggerImpl_lib",
+  deps = [
+    ":Impls_LoggerImpl"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_LogUploaderImpl_hdrs",
+  srcs = [
+    "PNSServiceKit/Classes/Private/Impl/LogUploaderImpl/PNSLogUploaderImpl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_LogUploaderImpl_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/PNSServiceKit/PNSLogUploaderImpl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Impls_LogUploaderImpl_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Impls_LogUploaderImpl_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Impls_LogUploaderImpl_module_map",
+  module_map = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Impls_LogUploaderImpl-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Impls_LogUploaderImpl-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_LogUploaderImpl_srcs",
+  srcs = [
+    "PNSServiceKit/Classes/Private/Impl/LogUploaderImpl/PNSLogUploaderImpl.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Impls_LogUploaderImpl_oc",
+  enable_modules = 1,
+  srcs = [
+    "Impls_LogUploaderImpl_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Impls_LogUploaderImpl_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":PNSServiceKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":PNSServiceKit_private_includes",
+    ":PNSServiceKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Impls_LogUploaderImpl_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DPNSServiceKit_POD_VERSION=@\\\"9999_1.1.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Impls_LogUploaderImpl",
+  deps = [
+    ":Impls_LogUploaderImpl_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Impls_LogUploaderImpl_lib",
+  deps = [
+    ":Impls_LogUploaderImpl"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_MonitorImpl_hdrs",
+  srcs = [
+    "PNSServiceKit/Classes/Private/Impl/MonitorImpl/PNSMonitorImpl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_MonitorImpl_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/PNSServiceKit/PNSMonitorImpl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Impls_MonitorImpl_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Impls_MonitorImpl_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Impls_MonitorImpl_module_map",
+  module_map = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Impls_MonitorImpl-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Impls_MonitorImpl-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_MonitorImpl_srcs",
+  srcs = [
+    "PNSServiceKit/Classes/Private/Impl/MonitorImpl/PNSMonitorImpl.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Impls_MonitorImpl_oc",
+  enable_modules = 1,
+  srcs = [
+    "Impls_MonitorImpl_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Impls_MonitorImpl_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":PNSServiceKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":PNSServiceKit_private_includes",
+    ":PNSServiceKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Heimdallr//:TTMonitor_objc_interface",
+    "@Heimdallr//:TTMonitor_swift_interface",
+    ":Impls_MonitorImpl_objc_interface",
+    "@Heimdallr//:TTMonitor_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DPNSServiceKit_POD_VERSION=@\\\"9999_1.1.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Impls_MonitorImpl",
+  deps = [
+    ":Impls_MonitorImpl_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Impls_MonitorImpl_lib",
+  deps = [
+    ":Impls_MonitorImpl"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_NetworkImpl_hdrs",
+  srcs = [
+    "PNSServiceKit/Classes/Private/Impl/NetworkImpl/PNSNetworkImpl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_NetworkImpl_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/PNSServiceKit/PNSNetworkImpl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Impls_NetworkImpl_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Impls_NetworkImpl_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Impls_NetworkImpl_module_map",
+  module_map = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Impls_NetworkImpl-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Impls_NetworkImpl-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_NetworkImpl_srcs",
+  srcs = [
+    "PNSServiceKit/Classes/Private/Impl/NetworkImpl/PNSNetworkImpl.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Impls_NetworkImpl_oc",
+  enable_modules = 1,
+  srcs = [
+    "Impls_NetworkImpl_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Impls_NetworkImpl_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":PNSServiceKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":PNSServiceKit_private_includes",
+    ":PNSServiceKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTReachability//:TTReachability_objc_interface",
+    "@TTReachability//:TTReachability_swift_interface",
+    ":Impls_NetworkImpl_objc_interface",
+    "@TTReachability//:TTReachability_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DPNSServiceKit_POD_VERSION=@\\\"9999_1.1.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Impls_NetworkImpl",
+  deps = [
+    ":Impls_NetworkImpl_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Impls_NetworkImpl_lib",
+  deps = [
+    ":Impls_NetworkImpl"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_SettingImpl_hdrs",
+  srcs = [
+    "PNSServiceKit/Classes/Private/Impl/SettingImpl/PNSSettingImpl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_SettingImpl_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/PNSServiceKit/PNSSettingImpl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Impls_SettingImpl_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Impls_SettingImpl_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Impls_SettingImpl_module_map",
+  module_map = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Impls_SettingImpl-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Impls_SettingImpl-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_SettingImpl_srcs",
+  srcs = [
+    "PNSServiceKit/Classes/Private/Impl/SettingImpl/PNSSettingImpl.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Impls_SettingImpl_oc",
+  enable_modules = 1,
+  srcs = [
+    "Impls_SettingImpl_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Impls_SettingImpl_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":PNSServiceKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":PNSServiceKit_private_includes",
+    ":PNSServiceKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTKitchen//:Core_objc_interface",
+    "@TTKitchen//:MMKV_objc_interface",
+    "@TTKitchen//:Core_swift_interface",
+    "@TTKitchen//:MMKV_swift_interface",
+    ":Impls_SettingImpl_objc_interface",
+    "@TTKitchen//:Core_module_map",
+    "@TTKitchen//:MMKV_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DPNSServiceKit_POD_VERSION=@\\\"9999_1.1.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Impls_SettingImpl",
+  deps = [
+    ":Impls_SettingImpl_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Impls_SettingImpl_lib",
+  deps = [
+    ":Impls_SettingImpl"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_TrackerImpl_hdrs",
+  srcs = [
+    "PNSServiceKit/Classes/Private/Impl/TrackerImpl/PNSTrackerImpl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_TrackerImpl_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/PNSServiceKit/PNSTrackerImpl.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Impls_TrackerImpl_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Impls_TrackerImpl_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Impls_TrackerImpl_module_map",
+  module_map = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Impls_TrackerImpl-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/PNSServiceKit/PNSServiceKit_Impls_TrackerImpl-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Impls_TrackerImpl_srcs",
+  srcs = [
+    "PNSServiceKit/Classes/Private/Impl/TrackerImpl/PNSTrackerImpl.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Impls_TrackerImpl_oc",
+  enable_modules = 1,
+  srcs = [
+    "Impls_TrackerImpl_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Impls_TrackerImpl_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":PNSServiceKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":PNSServiceKit_private_includes",
+    ":PNSServiceKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_swift_interface",
+    ":Impls_TrackerImpl_objc_interface",
+    "@BDTrackerProtocol//:BDTrackerProtocol_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DPNSServiceKit_POD_VERSION=@\\\"9999_1.1.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Impls_TrackerImpl",
+  deps = [
+    ":Impls_TrackerImpl_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Impls_TrackerImpl_lib",
+  deps = [
+    ":Impls_TrackerImpl"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_PNSServiceKit_module_map",
+  module_map = "@PNSServiceKit//:pod_support/Headers/Public/PNSServiceKit/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@PNSServiceKit//:pod_support/Headers/Public/PNSServiceKit/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_PNSServiceKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@PNSServiceKit//:Impls_objc_interface", "@PNSServiceKit//:Impls_BacktraceImpl_objc_interface", "@PNSServiceKit//:Impls_KVStoreImpl_objc_interface", "@PNSServiceKit//:Impls_LogUploaderImpl_objc_interface", "@PNSServiceKit//:Impls_LoggerImpl_objc_interface", "@PNSServiceKit//:Impls_MonitorImpl_objc_interface", "@PNSServiceKit//:Impls_NetworkImpl_objc_interface", "@PNSServiceKit//:Impls_SettingImpl_objc_interface", "@PNSServiceKit//:Impls_TrackerImpl_objc_interface", "@PNSServiceKit//:Impls_UserExceptionImpl_objc_interface", "@PNSServiceKit//:PNSServiceKit_objc_interface", "@PNSServiceKit//:Protocol_objc_interface", "@PNSServiceKit//:Service_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_PNSServiceKit",
+  target_name = "Lark",
+  module_name = "PNSServiceKit",
+  hdrs = ["@PNSServiceKit//:Impls_pod_hdrs", "@PNSServiceKit//:Impls_BacktraceImpl_pod_hdrs", "@PNSServiceKit//:Impls_KVStoreImpl_pod_hdrs", "@PNSServiceKit//:Impls_LogUploaderImpl_pod_hdrs", "@PNSServiceKit//:Impls_LoggerImpl_pod_hdrs", "@PNSServiceKit//:Impls_MonitorImpl_pod_hdrs", "@PNSServiceKit//:Impls_NetworkImpl_pod_hdrs", "@PNSServiceKit//:Impls_SettingImpl_pod_hdrs", "@PNSServiceKit//:Impls_TrackerImpl_pod_hdrs", "@PNSServiceKit//:Impls_UserExceptionImpl_pod_hdrs", "@PNSServiceKit//:PNSServiceKit_root_pod_hdrs", "@PNSServiceKit//:Protocol_pod_hdrs", "@PNSServiceKit//:Service_pod_hdrs"],
+  srcs = ["@PNSServiceKit//:Impls_BacktraceImpl_srcs", "@PNSServiceKit//:Impls_KVStoreImpl_srcs", "@PNSServiceKit//:Impls_LogUploaderImpl_srcs", "@PNSServiceKit//:Impls_LoggerImpl_srcs", "@PNSServiceKit//:Impls_MonitorImpl_srcs", "@PNSServiceKit//:Impls_NetworkImpl_srcs", "@PNSServiceKit//:Impls_SettingImpl_srcs", "@PNSServiceKit//:Impls_TrackerImpl_srcs", "@PNSServiceKit//:Impls_UserExceptionImpl_srcs", "@PNSServiceKit//:Service_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["Heimdallr", "MMKV", "BDAlogProtocol", "TTReachability", "TTKitchen", "BDTrackerProtocol"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DPNSServiceKit_POD_VERSION=@\\\"9999_1.1.16\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "PNSServiceKit_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "PNSServiceKit_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "PNSServiceKit_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "PNSServiceKit_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "PNSServiceKit_dynamic", False),
+  tags = getattr(defs_external_objc_library, "PNSServiceKit_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("PNSServiceKit", {}),
+  visibility = ["//visibility:public"],
+)

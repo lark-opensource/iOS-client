@@ -1,0 +1,207 @@
+`git config core.hooksPath hooks`
+
+is_debug_rtc = false
+
+require_relative '../../../bin/lib/lark-project/lib/lark/project/podfile_mixin'
+require_relative '../../../bin/lib/lark-project/lib/lark/project/assembly'
+require_relative '../bin/ruby_script/unit_test_postprocessing.rb'
+require_relative '../../../bin/lib/lark-project/lib/lark/project/remote_cache'
+require_relative '../../../remote_cache_enable_users'
+require_relative '../../../if_pod'
+require 'lark/project/lark_assert.rb'
+
+# 对接 baymax，用于在 CI 上生成 version.json 文件
+plugin 'cocoapods-monitor'
+
+#require_relative '../../../bin/lib/lark-project/lib/lark/project/remote_cache'
+#enable_remote_cache = true
+
+strict_lock_mode!
+local_use_module_nolto!
+lark_build_for_all_arch!
+disable_swiftlint!
+
+enable_remote_cache = try_to_enable_remote_cache(
+	:remote_cache_enable => current_user_in_white_list ? true : false,
+	:primary_branch => "develop",
+	:final_target => "ByteView_Example",
+	:hummer_tags => {},
+	:scheme_tag => 'lark.5',
+  :ignore_external_subspec_change => true
+)
+
+lark_template_common_setup
+
+# demo 工程的 rust-sdk、ServerPB 版本在这里配置，有需要的放开注释即可
+# 提交 mr 时，请在 lark 工程 if_pod.rb 中修改为可合码的版本
+#ENV['TMP_PB_VERSION'] = '7.4.0-gb8401a9da9ca.206682264-dev'
+#ENV['VC_TMP_SER_PB_VERSION'] = '1.0.4204'
+
+if is_debug_rtc
+  require '../Mock/VolcEngineRTC/rtc_build_config.rb'
+  RtcBuildConfig.set_submodules [
+    'realx_audio_main',
+    'realx_video_main',
+    'realx_network_main',
+    'realx',
+    'realx_base',
+    'realx_engine',
+    'webrtc_p2p',
+    'byteaudio_engine',
+    'byteaudio_static',
+  ]
+end
+
+# :all 全部的assert都会转为lldb断点, :none 全部的assert都会被忽略，转为控制台输出, "Modules/Biz" (or ["Moudles/Biz1", "Moudles/Biz2"]  )对单独或多个一个目录转lldb断点，其他目录忽略assert，转为控制台输出
+# :disable 禁用改feature
+# 你也可以在本地创建 Podfile.patch（请勿提交该文件！） 以固定配置某些库为源码或者二进制, 相关文档可见 https://bytedance.feishu.cn/wiki/wikcn5ZmvLm18TTTrwpIzNggwtf
+assert_dir "ByteView"
+
+# @param strategy:
+#   :all 开启全部二进制
+#   :pb 只有PB开启二进制
+#   other 手动开启二进制
+lark_use_common_binary_config(strategy: :all) do
+  [
+     'LarkPushCard',
+     'LKWindowManager',
+     'LarkMedia',
+  ].each { |v| source v }
+  source_dir "ByteView"
+  if is_debug_rtc
+    source 'ByteRtcSDK'
+    source 'VolcEngineRTC'
+    RtcBuildConfig.get_submodules.each { |v| source v }
+  end
+  if $lark_env.local? && (enable_remote_cache || ((ENV["REMOTE_CACHE_ENABLE"] || "") == 'true'))
+    source_dir "."
+  end
+end
+
+def lynx_debug_pods
+  pod 'Lynx', :subspecs => ['Inspector']
+  pod 'LynxDevtool', :subspecs => [
+    'Framework',
+    'Native',
+    'ThirdParty',
+    'ThirdPartyCommon',
+    'DebugResource',
+    'RedBoxFramework',
+    'NativeScript'
+  ]
+end
+
+target 'ByteView_Example' do
+  project 'ByteView.xcodeproj'
+  lark_main_target_if_pods
+
+  pod 'ByteView', :testspecs => ['Tests']
+  pod 'ByteViewMod', subspecs: ['Core', 'Tab', 'CallKit', 'Hybrid']
+
+  ['MessengerMod', 'CCMMod', 'MinutesMod', 'LarkLiveMod', 'CalendarMod'].each { |p|
+    if_pod p, pods: ["ByteViewMod/#{p}", "#{p}/ByteViewMod"]
+  }
+  ['LarkMagicAssembly', 'LarkNavigationAssembly'].each { |p|
+    if_pod p, pods: ["#{p}/ByteViewMod"]
+  }
+  if_pod 'LarkContactComponent', pods: %w[LarkContactComponent/Main]
+  if_pod 'LarkOpenPlatform', pods: %w[LarkOpenPlatformAssembly LarkSDK]
+
+  # 打开下面这行可以Mock ByteRtcSdk
+  # pod 'ByteViewRtcBridge', :subspecs => ['Core', 'Mock']
+
+  ## - 调试 聊天 需要打开 MessengerMod
+  ## - 调试 文档 需要打开 CCMMod、LarkOpenPlatform
+  ## - 调试 日历 需要打开 CalendarMod
+  ## - 调试 MyAI 需要打开 MessengerMod、LarkOpenPlatform
+
+  # pod 'MessengerMod'
+  # pod 'LarkOpenPlatform'
+  # pod 'CCMMod'
+  # pod 'CalendarMod'
+  # pod 'LarkLiveMod'
+  # pod 'MinutesMod'
+
+  pod 'SwiftLint', '0.50.0', :configurations => ['Debug']
+
+  if ENV['VC_TMP_SER_PB_VERSION'] && !ENV['VC_TMP_SER_PB_VERSION'].empty?
+    pod 'ServerPB', ENV['VC_TMP_SER_PB_VERSION']
+  end
+
+  if is_debug_rtc
+    pod 'ByteRtcSDK', :path => '../Mock/ByteRtcSDK'
+    pod 'VolcEngineRTC', :path => '../Mock/VolcEngineRTC'
+    RtcBuildConfig.get_submodules.each { |v| pod v, :path => '../Mock/VolcEngineRTC' }
+  end
+
+  #debug
+  if $lark_env.testable || $lark_env.is_binary_cache_job
+    # pod 'TTMLeaksFinder'
+    pod 'ByteViewMod', subspecs: ['Debug']
+    pod 'UDDebug'
+    # Gecko Debug 头文件存在编译问题，暂时屏蔽
+    # pod 'IESGeckoKitDebug', '1.0.15', :subspecs => ['Core']
+    pod 'PassportDebug'
+    pod 'LarkExtensionServices'
+    pod 'LookinServer', :configurations => ['Debug']
+    pod 'LarkStorageCore'
+  end
+end
+
+target 'BroadcastUploadExtension' do
+  project 'ByteView.xcodeproj'
+
+  pod 'ByteViewBoardcastExtension', :path => '../Modules/ByteViewBoardcastExtension', :inhibit_warnings => false
+  pod 'ByteRtcScreenCapturer'
+end
+
+target 'LiveActivityExtension' do
+  project 'ByteView.xcodeproj'
+  pod 'ByteViewWidget'
+end
+
+# @param installer [Pod::Installer]
+pre_install do |installer|
+  lark_template_common_pre_install installer
+end
+
+# @param installer [Pod::Installer]
+post_install do |installer|
+  lark_template_common_post_install installer
+  # 自动收集 Assembly，生成/更新 BaseAssembly.swift
+  Assembly.rebuild installer
+
+  no_debug_pods = Set.new(%w[
+    LarkTTNetInitializor
+  ])
+  installer.generated_projects.each do |project|
+    next unless no_debug_pods.include? project.root_object.name
+    # 删除LarkTTNetInitializor的DEBUG标签
+    project.build_configurations.each do |config|
+      next unless config.name == 'Debug'
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] -= ['DEBUG=1', '$(inherited)']
+      swift_conditions = config.build_settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS'].split
+      swift_conditions -= ['DEBUG']
+      config.build_settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] = swift_conditions.join(' ')
+    end
+  end
+end
+
+post_integrate do |installer|
+  podfile_dir = File.dirname(__FILE__)
+  pods_dir = File.expand_path(File.join(podfile_dir, 'Pods'))
+  xcodeproj = File.expand_path(File.join(podfile_dir, 'ByteView.xcodeproj'))
+  target = 'ByteView_Example'
+  scheme = 'ByteView-Example'
+  # 根据 target，获取 host app 的实际产物名
+  executable_path = get_executable_path(xcodeproj, target, 'app')
+  # 调整 test_spec 生成的 target 的编译参数
+  revise_xctest_targets(pods_dir, "$(BUILT_PRODUCTS_DIR)/#{executable_path}")
+  # 调整 host app 工程的编译参数，通过环境变量 NEED_RUN_UNIT_TEST 来控制
+  # 1. 设置 DEBUG_INFORMATION_FORMAT 为 dwarf-with-dsym
+  # 2. 打开覆盖率开关
+  revise_host_project(xcodeproj, target, scheme)
+end
+
+# Podfile结束eval前需要执行的一些代码，目前是引用if_pod的集成需要延后生效
+flush_defer_actions!

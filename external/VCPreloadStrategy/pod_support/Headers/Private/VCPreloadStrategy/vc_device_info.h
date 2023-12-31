@@ -1,0 +1,1 @@
+../../../../sources/center/vc_device_info.h

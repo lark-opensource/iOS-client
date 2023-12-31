@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayKit/Base/Service/Private/CJPayGeneralAbilityService.h

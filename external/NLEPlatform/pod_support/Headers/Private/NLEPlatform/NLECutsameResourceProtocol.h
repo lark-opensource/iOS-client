@@ -1,0 +1,1 @@
+../../../../core/resources/NLECutsameResourceProtocol.h

@@ -1,0 +1,964 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "Jato_pod_hdrs",
+  srcs = [
+    ":Jato_root_pod_hdrs",
+    ":Audio_pod_hdrs",
+    ":PageIn_pod_hdrs",
+    ":NetworkOpt_pod_hdrs",
+    ":Utilities_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "Jato_private_includes",
+  include = [
+    "external/Jato/pod_support/Headers/Private/Jato/"
+  ],
+  deps = [],
+  external_name = "Jato"
+)
+gen_includes(
+  name = "Jato_public_includes",
+  include = [
+    "external/Jato/pod_support/Headers/Public/Jato/"
+  ],
+  deps = [],
+  external_name = "Jato"
+)
+filegroup(
+  name = "_Jato_hdrs",
+  srcs = [
+    ":Jato_root_hdrs",
+    ":Audio_hdrs",
+    ":PageIn_hdrs",
+    ":NetworkOpt_hdrs",
+    ":Utilities_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "Jato_xcode_hmapsource",
+  hdrs = [
+    ":Jato_root_hdrs",
+    ":PageIn_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "Jato_xcode_hmap",
+  dep = ":Jato_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/Jato/*-bitsky-generated.modulemap", "pod_support/Headers/Public/Jato/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "Jato_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "Jato",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "Jato_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":Jato_xcode_hmap"
+  ],
+  external_name = "Jato",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Jato_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Jato_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Jato_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Jato_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Jato_module_map",
+  module_map = "pod_support/Headers/Public/Jato/Jato-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Jato/Jato-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Jato_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Jato_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":Jato_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Jato_private_includes",
+    ":Jato_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Jato_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DJato_POD_VERSION=@\\\"9999_0.0.5-rc.2\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Jato",
+  deps = [
+    ":Jato_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Jato_lib",
+  deps = [
+    ":Jato"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Audio_hdrs",
+  srcs = [
+    "Jato/Audio/BDJTAudioException.h",
+    "Jato/Audio/BDJTAudioExceptionOptions.h",
+    "Jato/Audio/BDJTFishhook.h",
+    "Jato/Audio/Jato.h",
+    "Jato/Audio/Jato_Machine_Types.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Audio_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Audio_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Audio_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Audio_module_map",
+  module_map = "pod_support/Headers/Public/Jato/Jato_Audio-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Jato/Jato_Audio-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Audio_srcs",
+  srcs = [
+    "Jato/Audio/BDJTAudioException.m",
+    "Jato/Audio/BDJTAudioExceptionOptions.m",
+    "Jato/Audio/BDJTFishhook.c",
+    "Jato/Audio/Jato.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Audio_oc",
+  enable_modules = 1,
+  srcs = [
+    "Audio_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Audio_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "AudioToolbox"
+  ],
+  deps = [
+    ":Jato_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Jato_private_includes",
+    ":Jato_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Audio_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DJato_POD_VERSION=@\\\"9999_0.0.5-rc.2\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Audio",
+  deps = [
+    ":Audio_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Audio_lib",
+  deps = [
+    ":Audio"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "PageIn_hdrs",
+  srcs = [
+    "Jato/PageIn/BDJTPageInPreloader.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "PageIn_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/Jato/BDJTPageInPreloader.h",
+    "pod_support/Headers/Public/Jato/BDJTPageInPreloader.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "PageIn_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "PageIn_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "PageIn_module_map",
+  module_map = "pod_support/Headers/Public/Jato/Jato_PageIn-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Jato/Jato_PageIn-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "PageIn_srcs",
+  srcs = [
+    "Jato/PageIn/BDJTPageInPreloader.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "PageIn_oc",
+  enable_modules = 1,
+  srcs = [
+    "PageIn_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "PageIn_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":Jato_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Jato_private_includes",
+    ":Jato_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    ":PageIn_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DJato_POD_VERSION=@\\\"9999_0.0.5-rc.2\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "PageIn",
+  deps = [
+    ":PageIn_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "PageIn_lib",
+  deps = [
+    ":PageIn"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NetworkOpt_hdrs",
+  srcs = [
+    "Jato/Classes/JATNetworkOpt/Private/JATNetowrkOptTracker.h",
+    "Jato/Classes/JATNetworkOpt/Private/JATNetworkOpt+Private.h",
+    "Jato/Classes/JATNetworkOpt/Public/JATNetworkOpt.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NetworkOpt_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "NetworkOpt_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "NetworkOpt_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "NetworkOpt_module_map",
+  module_map = "pod_support/Headers/Public/Jato/Jato_NetworkOpt-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Jato/Jato_NetworkOpt-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "NetworkOpt_srcs",
+  srcs = [
+    "Jato/Classes/JATNetworkOpt/Private/JATNetowrkOptTracker.m",
+    "Jato/Classes/JATNetworkOpt/Private/JATNetworkOpt.mm"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "NetworkOpt_oc",
+  enable_modules = 1,
+  srcs = [
+    "NetworkOpt_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "NetworkOpt_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":Jato_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Jato_private_includes",
+    ":Jato_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDALog//:BDALog_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@Heimdallr//:TTMonitor_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@BDALog//:BDALog_swift_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    "@Heimdallr//:TTMonitor_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    ":NetworkOpt_objc_interface",
+    "@BDALog//:BDALog_module_map",
+    "@ByteDanceKit//:ByteDanceKit_module_map",
+    "@Heimdallr//:TTMonitor_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DJato_POD_VERSION=@\\\"9999_0.0.5-rc.2\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "NetworkOpt",
+  deps = [
+    ":NetworkOpt_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "NetworkOpt_lib",
+  deps = [
+    ":NetworkOpt"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Utilities_hdrs",
+  srcs = [
+    "Jato/Classes/Utilities/Public/JATAnyCallForwarder.h",
+    "Jato/Classes/Utilities/Public/JATFakeObjectAssert.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Utilities_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Utilities_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Utilities_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Utilities_module_map",
+  module_map = "pod_support/Headers/Public/Jato/Jato_Utilities-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Jato/Jato_Utilities-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Utilities_srcs",
+  srcs = [
+    "Jato/Classes/Utilities/Private/JATAnyCallForwarder.m",
+    "Jato/Classes/Utilities/Private/JATFakeObjectAssert.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Utilities_oc",
+  enable_modules = 1,
+  srcs = [
+    "Utilities_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Utilities_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":Jato_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Jato_private_includes",
+    ":Jato_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@Heimdallr//:UserException_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    "@Heimdallr//:UserException_swift_interface",
+    ":Utilities_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_module_map",
+    "@Heimdallr//:UserException_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DJato_POD_VERSION=@\\\"9999_0.0.5-rc.2\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Utilities",
+  deps = [
+    ":Utilities_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Utilities_lib",
+  deps = [
+    ":Utilities"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_Jato_module_map",
+  module_map = "@Jato//:pod_support/Headers/Public/Jato/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@Jato//:pod_support/Headers/Public/Jato/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_Jato_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@Jato//:PageIn_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_Jato",
+  target_name = "Lark",
+  module_name = "Jato",
+  hdrs = ["@Jato//:PageIn_pod_hdrs"],
+  srcs = ["@Jato//:PageIn_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["ByteDanceKit"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DJato_POD_VERSION=@\\\"9999_0.0.5-rc.2\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "Jato_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "Jato_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "Jato_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "Jato_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "Jato_dynamic", False),
+  tags = getattr(defs_external_objc_library, "Jato_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("Jato", {}),
+  visibility = ["//visibility:public"],
+)

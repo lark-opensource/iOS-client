@@ -1,0 +1,21 @@
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Hello</title>
+        <link rel="stylesheet" href="index.css" type="text/css" charset="utf-8">
+        <script src="functions.js" charset="utf-8" async></script>
+    </head>
+    <body>
+        hello tester, you can click following test buttons
+        <form action="../post" method="post" accept-charset="utf-8">
+            <button id="post_direct" name="btn" value="direct">Post Directly</button>
+        </form>
+        <button id="AJAX" type="button">AjAX Request</button>
+        <script charset="utf-8">
+            document.getElementById("AJAX").onclick = function (e) {
+                getURL("../header", function() { rpc('HELLO_AJAX', this.responseText) })
+            }
+        </script>
+    </body>
+</html>

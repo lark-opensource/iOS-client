@@ -1,0 +1,1 @@
+../../../../ArtistOpenPlatformSDK/Classes/Effect/Internal/Category/NSError+ARTEffect.h

@@ -1,0 +1,1123 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "CJPayDebugTools_pod_hdrs",
+  srcs = [
+    ":CJPayDebugTools_root_pod_hdrs",
+    ":BaseEnvConfig_pod_hdrs",
+    ":PayManageEnvConfig_pod_hdrs",
+    ":Hybrid_pod_hdrs",
+    ":Isec_pod_hdrs",
+    ":Tfcc_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "CJPayDebugTools_private_includes",
+  include = [
+    "external/CJPayDebugTools/pod_support/Headers/Private/CJPayDebugTools/"
+  ],
+  deps = [],
+  external_name = "CJPayDebugTools"
+)
+gen_includes(
+  name = "CJPayDebugTools_public_includes",
+  include = [
+    "external/CJPayDebugTools/pod_support/Headers/Public/CJPayDebugTools/"
+  ],
+  deps = [],
+  external_name = "CJPayDebugTools"
+)
+filegroup(
+  name = "_CJPayDebugTools_hdrs",
+  srcs = [
+    ":CJPayDebugTools_root_hdrs",
+    ":BaseEnvConfig_hdrs",
+    ":PayManageEnvConfig_hdrs",
+    ":Hybrid_hdrs",
+    ":Isec_hdrs",
+    ":Tfcc_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "CJPayDebugTools_xcode_hmapsource",
+  hdrs = [
+    ":CJPayDebugTools_root_hdrs",
+    ":BaseEnvConfig_hdrs",
+    ":Isec_hdrs",
+    ":PayManageEnvConfig_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "CJPayDebugTools_xcode_hmap",
+  dep = ":CJPayDebugTools_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/CJPayDebugTools/*-bitsky-generated.modulemap", "pod_support/Headers/Public/CJPayDebugTools/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "CJPayDebugTools_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "CJPayDebugTools",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "CJPayDebugTools_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":CJPayDebugTools_xcode_hmap"
+  ],
+  external_name = "CJPayDebugTools",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CJPayDebugTools_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CJPayDebugTools_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CJPayDebugTools_swift_interface",
+  deps = [],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CJPayDebugTools_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "CJPayDebugTools_module_map",
+  module_map = "pod_support/Headers/Public/CJPayDebugTools/CJPayDebugTools-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CJPayDebugTools/CJPayDebugTools-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CJPayDebugTools_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "CJPayDebugTools_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CJPayDebugTools_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CJPayDebugTools_private_includes",
+    ":CJPayDebugTools_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":CJPayDebugTools_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DCJPayDebugTools_POD_VERSION=@\\\"9999_6.8.4-rc.0\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CJPayDebugTools",
+  deps = [
+    ":CJPayDebugTools_oc"
+  ],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "CJPayDebugTools_lib",
+  deps = [
+    ":CJPayDebugTools"
+  ],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BaseEnvConfig_hdrs",
+  srcs = [
+    "CJPayDebugTools/Classes/EnvConfig/BaseEnvConfig/CJPayBindCardManager+debug.h",
+    "CJPayDebugTools/Classes/EnvConfig/BaseEnvConfig/CJPayCookieUtil+debug.h",
+    "CJPayDebugTools/Classes/EnvConfig/BaseEnvConfig/CJPayGurdManager+debug.h",
+    "CJPayDebugTools/Classes/EnvConfig/BaseEnvConfig/CJPayRequestParam+debug.h",
+    "CJPayDebugTools/Classes/EnvConfig/BaseEnvConfig/CJPaySDKHTTPRequestSerializer+debug.h",
+    "CJPayDebugTools/Classes/EnvConfig/BaseEnvConfig/EnvSwitch/CJPayDebugBOEConfig.h",
+    "CJPayDebugTools/Classes/EnvConfig/BaseEnvConfig/EnvSwitch/CJPayDebugManager.h",
+    "CJPayDebugTools/Classes/EnvConfig/BaseEnvConfig/WebviewEnvConfig/CJPayBizWebViewController+debug.h",
+    "CJPayDebugTools/Classes/EnvConfig/BaseEnvConfig/WebviewEnvConfig/CJPayWebViewUtil+debug.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BaseEnvConfig_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CJPayDebugTools/CJPayBindCardManager+debug.h",
+    "pod_support/Headers/Private/CJPayDebugTools/CJPayBizWebViewController+debug.h",
+    "pod_support/Headers/Private/CJPayDebugTools/CJPayCookieUtil+debug.h",
+    "pod_support/Headers/Private/CJPayDebugTools/CJPayDebugBOEConfig.h",
+    "pod_support/Headers/Private/CJPayDebugTools/CJPayDebugManager.h",
+    "pod_support/Headers/Private/CJPayDebugTools/CJPayGurdManager+debug.h",
+    "pod_support/Headers/Private/CJPayDebugTools/CJPayRequestParam+debug.h",
+    "pod_support/Headers/Private/CJPayDebugTools/CJPaySDKHTTPRequestSerializer+debug.h",
+    "pod_support/Headers/Private/CJPayDebugTools/CJPayWebViewUtil+debug.h",
+    "pod_support/Headers/Public/CJPayDebugTools/CJPayBindCardManager+debug.h",
+    "pod_support/Headers/Public/CJPayDebugTools/CJPayBizWebViewController+debug.h",
+    "pod_support/Headers/Public/CJPayDebugTools/CJPayCookieUtil+debug.h",
+    "pod_support/Headers/Public/CJPayDebugTools/CJPayDebugBOEConfig.h",
+    "pod_support/Headers/Public/CJPayDebugTools/CJPayDebugManager.h",
+    "pod_support/Headers/Public/CJPayDebugTools/CJPayGurdManager+debug.h",
+    "pod_support/Headers/Public/CJPayDebugTools/CJPayRequestParam+debug.h",
+    "pod_support/Headers/Public/CJPayDebugTools/CJPaySDKHTTPRequestSerializer+debug.h",
+    "pod_support/Headers/Public/CJPayDebugTools/CJPayWebViewUtil+debug.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BaseEnvConfig_swift_interface",
+  deps = [],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BaseEnvConfig_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "BaseEnvConfig_module_map",
+  module_map = "pod_support/Headers/Public/CJPayDebugTools/CJPayDebugTools_BaseEnvConfig-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CJPayDebugTools/CJPayDebugTools_BaseEnvConfig-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BaseEnvConfig_srcs",
+  srcs = [
+    "CJPayDebugTools/Classes/EnvConfig/BaseEnvConfig/CJPayBindCardManager+debug.m",
+    "CJPayDebugTools/Classes/EnvConfig/BaseEnvConfig/WebviewEnvConfig/CJPayBizWebViewController+debug.m",
+    "CJPayDebugTools/Classes/EnvConfig/BaseEnvConfig/CJPayCookieUtil+debug.m",
+    "CJPayDebugTools/Classes/EnvConfig/BaseEnvConfig/EnvSwitch/CJPayDebugBOEConfig.m",
+    "CJPayDebugTools/Classes/EnvConfig/BaseEnvConfig/EnvSwitch/CJPayDebugManager.m",
+    "CJPayDebugTools/Classes/EnvConfig/BaseEnvConfig/CJPayGurdManager+debug.m",
+    "CJPayDebugTools/Classes/EnvConfig/BaseEnvConfig/CJPayRequestParam+debug.m",
+    "CJPayDebugTools/Classes/EnvConfig/BaseEnvConfig/CJPaySDKHTTPRequestSerializer+debug.m",
+    "CJPayDebugTools/Classes/EnvConfig/BaseEnvConfig/WebviewEnvConfig/CJPayWebViewUtil+debug.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BaseEnvConfig_oc",
+  enable_modules = 1,
+  srcs = [
+    "BaseEnvConfig_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "BaseEnvConfig_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CJPayDebugTools_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CJPayDebugTools_private_includes",
+    ":CJPayDebugTools_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ByteDanceKit//:Foundation_objc_interface",
+    "@CJPay//:PayWebView_objc_interface",
+    "@ByteDanceKit//:Foundation_swift_interface",
+    "@CJPay//:PayWebView_swift_interface",
+    ":BaseEnvConfig_objc_interface",
+    "@ByteDanceKit//:Foundation_module_map",
+    "@CJPay//:PayWebView_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DCJPayDebugTools_POD_VERSION=@\\\"9999_6.8.4-rc.0\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BaseEnvConfig",
+  deps = [
+    ":BaseEnvConfig_oc"
+  ],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "BaseEnvConfig_lib",
+  deps = [
+    ":BaseEnvConfig"
+  ],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "PayManageEnvConfig_hdrs",
+  srcs = [
+    "CJPayDebugTools/Classes/EnvConfig/PayManageEnvConfig/CJPayQuickBindCardManager+debug.h",
+    "CJPayDebugTools/Classes/EnvConfig/PayManageEnvConfig/CJPayQuickBindCardTypeChooseViewController+debug.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "PayManageEnvConfig_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CJPayDebugTools/CJPayQuickBindCardManager+debug.h",
+    "pod_support/Headers/Private/CJPayDebugTools/CJPayQuickBindCardTypeChooseViewController+debug.h",
+    "pod_support/Headers/Public/CJPayDebugTools/CJPayQuickBindCardManager+debug.h",
+    "pod_support/Headers/Public/CJPayDebugTools/CJPayQuickBindCardTypeChooseViewController+debug.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "PayManageEnvConfig_swift_interface",
+  deps = [],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "PayManageEnvConfig_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "PayManageEnvConfig_module_map",
+  module_map = "pod_support/Headers/Public/CJPayDebugTools/CJPayDebugTools_PayManageEnvConfig-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CJPayDebugTools/CJPayDebugTools_PayManageEnvConfig-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "PayManageEnvConfig_srcs",
+  srcs = [
+    "CJPayDebugTools/Classes/EnvConfig/PayManageEnvConfig/CJPayQuickBindCardManager+debug.m",
+    "CJPayDebugTools/Classes/EnvConfig/PayManageEnvConfig/CJPayQuickBindCardTypeChooseViewController+debug.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "PayManageEnvConfig_oc",
+  enable_modules = 1,
+  srcs = [
+    "PayManageEnvConfig_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "PayManageEnvConfig_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CJPayDebugTools_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CJPayDebugTools_private_includes",
+    ":CJPayDebugTools_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@CJPay//:PayManage_objc_interface",
+    "@CJPay//:PayManage_swift_interface",
+    ":PayManageEnvConfig_objc_interface",
+    "@CJPay//:PayManage_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DCJPayDebugTools_POD_VERSION=@\\\"9999_6.8.4-rc.0\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "PayManageEnvConfig",
+  deps = [
+    ":PayManageEnvConfig_oc"
+  ],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "PayManageEnvConfig_lib",
+  deps = [
+    ":PayManageEnvConfig"
+  ],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Hybrid_hdrs",
+  srcs = [
+    "CJPayDebugTools/Classes/HybridViewEnvConfig/CJPayHybridView+debug.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Hybrid_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Hybrid_swift_interface",
+  deps = [],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Hybrid_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Hybrid_module_map",
+  module_map = "pod_support/Headers/Public/CJPayDebugTools/CJPayDebugTools_Hybrid-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CJPayDebugTools/CJPayDebugTools_Hybrid-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Hybrid_srcs",
+  srcs = [
+    "CJPayDebugTools/Classes/HybridViewEnvConfig/CJPayHybridView+debug.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Hybrid_oc",
+  enable_modules = 1,
+  srcs = [
+    "Hybrid_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Hybrid_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CJPayDebugTools_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CJPayDebugTools_private_includes",
+    ":CJPayDebugTools_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@CJPay//:Hybrid_objc_interface",
+    "@XDebugger//:XDebugger_objc_interface",
+    "@CJPay//:Hybrid_swift_interface",
+    "@XDebugger//:XDebugger_swift_interface",
+    ":Hybrid_objc_interface",
+    "@CJPay//:Hybrid_module_map",
+    "@XDebugger//:XDebugger_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DCJPayDebugTools_POD_VERSION=@\\\"9999_6.8.4-rc.0\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Hybrid",
+  deps = [
+    ":Hybrid_oc"
+  ],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Hybrid_lib",
+  deps = [
+    ":Hybrid"
+  ],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Isec_hdrs",
+  srcs = [
+    "CJPayDebugTools/Classes/Engima/ISec/CJPayISecEngimaImpl+Debug.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Isec_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CJPayDebugTools/CJPayISecEngimaImpl+Debug.h",
+    "pod_support/Headers/Public/CJPayDebugTools/CJPayISecEngimaImpl+Debug.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Isec_swift_interface",
+  deps = [],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Isec_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Isec_module_map",
+  module_map = "pod_support/Headers/Public/CJPayDebugTools/CJPayDebugTools_Isec-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CJPayDebugTools/CJPayDebugTools_Isec-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Isec_srcs",
+  srcs = [
+    "CJPayDebugTools/Classes/Engima/ISec/CJPayISecEngimaImpl+Debug.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Isec_oc",
+  enable_modules = 1,
+  srcs = [
+    "Isec_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Isec_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CJPayDebugTools_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CJPayDebugTools_private_includes",
+    ":CJPayDebugTools_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@CJPay//:Isec_objc_interface",
+    "@CJPay//:Isec_swift_interface",
+    ":Isec_objc_interface",
+    "@CJPay//:Isec_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DCJPayDebugTools_POD_VERSION=@\\\"9999_6.8.4-rc.0\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Isec",
+  deps = [
+    ":Isec_oc"
+  ],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Isec_lib",
+  deps = [
+    ":Isec"
+  ],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Tfcc_hdrs",
+  srcs = [
+    "CJPayDebugTools/Classes/Engima/Tfcc/CJPayTfccEngimaImpl+Debug.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Tfcc_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Tfcc_swift_interface",
+  deps = [],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Tfcc_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Tfcc_module_map",
+  module_map = "pod_support/Headers/Public/CJPayDebugTools/CJPayDebugTools_Tfcc-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CJPayDebugTools/CJPayDebugTools_Tfcc-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Tfcc_srcs",
+  srcs = [
+    "CJPayDebugTools/Classes/Engima/Tfcc/CJPayTfccEngimaImpl+Debug.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Tfcc_oc",
+  enable_modules = 1,
+  srcs = [
+    "Tfcc_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Tfcc_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CJPayDebugTools_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CJPayDebugTools_private_includes",
+    ":CJPayDebugTools_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@CJPay//:Tfcc_objc_interface",
+    "@CJPay//:Tfcc_swift_interface",
+    ":Tfcc_objc_interface",
+    "@CJPay//:Tfcc_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DCJPayDebugTools_POD_VERSION=@\\\"9999_6.8.4-rc.0\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Tfcc",
+  deps = [
+    ":Tfcc_oc"
+  ],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Tfcc_lib",
+  deps = [
+    ":Tfcc"
+  ],
+  minimum_os_version = "10.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_CJPayDebugTools_module_map",
+  module_map = "@CJPayDebugTools//:pod_support/Headers/Public/CJPayDebugTools/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@CJPayDebugTools//:pod_support/Headers/Public/CJPayDebugTools/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_CJPayDebugTools_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@CJPayDebugTools//:BaseEnvConfig_objc_interface", "@CJPayDebugTools//:CJPayDebugTools_objc_interface", "@CJPayDebugTools//:Isec_objc_interface", "@CJPayDebugTools//:PayManageEnvConfig_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_CJPayDebugTools",
+  target_name = "Lark",
+  module_name = "CJPayDebugTools",
+  hdrs = ["@CJPayDebugTools//:BaseEnvConfig_pod_hdrs", "@CJPayDebugTools//:CJPayDebugTools_root_pod_hdrs", "@CJPayDebugTools//:Isec_pod_hdrs", "@CJPayDebugTools//:PayManageEnvConfig_pod_hdrs"],
+  srcs = ["@CJPayDebugTools//:BaseEnvConfig_srcs", "@CJPayDebugTools//:Isec_srcs", "@CJPayDebugTools//:PayManageEnvConfig_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["ByteDanceKit", "CJPay"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DCJPayDebugTools_POD_VERSION=@\\\"9999_6.8.4-rc.0\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "CJPayDebugTools_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "CJPayDebugTools_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "CJPayDebugTools_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "CJPayDebugTools_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "CJPayDebugTools_dynamic", False),
+  tags = getattr(defs_external_objc_library, "CJPayDebugTools_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("CJPayDebugTools", {}),
+  visibility = ["//visibility:public"],
+)

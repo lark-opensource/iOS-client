@@ -1,0 +1,1 @@
+../../../../third_party/krypton/canvas/ios/canvas_manager_ios.h

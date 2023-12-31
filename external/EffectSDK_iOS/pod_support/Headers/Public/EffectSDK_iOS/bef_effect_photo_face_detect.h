@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_effect_photo_face_detect.h

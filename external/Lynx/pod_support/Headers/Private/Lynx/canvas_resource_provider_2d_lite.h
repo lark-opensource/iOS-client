@@ -1,0 +1,1 @@
+../../../../third_party/krypton/canvas/2d/lite/canvas_resource_provider_2d_lite.h

@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# 输出紫色日志
+function purple() {
+	echo -e -n "\033[35m$1\033[0m"
+}
+
+# 输出天蓝色日志
+function skyblue() {
+	echo -e -n "\033[36m$1\033[0m"
+}
+
+function release_install() {
+
+	# 判断是不是要切换到Release模式
+	if [[ $1 = 'true' ]]; then
+
+		# see ./ruby_script for more detail.
+		export __INSTALL_FOR_RELEASE='true';
+		purple '已经切换为Release模式，将会关闭模块稳定和二进制缓存，以避免Runtime Crash.'
+    	purple '\n如果想切换为Debug调试模式，请执行`'
+    	skyblue './bin/release_install false'
+		purple '`。\n'
+	else
+		export __INSTALL_FOR_RELEASE='';
+		purple '当前为Debug模式，将会开启模块稳定和二进制缓存，以加速构建.'
+		purple '\n如果想切换为Release调试模式，请执行`'
+		skyblue './bin/release_install true'
+		purple '`。\n'
+	fi
+
+	cd $(cd `dirname $0`; pwd)
+	cd ..
+	bundle exec pod install --clean-install || (bundle install && bundle exec pod install --clean-install)
+}
+
+release_install $1

@@ -1,0 +1,99 @@
+# Repl所在的环境，提供各种Graph查询API
+class Query
+  # 默认是所有节点的集合，可以使用集合的各种方法比如select来选择节点
+  include Enumerable
+
+  # 将id转换为对象类型，可以获取id关联的属性。比如config/arch.yaml中的layer, biz等等
+  def A(id) -> Vertex
+
+  # *ids接收任意数量的id或者Vertex，或者直接传入集合，返回相对应的节点或者边
+  # I代表输入节点，O代表输出节点, IE代表输入边，OE代表输出边
+  # RI代表递归输入节点，RO代表递归输出节点
+  def I(*ids) -> Set<id>
+  def O(*ids) -> Set<id>
+  def IE(*ids) -> Set<Edge>
+  def OE(*ids) -> Set<Edge>
+  def RI(*ids) -> Set<id>
+  def RO(*ids) -> Set<id>
+
+  # 将ids转化为封装类型，可以使用链式语法查询依赖
+  # 如果不传ids, 默认是所有节点
+  # 可选传入block进行过滤
+  def V(*ids, &block) -> VertexCollection
+
+  # 使用ids指定root节点, 返回包含subspecs在内的所有节点
+  def root(*ids) -> Set<id>
+
+  ########## 格式转换API
+
+  # 输出dot语法依赖文件, 默认进行预览
+  # @param gen 是否生成图片
+  # @param view 是否自动打开图片
+  # @param type 生成图片的格式
+  # @param layout 使用的布局方式. 布局选择建议
+  #   * 默认fdp，关联多的节点会聚合在中心. 图相对比较紧凑
+  #   * twopi: 围绕根节点进行圆环布局. 查看单个组件的依赖关系可以使用这个布局方法
+  #   * dot: 层级依赖图，适合边和节点较少的情况
+  def gen_digraph(edges, output = nil, gen: true, view: true, type: 'pdf', layout: 'fdp') -> view_path or output
+
+  # 输出gephi支持的边文件和节点文件. 会自动给output加相应的后缀
+  def gen_gephi_csv(edges, output)
+
+  # 所有数据导出成n-quads格式，可以被cayley导入，在cayley中查询
+  def gen_nq(output)
+
+  ########## 部分可视化简化方法
+
+  # 使用dot生成单个组件对应的影响图. 可选包含依赖subspecs. out默认为临时文件
+  def show_pod_in(id, out = nil, subspecs: false)
+  # 使用dot生成单个组件对应的依赖图. 可选包含依赖subspecs. out默认为临时文件
+  def show_pod_out(id, out = nil, subspecs: false)
+end
+
+# 节点对象. 可以使用属性访问config/arch.yml中的layer, biz, 也可以自由扩展和设置属性, 也可以当作Hash字典使用
+# eg: v.tag = ["ui"]
+class Vertex < OpenStruct
+  attr_reader :id
+
+  attr_reader :layer, :biz
+
+  # 返回该节点对应的节点或者边
+  def I -> Set<id>
+  def O -> Set<id>
+  def IE -> Set<Edge>
+  def OE -> Set<Edge>
+  def RI -> Set<id>
+  def RO -> Set<id>
+
+  # 返回pod的root id
+  def root -> id
+end
+
+# 边对象, 可以访问边对应的source和target对象。
+# 可以当作Hash字典使用并任意扩展属性。eg: e.weight = 100
+class Edge < OpenStruct
+    attr_accessor :source, :target
+    alias src source
+    alias dst target
+    alias dest target
+    alias S source
+    alias T target
+    alias D target
+end
+
+# 节点集合封装, 可以使用对象链式语法，也可以正常使用集合API
+class VertexCollection
+    # 封装的值，通过该属性获取原始值
+    attr_reader :result
+    alias value result
+
+    include Enumerable
+
+    # 返回当前节点集合对应的节点或者边
+    def I -> VertexCollection
+    def O -> VertexCollection
+    def IE -> Set<Edge>
+    def OE -> Set<Edge>
+    def RI -> VertexCollection
+    def RO -> VertexCollection
+end

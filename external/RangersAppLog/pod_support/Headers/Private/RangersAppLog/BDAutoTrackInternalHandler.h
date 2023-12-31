@@ -1,0 +1,1 @@
+../../../../BDAutoTracker/Classes/Core/Core/BDAutoTrackInternalHandler.h

@@ -1,0 +1,784 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "CreationKitRTProtocol_pod_hdrs",
+  srcs = [
+    ":CreationKitRTProtocol_root_pod_hdrs",
+    ":CameraService_pod_hdrs",
+    ":EditService_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "CreationKitRTProtocol_private_includes",
+  include = [
+    "external/CreationKitRTProtocol/pod_support/Headers/Private/CreationKitRTProtocol/"
+  ],
+  deps = [],
+  external_name = "CreationKitRTProtocol"
+)
+gen_includes(
+  name = "CreationKitRTProtocol_public_includes",
+  include = [
+    "external/CreationKitRTProtocol/pod_support/Headers/Public/CreationKitRTProtocol/"
+  ],
+  deps = [],
+  external_name = "CreationKitRTProtocol"
+)
+filegroup(
+  name = "_CreationKitRTProtocol_hdrs",
+  srcs = [
+    ":CreationKitRTProtocol_root_hdrs",
+    ":CameraService_hdrs",
+    ":EditService_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "CreationKitRTProtocol_xcode_hmapsource",
+  hdrs = [
+    ":CreationKitRTProtocol_root_hdrs",
+    ":CameraService_hdrs",
+    ":EditService_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "CreationKitRTProtocol_xcode_hmap",
+  dep = ":CreationKitRTProtocol_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/CreationKitRTProtocol/*-bitsky-generated.modulemap", "pod_support/Headers/Public/CreationKitRTProtocol/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "CreationKitRTProtocol_CameraService_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libCreationKitRTProtocol-b8726d2.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "CreationKitRTProtocol_EditService_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libCreationKitRTProtocol-4c84007.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "CreationKitRTProtocol_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "CreationKitRTProtocol",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "CreationKitRTProtocol_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":CreationKitRTProtocol_xcode_hmap"
+  ],
+  external_name = "CreationKitRTProtocol",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CreationKitRTProtocol_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CreationKitRTProtocol_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CreationKitRTProtocol_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CreationKitRTProtocol_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "CreationKitRTProtocol_module_map",
+  module_map = "pod_support/Headers/Public/CreationKitRTProtocol/CreationKitRTProtocol-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreationKitRTProtocol/CreationKitRTProtocol-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CreationKitRTProtocol_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "CreationKitRTProtocol_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreationKitRTProtocol_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreationKitRTProtocol_private_includes",
+    ":CreationKitRTProtocol_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":CreationKitRTProtocol_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CreationKitRTProtocol",
+  deps = [
+    ":CreationKitRTProtocol_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "CreationKitRTProtocol_lib",
+  deps = [
+    ":CreationKitRTProtocol"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CameraService_hdrs",
+  srcs = [
+    "RuntimeProtocol/CameraService/ACCCameraDefine.h",
+    "RuntimeProtocol/CameraService/ACCCameraService.h",
+    "RuntimeProtocol/CameraService/ACCCameraSubscription.h",
+    "RuntimeProtocol/CameraService/Event/ACCAlgorithmEvent.h",
+    "RuntimeProtocol/CameraService/Event/ACCCameraControlEvent.h",
+    "RuntimeProtocol/CameraService/Event/ACCCameraLifeCircleEvent.h",
+    "RuntimeProtocol/CameraService/Event/ACCEffectEvent.h",
+    "RuntimeProtocol/CameraService/Protocol/ACCAlgorithmProtocol.h",
+    "RuntimeProtocol/CameraService/Protocol/ACCBeautyProtocol.h",
+    "RuntimeProtocol/CameraService/Protocol/ACCCameraControlProtocol.h",
+    "RuntimeProtocol/CameraService/Protocol/ACCCameraWrapper.h",
+    "RuntimeProtocol/CameraService/Protocol/ACCEffectProtocol.h",
+    "RuntimeProtocol/CameraService/Protocol/ACCFilterProtocol.h",
+    "RuntimeProtocol/CameraService/Protocol/ACCKaraokeProtocol.h",
+    "RuntimeProtocol/CameraService/Protocol/ACCMessageProtocol.h",
+    "RuntimeProtocol/CameraService/Protocol/ACCRecorderProtocol.h",
+    "RuntimeProtocol/CameraService/Protocol/AWEComposerEffectProtocol.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CameraService_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCAlgorithmEvent.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCAlgorithmProtocol.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCBeautyProtocol.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCCameraControlEvent.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCCameraControlProtocol.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCCameraDefine.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCCameraLifeCircleEvent.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCCameraService.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCCameraSubscription.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCCameraWrapper.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCEffectEvent.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCEffectProtocol.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCFilterProtocol.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCKaraokeProtocol.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCMessageProtocol.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCRecorderProtocol.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/AWEComposerEffectProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCAlgorithmEvent.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCAlgorithmProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCBeautyProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCCameraControlEvent.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCCameraControlProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCCameraDefine.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCCameraLifeCircleEvent.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCCameraService.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCCameraSubscription.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCCameraWrapper.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCEffectEvent.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCEffectProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCFilterProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCKaraokeProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCMessageProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCRecorderProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/AWEComposerEffectProtocol.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CameraService_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CameraService_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "CameraService_module_map",
+  module_map = "pod_support/Headers/Public/CreationKitRTProtocol/CreationKitRTProtocol_CameraService-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreationKitRTProtocol/CreationKitRTProtocol_CameraService-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CameraService_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "CameraService_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":CreationKitRTProtocol_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreationKitRTProtocol_private_includes",
+    ":CreationKitRTProtocol_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@CreativeKit//:CreativeKit_objc_interface",
+    "@TTVideoEditor//:Core_objc_interface",
+    "@TTVideoEditor//:IESMMEffect_objc_interface",
+    "@CreativeKit//:CreativeKit_swift_interface",
+    "@TTVideoEditor//:Core_swift_interface",
+    "@TTVideoEditor//:IESMMEffect_swift_interface",
+    ":CreationKitRTProtocol_CameraService_VendoredLibraries",
+    ":CameraService_objc_interface",
+    "@CreativeKit//:CreativeKit_module_map",
+    "@TTVideoEditor//:Core_module_map",
+    "@TTVideoEditor//:IESMMEffect_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CameraService",
+  deps = [
+    ":CameraService_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "CameraService_lib",
+  deps = [
+    ":CameraService"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EditService_hdrs",
+  srcs = [
+    "RuntimeProtocol/EditService/ACCEditSessionWrapper.h",
+    "RuntimeProtocol/EditService/Event/ACCEditSessionLifeCircleEvent.h",
+    "RuntimeProtocol/EditService/Protocol/ACCEditAudioEffectProtocol.h",
+    "RuntimeProtocol/EditService/Protocol/ACCEditBeautyProtocol.h",
+    "RuntimeProtocol/EditService/Protocol/ACCEditCanvasProtocol.h",
+    "RuntimeProtocol/EditService/Protocol/ACCEditCaptureFrameProtocol.h",
+    "RuntimeProtocol/EditService/Protocol/ACCEditEffectProtocol.h",
+    "RuntimeProtocol/EditService/Protocol/ACCEditFilterProtocol.h",
+    "RuntimeProtocol/EditService/Protocol/ACCEditHDRProtocol.h",
+    "RuntimeProtocol/EditService/Protocol/ACCEditMultiTrackProtocol.h",
+    "RuntimeProtocol/EditService/Protocol/ACCEditPreviewProtocol.h",
+    "RuntimeProtocol/EditService/Protocol/ACCEditServiceProtocol.h",
+    "RuntimeProtocol/EditService/Protocol/ACCEditSessionBuilderProtocol.h",
+    "RuntimeProtocol/EditService/Protocol/ACCEditStickerProtocol.h",
+    "RuntimeProtocol/EditService/Protocol/ACCEditWrapper.h",
+    "RuntimeProtocol/EditService/Protocol/ACCMediaContainerViewProtocol.h",
+    "RuntimeProtocol/EditService/Protocol/ImageAlbum/ACCEditImageAlbumMixedProtocol.h",
+    "RuntimeProtocol/EditService/Protocol/ImageAlbum/ACCImageEditHDRProtocol.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "EditService_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCEditAudioEffectProtocol.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCEditBeautyProtocol.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCEditCanvasProtocol.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCEditCaptureFrameProtocol.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCEditEffectProtocol.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCEditFilterProtocol.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCEditHDRProtocol.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCEditImageAlbumMixedProtocol.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCEditMultiTrackProtocol.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCEditPreviewProtocol.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCEditServiceProtocol.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCEditSessionBuilderProtocol.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCEditSessionLifeCircleEvent.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCEditSessionWrapper.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCEditStickerProtocol.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCEditWrapper.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCImageEditHDRProtocol.h",
+    "pod_support/Headers/Private/CreationKitRTProtocol/ACCMediaContainerViewProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCEditAudioEffectProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCEditBeautyProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCEditCanvasProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCEditCaptureFrameProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCEditEffectProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCEditFilterProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCEditHDRProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCEditImageAlbumMixedProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCEditMultiTrackProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCEditPreviewProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCEditServiceProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCEditSessionBuilderProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCEditSessionLifeCircleEvent.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCEditSessionWrapper.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCEditStickerProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCEditWrapper.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCImageEditHDRProtocol.h",
+    "pod_support/Headers/Public/CreationKitRTProtocol/ACCMediaContainerViewProtocol.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EditService_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EditService_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "EditService_module_map",
+  module_map = "pod_support/Headers/Public/CreationKitRTProtocol/CreationKitRTProtocol_EditService-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreationKitRTProtocol/CreationKitRTProtocol_EditService-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "EditService_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "EditService_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "AVFoundation"
+  ],
+  deps = [
+    ":CreationKitRTProtocol_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreationKitRTProtocol_private_includes",
+    ":CreationKitRTProtocol_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@EffectPlatformSDK//:ModelDistribute_objc_interface",
+    "@EffectPlatformSDK//:ModelDistribute_swift_interface",
+    ":CreationKitRTProtocol_EditService_VendoredLibraries",
+    ":EditService_objc_interface",
+    "@EffectPlatformSDK//:ModelDistribute_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "EditService",
+  deps = [
+    ":EditService_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "EditService_lib",
+  deps = [
+    ":EditService"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_CreationKitRTProtocol_module_map",
+  module_map = "@CreationKitRTProtocol//:pod_support/Headers/Public/CreationKitRTProtocol/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@CreationKitRTProtocol//:pod_support/Headers/Public/CreationKitRTProtocol/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_CreationKitRTProtocol_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@CreationKitRTProtocol//:CameraService_objc_interface", "@CreationKitRTProtocol//:CreationKitRTProtocol_objc_interface", "@CreationKitRTProtocol//:EditService_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_CreationKitRTProtocol",
+  target_name = "Lark",
+  module_name = "CreationKitRTProtocol",
+  hdrs = ["@CreationKitRTProtocol//:CameraService_pod_hdrs", "@CreationKitRTProtocol//:CreationKitRTProtocol_root_pod_hdrs", "@CreationKitRTProtocol//:EditService_pod_hdrs"],
+  srcs = [],
+  non_arc_srcs = [],
+  deps = ["@CreationKitRTProtocol//:CreationKitRTProtocol_CameraService_VendoredLibraries", "@CreationKitRTProtocol//:CreationKitRTProtocol_EditService_VendoredLibraries"],
+  pod_deps = ["CreativeKit", "TTVideoEditor", "EffectPlatformSDK"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "CreationKitRTProtocol_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "CreationKitRTProtocol_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["Foundation", "AVFoundation"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "CreationKitRTProtocol_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "CreationKitRTProtocol_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "CreationKitRTProtocol_dynamic", False),
+  tags = getattr(defs_external_objc_library, "CreationKitRTProtocol_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("CreationKitRTProtocol", {}),
+  visibility = ["//visibility:public"],
+)

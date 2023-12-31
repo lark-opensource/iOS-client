@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayAbility/Base/View/CommonView/CJPayTouchLabel.h

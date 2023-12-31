@@ -1,0 +1,35 @@
+@Tutorials(name: "SendImageManager") {
+    @Intro(title: "在 Lark 中上传图片") {
+        用户的图片千奇百怪，所以我们不能直接从用户的输入中直接上传图片，而是需要做一些前置的检查和转换工作，避免 bad case。
+        
+        上传一张图片有三步（就像大象进冰箱一样）：前置检查+压缩转码+上传，你可以使用下面两种方法完成这三步。
+    }
+    
+    @Chapter(name: "统一流程") {
+        使用统一的发送组件和流程
+        
+        @Image(source: "icon-tutorials-united-send-image.svg", alt: "an icon of automatic")
+        
+        @TutorialReference(tutorial: "doc:United-Send-Image")
+    }
+    
+    @Chapter(name: "手动调用") {
+        手动调用基础检测能力
+        
+        @Image(source: "icon-tutorials-manually-send-image.svg", alt: "an icon of manual")
+        
+        @TutorialReference(tutorial: "doc:Manually-Send-Image")
+    }
+    
+    @Resources {
+        上传组件相关资源
+        
+        @Documentation(destination: "https://bytedance.feishu.cn/docx/doxcnvjtM4l5jKzI6Z8xeLsGQAf") {
+            查看上传统一组件或者工具方法，以及查看 iOS 图片统一发送组件 技术方案 - 飞书云文档
+            
+            - ``ByteWebImage/SendImageManager``
+            - ``ByteWebImage/ImageUploadChecker``
+        }
+       
+    }
+}

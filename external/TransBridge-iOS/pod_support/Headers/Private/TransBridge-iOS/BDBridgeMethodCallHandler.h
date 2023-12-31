@@ -1,0 +1,1 @@
+../../../../TransBridge-iOS/Classes/Core/BDBridgeMethodCallHandler.h

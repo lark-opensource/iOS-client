@@ -1,0 +1,75 @@
+# coding: utf-8
+# @!domain [Pod::Podfile]
+# @!parse
+#  require 'cocoapods'
+require 'set'
+
+require 'lark/project/podfile_mixin'
+
+# Uncomment the next line to define a global platform for your project
+platform :ios, '12.0'
+use_frameworks! :linkage => :static
+lark_build_for_all_arch!
+
+project 'UDCCatalog.xcodeproj'
+
+install! 'cocoapods',
+    :incremental_installation => true,
+    :generate_multiple_pod_projects => true,
+    :warn_for_multiple_pod_sources => false
+
+
+# make ours main source first
+source 'git@code.byted.org:ee/pods_specs.git'
+source 'git@code.byted.org:iOS_Library/lark_source_repo.git'
+
+target 'UDCCatalog' do
+  # Comment the next line if you don't want to use dynamic frameworks
+  use_frameworks! :linkage => :static
+
+  # Pods for UDCCatalog
+  pod 'UniverseDesignTheme', :path => '../../Components/UniverseDesignTheme', :testspecs => ['UnitTests']
+  pod 'UniverseDesignPopover', :path => '../../Components/UniverseDesignPopover'
+  pod 'UniverseDesignColor', :path => '../../Components/UniverseDesignColor'
+  pod 'UniverseDesignIcon', :path => '../../Components/UniverseDesignIcon', :testspecs => ['UnitTests']
+  pod 'UniverseDesignFont', :path => '../../Components/UniverseDesignFont'
+  pod 'UniverseDesignStyle', :path => '../../Components/UniverseDesignStyle'
+  pod 'UniverseDesignActionPanel', :path => '../../Components/UniverseDesignActionPanel'
+  pod 'UniverseDesignAvatar', :path => '../../Components/UniverseDesignAvatar'
+  pod 'UniverseDesignBadge', :path => '../../Components/UniverseDesignBadge', :testspecs => ['UnitTests']
+  pod 'UniverseDesignBreadcrumb', :path => '../../Components/UniverseDesignBreadcrumb', :testspecs => ['UnitTests']
+  pod 'UniverseDesignButton', :path => '../../Components/UniverseDesignButton', :testspecs => ['UnitTests']
+  pod 'UniverseDesignCheckBox', :path => '../../Components/UniverseDesignCheckBox', :testspecs => ['UnitTests']
+  pod 'UniverseDesignColorPicker', :path => '../../Components/UniverseDesignColorPicker', :testspecs => ['UnitTests']
+  pod 'UniverseDesignDialog', :path => '../../Components/UniverseDesignDialog', :testspecs => ['UnitTests']
+  pod 'UniverseDesignDrawer', :path => '../../Components/UniverseDesignDrawer', :testspecs => ['UnitTests']
+  pod 'UniverseDesignEmpty', :path => '../../Components/UniverseDesignEmpty', :testspecs => ['UnitTests']
+  pod 'UniverseDesignInput', :path => '../../Components/UniverseDesignInput', :testspecs => ['UnitTests']
+  pod 'UniverseDesignLoading', :path => '../../Components/UniverseDesignLoading', :testspecs => ['UnitTests']
+  pod 'UniverseDesignMenu', :path => '../../Components/UniverseDesignMenu', :testspecs => ['UnitTests']
+  pod 'UniverseDesignNotice', :path => '../../Components/UniverseDesignNotice', :testspecs => ['UnitTests']
+  pod 'UniverseDesignProgressView', :path => '../../Components/UniverseDesignProgressView', :testspecs => ['UnitTests']
+  pod 'UniverseDesignSwitch', :path => '../../Components/UniverseDesignSwitch', :testspecs => ['UnitTests']
+  pod 'UniverseDesignTabs', :path => '../../Components/UniverseDesignTabs'
+  pod 'UniverseDesignTag', :path => '../../Components/UniverseDesignTag', :testspecs => ['UnitTests']
+  pod 'UniverseDesignToast', :path => '../../Components/UniverseDesignToast', :testspecs => ['UnitTests']
+  pod 'UniverseDesignRate', :path => '../../Components/UniverseDesignRate'
+  pod 'UniverseDesignCardHeader', :path => '../../Components/UniverseDesignCardHeader'
+  pod 'UniverseDesignShadow', :path => '../../Components/UniverseDesignShadow'
+  pod 'UniverseDesignDatePicker', :path => '../../Components/UniverseDesignDatePicker', :testspecs => ['UnitTests']
+  pod 'UniverseDesignImageList', :path => '../../Components/UniverseDesignImageList'
+
+  pod 'EEAtomic', :path => '../../../../Modules/Foundation/Libs/EEAtomic'
+  pod 'FigmaKit', :path => '../../../../Modules/Infra/Libs/UI/FigmaKit'
+  pod 'LarkLocalizations', :path => '../../../../Modules/Infra/Libs/LarkLocalizations'  
+  pod 'LKLoadable', :path => '../../../../Modules/Infra/Bizs/LKLoadable'
+  pod 'LarkTimeFormatUtils', :path => '../../../../Modules/LarkTime/Libs/LarkTimeFormatUtils'
+end
+
+pre_install do |installer|
+  lark_template_common_pre_install installer
+end
+
+post_install do |installer|
+  lark_template_common_post_install(installer, warn_as_error: {})
+end

@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayAbility/NativeBindCard/CommonBindCard/Model/CJPayBindCardVCModel.h

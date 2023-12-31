@@ -1,0 +1,69 @@
+//
+//  ContainerWrapper+Register.swift
+//  Swinject
+//
+//  Created by SolaWing on 2022/7/13.
+//
+// NOTICE:
+//
+// Do NOT modify the generate swift file directly.
+// Instead, modify erb file and run `script/gencode` at the project root directory to generate the code.
+//
+
+% arg_count = 9
+
+import Foundation
+import Swinject
+
+// swiftlint:disable all
+public extension ContainerWithScope where ResolverType == UserResolver {
+
+    @discardableResult
+    func register<Service>(
+        _ serviceType: Service.Type, name: String? = nil,
+        factory: @escaping (ResolverType) throws -> Service
+    ) -> ServiceEntry<Service> {
+        return container._register(serviceType, name: name, inObjectScope: scope, factory: {(r: Resolver) throws -> Service in
+            return try factory(r.asUserResolver())
+        })
+    }
+
+% (1..arg_count).each do |i|
+%   arg_types = (1..i).map { |n| "Arg#{n}" }.join(", ")
+%   arg_values = (1..i).map { |n| "a.#{n}" }.join(", ")
+    @discardableResult
+    func register<Service, <%= arg_types %>>(
+        _ serviceType: Service.Type, name: String? = nil,
+        factory: @escaping (ResolverType, <%= arg_types %>) throws -> Service
+    ) -> ServiceEntry<Service> {
+        return container._register(serviceType, name: name, inObjectScope: scope, factory: {(a: (Resolver, <%= arg_types %>)) throws -> Service in
+            return try factory(a.0.asUserResolver(), <%= arg_values %>)
+        })
+    }
+
+% end
+}
+
+public extension ContainerWithScope where ResolverType == Resolver {
+
+    @discardableResult
+    func register<Service>(
+        _ serviceType: Service.Type, name: String? = nil,
+        factory: @escaping (ResolverType) throws -> Service
+    ) -> ServiceEntry<Service> {
+        return container._register(serviceType, name: name, inObjectScope: scope, factory: factory)
+    }
+
+% (1..arg_count).each do |i|
+%   arg_types = (1..i).map { |n| "Arg#{n}" }.join(", ")
+    @discardableResult
+    func register<Service, <%= arg_types %>>(
+        _ serviceType: Service.Type, name: String? = nil,
+        factory: @escaping (ResolverType, <%= arg_types %>) throws -> Service
+    ) -> ServiceEntry<Service> {
+        return container._register(serviceType, name: name, inObjectScope: scope, factory: factory)
+    }
+
+% end
+}
+// swiftlint:enable all

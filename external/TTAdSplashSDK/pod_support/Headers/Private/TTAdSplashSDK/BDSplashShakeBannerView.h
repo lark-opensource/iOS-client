@@ -1,0 +1,1 @@
+../../../../TTAdSplashSDK/Classes/ShakeCreative/BDSplashShakeBannerView.h

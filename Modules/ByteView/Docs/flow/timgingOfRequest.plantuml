@@ -1,0 +1,49 @@
+@startuml
+
+Alice -> Server: CreateVideoConferenceRequest
+activate Server
+Server --> Alice: CreateVideoConferenceResponse = RC
+destroy Server
+Server -> Bob: Push(VideoConf: Calling) = RN
+Server -> Bob_b: Push(VideoConf: Calling) = RN
+|||
+alt accept case
+
+Bob -> Server: PatchVideoConferenceRequest(Accept)
+activate Server
+Server --> Bob: PatchVideoConferenceResponse(void)
+destroy Server
+
+
+Server -> Alice: Push(VideoConf: Onthecall) = RO
+Server -> Bob_b: Push(VideoConf: Onthecall) = RO
+note over Alice, Bob_b #FFAAAA: 会议中
+
+Alice -> Server: PatchVideoConferenceRequest(Handup)
+activate Server
+Server --> Alice: PatchVideoConferenceResponse(void)
+destroy Server
+
+Server -> Bob: Push(VideoConf: Terminated) = RT
+
+else refuse case
+
+Bob -> Server: PatchVideoConferenceRequest(Refuse)
+activate Server
+Server --> Bob: PatchVideoConferenceResponse(void)
+destroy Server
+
+Server -> Alice: Push(VideoConf: Terminated) = RT
+Server -> Bob_b: Push(VideoConf: Terminated) = RT
+else cancel case
+
+Alice -> Server: PatchVideoConferenceRequest(Cancel)
+activate Server
+Server --> Alice: PatchVideoConferenceResponse(void)
+destroy Server
+Server -> Bob: Push(VideoConf: Terminated) = RT
+Server -> Bob_b: Push(VideoConf: Terminated) = RT
+
+end
+
+@enduml

@@ -1,0 +1,838 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "AWELazyRegister_pod_hdrs",
+  srcs = [
+    ":AWELazyRegister_root_pod_hdrs",
+    ":Core_pod_hdrs",
+    ":Rename_pod_hdrs",
+    ":Register_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "AWELazyRegister_private_includes",
+  include = [
+    "external/AWELazyRegister/pod_support/Headers/Private/AWELazyRegister/"
+  ],
+  deps = [],
+  external_name = "AWELazyRegister"
+)
+gen_includes(
+  name = "AWELazyRegister_public_includes",
+  include = [
+    "external/AWELazyRegister/pod_support/Headers/Public/AWELazyRegister/"
+  ],
+  deps = [],
+  external_name = "AWELazyRegister"
+)
+filegroup(
+  name = "_AWELazyRegister_hdrs",
+  srcs = [
+    ":AWELazyRegister_root_hdrs",
+    ":Core_hdrs",
+    ":Rename_hdrs",
+    ":Register_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "AWELazyRegister_xcode_hmapsource",
+  hdrs = [
+    ":AWELazyRegister_root_hdrs",
+    ":Core_hdrs",
+    ":Rename_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "AWELazyRegister_xcode_hmap",
+  dep = ":AWELazyRegister_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/AWELazyRegister/*-bitsky-generated.modulemap", "pod_support/Headers/Public/AWELazyRegister/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "AWELazyRegister_Core_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libAWELazyRegister-c4198c3.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "AWELazyRegister_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "AWELazyRegister",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "AWELazyRegister_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":AWELazyRegister_xcode_hmap"
+  ],
+  external_name = "AWELazyRegister",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "AWELazyRegister_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "AWELazyRegister_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "AWELazyRegister_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "AWELazyRegister_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "AWELazyRegister_module_map",
+  module_map = "pod_support/Headers/Public/AWELazyRegister/AWELazyRegister-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/AWELazyRegister/AWELazyRegister-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "AWELazyRegister_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "AWELazyRegister_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":AWELazyRegister_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":AWELazyRegister_private_includes",
+    ":AWELazyRegister_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":AWELazyRegister_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "AWELazyRegister",
+  deps = [
+    ":AWELazyRegister_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "AWELazyRegister_lib",
+  deps = [
+    ":AWELazyRegister"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [
+    "AWELazyRegister/Classes/Core/AWELazyRegister.h",
+    "AWELazyRegister/Classes/Core/AWELazyRegisterAccountPlatform.h",
+    "AWELazyRegister/Classes/Core/AWELazyRegisterCarrierService.h",
+    "AWELazyRegister/Classes/Core/AWELazyRegisterComponentsPriority.h",
+    "AWELazyRegister/Classes/Core/AWELazyRegisterDLab.h",
+    "AWELazyRegister/Classes/Core/AWELazyRegisterDebugAlert.h",
+    "AWELazyRegister/Classes/Core/AWELazyRegisterDebugTools.h",
+    "AWELazyRegister/Classes/Core/AWELazyRegisterJSBridge.h",
+    "AWELazyRegister/Classes/Core/AWELazyRegisterPremain.h",
+    "AWELazyRegister/Classes/Core/AWELazyRegisterRN.h",
+    "AWELazyRegister/Classes/Core/AWELazyRegisterRouter.h",
+    "AWELazyRegister/Classes/Core/AWELazyRegisterStaticLoad.h",
+    "AWELazyRegister/Classes/Core/AWELazyRegisterTabBar.h",
+    "AWELazyRegister/Classes/Core/AWELazyRegisterTransition.h",
+    "AWELazyRegister/Classes/Core/AWELazyRegisterUserModel.h",
+    "AWELazyRegister/Classes/Core/AWELazyRegisterWebImage.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/AWELazyRegister/AWELazyRegister.h",
+    "pod_support/Headers/Private/AWELazyRegister/AWELazyRegisterAccountPlatform.h",
+    "pod_support/Headers/Private/AWELazyRegister/AWELazyRegisterCarrierService.h",
+    "pod_support/Headers/Private/AWELazyRegister/AWELazyRegisterComponentsPriority.h",
+    "pod_support/Headers/Private/AWELazyRegister/AWELazyRegisterDLab.h",
+    "pod_support/Headers/Private/AWELazyRegister/AWELazyRegisterDebugAlert.h",
+    "pod_support/Headers/Private/AWELazyRegister/AWELazyRegisterDebugTools.h",
+    "pod_support/Headers/Private/AWELazyRegister/AWELazyRegisterJSBridge.h",
+    "pod_support/Headers/Private/AWELazyRegister/AWELazyRegisterPremain.h",
+    "pod_support/Headers/Private/AWELazyRegister/AWELazyRegisterRN.h",
+    "pod_support/Headers/Private/AWELazyRegister/AWELazyRegisterRouter.h",
+    "pod_support/Headers/Private/AWELazyRegister/AWELazyRegisterStaticLoad.h",
+    "pod_support/Headers/Private/AWELazyRegister/AWELazyRegisterTabBar.h",
+    "pod_support/Headers/Private/AWELazyRegister/AWELazyRegisterTransition.h",
+    "pod_support/Headers/Private/AWELazyRegister/AWELazyRegisterUserModel.h",
+    "pod_support/Headers/Private/AWELazyRegister/AWELazyRegisterWebImage.h",
+    "pod_support/Headers/Public/AWELazyRegister/AWELazyRegister.h",
+    "pod_support/Headers/Public/AWELazyRegister/AWELazyRegisterAccountPlatform.h",
+    "pod_support/Headers/Public/AWELazyRegister/AWELazyRegisterCarrierService.h",
+    "pod_support/Headers/Public/AWELazyRegister/AWELazyRegisterComponentsPriority.h",
+    "pod_support/Headers/Public/AWELazyRegister/AWELazyRegisterDLab.h",
+    "pod_support/Headers/Public/AWELazyRegister/AWELazyRegisterDebugAlert.h",
+    "pod_support/Headers/Public/AWELazyRegister/AWELazyRegisterDebugTools.h",
+    "pod_support/Headers/Public/AWELazyRegister/AWELazyRegisterJSBridge.h",
+    "pod_support/Headers/Public/AWELazyRegister/AWELazyRegisterPremain.h",
+    "pod_support/Headers/Public/AWELazyRegister/AWELazyRegisterRN.h",
+    "pod_support/Headers/Public/AWELazyRegister/AWELazyRegisterRouter.h",
+    "pod_support/Headers/Public/AWELazyRegister/AWELazyRegisterStaticLoad.h",
+    "pod_support/Headers/Public/AWELazyRegister/AWELazyRegisterTabBar.h",
+    "pod_support/Headers/Public/AWELazyRegister/AWELazyRegisterTransition.h",
+    "pod_support/Headers/Public/AWELazyRegister/AWELazyRegisterUserModel.h",
+    "pod_support/Headers/Public/AWELazyRegister/AWELazyRegisterWebImage.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/AWELazyRegister/AWELazyRegister_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/AWELazyRegister/AWELazyRegister_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_srcs",
+  srcs = [
+    "AWELazyRegister/Classes/Core/AWELazyRegister.m",
+    "AWELazyRegister/Classes/Core/AWELazyRegisterDebugTools.m",
+    "AWELazyRegister/Classes/Core/AWELazyRegisterJSBridge.m",
+    "AWELazyRegister/Classes/Core/AWELazyRegisterRouter.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [
+    "Core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":AWELazyRegister_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":AWELazyRegister_private_includes",
+    ":AWELazyRegister_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":AWELazyRegister_Core_VendoredLibraries",
+    ":Core_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Rename_hdrs",
+  srcs = [
+    "AWELazyRegister/Classes/Rename/AWELazyRegister_Rename.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Rename_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/AWELazyRegister/AWELazyRegister_Rename.h",
+    "pod_support/Headers/Public/AWELazyRegister/AWELazyRegister_Rename.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Rename_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Rename_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Rename_module_map",
+  module_map = "pod_support/Headers/Public/AWELazyRegister/AWELazyRegister_Rename-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/AWELazyRegister/AWELazyRegister_Rename-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Rename_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Rename_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":AWELazyRegister_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":AWELazyRegister_private_includes",
+    ":AWELazyRegister_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Rename_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Rename",
+  deps = [
+    ":Rename_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Rename_lib",
+  deps = [
+    ":Rename"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Register_hdrs",
+  srcs = [
+    "AWELazyRegister/Classes/Core/AWELazyRegister.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Register_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Register_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Register_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Register_module_map",
+  module_map = "pod_support/Headers/Public/AWELazyRegister/AWELazyRegister_Register-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/AWELazyRegister/AWELazyRegister_Register-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Register_srcs",
+  srcs = [
+    "AWELazyRegister/Classes/Core/AWELazyRegister.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Register_oc",
+  enable_modules = 1,
+  srcs = [
+    "Register_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Register_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":AWELazyRegister_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":AWELazyRegister_private_includes",
+    ":AWELazyRegister_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Register_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Register",
+  deps = [
+    ":Register_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Register_lib",
+  deps = [
+    ":Register"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_AWELazyRegister_module_map",
+  module_map = "@AWELazyRegister//:pod_support/Headers/Public/AWELazyRegister/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@AWELazyRegister//:pod_support/Headers/Public/AWELazyRegister/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_AWELazyRegister_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@AWELazyRegister//:AWELazyRegister_objc_interface", "@AWELazyRegister//:Core_objc_interface", "@AWELazyRegister//:Rename_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_AWELazyRegister",
+  target_name = "Lark",
+  module_name = "AWELazyRegister",
+  hdrs = ["@AWELazyRegister//:AWELazyRegister_root_pod_hdrs", "@AWELazyRegister//:Core_pod_hdrs", "@AWELazyRegister//:Rename_pod_hdrs"],
+  srcs = ["@AWELazyRegister//:Core_srcs"],
+  non_arc_srcs = [],
+  deps = ["@AWELazyRegister//:AWELazyRegister_Core_VendoredLibraries"],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "AWELazyRegister_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "AWELazyRegister_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "AWELazyRegister_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "AWELazyRegister_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "AWELazyRegister_dynamic", False),
+  tags = getattr(defs_external_objc_library, "AWELazyRegister_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("AWELazyRegister", {}),
+  visibility = ["//visibility:public"],
+)

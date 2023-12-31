@@ -1,0 +1,16 @@
+# Copyright 2023 The Lynx Authors. All rights reserved.
+#
+
+source_set("LynxRichText") {
+  sources = [
+    "ParagraphProperty/LynxPropsAttributeConverter.h",
+    "ParagraphProperty/LynxPropsAttributeConverter.m",
+  ]
+
+  public_configs = [
+    "//Darwin:darwin_include_config",
+    "//Darwin:darwin_flag_config",
+  ]
+
+  public_deps = [ "//Lynx/richtext" ]
+}

@@ -1,0 +1,1 @@
+../../../../BDJSBridgeAuthManager/Classes/Core/IESBridgeAuthManager.h

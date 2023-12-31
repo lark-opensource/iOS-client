@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayChannel/Base/CJPayCustomChannel.h

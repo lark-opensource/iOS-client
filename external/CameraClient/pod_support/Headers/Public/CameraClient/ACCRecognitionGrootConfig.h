@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/Record/Utils/ACCRecognitionGrootConfig.h

@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/Mach/Common/Private/tools/hmd_crash_safe_tool.h

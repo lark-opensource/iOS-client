@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/Common/Interface/ModuleServiceProtocol/POI/ACCPOIServiceProtocol.h

@@ -1,0 +1,445 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "JSONModel_pod_hdrs",
+  srcs = [
+    ":JSONModel_root_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "JSONModel_private_includes",
+  include = [
+    "external/JSONModel/pod_support/Headers/Private/JSONModel/"
+  ],
+  deps = [],
+  external_name = "JSONModel"
+)
+gen_includes(
+  name = "JSONModel_public_includes",
+  include = [
+    "external/JSONModel/pod_support/Headers/Public/JSONModel/"
+  ],
+  deps = [],
+  external_name = "JSONModel"
+)
+filegroup(
+  name = "_JSONModel_hdrs",
+  srcs = [
+    ":JSONModel_root_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "JSONModel_xcode_hmapsource",
+  hdrs = [
+    ":_JSONModel_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "JSONModel_xcode_hmap",
+  dep = ":JSONModel_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/JSONModel/*-bitsky-generated.modulemap", "pod_support/Headers/Public/JSONModel/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "JSONModel_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "JSONModel",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "JSONModel_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":JSONModel_xcode_hmap"
+  ],
+  external_name = "JSONModel",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "JSONModel_root_hdrs",
+  srcs = [
+    "JSONModel/JSONModel/JSONModel.h",
+    "JSONModel/JSONModel/JSONModelClassProperty.h",
+    "JSONModel/JSONModel/JSONModelError.h",
+    "JSONModel/JSONModelLib.h",
+    "JSONModel/JSONModelNetworking/JSONAPI.h",
+    "JSONModel/JSONModelNetworking/JSONHTTPClient.h",
+    "JSONModel/JSONModelNetworking/JSONModel+networking.h",
+    "JSONModel/JSONModelTransformations/JSONKeyMapper.h",
+    "JSONModel/JSONModelTransformations/JSONValueTransformer.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "JSONModel_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/JSONModel/JSONAPI.h",
+    "pod_support/Headers/Private/JSONModel/JSONHTTPClient.h",
+    "pod_support/Headers/Private/JSONModel/JSONKeyMapper.h",
+    "pod_support/Headers/Private/JSONModel/JSONModel+networking.h",
+    "pod_support/Headers/Private/JSONModel/JSONModel.h",
+    "pod_support/Headers/Private/JSONModel/JSONModelClassProperty.h",
+    "pod_support/Headers/Private/JSONModel/JSONModelError.h",
+    "pod_support/Headers/Private/JSONModel/JSONModelLib.h",
+    "pod_support/Headers/Private/JSONModel/JSONValueTransformer.h",
+    "pod_support/Headers/Public/JSONModel/JSONAPI.h",
+    "pod_support/Headers/Public/JSONModel/JSONHTTPClient.h",
+    "pod_support/Headers/Public/JSONModel/JSONKeyMapper.h",
+    "pod_support/Headers/Public/JSONModel/JSONModel+networking.h",
+    "pod_support/Headers/Public/JSONModel/JSONModel.h",
+    "pod_support/Headers/Public/JSONModel/JSONModelClassProperty.h",
+    "pod_support/Headers/Public/JSONModel/JSONModelError.h",
+    "pod_support/Headers/Public/JSONModel/JSONModelLib.h",
+    "pod_support/Headers/Public/JSONModel/JSONValueTransformer.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "JSONModel_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "JSONModel_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "JSONModel_module_map",
+  module_map = "pod_support/Headers/Public/JSONModel/JSONModel-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/JSONModel/JSONModel-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "JSONModel_root_srcs",
+  srcs = [
+    "JSONModel/JSONModelNetworking/JSONAPI.m",
+    "JSONModel/JSONModelNetworking/JSONHTTPClient.m",
+    "JSONModel/JSONModelTransformations/JSONKeyMapper.m",
+    "JSONModel/JSONModelNetworking/JSONModel+networking.m",
+    "JSONModel/JSONModel/JSONModel.m",
+    "JSONModel/JSONModel/JSONModelClassProperty.m",
+    "JSONModel/JSONModel/JSONModelError.m",
+    "JSONModel/JSONModelTransformations/JSONValueTransformer.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "JSONModel_oc",
+  enable_modules = 1,
+  srcs = [
+    "JSONModel_root_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "JSONModel_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":JSONModel_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":JSONModel_private_includes",
+    ":JSONModel_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":JSONModel_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "JSONModel",
+  deps = [
+    ":JSONModel_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "JSONModel_lib",
+  deps = [
+    ":JSONModel"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_JSONModel_module_map",
+  module_map = "@JSONModel//:pod_support/Headers/Public/JSONModel/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@JSONModel//:pod_support/Headers/Public/JSONModel/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_JSONModel_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@JSONModel//:JSONModel_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_JSONModel",
+  target_name = "Lark",
+  module_name = "JSONModel",
+  hdrs = ["@JSONModel//:JSONModel_root_pod_hdrs"],
+  srcs = ["@JSONModel//:JSONModel_root_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "JSONModel_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "JSONModel_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "JSONModel_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "JSONModel_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "JSONModel_dynamic", False),
+  tags = getattr(defs_external_objc_library, "JSONModel_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("JSONModel", {}),
+  visibility = ["//visibility:public"],
+)

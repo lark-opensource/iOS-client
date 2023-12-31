@@ -1,0 +1,384 @@
+{
+  "name": "RangersAppLog",
+  "version": "6.15.5.1-bugfix",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://github.com/bytedance/RangersAppLog",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "zhangtianfu": "zhangtianfu@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:iOS_Library/BDAutoTracker.git",
+    "commit": "be3722f2584e5048f2a29a0f5b44ff3027ef404f"
+  },
+  "platforms": {
+    "ios": "9.0",
+    "osx": "10.10"
+  },
+  "default_subspecs": [
+    "Host",
+    "Core",
+    "Log"
+  ],
+  "requires_arc": true,
+  "static_framework": true,
+  "pod_target_xcconfig": {
+    "DEFINES_MODULE": "YES",
+    "BITCODE_GENERATION_MODE": "bitcode",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "RangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\""
+  },
+  "testspecs": [
+    {
+      "name": "Tests",
+      "test_type": "unit",
+      "requires_app_host": false,
+      "dependencies": {
+        "RangersAppLog/Picker": [],
+        "RangersAppLog/ET": [],
+        "RangersAppLog/Filter": [],
+        "OCMock": [
+          "~> 3.8.1"
+        ],
+        "XcodeCoverage": [
+          ">= 1.3.2"
+        ]
+      },
+      "source_files": "BDAutoTracker/Tests/**/*.{h,m}",
+      "resource_bundles": {
+        "RangersAppLog-Tests": [
+          "BDAutoTracker/Tests/*.plist"
+        ]
+      }
+    }
+  ],
+  "subspecs": [
+    {
+      "name": "Core",
+      "frameworks": [
+        "CoreGraphics",
+        "Foundation",
+        "Security",
+        "CoreTelephony",
+        "CoreFoundation",
+        "SystemConfiguration",
+        "WebKit"
+      ],
+      "ios": {
+        "frameworks": "UIKit"
+      },
+      "osx": {
+        "frameworks": "AppKit"
+      },
+      "libraries": [
+        "z",
+        "sqlite3"
+      ],
+      "dependencies": {
+        "RangersAppLog/Encryptor/VOLC": []
+      },
+      "source_files": [
+        "BDAutoTracker/Classes/Core/**/**/*.{h,m,c}"
+      ],
+      "public_header_files": "BDAutoTracker/Classes/Core/Core/Header/*.h",
+      "exclude_files": [
+        "BDAutoTracker/Classes/Core/Network/BDAutoTrackNetworkResponse.{h,m}"
+      ],
+      "resource_bundles": {
+        "RangersAppLog": [
+          "BDAutoTracker/Asserts/Core/*.js"
+        ]
+      }
+    },
+    {
+      "name": "Host",
+      "dependencies": {
+        "RangersAppLog/Core": []
+      },
+      "subspecs": [
+        {
+          "name": "CN",
+          "source_files": [
+            "BDAutoTracker/Classes/Host/CN/**/*.{h,m}"
+          ],
+          "public_header_files": [
+            "BDAutoTracker/Classes/Host/CN/*.h"
+          ]
+        },
+        {
+          "name": "SG",
+          "source_files": [
+            "BDAutoTracker/Classes/Host/SG/**/*.{h,m}"
+          ],
+          "public_header_files": [
+            "BDAutoTracker/Classes/Host/SG/*.h"
+          ]
+        },
+        {
+          "name": "VA",
+          "source_files": [
+            "BDAutoTracker/Classes/Host/VA/**/*.{h,m}"
+          ],
+          "public_header_files": [
+            "BDAutoTracker/Classes/Host/VA/*.h"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Unique",
+      "platforms": {
+        "ios": "9.0"
+      },
+      "frameworks": "AdSupport",
+      "weak_frameworks": "AppTrackingTransparency",
+      "dependencies": {
+        "RangersAppLog/Core": []
+      },
+      "source_files": "BDAutoTracker/Classes/Unique/**/*.{h,m,c,mm}",
+      "public_header_files": "BDAutoTracker/Classes/Unique/Public/*.h"
+    },
+    {
+      "name": "CAID",
+      "platforms": {
+        "ios": "9.0"
+      },
+      "source_files": "BDAutoTracker/Classes/CAID/**/*.{h,m,c,mm}",
+      "public_header_files": "BDAutoTracker/Classes/CAID/Header/*.h",
+      "dependencies": {
+        "RangersAppLog/GlobalRemoteID": []
+      }
+    },
+    {
+      "name": "ASA",
+      "platforms": {
+        "ios": "9.0"
+      },
+      "frameworks": "iAd",
+      "weak_frameworks": "AdServices",
+      "dependencies": {
+        "RangersAppLog/Core": []
+      },
+      "source_files": "BDAutoTracker/Classes/ASA/*.{h,m}",
+      "public_header_files": "BDAutoTracker/Classes/ASA/*.h"
+    },
+    {
+      "name": "Flags",
+      "dependencies": {
+        "RangersAppLog/Core": []
+      },
+      "subspecs": [
+        {
+          "name": "DisableiAd",
+          "source_files": "BDAutoTracker/Classes/Flags/DisableiAd/*.{h,m}",
+          "public_header_files": "BDAutoTracker/Classes/Flags/DisableiAd/*.h"
+        }
+      ]
+    },
+    {
+      "name": "Log",
+      "dependencies": {
+        "RangersAppLog/Core": []
+      },
+      "source_files": "BDAutoTracker/Classes/Log/**/*.{h,m,c,mm}",
+      "private_header_files": "BDAutoTracker/Classes/Log/**/*.h"
+    },
+    {
+      "name": "ET",
+      "source_files": "BDAutoTracker/Classes/ET/**/*.{h,m,c,mm}",
+      "public_header_files": "BDAutoTracker/Classes/ET/*.h",
+      "dependencies": {
+        "RangersAppLog/Core": []
+      }
+    },
+    {
+      "name": "Filter",
+      "platforms": {
+        "ios": "9.0"
+      },
+      "dependencies": {
+        "RangersAppLog/Core": []
+      },
+      "source_files": "BDAutoTracker/Classes/Filter/**/*.{h,m,c,mm}",
+      "public_header_files": "BDAutoTracker/Classes/Filter/*.h"
+    },
+    {
+      "name": "UITracker",
+      "platforms": {
+        "ios": "9.0"
+      },
+      "frameworks": "WebKit",
+      "dependencies": {
+        "RangersAppLog/Core": []
+      },
+      "source_files": "BDAutoTracker/Classes/UITracker/**/*.{h,m,c,mm}",
+      "public_header_files": "BDAutoTracker/Classes/UITracker/Header/*.h"
+    },
+    {
+      "name": "Location",
+      "platforms": {
+        "ios": "9.0"
+      },
+      "frameworks": "CoreLocation",
+      "dependencies": {
+        "RangersAppLog/Core": []
+      },
+      "source_files": "BDAutoTracker/Classes/Location/**/*.{h,m,c,mm}",
+      "public_header_files": "BDAutoTracker/Classes/Location/Header/*.h"
+    },
+    {
+      "name": "Picker",
+      "platforms": {
+        "ios": "9.0"
+      },
+      "frameworks": "CoreText",
+      "dependencies": {
+        "RangersAppLog/UITracker": [],
+        "RangersAppLog/Log": []
+      },
+      "source_files": "BDAutoTracker/Classes/Picker/**/*.{h,m,c,mm}",
+      "public_header_files": "BDAutoTracker/Classes/Picker/Header/*.h"
+    },
+    {
+      "name": "DeviceOrientation",
+      "platforms": {
+        "ios": "9.0"
+      },
+      "dependencies": {
+        "RangersAppLog/Core": []
+      },
+      "source_files": "BDAutoTracker/Classes/DeviceOrientation/**/*.{h,m,c,mm}",
+      "public_header_files": "BDAutoTracker/Classes/DeviceOrientation/**/*.h"
+    },
+    {
+      "name": "Exception",
+      "platforms": {
+        "ios": "9.0"
+      },
+      "dependencies": {
+        "RangersAppLog/Core": []
+      },
+      "source_files": "BDAutoTracker/Classes/Exception/**/*.{h,m,c,mm}",
+      "public_header_files": "BDAutoTracker/Classes/Exception/**/*.h"
+    },
+    {
+      "name": "OSX",
+      "dependencies": {
+        "RangersAppLog/Core": []
+      },
+      "source_files": "BDAutoTracker/Classes/OSX/**/*.{h,m,c,mm}",
+      "public_header_files": "BDAutoTracker/Classes/OSX/Headers/*.h",
+      "vendored_libraries": "BDAutoTracker/Classes/OSX/Classes/OneKit/Vendor/*.a"
+    },
+    {
+      "name": "CBridge",
+      "dependencies": {
+        "RangersAppLog/Core": []
+      },
+      "source_files": "BDAutoTracker/Classes/CBridge/*.{h,m}",
+      "public_header_files": "BDAutoTracker/Classes/CBridge/*.h"
+    },
+    {
+      "name": "VolMetaSecML",
+      "platforms": {
+        "ios": "9.0"
+      },
+      "frameworks": "CoreMotion",
+      "public_header_files": [
+        "BDAutoTracker/Classes/VolMetaSecML/RALSecML.h"
+      ],
+      "source_files": [
+        "BDAutoTracker/Classes/VolMetaSecML/RALSecML.{h,m}"
+      ]
+    },
+    {
+      "name": "Exposure",
+      "platforms": {
+        "ios": "9.0"
+      },
+      "source_files": [
+        "BDAutoTracker/Classes/Exposure/Sources/*.{h,m}"
+      ],
+      "public_header_files": [
+        "BDAutoTracker/Classes/Exposure/Sources/BDAutoTrackExposure.h"
+      ],
+      "dependencies": {
+        "RangersAppLog/Core": [],
+        "RangersAppLog/UITracker": []
+      }
+    },
+    {
+      "name": "DevTools",
+      "platforms": {
+        "ios": "9.0"
+      },
+      "source_files": [
+        "BDAutoTracker/Classes/DevTools/Sources/**/*.{h,m}"
+      ],
+      "public_header_files": [
+        "BDAutoTracker/Classes/DevTools/Sources/Public/*.h"
+      ],
+      "dependencies": {
+        "RangersAppLog/Core": []
+      },
+      "resource_bundles": {
+        "RangersAppLogDevTools": [
+          "BDAutoTracker/Classes/DevTools/Assets/*.*"
+        ]
+      }
+    },
+    {
+      "name": "Encryptor",
+      "platforms": {
+        "ios": "9.0"
+      },
+      "subspecs": [
+        {
+          "name": "VOLC",
+          "source_files": [
+            "BDAutoTracker/Classes/Encryptor/Volc/Sources/*.{h,m}"
+          ],
+          "public_header_files": [
+            "BDAutoTracker/Classes/Encryptor/Volc/Sources/BDAutoTrackEncryptor.h"
+          ],
+          "vendored_frameworks": "BDAutoTracker/Classes/Encryptor/Volc/Vendor/VolcEngineEncryptor.xcframework"
+        },
+        {
+          "name": "SM2",
+          "source_files": [
+            "BDAutoTracker/Classes/Encryptor/SM2/Sources/*.{h,m}",
+            "BDAutoTracker/Classes/Encryptor/SM2/Sources/GMObjC/*.{h,m}"
+          ],
+          "public_header_files": [
+            "BDAutoTracker/Classes/Encryptor/SM2/Sources/BDAutoTrackEncryptorSM2.h"
+          ],
+          "vendored_frameworks": "BDAutoTracker/Classes/Encryptor/SM2/Vendor/openssl.framework"
+        }
+      ]
+    },
+    {
+      "name": "OneID",
+      "source_files": [
+        "BDAutoTracker/Classes/OneID/Sources/*.{h,m}"
+      ]
+    },
+    {
+      "name": "GlobalRemoteID",
+      "source_files": [
+        "BDAutoTracker/Classes/GlobalRemoteID/Sources/*.{h,m}"
+      ]
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "1707",
+    "app_id": "9999"
+  },
+  "repoId": "1707",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "RangersAppLog_POD_VERSION=@\\\"9999_6.15.5.1-bugfix\\\""
+  }
+}

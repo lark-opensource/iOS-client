@@ -1,0 +1,1 @@
+../../../../CameraClient/ComponentPlugins/Record/Filter/Tips/ACCFilterComponentTipsPlugin.h

@@ -1,0 +1,1 @@
+../../../../Beauty/ViewModel/AWEComposerBeautyEffectCacheManager.h

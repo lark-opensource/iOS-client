@@ -1,0 +1,1 @@
+../../../../Recorder/BeautyPanelComponent/Core/BeautyFeature/ACCBeautyDataHandler.h

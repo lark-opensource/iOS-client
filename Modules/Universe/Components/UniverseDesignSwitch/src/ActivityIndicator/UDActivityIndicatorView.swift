@@ -1,0 +1,71 @@
+//
+//  UDActivityIndicatorView.swift
+//  LarkUIKit
+//
+//  Created by zhouyuan on 2018/4/11.
+//  Copyright © 2018年 liuwanlin. All rights reserved.
+//
+
+import Foundation
+import UIKit
+
+protocol UDActivityIndicatorAnimationDelegate: AnyObject {
+    func setUpAnimation(in layer: CALayer, size: CGSize, color: UIColor)
+}
+
+/// Activity indicator view with nice animations
+open class UDActivityIndicatorView: UIView {
+
+    public static var defaultColor = UIColor.white
+
+    public static var defaultBackgroundColor = UIColor.ud.N1000.withAlphaComponent(0.5)
+    /// Color of activity indicator view.
+    public var color: UIColor = UDActivityIndicatorView.defaultColor
+
+    /// Current status of animation, read-only.
+    private(set) public var isAnimating: Bool = false
+
+    public required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        backgroundColor = UIColor.clear
+        isHidden = true
+    }
+
+    public init(frame: CGRect = .zero, color: UIColor? = nil) {
+        self.color = color ?? UDActivityIndicatorView.defaultColor
+        super.init(frame: frame)
+        isHidden = true
+    }
+
+    public override var bounds: CGRect {
+        didSet {
+            // setup the animation again for the new bounds
+            if oldValue != bounds && isAnimating {
+                setUpAnimation()
+            }
+        }
+    }
+
+    public final func startAnimating() {
+        isHidden = false
+        isAnimating = true
+        layer.speed = 1
+        setUpAnimation()
+    }
+
+    public final func stopAnimating() {
+        isHidden = true
+        isAnimating = false
+        layer.sublayers?.removeAll()
+    }
+
+    private final func setUpAnimation() {
+        let animation: UDActivityIndicatorAnimationDelegate = UDActivityIndicatorAnimation()
+        var animationRect = frame.inset(by: .zero)
+        let minEdge = min(animationRect.width, animationRect.height)
+
+        layer.sublayers = nil
+        animationRect.size = CGSize(width: minEdge, height: minEdge)
+        animation.setUpAnimation(in: layer, size: animationRect.size, color: color)
+    }
+}

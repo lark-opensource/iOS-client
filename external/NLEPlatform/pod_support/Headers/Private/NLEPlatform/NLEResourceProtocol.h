@@ -1,0 +1,1 @@
+../../../../core/resources/NLEResourceProtocol.h

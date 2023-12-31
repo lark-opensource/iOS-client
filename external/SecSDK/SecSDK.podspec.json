@@ -1,0 +1,62 @@
+{
+  "name": "SecSDK",
+  "version": "1.6.2",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://github.com/moqianqian/SecSDK",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "moqianqian": "moqianqian@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:moqianqian/secsdk.git",
+    "commit": "e4aabf88eb2a9ce8a50bbbecc0a81f84c76dea84"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "prepare_command": "versions=( ver-pub ver-ka-hz )\nfor ver in \"${versions[@]}\"\ndo\n    framework=\"SecSDK/Assets/framework/${ver}/SecGuard.framework\"\n    if [ -d \"$framework\" ]\n    then\n        module=\"${framework}/Modules\"\n        modulemap=\"${module}/module.modulemap\"\n        test -d \"${module}\" || mkdir \"${module}\"\n        touch \"${modulemap}\"\n        cat > \"${modulemap}\" <<-EOM\nframework module SecGuard {\n    umbrella header \"SGMSafeGuardManager.h\"\n    export *\n    module * { export * }\n}\nEOM\n    fi\ndone",
+  "dependencies": {
+    "LarkContainer": [],
+    "LarkAccountInterface": [],
+    "LarkAppConfig": [],
+    "RustPB": [],
+    "RunloopTools": [],
+    "LarkReleaseConfig": [],
+    "LarkAssembler": []
+  },
+  "default_subspecs": [
+    "common",
+    "ver-pub"
+  ],
+  "subspecs": [
+    {
+      "name": "common",
+      "source_files": "SecSDK/Classes/**/*"
+    },
+    {
+      "name": "ver-ka-hz",
+      "vendored_frameworks": "SecSDK/Assets/framework/ver-ka-hz/SecGuard.framework"
+    },
+    {
+      "name": "ver-pub",
+      "vendored_frameworks": "SecSDK/Assets/framework/ver-pub/SecGuard.framework"
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "5398",
+    "app_id": "137801",
+    "is_swift": "1"
+  },
+  "repoId": "5398",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "SecSDK_POD_VERSION=@\\\"137801_1.6.2\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "SecSDK_POD_VERSION=@\\\"137801_1.6.2\\\""
+  }
+}

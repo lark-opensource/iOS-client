@@ -1,0 +1,68 @@
+{
+  "_bytebus_platform": {
+    "app_id": "9999",
+    "repo_id": "19889"
+  },
+  "authors": {
+    "jiny.du": "jiny.du@bytedance.com"
+  },
+  "default_subspecs": "Decompress",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/mobile_infra/Zstd.git",
+  "license": {
+    "type": "MIT"
+  },
+  "name": "ZstdDecompressKit",
+  "platforms": {
+    "ios": "8.0"
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "ZstdDecompressKit_POD_VERSION=@\\\"9999_1.0.3\\\""
+  },
+  "repoId": "19889",
+  "source": {
+    "commit": "3320657e1f4dacce67d38c6abdf8a0216130ae3d",
+    "git": "git@code.byted.org:mobile_infra/Zstd.git"
+  },
+  "static_framework": true,
+  "subspecs": [
+    {
+      "dependencies": {
+        "ZstdDecompressKit/libcommon": []
+      },
+      "name": "Decompress",
+      "private_header_files": "lib/decompress/*.h",
+      "source_files": [
+        "ios/zstdlib/Classes/decompress/**/*.{h,m,c,mm}",
+        "lib/decompress/*.{h,c}"
+      ]
+    },
+    {
+      "dependencies": {
+        "ZstdDecompressKit/libcommon": []
+      },
+      "name": "Compress",
+      "private_header_files": "lib/compress/*.h",
+      "source_files": [
+        "ios/zstdlib/Classes/compress/**/*.{h,m,c,mm}",
+        "lib/compress/*.{h,c}"
+      ]
+    },
+    {
+      "name": "libcommon",
+      "private_header_files": "lib/common/*.h",
+      "public_header_files": "lib/*.{h}",
+      "source_files": [
+        "lib/common/*.{h,c}",
+        "lib/*.{h}"
+      ]
+    }
+  ],
+  "summary": "framework_summary",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "ZstdDecompressKit_POD_VERSION=@\\\"9999_1.0.3\\\""
+  },
+  "version": "1.0.3"
+}

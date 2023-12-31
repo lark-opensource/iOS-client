@@ -1,0 +1,1 @@
+../../../../CameraArch/Edit/Utils/AWEVideoCoverConfig.h

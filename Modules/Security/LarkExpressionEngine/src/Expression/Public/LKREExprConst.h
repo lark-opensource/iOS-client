@@ -1,0 +1,20 @@
+//
+//  LKREExprConst.h
+//  LKRuleEngine-Expression
+//
+//  Created by Chengmin Zhang on 2022/7/14.
+//
+
+#import <Foundation/Foundation.h>
+
+typedef NS_ENUM(NSUInteger, LKREExprErrorCode) {
+    LKREEXPRUNKNOWN_CAUSE       = 100,
+    LKREEXPRINVALID_PARAMS      = 101,
+    LKREEXPRUNKNOWN_OPERATOR    = 102,
+    LKREEXPRUNKNOWN_FUNCTION    = 103,
+    LKREEXPRUNKNOWN_IDENTIFIER  = 104,
+    LKREEXPRPARAM_NUM_NOT_MATCH = 105,
+    LKREEXPRINVALID_IDENTIFIER  = 106,
+    LKREEXPRINVALID_EXPRESS     = 107,
+    LKREEXPRNONVALUE_IDENTIFIER = 108
+};

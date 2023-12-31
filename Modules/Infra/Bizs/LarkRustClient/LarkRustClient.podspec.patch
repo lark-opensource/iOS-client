@@ -1,0 +1,14 @@
+eval_tonic 'lark-project-template-0.1.0'
+debug_cocoapods do
+  pre_install "ldflags", <<-'PRE_INSTALL'
+      # @param [Pod::AggregateTarget]
+      installer.aggregate_targets.each do |aggregate_target|
+        aggregate_target.each_build_setting do |_config_name, bs|
+          xcconfig = bs.custom_xcconfig
+          (xcconfig['OTHER_LDFLAGS'] ||= +'$(inherited)') << ' -framework CoreTelephony'
+        end
+      end
+  PRE_INSTALL
+end
+
+debug_dependency "RustPB", "5.14.0-ad00eaf947b7.49199362-dev"

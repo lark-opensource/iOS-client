@@ -1,0 +1,192 @@
+// Generated using SwiftGen — https://github.com/SwiftGen/SwiftGen
+
+import Foundation
+import UIKit
+
+extension UIImage {
+    /// 对主端dynamic的封装，支持传入可选型image
+    static func icon_dynamic(lightImage: UIImage?, darkImage: UIImage?) -> UIImage? {
+        guard let lightImg = lightImage,
+              let darkImg = darkImage else {
+            return lightImage
+        }
+        return UIImage.dynamic(
+            light: lightImg,
+            dark: darkImg
+        )
+    }
+}
+
+@IBDesignable
+public final class IBIconImageView: FontImageView {
+    @IBInspectable
+    dynamic public var iconName: String = "" {
+        willSet {
+            iconDrawable = Icon(named: newValue)
+        }
+    }
+}
+
+public final class IBIconButton: UIButton {
+    @IBInspectable
+    dynamic public var iconName: String = "" {
+        willSet {
+            let iconDrawable = Icon(named: newValue)
+
+            let image = iconDrawable.fontImage(of: frame.size.width, color: nil)?.withRenderingMode(.alwaysTemplate)
+            self.setImage(image, for: .normal)
+        }
+    }
+}
+
+public final class ShapeIconImageView: ShapeImageView {
+    public convenience init(icon: Icon, tintColor: UIColor? = UIColor.ud.staticWhite) {
+        self.init(iconDrawable: icon, tintColor: tintColor)
+    }
+
+    public var icon: Icon? {
+        didSet {
+            self.iconDrawable = icon
+        }
+    }
+}
+
+public extension UIImage {
+    @available(*, deprecated, renamed: "UIImage.dynamicIcon")
+    static func normal(_ icon: Icon, dimension: CGFloat) -> UIImage? {
+        return icon.fontImage(of: dimension, color: UIColor.ud.staticWhite)
+    }
+}
+
+public extension UIImage {
+    @available(*, deprecated, renamed: "UIImage.dynamicIcon")
+    static func icon(_ icon: Icon, dimension: CGFloat, color: UIColor? = UIColor.ud.staticWhite) -> UIImage? {
+        return icon.fontImage(of: dimension, color: color)
+    }
+
+    static func dynamicIcon(_ icon: Icon, dimension: CGFloat, color: UIColor) -> UIImage? {
+        return icon.fontImage(of: dimension, color: color)?.ud.withTintColor(color)
+    }
+
+    static func dynamicIcon(_ icon: Icon, size: CGSize, color: UIColor) -> UIImage? {
+        return icon.fontImage(of: size, color: color)?.ud.withTintColor(color)
+    }
+
+    static func dynamicShapeIcon(_ icon: Icon, width: CGFloat, color: UIColor) -> UIImage? {
+        return icon.shapeImage(ofWidth: width, color: color)?.ud.withTintColor(color)
+    }
+
+    static func dynamicShapeIcon(_ icon: Icon, height: CGFloat, color: UIColor) -> UIImage? {
+        return icon.shapeImage(ofHeight: height, color: color)?.ud.withTintColor(color)
+    }
+}
+
+public extension UIButton {
+    func setDynamicIcon(_ icon: Icon, dimension: CGFloat, color: UIColor, for state: UIControl.State) {
+        var image: UIImage? = UIImage()
+        if #available(iOS 13.0, *), color.isDynamic {
+            image = UIImage.icon_dynamic(lightImage: icon.fontImage(of: dimension, color: color.alwaysLight),
+                                      darkImage: icon.fontImage(of: dimension, color: color.alwaysDark))
+        } else {
+            image = icon.fontImage(of: dimension, color: color)
+        }
+        setImage(image?.withRenderingMode(.alwaysOriginal), for: state)
+    }
+
+    func setDynamicIcon(_ icon: Icon, size: CGSize, color: UIColor, for state: UIControl.State) {
+        var image: UIImage? = UIImage()
+        if #available(iOS 13.0, *), color.isDynamic {
+            image = UIImage.icon_dynamic(lightImage: icon.fontImage(of: size, color: color.alwaysLight),
+                                      darkImage: icon.fontImage(of: size, color: color.alwaysDark))
+        } else {
+            image = icon.fontImage(of: size, color: color)
+        }
+        setImage(image?.withRenderingMode(.alwaysOriginal), for: state)
+    }
+
+    func setDynamicShapeIcon(_ icon: Icon, width: CGFloat, color: UIColor, for state: UIControl.State) {
+        var image: UIImage? = UIImage()
+        if #available(iOS 13.0, *), color.isDynamic {
+            image = UIImage.icon_dynamic(lightImage: icon.shapeImage(ofWidth: width, color: color.alwaysLight),
+                                      darkImage: icon.shapeImage(ofWidth: width, color: color.alwaysDark))
+        } else {
+            image = icon.shapeImage(ofWidth: width, color: color)
+        }
+        setImage(image?.withRenderingMode(.alwaysOriginal), for: state)
+    }
+
+    func setDynamicShapeIcon(_ icon: Icon, height: CGFloat, color: UIColor, for state: UIControl.State) {
+        var image: UIImage? = UIImage()
+        if #available(iOS 13.0, *), color.isDynamic {
+            image = UIImage.icon_dynamic(lightImage: icon.shapeImage(ofHeight: height, color: color.alwaysLight),
+                                      darkImage: icon.shapeImage(ofHeight: height, color: color.alwaysDark))
+        } else {
+            image = icon.shapeImage(ofHeight: height, color: color)
+        }
+        setImage(image?.withRenderingMode(.alwaysOriginal), for: state)
+    }
+}
+
+{% if icons %}
+/** A list with available icon glyphs from the icon font. */
+@objc public enum {{enumName}}: Int, CaseIterable {
+    {% for icon in icons %}
+    case {{icon.name|swiftIdentifier|snakeToCamelCase|lowerFirstWord}}
+    {% endfor %}
+}
+
+extension {{enumName}}: IconDrawable {
+    /** The icon font's family name. */
+    public static var familyName: String {
+        return "{{familyName}}"
+    }
+
+    /** The icon font's total count of available icons. */
+    public static var count: Int {
+        return {{ icons.count }}
+    }
+
+    /** The icon font's path. */
+    public var path: CGPath? {
+        return Iconfont.fontNameCGPathMapper[name]
+    }
+
+    /**
+     Creates a new instance with the specified icon name.
+     If there is no valid name recognised, this initializer falls back to the first available icon.
+
+     - parameter iconName: The icon name to use for the new instance.
+     */
+    public init(named iconName: String) {
+        switch iconName.lowercased() {
+        {% for icon in icons %}
+        case "{{icon.name}}": self = .{{icon.name|swiftIdentifier|snakeToCamelCase|lowerFirstWord}}
+        {% endfor %}
+        default: self = {{enumName}}(rawValue: 0)!
+        }
+    }
+
+    /** The icon's name. */
+    public var name: String {
+        switch self {
+        {% for icon in icons %}
+        case .{{icon.name|swiftIdentifier|snakeToCamelCase|lowerFirstWord}}: return "{{icon.name}}"
+        {% endfor %}
+        default: return ""
+        }
+    }
+
+    /** The icon's unicode. */
+    public var unicode: String {
+        switch self {
+            {% for icon in icons %}
+        case .{{icon.name|swiftIdentifier|snakeToCamelCase|lowerFirstWord}}: return "{{icon.unicode|unicodeCase}}"
+            {% endfor %}
+        default: return ""
+        }
+    }
+}
+{% else %}
+// No icons found for {{familyName}} font!
+// Visit https://github.com/home-assistant/Iconic/issues for further information.
+{% endif %}

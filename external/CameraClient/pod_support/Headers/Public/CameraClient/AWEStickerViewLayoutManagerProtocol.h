@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraClientSDK/Effect/Core/Controller/AWEStickerViewLayoutManagerProtocol.h

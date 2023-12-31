@@ -1,0 +1,1 @@
+../../../../BDAutoTracker/Classes/Core/Core/BDAutoTrackerDefines.h

@@ -1,0 +1,11 @@
+# 工程名
+project_name: <%= proj_name %>
+
+# 版本
+version: <%= version %>
+
+# 管理的文件/目录
+entries:
+<% entries.each do |entry| %>
+  - <%= entry.name %><%= '/' if entry.type == :directory %>
+<% end %>

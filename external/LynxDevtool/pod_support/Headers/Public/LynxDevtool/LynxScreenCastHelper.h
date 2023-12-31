@@ -1,0 +1,1 @@
+../../../../Darwin/Common/LynxDevtool/Helper/LynxScreenCastHelper.h

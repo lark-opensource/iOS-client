@@ -1,0 +1,422 @@
+{
+  "name": "XElement",
+  "version": "2.10.19-lark.1-bugfix",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/lynx/template-assembler",
+  "license": "MIT",
+  "authors": {
+    "li keliang": "likeliang@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:lynx/template-assembler.git",
+    "commit": "1af3f30572463c5c8f60074dd4aad566a908afc4"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "compiler_flags": "-fno-rtti",
+  "default_subspecs": [
+    "Core",
+    "AlphaVideo",
+    "Lottie",
+    "Text",
+    "ImpressionView",
+    "ScrollView",
+    "NestedScrollView",
+    "Video/Player",
+    "Swiper",
+    "SVG",
+    "Overlay",
+    "Picker",
+    "Input",
+    "PickerView",
+    "BlockTouchView",
+    "Audio",
+    "RefreshView",
+    "FoldView",
+    "PageView",
+    "BlurView",
+    "LolaCanvas"
+  ],
+  "testspecs": [
+    {
+      "name": "UnitTests",
+      "test_type": "unit",
+      "source_files": "Darwin/iOS/BDXElement/**/*UnitTest.{m,mm}",
+      "scheme": {
+        "code_coverage": true
+      },
+      "dependencies": {
+        "XElement/Core": [],
+        "XcodeCoverage": [],
+        "OCMock": []
+      }
+    }
+  ],
+  "subspecs": [
+    {
+      "name": "Core",
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/Core/*.{h,m,mm}",
+      "dependencies": {
+        "Lynx/Framework": [],
+        "Lynx/Native": [],
+        "Lynx/JSRuntime": [],
+        "Lynx/ReleaseResource": [],
+        "ByteDanceKit": [],
+        "SSZipArchive": []
+      }
+    },
+    {
+      "name": "Lottie",
+      "dependencies": {
+        "XElement/Core": [],
+        "BDWebImage": [],
+        "lottie-ios": [
+          "~> 2.6.5"
+        ]
+      },
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/Lottie/OC/**/*.{h,m,mm}"
+    },
+    {
+      "name": "SwiftLottie",
+      "dependencies": {
+        "XElement/Core": [],
+        "BDWebImage": [],
+        "lottie-swift": [
+          "~> 3.1.10"
+        ]
+      },
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/Lottie/Swift/**/*.{h,m,mm,swift}"
+    },
+    {
+      "name": "Text",
+      "dependencies": {
+        "XElement/Core": [],
+        "YYText": [],
+        "Mantle": []
+      },
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/Text/*.{h,m,mm}"
+    },
+    {
+      "name": "Experiment",
+      "subspecs": [
+        {
+          "name": "RichText",
+          "dependencies": {
+            "Lynx/Framework": []
+          },
+          "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/Experiment/RichText/*.{h,m,mm}",
+          "public_header_files": "Darwin/iOS/BDXElement/BDXElement/Classes/Experiment/RichText/*.{h}"
+        }
+      ]
+    },
+    {
+      "name": "ImpressionView",
+      "dependencies": {
+        "XElement/Core": []
+      },
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/ImpressionView/*.{h,m,mm}"
+    },
+    {
+      "name": "ScrollView",
+      "dependencies": {
+        "XElement/Core": [],
+        "XElement/ImpressionView": []
+      },
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/ScrollView/*.{h,m,mm}"
+    },
+    {
+      "name": "NestedScrollView",
+      "dependencies": {
+        "XElement/Core": []
+      },
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/NestedScrollView/*.{h,m,mm}"
+    },
+    {
+      "name": "AlphaVideo",
+      "dependencies": {
+        "XElement/Core": [],
+        "IESLiveVideoGift": [],
+        "Masonry": [],
+        "BDWebImage": []
+      },
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/AlphaVideo/*.{h,m,mm}",
+      "exclude_files": "Darwin/iOS/BDXElement/BDXElement/Classes/AlphaVideo/**/*UnitTest.{h,m,mm}"
+    },
+    {
+      "name": "VideoFlower",
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/VideoFlower/*.{h,m,mm}",
+      "dependencies": {
+        "TTVideoEngine": [],
+        "TTVideoEngine/CN": [],
+        "ByteDanceKit/Utilities": []
+      }
+    },
+    {
+      "name": "Video",
+      "subspecs": [
+        {
+          "name": "Player",
+          "source_files": [
+            "Darwin/iOS/BDXElement/BDXElement/Classes/Video/Core/*.{h,m,mm}",
+            "Darwin/iOS/BDXElement/BDXElement/Classes/Video/Pro/*.{h,m,mm}"
+          ],
+          "dependencies": {
+            "XElement/Core": [],
+            "TTVideoEngine": []
+          }
+        },
+        {
+          "name": "Aweme",
+          "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/Video/Aweme/*.{h,m,mm}",
+          "dependencies": {
+            "XElement/Video/Player": [],
+            "AWEVideoPlayerWrapper": [],
+            "IESVideoBitrateSelection": [],
+            "ByteDanceKit/Utilities": [],
+            "AWEBaseLib": [],
+            "AWERTL": [],
+            "Masonry": [],
+            "BDWebImage": [],
+            "BDWebKit/Falcon": []
+          },
+          "frameworks": "AssetsLibrary"
+        },
+        {
+          "name": "TikTok",
+          "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/Video/TikTok/*.{h,m,mm}",
+          "dependencies": {
+            "XElement/Video/Player": [],
+            "TikTokVideoPlayerWrapper": [],
+            "IESVideoBitrateSelection": [],
+            "ByteDanceKit/Utilities": [],
+            "AWEBaseLib": [],
+            "AWERTL": [],
+            "Masonry": [],
+            "BDWebImage": [],
+            "BDWebKit/Falcon": []
+          },
+          "frameworks": "AssetsLibrary"
+        },
+        {
+          "name": "Toutiao",
+          "resource_bundles": {
+            "ToutiaoPlayerResource": [
+              "Darwin/iOS/BDXElement/Assets/{**}"
+            ]
+          },
+          "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/Video/Toutiao/*.{h,m,mm}",
+          "dependencies": {
+            "XElement/Core": [],
+            "XElement/Video/Player": [],
+            "TTVPlayerPod": [],
+            "TTVideoEngine": [],
+            "BDWebKit/Falcon": []
+          }
+        },
+        {
+          "name": "Hotsoon",
+          "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/Video/Hotsoon/*.{h,m,mm}",
+          "dependencies": {
+            "XElement/Video/Player": [],
+            "IESVideoPlayer": []
+          }
+        },
+        {
+          "name": "LongVideo",
+          "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/Video/LongVideo/*.{h,m,mm}",
+          "dependencies": {
+            "XElement/Video/Player": [],
+            "TTVideoEngine": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Swiper",
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/Swiper/**/*.{h,m,mm}",
+      "dependencies": {
+        "XElement/Core": [],
+        "ByteDanceKit/UIKit": []
+      },
+      "exclude_files": "Darwin/iOS/BDXElement/BDXElement/Classes/Swiper/**/*UnitTest.{h,m,mm}"
+    },
+    {
+      "name": "SVG",
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/SVG/**/*.{h,m,mm}",
+      "dependencies": {
+        "TTSVGView": [
+          ">= 0.1.2"
+        ],
+        "BDWebImage": [],
+        "XElement/Core": []
+      }
+    },
+    {
+      "name": "Overlay",
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/Overlay/**/*.{h,m,mm}",
+      "exclude_files": "Darwin/iOS/BDXElement/BDXElement/Classes/Overlay/**/*UnitTest.{h,m,mm}",
+      "dependencies": {
+        "XElement/Core": []
+      }
+    },
+    {
+      "name": "Picker",
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/Picker/**/*.{h,m,mm}",
+      "dependencies": {
+        "XElement/Core": []
+      }
+    },
+    {
+      "name": "Input",
+      "source_files": [
+        "Darwin/iOS/BDXElement/BDXElement/Classes/Input/*.{h,m,mm}",
+        "Darwin/iOS/BDXElement/BDXElement/Classes/Input/**/*.{h,m,mm}"
+      ],
+      "exclude_files": "Darwin/iOS/BDXElement/BDXElement/Classes/Input/**/*UnitTest.{h,m,mm}",
+      "dependencies": {
+        "XElement/Core": []
+      }
+    },
+    {
+      "name": "PickerView",
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/PickerView/*.{h,m,mm}",
+      "dependencies": {
+        "XElement/Core": []
+      }
+    },
+    {
+      "name": "BlockTouchView",
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/BlockTouchView/*.{h,m,mm}",
+      "dependencies": {
+        "XElement/Core": []
+      }
+    },
+    {
+      "name": "Audio",
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/Audio/*.{h,m,mm}",
+      "dependencies": {
+        "XElement/Core": [],
+        "BDWebImage": [],
+        "TTVideoEngine": []
+      },
+      "exclude_files": "Darwin/iOS/BDXElement/BDXElement/Classes/Audio/**/*UnitTest.{h,m,mm}"
+    },
+    {
+      "name": "RefreshView",
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/RefreshView/**/*.{h,m,mm}",
+      "dependencies": {
+        "XElement/Core": [],
+        "MJRefresh": []
+      },
+      "exclude_files": "Darwin/iOS/BDXElement/BDXElement/Classes/RefreshView/**/*UnitTest.{h,m,mm}"
+    },
+    {
+      "name": "PageView",
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/PageView/**/*.{h,m,mm}",
+      "dependencies": {
+        "XElement/Core": [],
+        "XElement/Tabbar": []
+      },
+      "exclude_files": "Darwin/iOS/BDXElement/BDXElement/Classes/PageView/**/*UnitTest.{h,m,mm}"
+    },
+    {
+      "name": "FoldView",
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/FoldView/**/*.{h,m,mm}",
+      "dependencies": {
+        "XElement/Core": [],
+        "XElement/PageView": [],
+        "XElement/RefreshView": [],
+        "AWELazyRegister": []
+      },
+      "exclude_files": "Darwin/iOS/BDXElement/BDXElement/Classes/FoldView/**/*UnitTest.{h,m,mm}"
+    },
+    {
+      "name": "Tabbar",
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/Tabbar/**/*.{h,m,mm}",
+      "dependencies": {
+        "XElement/Core": []
+      }
+    },
+    {
+      "name": "RevealView",
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/RevealView/**/*.{h,m,mm}",
+      "dependencies": {
+        "XElement/Core": []
+      }
+    },
+    {
+      "name": "LivePlayer",
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/LivePlayer/**/*.{h,m,mm}",
+      "dependencies": {
+        "XElement/Core": [],
+        "IESLivePlayer": [
+          ">= 2.8.9.1"
+        ]
+      },
+      "exclude_files": "Darwin/iOS/BDXElement/BDXElement/Classes/LivePlayer/**/*UnitTest.{h,m,mm}"
+    },
+    {
+      "name": "BlurView",
+      "source_files": [
+        "Darwin/iOS/BDXElement/BDXElement/Classes/BlurView/**/*.{h,m,mm}",
+        "DarwinDarwin/iOS/BDXElement/BDXElement/Classes/BlurView/BDXLynxBlurEffect.{h,m}"
+      ],
+      "dependencies": {
+        "XElement/Core": []
+      }
+    },
+    {
+      "name": "LossImage",
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/LossImage/**/*.{h,m,mm}",
+      "dependencies": {
+        "XElement/Core": []
+      }
+    },
+    {
+      "name": "LolaCanvas",
+      "platforms": {
+        "ios": "9.0"
+      },
+      "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/Lola/**/*.{h,m,mm}",
+      "frameworks": [
+        "UIKit",
+        "CoreGraphics"
+      ],
+      "dependencies": {
+        "XElement/Core": []
+      }
+    },
+    {
+      "name": "WebView",
+      "subspecs": [
+        {
+          "name": "BDWebView",
+          "source_files": "Darwin/iOS/BDXElement/BDXElement/Classes/WebView/BDWebView/*.{h,m,mm}",
+          "dependencies": {
+            "XElement/Core": [],
+            "ByteWebView": [],
+            "IESWebViewMonitor/HybridMonitor": [],
+            "BDXBridgeKit/Core": []
+          }
+        }
+      ]
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "15792",
+    "app_id": "9999",
+    "is_swift": "1"
+  },
+  "repoId": "15792",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "XElement_POD_VERSION=@\\\"9999_2.10.19-lark.1-bugfix\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS[config=Release]": "$(inherited) NDEBUG=1",
+    "GCC_PREPROCESSOR_DEFINITIONS": "XElement_POD_VERSION=@\\\"9999_2.10.19-lark.1-bugfix\\\""
+  }
+}

@@ -1,0 +1,1 @@
+../../../../BDMemoryMatrix/Classes/Memory/MemoryAdapter/Record/MMMemoryRecordManager.h

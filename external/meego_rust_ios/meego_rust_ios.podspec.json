@@ -1,0 +1,82 @@
+{
+  "name": "meego_rust_ios",
+  "version": "0.0.21",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://bits.bytedance.net/bytebus/components/components/detail/34217?appId=2020092681",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "Qinghua Hong": "hongqinghua@bytedance.com"
+  },
+  "source": {
+    "http": "http://tosv.byted.org/obj/iosbinary/archive_source/2020092681/meego_rust_ios/0.0.21/meego_rust_ios.zip"
+  },
+  "platforms": {
+    "ios": "9.0",
+    "osx": "10.10"
+  },
+  "swift_versions": "5.0",
+  "pod_target_xcconfig": {
+    "DEFINES_MODULE": "YES",
+    "EXCLUDED_ARCHS[sdk=iphonesimulator*]": "i386 arm64",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "meego_rust_ios_POD_VERSION=@\\\"2020092681_0.0.21\\\""
+  },
+  "default_subspecs": "Core",
+  "dependencies": {
+    "SwiftProtobuf": [
+      "~> 1.20.101"
+    ]
+  },
+  "subspecs": [
+    {
+      "name": "Core",
+      "source_files": "meego_rust/**/*.{swift,h}"
+    },
+    {
+      "name": "Lib",
+      "vendored_libraries": [
+        "meego_rust_lib/libmeego_rust.a"
+      ],
+      "dependencies": {
+        "meego_rust_ios/Core": []
+      }
+    },
+    {
+      "name": "Dummy",
+      "source_files": "meego_rust_dummy/**/*",
+      "dependencies": {
+        "meego_rust_ios/Core": []
+      }
+    },
+    {
+      "name": "LocalDev",
+      "dependencies": {
+        "meego_rust_ios/Lib": []
+      },
+      "script_phases": {
+        "name": "molten-ffi codegen & meego_rust build",
+        "script": "\n        set -ex\n        bash ${PODS_TARGET_SRCROOT}/local_dev_setup.sh\n      ",
+        "execution_position": "before_compile"
+      }
+    }
+  ],
+  "swift_version": "5.0",
+  "commit": "0cad56de39f913bafa2742542a305a0cff05f042\n",
+  "source_code": {
+    "git": "git@code.byted.org:lark/meego_rust.git",
+    "commit": "0cad56de39f913bafa2742542a305a0cff05f042"
+  },
+  "_bytebus_platform": {
+    "repo_id": "34217",
+    "app_id": "2020092681",
+    "is_swift": "1"
+  },
+  "repoId": "34217",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "meego_rust_ios_POD_VERSION=@\\\"2020092681_0.0.21\\\""
+  }
+}

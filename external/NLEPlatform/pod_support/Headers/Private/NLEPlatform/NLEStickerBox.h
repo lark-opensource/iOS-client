@@ -1,0 +1,1 @@
+../../../../ios/veadapter/NLEStickerBox.h

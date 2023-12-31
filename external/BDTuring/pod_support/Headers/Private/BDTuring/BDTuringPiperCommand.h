@@ -1,0 +1,1 @@
+../../../../BDTuring/Classes/JSBridge/BDTuringPiperCommand.h

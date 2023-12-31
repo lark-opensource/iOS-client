@@ -1,0 +1,1 @@
+../../../../BDAutoTracker/Classes/Core/Core/Bridge/BDAutoTrackH5Bridge.h

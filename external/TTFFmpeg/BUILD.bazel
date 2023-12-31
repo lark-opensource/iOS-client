@@ -1,0 +1,2268 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "TTFFmpeg_pod_hdrs",
+  srcs = [
+    ":TTFFmpeg_root_pod_hdrs",
+    ":libavcodec_pod_hdrs",
+    ":libavdevice_pod_hdrs",
+    ":libavfilter_pod_hdrs",
+    ":libavformat_pod_hdrs",
+    ":libavresample_pod_hdrs",
+    ":libavutil_pod_hdrs",
+    ":libpostproc_pod_hdrs",
+    ":libswscale_pod_hdrs",
+    ":libswresample_pod_hdrs",
+    ":libffmpeg_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "TTFFmpeg_private_includes",
+  include = [
+    "external/TTFFmpeg/pod_support/Headers/Private/TTFFmpeg/"
+  ],
+  deps = [],
+  external_name = "TTFFmpeg"
+)
+gen_includes(
+  name = "TTFFmpeg_public_includes",
+  include = [
+    "external/TTFFmpeg/pod_support/Headers/Public/TTFFmpeg/"
+  ],
+  deps = [],
+  external_name = "TTFFmpeg"
+)
+filegroup(
+  name = "_TTFFmpeg_hdrs",
+  srcs = [
+    ":TTFFmpeg_root_hdrs",
+    ":libavcodec_hdrs",
+    ":libavdevice_hdrs",
+    ":libavfilter_hdrs",
+    ":libavformat_hdrs",
+    ":libavresample_hdrs",
+    ":libavutil_hdrs",
+    ":libpostproc_hdrs",
+    ":libswscale_hdrs",
+    ":libswresample_hdrs",
+    ":libffmpeg_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "TTFFmpeg_xcode_hmapsource",
+  hdrs = [
+    ":TTFFmpeg_root_hdrs",
+    ":libavcodec_hdrs",
+    ":libavdevice_hdrs",
+    ":libavfilter_hdrs",
+    ":libavformat_hdrs",
+    ":libavresample_hdrs",
+    ":libavutil_hdrs",
+    ":libffmpeg_hdrs",
+    ":libpostproc_hdrs",
+    ":libswresample_hdrs",
+    ":libswscale_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "TTFFmpeg_xcode_hmap",
+  dep = ":TTFFmpeg_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/TTFFmpeg/*-bitsky-generated.modulemap", "pod_support/Headers/Public/TTFFmpeg/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "TTFFmpeg_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "lib/libavutil.a",
+        "lib/libavfilter.a",
+        "lib/libavcodec.a",
+        "lib/libavresample.a",
+        "lib/libavformat.a",
+        "lib/libavdevice.a",
+        "lib/libswresample.a",
+        "lib/libswscale.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "TTFFmpeg_custom_includes",
+  include = [
+    "external/TTFFmpeg/include",
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "TTFFmpeg",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "TTFFmpeg_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":TTFFmpeg_xcode_hmap"
+  ],
+  external_name = "TTFFmpeg",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTFFmpeg_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TTFFmpeg_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTFFmpeg_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTFFmpeg_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TTFFmpeg_module_map",
+  module_map = "pod_support/Headers/Public/TTFFmpeg/TTFFmpeg-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTFFmpeg/TTFFmpeg-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TTFFmpeg_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "TTFFmpeg_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTFFmpeg_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTFFmpeg_private_includes",
+    ":TTFFmpeg_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@boringssl//:boringssl_objc_interface",
+    "@boringssl//:boringssl_swift_interface",
+    ":TTFFmpeg_VendoredLibraries",
+    ":TTFFmpeg_objc_interface",
+    "@boringssl//:boringssl_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TTFFmpeg",
+  deps = [
+    ":TTFFmpeg_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TTFFmpeg_lib",
+  deps = [
+    ":TTFFmpeg"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libavcodec_hdrs",
+  srcs = [
+    "include/libavcodec/arm/mathops.h",
+    "include/libavcodec/avcodec.h",
+    "include/libavcodec/avdct.h",
+    "include/libavcodec/avfft.h",
+    "include/libavcodec/bsf.h",
+    "include/libavcodec/bytestream.h",
+    "include/libavcodec/config.h",
+    "include/libavcodec/d3d11va.h",
+    "include/libavcodec/dirac.h",
+    "include/libavcodec/dv_profile.h",
+    "include/libavcodec/dxva2.h",
+    "include/libavcodec/get_bits.h",
+    "include/libavcodec/golomb.h",
+    "include/libavcodec/internal.h",
+    "include/libavcodec/jni.h",
+    "include/libavcodec/mathops.h",
+    "include/libavcodec/mediacodec.h",
+    "include/libavcodec/parser.h",
+    "include/libavcodec/put_bits.h",
+    "include/libavcodec/qsv.h",
+    "include/libavcodec/thread.h",
+    "include/libavcodec/ttexport.h",
+    "include/libavcodec/vaapi.h",
+    "include/libavcodec/vda.h",
+    "include/libavcodec/vda_vt_internal.h",
+    "include/libavcodec/vdpau.h",
+    "include/libavcodec/version.h",
+    "include/libavcodec/videotoolbox.h",
+    "include/libavcodec/vlc.h",
+    "include/libavcodec/vorbis_parser.h",
+    "include/libavcodec/x86/mathops.h",
+    "include/libavcodec/xvmc.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libavcodec_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/arm/mathops.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/avcodec.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/avdct.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/avfft.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/bsf.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/bytestream.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/config.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/d3d11va.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/dirac.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/dv_profile.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/dxva2.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/get_bits.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/golomb.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/internal.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/jni.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/mathops.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/mediacodec.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/parser.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/put_bits.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/qsv.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/thread.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/ttexport.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/vaapi.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/vda.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/vda_vt_internal.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/vdpau.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/version.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/videotoolbox.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/vlc.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/vorbis_parser.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/x86/mathops.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavcodec/xvmc.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/arm/mathops.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/avcodec.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/avdct.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/avfft.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/bsf.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/bytestream.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/config.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/d3d11va.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/dirac.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/dv_profile.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/dxva2.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/get_bits.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/golomb.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/internal.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/jni.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/mathops.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/mediacodec.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/parser.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/put_bits.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/qsv.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/thread.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/ttexport.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/vaapi.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/vda.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/vda_vt_internal.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/vdpau.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/version.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/videotoolbox.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/vlc.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/vorbis_parser.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/x86/mathops.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavcodec/xvmc.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libavcodec_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libavcodec_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "libavcodec_module_map",
+  module_map = "pod_support/Headers/Public/TTFFmpeg/TTFFmpeg_libavcodec-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTFFmpeg/TTFFmpeg_libavcodec-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libavcodec_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "libavcodec_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTFFmpeg_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTFFmpeg_private_includes",
+    ":TTFFmpeg_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@boringssl//:boringssl_objc_interface",
+    "@boringssl//:boringssl_swift_interface",
+    ":libavcodec_objc_interface",
+    "@boringssl//:boringssl_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libavcodec",
+  deps = [
+    ":libavcodec_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "libavcodec_lib",
+  deps = [
+    ":libavcodec"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libavdevice_hdrs",
+  srcs = [
+    "include/libavdevice/avdevice.h",
+    "include/libavdevice/config.h",
+    "include/libavdevice/version.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libavdevice_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTFFmpeg/libavdevice/avdevice.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavdevice/config.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavdevice/version.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavdevice/avdevice.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavdevice/config.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavdevice/version.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libavdevice_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libavdevice_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "libavdevice_module_map",
+  module_map = "pod_support/Headers/Public/TTFFmpeg/TTFFmpeg_libavdevice-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTFFmpeg/TTFFmpeg_libavdevice-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libavdevice_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "libavdevice_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTFFmpeg_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTFFmpeg_private_includes",
+    ":TTFFmpeg_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@boringssl//:boringssl_objc_interface",
+    "@boringssl//:boringssl_swift_interface",
+    ":libavdevice_objc_interface",
+    "@boringssl//:boringssl_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libavdevice",
+  deps = [
+    ":libavdevice_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "libavdevice_lib",
+  deps = [
+    ":libavdevice"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libavfilter_hdrs",
+  srcs = [
+    "include/libavfilter/avfilter.h",
+    "include/libavfilter/avfiltergraph.h",
+    "include/libavfilter/buffersink.h",
+    "include/libavfilter/buffersrc.h",
+    "include/libavfilter/config.h",
+    "include/libavfilter/version.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libavfilter_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTFFmpeg/libavfilter/avfilter.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavfilter/avfiltergraph.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavfilter/buffersink.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavfilter/buffersrc.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavfilter/config.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavfilter/version.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavfilter/avfilter.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavfilter/avfiltergraph.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavfilter/buffersink.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavfilter/buffersrc.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavfilter/config.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavfilter/version.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libavfilter_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libavfilter_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "libavfilter_module_map",
+  module_map = "pod_support/Headers/Public/TTFFmpeg/TTFFmpeg_libavfilter-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTFFmpeg/TTFFmpeg_libavfilter-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libavfilter_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "libavfilter_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTFFmpeg_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTFFmpeg_private_includes",
+    ":TTFFmpeg_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@boringssl//:boringssl_objc_interface",
+    "@boringssl//:boringssl_swift_interface",
+    ":libavfilter_objc_interface",
+    "@boringssl//:boringssl_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libavfilter",
+  deps = [
+    ":libavfilter_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "libavfilter_lib",
+  deps = [
+    ":libavfilter"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libavformat_hdrs",
+  srcs = [
+    "include/libavformat/avc.h",
+    "include/libavformat/avformat.h",
+    "include/libavformat/avio.h",
+    "include/libavformat/avio_internal.h",
+    "include/libavformat/config.h",
+    "include/libavformat/dash.h",
+    "include/libavformat/dv.h",
+    "include/libavformat/internal.h",
+    "include/libavformat/isom.h",
+    "include/libavformat/network.h",
+    "include/libavformat/os_support.h",
+    "include/libavformat/sample_aes.h",
+    "include/libavformat/ttexport.h",
+    "include/libavformat/url.h",
+    "include/libavformat/version.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libavformat_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTFFmpeg/libavformat/avc.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavformat/avformat.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavformat/avio.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavformat/avio_internal.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavformat/config.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavformat/dash.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavformat/dv.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavformat/internal.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavformat/isom.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavformat/network.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavformat/os_support.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavformat/sample_aes.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavformat/ttexport.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavformat/url.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavformat/version.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavformat/avc.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavformat/avformat.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavformat/avio.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavformat/avio_internal.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavformat/config.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavformat/dash.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavformat/dv.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavformat/internal.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavformat/isom.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavformat/network.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavformat/os_support.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavformat/sample_aes.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavformat/ttexport.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavformat/url.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavformat/version.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libavformat_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libavformat_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "libavformat_module_map",
+  module_map = "pod_support/Headers/Public/TTFFmpeg/TTFFmpeg_libavformat-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTFFmpeg/TTFFmpeg_libavformat-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libavformat_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "libavformat_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTFFmpeg_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTFFmpeg_private_includes",
+    ":TTFFmpeg_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@boringssl//:boringssl_objc_interface",
+    "@boringssl//:boringssl_swift_interface",
+    ":libavformat_objc_interface",
+    "@boringssl//:boringssl_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libavformat",
+  deps = [
+    ":libavformat_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "libavformat_lib",
+  deps = [
+    ":libavformat"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libavresample_hdrs",
+  srcs = [
+    "include/libavresample/avresample.h",
+    "include/libavresample/config.h",
+    "include/libavresample/version.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libavresample_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTFFmpeg/libavresample/avresample.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavresample/config.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavresample/version.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavresample/avresample.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavresample/config.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavresample/version.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libavresample_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libavresample_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "libavresample_module_map",
+  module_map = "pod_support/Headers/Public/TTFFmpeg/TTFFmpeg_libavresample-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTFFmpeg/TTFFmpeg_libavresample-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libavresample_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "libavresample_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTFFmpeg_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTFFmpeg_private_includes",
+    ":TTFFmpeg_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@boringssl//:boringssl_objc_interface",
+    "@boringssl//:boringssl_swift_interface",
+    ":libavresample_objc_interface",
+    "@boringssl//:boringssl_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libavresample",
+  deps = [
+    ":libavresample_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "libavresample_lib",
+  deps = [
+    ":libavresample"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libavutil_hdrs",
+  srcs = [
+    "include/libavutil/adler32.h",
+    "include/libavutil/aes.h",
+    "include/libavutil/aes_ctr.h",
+    "include/libavutil/arm64/avconfig.h",
+    "include/libavutil/arm64/ffversion.h",
+    "include/libavutil/armv7/avconfig.h",
+    "include/libavutil/armv7/ffversion.h",
+    "include/libavutil/attributes.h",
+    "include/libavutil/audio_fifo.h",
+    "include/libavutil/avassert.h",
+    "include/libavutil/avconfig.h",
+    "include/libavutil/avstring.h",
+    "include/libavutil/avutil.h",
+    "include/libavutil/base64.h",
+    "include/libavutil/blowfish.h",
+    "include/libavutil/bprint.h",
+    "include/libavutil/bswap.h",
+    "include/libavutil/buffer.h",
+    "include/libavutil/camellia.h",
+    "include/libavutil/cast5.h",
+    "include/libavutil/channel_layout.h",
+    "include/libavutil/check_info.h",
+    "include/libavutil/common.h",
+    "include/libavutil/config.h",
+    "include/libavutil/cpu.h",
+    "include/libavutil/crc.h",
+    "include/libavutil/des.h",
+    "include/libavutil/dict.h",
+    "include/libavutil/display.h",
+    "include/libavutil/dovi_meta.h",
+    "include/libavutil/downmix_info.h",
+    "include/libavutil/drm.h",
+    "include/libavutil/encryption_info.h",
+    "include/libavutil/error.h",
+    "include/libavutil/eval.h",
+    "include/libavutil/ffversion.h",
+    "include/libavutil/fifo.h",
+    "include/libavutil/file.h",
+    "include/libavutil/frame.h",
+    "include/libavutil/hash.h",
+    "include/libavutil/hmac.h",
+    "include/libavutil/hwcontext.h",
+    "include/libavutil/hwcontext_cuda.h",
+    "include/libavutil/hwcontext_dxva2.h",
+    "include/libavutil/hwcontext_qsv.h",
+    "include/libavutil/hwcontext_vaapi.h",
+    "include/libavutil/hwcontext_vdpau.h",
+    "include/libavutil/hwcontext_videotoolbox.h",
+    "include/libavutil/imgutils.h",
+    "include/libavutil/intfloat.h",
+    "include/libavutil/intreadwrite.h",
+    "include/libavutil/lfg.h",
+    "include/libavutil/log.h",
+    "include/libavutil/macros.h",
+    "include/libavutil/mastering_display_metadata.h",
+    "include/libavutil/mathematics.h",
+    "include/libavutil/md5.h",
+    "include/libavutil/mdl_info_wrapper.h",
+    "include/libavutil/mem.h",
+    "include/libavutil/motion_vector.h",
+    "include/libavutil/murmur3.h",
+    "include/libavutil/opt.h",
+    "include/libavutil/parseutils.h",
+    "include/libavutil/pixdesc.h",
+    "include/libavutil/pixelutils.h",
+    "include/libavutil/pixfmt.h",
+    "include/libavutil/random_seed.h",
+    "include/libavutil/rational.h",
+    "include/libavutil/rc4.h",
+    "include/libavutil/replaygain.h",
+    "include/libavutil/reverse.h",
+    "include/libavutil/ripemd.h",
+    "include/libavutil/samplefmt.h",
+    "include/libavutil/sha.h",
+    "include/libavutil/sha512.h",
+    "include/libavutil/spherical.h",
+    "include/libavutil/stereo3d.h",
+    "include/libavutil/tea.h",
+    "include/libavutil/thread.h",
+    "include/libavutil/threadmessage.h",
+    "include/libavutil/time.h",
+    "include/libavutil/time_internal.h",
+    "include/libavutil/timecode.h",
+    "include/libavutil/timestamp.h",
+    "include/libavutil/tree.h",
+    "include/libavutil/ttexport.h",
+    "include/libavutil/ttmapp.h",
+    "include/libavutil/twofish.h",
+    "include/libavutil/version.h",
+    "include/libavutil/x86_64/avconfig.h",
+    "include/libavutil/x86_64/ffversion.h",
+    "include/libavutil/xtea.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libavutil_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/adler32.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/aes.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/aes_ctr.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/arm64/avconfig.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/arm64/ffversion.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/armv7/avconfig.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/armv7/ffversion.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/attributes.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/audio_fifo.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/avassert.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/avconfig.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/avstring.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/avutil.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/base64.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/blowfish.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/bprint.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/bswap.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/buffer.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/camellia.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/cast5.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/channel_layout.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/check_info.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/common.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/config.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/cpu.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/crc.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/des.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/dict.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/display.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/dovi_meta.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/downmix_info.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/drm.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/encryption_info.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/error.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/eval.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/ffversion.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/fifo.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/file.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/frame.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/hash.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/hmac.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/hwcontext.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/hwcontext_cuda.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/hwcontext_dxva2.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/hwcontext_qsv.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/hwcontext_vaapi.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/hwcontext_vdpau.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/hwcontext_videotoolbox.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/imgutils.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/intfloat.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/intreadwrite.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/lfg.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/log.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/macros.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/mastering_display_metadata.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/mathematics.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/md5.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/mdl_info_wrapper.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/mem.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/motion_vector.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/murmur3.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/opt.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/parseutils.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/pixdesc.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/pixelutils.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/pixfmt.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/random_seed.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/rational.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/rc4.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/replaygain.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/reverse.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/ripemd.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/samplefmt.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/sha.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/sha512.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/spherical.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/stereo3d.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/tea.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/thread.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/threadmessage.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/time.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/time_internal.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/timecode.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/timestamp.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/tree.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/ttexport.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/ttmapp.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/twofish.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/version.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/x86_64/avconfig.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/x86_64/ffversion.h",
+    "pod_support/Headers/Private/TTFFmpeg/libavutil/xtea.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/adler32.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/aes.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/aes_ctr.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/arm64/avconfig.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/arm64/ffversion.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/armv7/avconfig.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/armv7/ffversion.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/attributes.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/audio_fifo.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/avassert.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/avconfig.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/avstring.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/avutil.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/base64.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/blowfish.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/bprint.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/bswap.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/buffer.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/camellia.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/cast5.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/channel_layout.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/check_info.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/common.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/config.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/cpu.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/crc.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/des.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/dict.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/display.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/dovi_meta.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/downmix_info.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/drm.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/encryption_info.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/error.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/eval.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/ffversion.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/fifo.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/file.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/frame.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/hash.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/hmac.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/hwcontext.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/hwcontext_cuda.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/hwcontext_dxva2.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/hwcontext_qsv.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/hwcontext_vaapi.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/hwcontext_vdpau.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/hwcontext_videotoolbox.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/imgutils.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/intfloat.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/intreadwrite.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/lfg.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/log.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/macros.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/mastering_display_metadata.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/mathematics.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/md5.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/mdl_info_wrapper.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/mem.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/motion_vector.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/murmur3.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/opt.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/parseutils.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/pixdesc.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/pixelutils.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/pixfmt.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/random_seed.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/rational.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/rc4.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/replaygain.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/reverse.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/ripemd.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/samplefmt.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/sha.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/sha512.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/spherical.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/stereo3d.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/tea.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/thread.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/threadmessage.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/time.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/time_internal.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/timecode.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/timestamp.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/tree.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/ttexport.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/ttmapp.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/twofish.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/version.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/x86_64/avconfig.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/x86_64/ffversion.h",
+    "pod_support/Headers/Public/TTFFmpeg/libavutil/xtea.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libavutil_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libavutil_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "libavutil_module_map",
+  module_map = "pod_support/Headers/Public/TTFFmpeg/TTFFmpeg_libavutil-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTFFmpeg/TTFFmpeg_libavutil-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libavutil_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "libavutil_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTFFmpeg_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTFFmpeg_private_includes",
+    ":TTFFmpeg_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@boringssl//:boringssl_objc_interface",
+    "@boringssl//:boringssl_swift_interface",
+    ":libavutil_objc_interface",
+    "@boringssl//:boringssl_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libavutil",
+  deps = [
+    ":libavutil_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "libavutil_lib",
+  deps = [
+    ":libavutil"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libpostproc_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libpostproc_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libpostproc_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libpostproc_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "libpostproc_module_map",
+  module_map = "pod_support/Headers/Public/TTFFmpeg/TTFFmpeg_libpostproc-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTFFmpeg/TTFFmpeg_libpostproc-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libpostproc_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "libpostproc_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTFFmpeg_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTFFmpeg_private_includes",
+    ":TTFFmpeg_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@boringssl//:boringssl_objc_interface",
+    "@boringssl//:boringssl_swift_interface",
+    ":libpostproc_objc_interface",
+    "@boringssl//:boringssl_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libpostproc",
+  deps = [
+    ":libpostproc_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "libpostproc_lib",
+  deps = [
+    ":libpostproc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libswscale_hdrs",
+  srcs = [
+    "include/libswscale/config.h",
+    "include/libswscale/swscale.h",
+    "include/libswscale/version.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libswscale_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTFFmpeg/libswscale/config.h",
+    "pod_support/Headers/Private/TTFFmpeg/libswscale/swscale.h",
+    "pod_support/Headers/Private/TTFFmpeg/libswscale/version.h",
+    "pod_support/Headers/Public/TTFFmpeg/libswscale/config.h",
+    "pod_support/Headers/Public/TTFFmpeg/libswscale/swscale.h",
+    "pod_support/Headers/Public/TTFFmpeg/libswscale/version.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libswscale_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libswscale_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "libswscale_module_map",
+  module_map = "pod_support/Headers/Public/TTFFmpeg/TTFFmpeg_libswscale-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTFFmpeg/TTFFmpeg_libswscale-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libswscale_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "libswscale_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTFFmpeg_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTFFmpeg_private_includes",
+    ":TTFFmpeg_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@boringssl//:boringssl_objc_interface",
+    "@boringssl//:boringssl_swift_interface",
+    ":libswscale_objc_interface",
+    "@boringssl//:boringssl_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libswscale",
+  deps = [
+    ":libswscale_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "libswscale_lib",
+  deps = [
+    ":libswscale"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libswresample_hdrs",
+  srcs = [
+    "include/libswresample/config.h",
+    "include/libswresample/swresample.h",
+    "include/libswresample/version.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libswresample_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTFFmpeg/libswresample/config.h",
+    "pod_support/Headers/Private/TTFFmpeg/libswresample/swresample.h",
+    "pod_support/Headers/Private/TTFFmpeg/libswresample/version.h",
+    "pod_support/Headers/Public/TTFFmpeg/libswresample/config.h",
+    "pod_support/Headers/Public/TTFFmpeg/libswresample/swresample.h",
+    "pod_support/Headers/Public/TTFFmpeg/libswresample/version.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libswresample_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libswresample_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "libswresample_module_map",
+  module_map = "pod_support/Headers/Public/TTFFmpeg/TTFFmpeg_libswresample-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTFFmpeg/TTFFmpeg_libswresample-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libswresample_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "libswresample_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTFFmpeg_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTFFmpeg_private_includes",
+    ":TTFFmpeg_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@boringssl//:boringssl_objc_interface",
+    "@boringssl//:boringssl_swift_interface",
+    ":libswresample_objc_interface",
+    "@boringssl//:boringssl_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libswresample",
+  deps = [
+    ":libswresample_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "libswresample_lib",
+  deps = [
+    ":libswresample"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libffmpeg_hdrs",
+  srcs = [
+    "include/libffmpeg/arm64/config.h",
+    "include/libffmpeg/armv7/config.h",
+    "include/libffmpeg/config.h",
+    "include/libffmpeg/x86_64/config.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "libffmpeg_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TTFFmpeg/libffmpeg/arm64/config.h",
+    "pod_support/Headers/Private/TTFFmpeg/libffmpeg/armv7/config.h",
+    "pod_support/Headers/Private/TTFFmpeg/libffmpeg/config.h",
+    "pod_support/Headers/Private/TTFFmpeg/libffmpeg/x86_64/config.h",
+    "pod_support/Headers/Public/TTFFmpeg/libffmpeg/arm64/config.h",
+    "pod_support/Headers/Public/TTFFmpeg/libffmpeg/armv7/config.h",
+    "pod_support/Headers/Public/TTFFmpeg/libffmpeg/config.h",
+    "pod_support/Headers/Public/TTFFmpeg/libffmpeg/x86_64/config.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libffmpeg_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libffmpeg_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "libffmpeg_module_map",
+  module_map = "pod_support/Headers/Public/TTFFmpeg/TTFFmpeg_libffmpeg-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TTFFmpeg/TTFFmpeg_libffmpeg-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "libffmpeg_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "libffmpeg_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":TTFFmpeg_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TTFFmpeg_private_includes",
+    ":TTFFmpeg_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@boringssl//:boringssl_objc_interface",
+    "@boringssl//:boringssl_swift_interface",
+    ":libffmpeg_objc_interface",
+    "@boringssl//:boringssl_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "libffmpeg",
+  deps = [
+    ":libffmpeg_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "libffmpeg_lib",
+  deps = [
+    ":libffmpeg"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_TTFFmpeg_module_map",
+  module_map = "@TTFFmpeg//:pod_support/Headers/Public/TTFFmpeg/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@TTFFmpeg//:pod_support/Headers/Public/TTFFmpeg/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_TTFFmpeg_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@TTFFmpeg//:TTFFmpeg_objc_interface", "@TTFFmpeg//:libavcodec_objc_interface", "@TTFFmpeg//:libavdevice_objc_interface", "@TTFFmpeg//:libavfilter_objc_interface", "@TTFFmpeg//:libavformat_objc_interface", "@TTFFmpeg//:libavresample_objc_interface", "@TTFFmpeg//:libavutil_objc_interface", "@TTFFmpeg//:libffmpeg_objc_interface", "@TTFFmpeg//:libpostproc_objc_interface", "@TTFFmpeg//:libswresample_objc_interface", "@TTFFmpeg//:libswscale_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_library")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_library(
+  name = "Lark_TTFFmpeg",
+  target_name = "Lark",
+  module_name = "TTFFmpeg",
+  hdrs = ["@TTFFmpeg//:TTFFmpeg_root_pod_hdrs", "@TTFFmpeg//:libavcodec_pod_hdrs", "@TTFFmpeg//:libavdevice_pod_hdrs", "@TTFFmpeg//:libavfilter_pod_hdrs", "@TTFFmpeg//:libavformat_pod_hdrs", "@TTFFmpeg//:libavresample_pod_hdrs", "@TTFFmpeg//:libavutil_pod_hdrs", "@TTFFmpeg//:libffmpeg_pod_hdrs", "@TTFFmpeg//:libpostproc_pod_hdrs", "@TTFFmpeg//:libswresample_pod_hdrs", "@TTFFmpeg//:libswscale_pod_hdrs"],
+  srcs = [],
+  non_arc_srcs = [],
+  deps = ["@TTFFmpeg//:TTFFmpeg_VendoredLibraries"],
+  pod_deps = ["boringssl"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "TTFFmpeg_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "TTFFmpeg_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "TTFFmpeg_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "TTFFmpeg_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "TTFFmpeg_dynamic", False),
+  tags = getattr(defs_external_objc_library, "TTFFmpeg_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  header_mappings = {
+    "*": "*",
+    "include/libavcodec/arm/mathops.h": "libavcodec/arm/mathops.h",
+    "include/libavcodec/avcodec.h": "libavcodec/avcodec.h",
+    "include/libavcodec/avdct.h": "libavcodec/avdct.h",
+    "include/libavcodec/avfft.h": "libavcodec/avfft.h",
+    "include/libavcodec/bsf.h": "libavcodec/bsf.h",
+    "include/libavcodec/bytestream.h": "libavcodec/bytestream.h",
+    "include/libavcodec/config.h": "libavcodec/config.h",
+    "include/libavcodec/d3d11va.h": "libavcodec/d3d11va.h",
+    "include/libavcodec/dirac.h": "libavcodec/dirac.h",
+    "include/libavcodec/dv_profile.h": "libavcodec/dv_profile.h",
+    "include/libavcodec/dxva2.h": "libavcodec/dxva2.h",
+    "include/libavcodec/get_bits.h": "libavcodec/get_bits.h",
+    "include/libavcodec/golomb.h": "libavcodec/golomb.h",
+    "include/libavcodec/internal.h": "libavcodec/internal.h",
+    "include/libavcodec/jni.h": "libavcodec/jni.h",
+    "include/libavcodec/mathops.h": "libavcodec/mathops.h",
+    "include/libavcodec/mediacodec.h": "libavcodec/mediacodec.h",
+    "include/libavcodec/parser.h": "libavcodec/parser.h",
+    "include/libavcodec/put_bits.h": "libavcodec/put_bits.h",
+    "include/libavcodec/qsv.h": "libavcodec/qsv.h",
+    "include/libavcodec/thread.h": "libavcodec/thread.h",
+    "include/libavcodec/ttexport.h": "libavcodec/ttexport.h",
+    "include/libavcodec/vaapi.h": "libavcodec/vaapi.h",
+    "include/libavcodec/vda.h": "libavcodec/vda.h",
+    "include/libavcodec/vda_vt_internal.h": "libavcodec/vda_vt_internal.h",
+    "include/libavcodec/vdpau.h": "libavcodec/vdpau.h",
+    "include/libavcodec/version.h": "libavcodec/version.h",
+    "include/libavcodec/videotoolbox.h": "libavcodec/videotoolbox.h",
+    "include/libavcodec/vlc.h": "libavcodec/vlc.h",
+    "include/libavcodec/vorbis_parser.h": "libavcodec/vorbis_parser.h",
+    "include/libavcodec/x86/mathops.h": "libavcodec/x86/mathops.h",
+    "include/libavcodec/xvmc.h": "libavcodec/xvmc.h",
+    "include/libavdevice/avdevice.h": "libavdevice/avdevice.h",
+    "include/libavdevice/config.h": "libavdevice/config.h",
+    "include/libavdevice/version.h": "libavdevice/version.h",
+    "include/libavfilter/avfilter.h": "libavfilter/avfilter.h",
+    "include/libavfilter/avfiltergraph.h": "libavfilter/avfiltergraph.h",
+    "include/libavfilter/buffersink.h": "libavfilter/buffersink.h",
+    "include/libavfilter/buffersrc.h": "libavfilter/buffersrc.h",
+    "include/libavfilter/config.h": "libavfilter/config.h",
+    "include/libavfilter/version.h": "libavfilter/version.h",
+    "include/libavformat/avc.h": "libavformat/avc.h",
+    "include/libavformat/avformat.h": "libavformat/avformat.h",
+    "include/libavformat/avio.h": "libavformat/avio.h",
+    "include/libavformat/avio_internal.h": "libavformat/avio_internal.h",
+    "include/libavformat/config.h": "libavformat/config.h",
+    "include/libavformat/dash.h": "libavformat/dash.h",
+    "include/libavformat/dv.h": "libavformat/dv.h",
+    "include/libavformat/internal.h": "libavformat/internal.h",
+    "include/libavformat/isom.h": "libavformat/isom.h",
+    "include/libavformat/network.h": "libavformat/network.h",
+    "include/libavformat/os_support.h": "libavformat/os_support.h",
+    "include/libavformat/sample_aes.h": "libavformat/sample_aes.h",
+    "include/libavformat/ttexport.h": "libavformat/ttexport.h",
+    "include/libavformat/url.h": "libavformat/url.h",
+    "include/libavformat/version.h": "libavformat/version.h",
+    "include/libavresample/avresample.h": "libavresample/avresample.h",
+    "include/libavresample/config.h": "libavresample/config.h",
+    "include/libavresample/version.h": "libavresample/version.h",
+    "include/libavutil/adler32.h": "libavutil/adler32.h",
+    "include/libavutil/aes.h": "libavutil/aes.h",
+    "include/libavutil/aes_ctr.h": "libavutil/aes_ctr.h",
+    "include/libavutil/arm64/avconfig.h": "libavutil/arm64/avconfig.h",
+    "include/libavutil/arm64/ffversion.h": "libavutil/arm64/ffversion.h",
+    "include/libavutil/armv7/avconfig.h": "libavutil/armv7/avconfig.h",
+    "include/libavutil/armv7/ffversion.h": "libavutil/armv7/ffversion.h",
+    "include/libavutil/attributes.h": "libavutil/attributes.h",
+    "include/libavutil/audio_fifo.h": "libavutil/audio_fifo.h",
+    "include/libavutil/avassert.h": "libavutil/avassert.h",
+    "include/libavutil/avconfig.h": "libavutil/avconfig.h",
+    "include/libavutil/avstring.h": "libavutil/avstring.h",
+    "include/libavutil/avutil.h": "libavutil/avutil.h",
+    "include/libavutil/base64.h": "libavutil/base64.h",
+    "include/libavutil/blowfish.h": "libavutil/blowfish.h",
+    "include/libavutil/bprint.h": "libavutil/bprint.h",
+    "include/libavutil/bswap.h": "libavutil/bswap.h",
+    "include/libavutil/buffer.h": "libavutil/buffer.h",
+    "include/libavutil/camellia.h": "libavutil/camellia.h",
+    "include/libavutil/cast5.h": "libavutil/cast5.h",
+    "include/libavutil/channel_layout.h": "libavutil/channel_layout.h",
+    "include/libavutil/check_info.h": "libavutil/check_info.h",
+    "include/libavutil/common.h": "libavutil/common.h",
+    "include/libavutil/config.h": "libavutil/config.h",
+    "include/libavutil/cpu.h": "libavutil/cpu.h",
+    "include/libavutil/crc.h": "libavutil/crc.h",
+    "include/libavutil/des.h": "libavutil/des.h",
+    "include/libavutil/dict.h": "libavutil/dict.h",
+    "include/libavutil/display.h": "libavutil/display.h",
+    "include/libavutil/dovi_meta.h": "libavutil/dovi_meta.h",
+    "include/libavutil/downmix_info.h": "libavutil/downmix_info.h",
+    "include/libavutil/drm.h": "libavutil/drm.h",
+    "include/libavutil/encryption_info.h": "libavutil/encryption_info.h",
+    "include/libavutil/error.h": "libavutil/error.h",
+    "include/libavutil/eval.h": "libavutil/eval.h",
+    "include/libavutil/ffversion.h": "libavutil/ffversion.h",
+    "include/libavutil/fifo.h": "libavutil/fifo.h",
+    "include/libavutil/file.h": "libavutil/file.h",
+    "include/libavutil/frame.h": "libavutil/frame.h",
+    "include/libavutil/hash.h": "libavutil/hash.h",
+    "include/libavutil/hmac.h": "libavutil/hmac.h",
+    "include/libavutil/hwcontext.h": "libavutil/hwcontext.h",
+    "include/libavutil/hwcontext_cuda.h": "libavutil/hwcontext_cuda.h",
+    "include/libavutil/hwcontext_dxva2.h": "libavutil/hwcontext_dxva2.h",
+    "include/libavutil/hwcontext_qsv.h": "libavutil/hwcontext_qsv.h",
+    "include/libavutil/hwcontext_vaapi.h": "libavutil/hwcontext_vaapi.h",
+    "include/libavutil/hwcontext_vdpau.h": "libavutil/hwcontext_vdpau.h",
+    "include/libavutil/hwcontext_videotoolbox.h": "libavutil/hwcontext_videotoolbox.h",
+    "include/libavutil/imgutils.h": "libavutil/imgutils.h",
+    "include/libavutil/intfloat.h": "libavutil/intfloat.h",
+    "include/libavutil/intreadwrite.h": "libavutil/intreadwrite.h",
+    "include/libavutil/lfg.h": "libavutil/lfg.h",
+    "include/libavutil/log.h": "libavutil/log.h",
+    "include/libavutil/macros.h": "libavutil/macros.h",
+    "include/libavutil/mastering_display_metadata.h": "libavutil/mastering_display_metadata.h",
+    "include/libavutil/mathematics.h": "libavutil/mathematics.h",
+    "include/libavutil/md5.h": "libavutil/md5.h",
+    "include/libavutil/mdl_info_wrapper.h": "libavutil/mdl_info_wrapper.h",
+    "include/libavutil/mem.h": "libavutil/mem.h",
+    "include/libavutil/motion_vector.h": "libavutil/motion_vector.h",
+    "include/libavutil/murmur3.h": "libavutil/murmur3.h",
+    "include/libavutil/opt.h": "libavutil/opt.h",
+    "include/libavutil/parseutils.h": "libavutil/parseutils.h",
+    "include/libavutil/pixdesc.h": "libavutil/pixdesc.h",
+    "include/libavutil/pixelutils.h": "libavutil/pixelutils.h",
+    "include/libavutil/pixfmt.h": "libavutil/pixfmt.h",
+    "include/libavutil/random_seed.h": "libavutil/random_seed.h",
+    "include/libavutil/rational.h": "libavutil/rational.h",
+    "include/libavutil/rc4.h": "libavutil/rc4.h",
+    "include/libavutil/replaygain.h": "libavutil/replaygain.h",
+    "include/libavutil/reverse.h": "libavutil/reverse.h",
+    "include/libavutil/ripemd.h": "libavutil/ripemd.h",
+    "include/libavutil/samplefmt.h": "libavutil/samplefmt.h",
+    "include/libavutil/sha.h": "libavutil/sha.h",
+    "include/libavutil/sha512.h": "libavutil/sha512.h",
+    "include/libavutil/spherical.h": "libavutil/spherical.h",
+    "include/libavutil/stereo3d.h": "libavutil/stereo3d.h",
+    "include/libavutil/tea.h": "libavutil/tea.h",
+    "include/libavutil/thread.h": "libavutil/thread.h",
+    "include/libavutil/threadmessage.h": "libavutil/threadmessage.h",
+    "include/libavutil/time.h": "libavutil/time.h",
+    "include/libavutil/time_internal.h": "libavutil/time_internal.h",
+    "include/libavutil/timecode.h": "libavutil/timecode.h",
+    "include/libavutil/timestamp.h": "libavutil/timestamp.h",
+    "include/libavutil/tree.h": "libavutil/tree.h",
+    "include/libavutil/ttexport.h": "libavutil/ttexport.h",
+    "include/libavutil/ttmapp.h": "libavutil/ttmapp.h",
+    "include/libavutil/twofish.h": "libavutil/twofish.h",
+    "include/libavutil/version.h": "libavutil/version.h",
+    "include/libavutil/x86_64/avconfig.h": "libavutil/x86_64/avconfig.h",
+    "include/libavutil/x86_64/ffversion.h": "libavutil/x86_64/ffversion.h",
+    "include/libavutil/xtea.h": "libavutil/xtea.h",
+    "include/libffmpeg/arm64/config.h": "libffmpeg/arm64/config.h",
+    "include/libffmpeg/armv7/config.h": "libffmpeg/armv7/config.h",
+    "include/libffmpeg/config.h": "libffmpeg/config.h",
+    "include/libffmpeg/x86_64/config.h": "libffmpeg/x86_64/config.h",
+    "include/libswresample/config.h": "libswresample/config.h",
+    "include/libswresample/swresample.h": "libswresample/swresample.h",
+    "include/libswresample/version.h": "libswresample/version.h",
+    "include/libswscale/config.h": "libswscale/config.h",
+    "include/libswscale/swscale.h": "libswscale/swscale.h",
+    "include/libswscale/version.h": "libswscale/version.h",
+  },
+  xcconfig_by_build_setting = defs_xcconfigs.get("TTFFmpeg", {}),
+  visibility = ["//visibility:public"],
+)

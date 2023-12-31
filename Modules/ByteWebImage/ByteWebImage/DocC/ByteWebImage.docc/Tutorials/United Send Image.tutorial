@@ -1,0 +1,33 @@
+@Tutorial(time: 5) {
+    @Intro(title: "统一发送组件") {
+        使用图片库自带的统一发送组件，以完成统一的检查上传流程。
+    }
+    
+    @Section(title: "使用统一发送组件") {
+        统一发送组件围绕 ``ByteWebImage/SendImageManager`` 展开。
+        
+        @Steps {
+            @Step {
+                创建 Uploader
+                
+                > 不同于图片下载接口的统一，图片上传的接口千奇百怪：富文本的Media\_V1\_UploadSecureImageRequest、头像的上传接口、Sticker 的上传接口等等
+                所以需要业务方明确上传方法，一起完成上传步骤
+                
+                @Code(name: "ThisUploader.swift", file: 01-United-Send-Image-01.swift)
+                
+            }
+            
+            @Step {
+                生成 Request
+                
+                @Code(name: "ThisUploader.swift", file: 01-United-Send-Image-02.swift)
+            }
+            
+            @Step {
+                发起上传
+                
+                @Code(name: "ThisUploader.swift", file: 01-United-Send-Image-03.swift)
+            }
+        }
+    }
+}

@@ -1,0 +1,15 @@
+type: pipeline # 必填, 表示类型为pipeline
+
+jobs:
+  package: 
+    type: service 
+    service_name: template # 如果非打包的话，用template
+    display_name: 集成主仓
+    settings: 
+      template_config_id: 82
+      GemfileLockClean: "false"
+      os_type: 1
+      required_resource: 1
+      # queue_id: 4
+      queue_id: 419 # LarkCIVIP
+

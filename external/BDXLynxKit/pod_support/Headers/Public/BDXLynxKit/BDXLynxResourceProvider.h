@@ -1,0 +1,1 @@
+../../../../XService/BDXLynxKit/Classes/LynxKit/BDXLynxResourceProvider.h

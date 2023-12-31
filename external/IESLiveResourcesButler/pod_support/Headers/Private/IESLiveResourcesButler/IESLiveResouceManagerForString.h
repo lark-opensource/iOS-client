@@ -1,0 +1,1 @@
+../../../../IESLiveResourcesButler/Classes/AssetTypes/IESLiveResouceManagerForString.h

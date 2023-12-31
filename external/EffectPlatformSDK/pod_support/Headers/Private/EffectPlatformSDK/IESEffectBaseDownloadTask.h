@@ -1,0 +1,1 @@
+../../../../EffectPlatformSDK/Core/Internal/Download/IESEffectBaseDownloadTask.h

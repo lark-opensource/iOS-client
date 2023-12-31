@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/HMDOOMCrash/Common/Public/HMDOOMCrashDetectorDelegate.h

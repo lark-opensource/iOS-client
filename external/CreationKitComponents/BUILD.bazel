@@ -1,0 +1,1647 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "CreationKitComponents_pod_hdrs",
+  srcs = [
+    ":CreationKitComponents_root_pod_hdrs",
+    ":Recorder_pod_hdrs",
+    ":Recorder_Filter_pod_hdrs",
+    ":Recorder_Filter_Core_pod_hdrs",
+    ":Recorder_Filter_Dependencies_pod_hdrs",
+    ":Recorder_Filter_Service_pod_hdrs",
+    ":Recorder_BeautyPanelComponent_pod_hdrs",
+    ":Recorder_BeautyPanelComponent_Core_pod_hdrs",
+    ":Recorder_BeautyPanelComponent_Dependencies_pod_hdrs",
+    ":Recorder_BeautyPanelComponent_Service_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "CreationKitComponents_private_includes",
+  include = [
+    "external/CreationKitComponents/pod_support/Headers/Private/CreationKitComponents/"
+  ],
+  deps = [],
+  external_name = "CreationKitComponents"
+)
+gen_includes(
+  name = "CreationKitComponents_public_includes",
+  include = [
+    "external/CreationKitComponents/pod_support/Headers/Public/CreationKitComponents/"
+  ],
+  deps = [],
+  external_name = "CreationKitComponents"
+)
+filegroup(
+  name = "_CreationKitComponents_hdrs",
+  srcs = [
+    ":CreationKitComponents_root_hdrs",
+    ":Recorder_hdrs",
+    ":Recorder_Filter_hdrs",
+    ":Recorder_Filter_Core_hdrs",
+    ":Recorder_Filter_Dependencies_hdrs",
+    ":Recorder_Filter_Service_hdrs",
+    ":Recorder_BeautyPanelComponent_hdrs",
+    ":Recorder_BeautyPanelComponent_Core_hdrs",
+    ":Recorder_BeautyPanelComponent_Dependencies_hdrs",
+    ":Recorder_BeautyPanelComponent_Service_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "CreationKitComponents_xcode_hmapsource",
+  hdrs = [
+    ":CreationKitComponents_root_hdrs",
+    ":Recorder_hdrs",
+    ":Recorder_BeautyPanelComponent_hdrs",
+    ":Recorder_BeautyPanelComponent_Core_hdrs",
+    ":Recorder_BeautyPanelComponent_Dependencies_hdrs",
+    ":Recorder_BeautyPanelComponent_Service_hdrs",
+    ":Recorder_Filter_hdrs",
+    ":Recorder_Filter_Core_hdrs",
+    ":Recorder_Filter_Dependencies_hdrs",
+    ":Recorder_Filter_Service_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "CreationKitComponents_xcode_hmap",
+  dep = ":CreationKitComponents_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/CreationKitComponents/*-bitsky-generated.modulemap", "pod_support/Headers/Public/CreationKitComponents/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "CreationKitComponents_Recorder_Filter_Core_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libCreationKitComponents-c0e6046.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "CreationKitComponents_Recorder_BeautyPanelComponent_Core_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libCreationKitComponents-a66206a.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "CreationKitComponents_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "CreationKitComponents",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "CreationKitComponents_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":CreationKitComponents_xcode_hmap"
+  ],
+  external_name = "CreationKitComponents",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CreationKitComponents_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CreationKitComponents_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CreationKitComponents_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CreationKitComponents_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "CreationKitComponents_module_map",
+  module_map = "pod_support/Headers/Public/CreationKitComponents/CreationKitComponents-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreationKitComponents/CreationKitComponents-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CreationKitComponents_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "CreationKitComponents_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreationKitComponents_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreationKitComponents_private_includes",
+    ":CreationKitComponents_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":CreationKitComponents_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CreationKitComponents",
+  deps = [
+    ":CreationKitComponents_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "CreationKitComponents_lib",
+  deps = [
+    ":CreationKitComponents"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Recorder_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Recorder_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Recorder_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Recorder_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Recorder_module_map",
+  module_map = "pod_support/Headers/Public/CreationKitComponents/CreationKitComponents_Recorder-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreationKitComponents/CreationKitComponents_Recorder-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Recorder_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Recorder_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreationKitComponents_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreationKitComponents_private_includes",
+    ":CreationKitComponents_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Recorder_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Recorder",
+  deps = [
+    ":Recorder_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Recorder_lib",
+  deps = [
+    ":Recorder"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Recorder_Filter_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Recorder_Filter_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Recorder_Filter_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Recorder_Filter_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Recorder_Filter_module_map",
+  module_map = "pod_support/Headers/Public/CreationKitComponents/CreationKitComponents_Recorder_Filter-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreationKitComponents/CreationKitComponents_Recorder_Filter-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Recorder_Filter_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Recorder_Filter_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreationKitComponents_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreationKitComponents_private_includes",
+    ":CreationKitComponents_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Recorder_Filter_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Recorder_Filter",
+  deps = [
+    ":Recorder_Filter_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Recorder_Filter_lib",
+  deps = [
+    ":Recorder_Filter"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Recorder_Filter_Core_hdrs",
+  srcs = [
+    "Recorder/Filter/Core/ACCFilterComponent.h",
+    "Recorder/Filter/Core/ACCFilterConfigKeyDefines.h",
+    "Recorder/Filter/Core/ACCFilterDefines.h",
+    "Recorder/Filter/Core/Configuration/ACCOldFilterDefaultUIConfiguration.h",
+    "Recorder/Filter/Core/Configuration/ACCOldFilterUIConfigurationProtocol.h",
+    "Recorder/Filter/Core/Controllers/AWERecordFilterViewControllerDelegate.h",
+    "Recorder/Filter/Core/Controllers/AWETabFilterViewController.h",
+    "Recorder/Filter/Core/Managers/ACCFilterUtils.h",
+    "Recorder/Filter/Core/Managers/AWECameraFilterConfiguration.h",
+    "Recorder/Filter/Core/Track/ACCFilterTrackSenderProtocol.h",
+    "Recorder/Filter/Core/Track/ACCFilterTrackerSender.h",
+    "Recorder/Filter/Core/Views/AWEFilterBoxView.h",
+    "Recorder/Filter/Core/Views/AWETabControlledCollectionWrapperView.h",
+    "Recorder/Filter/Core/Views/AWETabTitleControl.h",
+    "Recorder/Filter/Core/Views/HTSVideoFilterTableViewCell.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Recorder_Filter_Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CreationKitComponents/ACCFilterComponent.h",
+    "pod_support/Headers/Private/CreationKitComponents/ACCFilterConfigKeyDefines.h",
+    "pod_support/Headers/Private/CreationKitComponents/ACCFilterDefines.h",
+    "pod_support/Headers/Private/CreationKitComponents/ACCFilterTrackSenderProtocol.h",
+    "pod_support/Headers/Private/CreationKitComponents/ACCFilterTrackerSender.h",
+    "pod_support/Headers/Private/CreationKitComponents/ACCFilterUtils.h",
+    "pod_support/Headers/Private/CreationKitComponents/ACCOldFilterDefaultUIConfiguration.h",
+    "pod_support/Headers/Private/CreationKitComponents/ACCOldFilterUIConfigurationProtocol.h",
+    "pod_support/Headers/Private/CreationKitComponents/AWECameraFilterConfiguration.h",
+    "pod_support/Headers/Private/CreationKitComponents/AWEFilterBoxView.h",
+    "pod_support/Headers/Private/CreationKitComponents/AWERecordFilterViewControllerDelegate.h",
+    "pod_support/Headers/Private/CreationKitComponents/AWETabControlledCollectionWrapperView.h",
+    "pod_support/Headers/Private/CreationKitComponents/AWETabFilterViewController.h",
+    "pod_support/Headers/Private/CreationKitComponents/AWETabTitleControl.h",
+    "pod_support/Headers/Private/CreationKitComponents/HTSVideoFilterTableViewCell.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCFilterComponent.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCFilterConfigKeyDefines.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCFilterDefines.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCFilterTrackSenderProtocol.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCFilterTrackerSender.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCFilterUtils.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCOldFilterDefaultUIConfiguration.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCOldFilterUIConfigurationProtocol.h",
+    "pod_support/Headers/Public/CreationKitComponents/AWECameraFilterConfiguration.h",
+    "pod_support/Headers/Public/CreationKitComponents/AWEFilterBoxView.h",
+    "pod_support/Headers/Public/CreationKitComponents/AWERecordFilterViewControllerDelegate.h",
+    "pod_support/Headers/Public/CreationKitComponents/AWETabControlledCollectionWrapperView.h",
+    "pod_support/Headers/Public/CreationKitComponents/AWETabFilterViewController.h",
+    "pod_support/Headers/Public/CreationKitComponents/AWETabTitleControl.h",
+    "pod_support/Headers/Public/CreationKitComponents/HTSVideoFilterTableViewCell.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Recorder_Filter_Core_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Recorder_Filter_Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Recorder_Filter_Core_module_map",
+  module_map = "pod_support/Headers/Public/CreationKitComponents/CreationKitComponents_Recorder_Filter_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreationKitComponents/CreationKitComponents_Recorder_Filter_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Recorder_Filter_Core_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Recorder_Filter_Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":CreationKitComponents_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreationKitComponents_private_includes",
+    ":CreationKitComponents_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@CreationKitArch//:CreationKitArch_objc_interface",
+    "@CreationKitInfra//:CreationKitInfra_objc_interface",
+    "@CreativeKit//:CreativeKit_objc_interface",
+    "@EffectPlatformSDK//:ModelDistribute_objc_interface",
+    "@Mantle//:Mantle_objc_interface",
+    "@Masonry//:Masonry_objc_interface",
+    "@ReactiveObjC//:ReactiveObjC_objc_interface",
+    "@CreationKitArch//:CreationKitArch_swift_interface",
+    "@CreationKitInfra//:CreationKitInfra_swift_interface",
+    "@CreativeKit//:CreativeKit_swift_interface",
+    "@EffectPlatformSDK//:ModelDistribute_swift_interface",
+    "@Mantle//:Mantle_swift_interface",
+    "@Masonry//:Masonry_swift_interface",
+    "@ReactiveObjC//:ReactiveObjC_swift_interface",
+    ":CreationKitComponents_Recorder_Filter_Core_VendoredLibraries",
+    ":Recorder_Filter_Core_objc_interface",
+    "@CreationKitArch//:CreationKitArch_module_map",
+    "@CreationKitInfra//:CreationKitInfra_module_map",
+    "@CreativeKit//:CreativeKit_module_map",
+    "@EffectPlatformSDK//:ModelDistribute_module_map",
+    "@Mantle//:Mantle_module_map",
+    "@Masonry//:Masonry_module_map",
+    "@ReactiveObjC//:ReactiveObjC_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Recorder_Filter_Core",
+  deps = [
+    ":Recorder_Filter_Core_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Recorder_Filter_Core_lib",
+  deps = [
+    ":Recorder_Filter_Core"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Recorder_Filter_Dependencies_hdrs",
+  srcs = [
+    "Recorder/Filter/Dependencies/ACCFilterDataService.h",
+    "Recorder/Filter/Dependencies/ACCFilterPrivateService.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Recorder_Filter_Dependencies_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CreationKitComponents/ACCFilterDataService.h",
+    "pod_support/Headers/Private/CreationKitComponents/ACCFilterPrivateService.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCFilterDataService.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCFilterPrivateService.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Recorder_Filter_Dependencies_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Recorder_Filter_Dependencies_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Recorder_Filter_Dependencies_module_map",
+  module_map = "pod_support/Headers/Public/CreationKitComponents/CreationKitComponents_Recorder_Filter_Dependencies-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreationKitComponents/CreationKitComponents_Recorder_Filter_Dependencies-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Recorder_Filter_Dependencies_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Recorder_Filter_Dependencies_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":CreationKitComponents_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreationKitComponents_private_includes",
+    ":CreationKitComponents_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@CreationKitArch//:CreationKitArch_objc_interface",
+    "@CreationKitArch//:CreationKitArch_swift_interface",
+    ":Recorder_Filter_Dependencies_objc_interface",
+    "@CreationKitArch//:CreationKitArch_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Recorder_Filter_Dependencies",
+  deps = [
+    ":Recorder_Filter_Dependencies_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Recorder_Filter_Dependencies_lib",
+  deps = [
+    ":Recorder_Filter_Dependencies"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Recorder_Filter_Service_hdrs",
+  srcs = [
+    "Recorder/Filter/Service/ACCFilterService.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Recorder_Filter_Service_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CreationKitComponents/ACCFilterService.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCFilterService.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Recorder_Filter_Service_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Recorder_Filter_Service_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Recorder_Filter_Service_module_map",
+  module_map = "pod_support/Headers/Public/CreationKitComponents/CreationKitComponents_Recorder_Filter_Service-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreationKitComponents/CreationKitComponents_Recorder_Filter_Service-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Recorder_Filter_Service_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Recorder_Filter_Service_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":CreationKitComponents_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreationKitComponents_private_includes",
+    ":CreationKitComponents_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@CreationKitArch//:CreationKitArch_objc_interface",
+    "@CreationKitArch//:CreationKitArch_swift_interface",
+    ":Recorder_Filter_Service_objc_interface",
+    "@CreationKitArch//:CreationKitArch_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Recorder_Filter_Service",
+  deps = [
+    ":Recorder_Filter_Service_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Recorder_Filter_Service_lib",
+  deps = [
+    ":Recorder_Filter_Service"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Recorder_BeautyPanelComponent_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Recorder_BeautyPanelComponent_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Recorder_BeautyPanelComponent_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Recorder_BeautyPanelComponent_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Recorder_BeautyPanelComponent_module_map",
+  module_map = "pod_support/Headers/Public/CreationKitComponents/CreationKitComponents_Recorder_BeautyPanelComponent-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreationKitComponents/CreationKitComponents_Recorder_BeautyPanelComponent-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Recorder_BeautyPanelComponent_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Recorder_BeautyPanelComponent_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreationKitComponents_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreationKitComponents_private_includes",
+    ":CreationKitComponents_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Recorder_BeautyPanelComponent_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Recorder_BeautyPanelComponent",
+  deps = [
+    ":Recorder_BeautyPanelComponent_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Recorder_BeautyPanelComponent_lib",
+  deps = [
+    ":Recorder_BeautyPanelComponent"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Recorder_BeautyPanelComponent_Core_hdrs",
+  srcs = [
+    "Recorder/BeautyPanelComponent/Core/ACCBeautyConfigKeyDefines.h",
+    "Recorder/BeautyPanelComponent/Core/ACCBeautyFeatureComponent.h",
+    "Recorder/BeautyPanelComponent/Core/BeautyFeature/ACCBeautyComponentConfigProtocol.h",
+    "Recorder/BeautyPanelComponent/Core/BeautyFeature/ACCBeautyDataHandler.h",
+    "Recorder/BeautyPanelComponent/Core/BeautyFeature/ACCBeautyManager.h",
+    "Recorder/BeautyPanelComponent/Core/BeautyFeature/ACCBeautyPanel.h",
+    "Recorder/BeautyPanelComponent/Core/BeautyFeature/ACCBeautyPanelViewModel.h",
+    "Recorder/BeautyPanelComponent/Core/BeautyFeature/Beauty/Controller/AWEComposerBeautyViewController+ACCPanelViewProtocol.h",
+    "Recorder/BeautyPanelComponent/Core/Categories/ACCBeautyFeatureComponent+BeautyDelegate.h",
+    "Recorder/BeautyPanelComponent/Core/Categories/ACCBeautyFeatureComponent+Private.h",
+    "Recorder/BeautyPanelComponent/Core/Track/ACCBeautyTrackSenderProtocol.h",
+    "Recorder/BeautyPanelComponent/Core/Track/ACCBeautyTrackerSender.h",
+    "Recorder/BeautyPanelComponent/Core/Views/ACCBeautyFeatureComponentView.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Recorder_BeautyPanelComponent_Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CreationKitComponents/ACCBeautyComponentConfigProtocol.h",
+    "pod_support/Headers/Private/CreationKitComponents/ACCBeautyConfigKeyDefines.h",
+    "pod_support/Headers/Private/CreationKitComponents/ACCBeautyDataHandler.h",
+    "pod_support/Headers/Private/CreationKitComponents/ACCBeautyFeatureComponent+BeautyDelegate.h",
+    "pod_support/Headers/Private/CreationKitComponents/ACCBeautyFeatureComponent+Private.h",
+    "pod_support/Headers/Private/CreationKitComponents/ACCBeautyFeatureComponent.h",
+    "pod_support/Headers/Private/CreationKitComponents/ACCBeautyFeatureComponentView.h",
+    "pod_support/Headers/Private/CreationKitComponents/ACCBeautyManager.h",
+    "pod_support/Headers/Private/CreationKitComponents/ACCBeautyPanel.h",
+    "pod_support/Headers/Private/CreationKitComponents/ACCBeautyPanelViewModel.h",
+    "pod_support/Headers/Private/CreationKitComponents/ACCBeautyTrackSenderProtocol.h",
+    "pod_support/Headers/Private/CreationKitComponents/ACCBeautyTrackerSender.h",
+    "pod_support/Headers/Private/CreationKitComponents/AWEComposerBeautyViewController+ACCPanelViewProtocol.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCBeautyComponentConfigProtocol.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCBeautyConfigKeyDefines.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCBeautyDataHandler.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCBeautyFeatureComponent+BeautyDelegate.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCBeautyFeatureComponent+Private.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCBeautyFeatureComponent.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCBeautyFeatureComponentView.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCBeautyManager.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCBeautyPanel.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCBeautyPanelViewModel.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCBeautyTrackSenderProtocol.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCBeautyTrackerSender.h",
+    "pod_support/Headers/Public/CreationKitComponents/AWEComposerBeautyViewController+ACCPanelViewProtocol.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Recorder_BeautyPanelComponent_Core_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Recorder_BeautyPanelComponent_Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Recorder_BeautyPanelComponent_Core_module_map",
+  module_map = "pod_support/Headers/Public/CreationKitComponents/CreationKitComponents_Recorder_BeautyPanelComponent_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreationKitComponents/CreationKitComponents_Recorder_BeautyPanelComponent_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Recorder_BeautyPanelComponent_Core_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Recorder_BeautyPanelComponent_Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":CreationKitComponents_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreationKitComponents_private_includes",
+    ":CreationKitComponents_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@CreationKitArch//:CreationKitArch_objc_interface",
+    "@CreationKitBeauty//:CreationKitBeauty_objc_interface",
+    "@CreationKitInfra//:CreationKitInfra_objc_interface",
+    "@CreativeKit//:CreativeKit_objc_interface",
+    "@Mantle//:Mantle_objc_interface",
+    "@Masonry//:Masonry_objc_interface",
+    "@ReactiveObjC//:ReactiveObjC_objc_interface",
+    "@CreationKitArch//:CreationKitArch_swift_interface",
+    "@CreationKitBeauty//:CreationKitBeauty_swift_interface",
+    "@CreationKitInfra//:CreationKitInfra_swift_interface",
+    "@CreativeKit//:CreativeKit_swift_interface",
+    "@Mantle//:Mantle_swift_interface",
+    "@Masonry//:Masonry_swift_interface",
+    "@ReactiveObjC//:ReactiveObjC_swift_interface",
+    ":CreationKitComponents_Recorder_BeautyPanelComponent_Core_VendoredLibraries",
+    ":Recorder_BeautyPanelComponent_Core_objc_interface",
+    "@CreationKitArch//:CreationKitArch_module_map",
+    "@CreationKitBeauty//:CreationKitBeauty_module_map",
+    "@CreationKitInfra//:CreationKitInfra_module_map",
+    "@CreativeKit//:CreativeKit_module_map",
+    "@Mantle//:Mantle_module_map",
+    "@Masonry//:Masonry_module_map",
+    "@ReactiveObjC//:ReactiveObjC_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Recorder_BeautyPanelComponent_Core",
+  deps = [
+    ":Recorder_BeautyPanelComponent_Core_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Recorder_BeautyPanelComponent_Core_lib",
+  deps = [
+    ":Recorder_BeautyPanelComponent_Core"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Recorder_BeautyPanelComponent_Dependencies_hdrs",
+  srcs = [
+    "Recorder/BeautyPanelComponent/Dependencies/ACCBeautyDataService.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Recorder_BeautyPanelComponent_Dependencies_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CreationKitComponents/ACCBeautyDataService.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCBeautyDataService.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Recorder_BeautyPanelComponent_Dependencies_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Recorder_BeautyPanelComponent_Dependencies_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Recorder_BeautyPanelComponent_Dependencies_module_map",
+  module_map = "pod_support/Headers/Public/CreationKitComponents/CreationKitComponents_Recorder_BeautyPanelComponent_Dependencies-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreationKitComponents/CreationKitComponents_Recorder_BeautyPanelComponent_Dependencies-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Recorder_BeautyPanelComponent_Dependencies_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Recorder_BeautyPanelComponent_Dependencies_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":CreationKitComponents_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreationKitComponents_private_includes",
+    ":CreationKitComponents_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@CreationKitArch//:CreationKitArch_objc_interface",
+    "@CreationKitArch//:CreationKitArch_swift_interface",
+    ":Recorder_BeautyPanelComponent_Dependencies_objc_interface",
+    "@CreationKitArch//:CreationKitArch_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Recorder_BeautyPanelComponent_Dependencies",
+  deps = [
+    ":Recorder_BeautyPanelComponent_Dependencies_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Recorder_BeautyPanelComponent_Dependencies_lib",
+  deps = [
+    ":Recorder_BeautyPanelComponent_Dependencies"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Recorder_BeautyPanelComponent_Service_hdrs",
+  srcs = [
+    "Recorder/BeautyPanelComponent/Service/ACCBeautyService.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Recorder_BeautyPanelComponent_Service_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CreationKitComponents/ACCBeautyService.h",
+    "pod_support/Headers/Public/CreationKitComponents/ACCBeautyService.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Recorder_BeautyPanelComponent_Service_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Recorder_BeautyPanelComponent_Service_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Recorder_BeautyPanelComponent_Service_module_map",
+  module_map = "pod_support/Headers/Public/CreationKitComponents/CreationKitComponents_Recorder_BeautyPanelComponent_Service-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreationKitComponents/CreationKitComponents_Recorder_BeautyPanelComponent_Service-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Recorder_BeautyPanelComponent_Service_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Recorder_BeautyPanelComponent_Service_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation"
+  ],
+  deps = [
+    ":CreationKitComponents_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreationKitComponents_private_includes",
+    ":CreationKitComponents_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@CreationKitArch//:CreationKitArch_objc_interface",
+    "@CreationKitBeauty//:CreationKitBeauty_objc_interface",
+    "@CreationKitArch//:CreationKitArch_swift_interface",
+    "@CreationKitBeauty//:CreationKitBeauty_swift_interface",
+    ":Recorder_BeautyPanelComponent_Service_objc_interface",
+    "@CreationKitArch//:CreationKitArch_module_map",
+    "@CreationKitBeauty//:CreationKitBeauty_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Recorder_BeautyPanelComponent_Service",
+  deps = [
+    ":Recorder_BeautyPanelComponent_Service_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Recorder_BeautyPanelComponent_Service_lib",
+  deps = [
+    ":Recorder_BeautyPanelComponent_Service"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_CreationKitComponents_module_map",
+  module_map = "@CreationKitComponents//:pod_support/Headers/Public/CreationKitComponents/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@CreationKitComponents//:pod_support/Headers/Public/CreationKitComponents/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_CreationKitComponents_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@CreationKitComponents//:CreationKitComponents_objc_interface", "@CreationKitComponents//:Recorder_objc_interface", "@CreationKitComponents//:Recorder_BeautyPanelComponent_objc_interface", "@CreationKitComponents//:Recorder_BeautyPanelComponent_Core_objc_interface", "@CreationKitComponents//:Recorder_BeautyPanelComponent_Dependencies_objc_interface", "@CreationKitComponents//:Recorder_BeautyPanelComponent_Service_objc_interface", "@CreationKitComponents//:Recorder_Filter_objc_interface", "@CreationKitComponents//:Recorder_Filter_Core_objc_interface", "@CreationKitComponents//:Recorder_Filter_Dependencies_objc_interface", "@CreationKitComponents//:Recorder_Filter_Service_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_library")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_library(
+  name = "Lark_CreationKitComponents",
+  target_name = "Lark",
+  module_name = "CreationKitComponents",
+  hdrs = ["@CreationKitComponents//:CreationKitComponents_root_pod_hdrs", "@CreationKitComponents//:Recorder_pod_hdrs", "@CreationKitComponents//:Recorder_BeautyPanelComponent_pod_hdrs", "@CreationKitComponents//:Recorder_BeautyPanelComponent_Core_pod_hdrs", "@CreationKitComponents//:Recorder_BeautyPanelComponent_Dependencies_pod_hdrs", "@CreationKitComponents//:Recorder_BeautyPanelComponent_Service_pod_hdrs", "@CreationKitComponents//:Recorder_Filter_pod_hdrs", "@CreationKitComponents//:Recorder_Filter_Core_pod_hdrs", "@CreationKitComponents//:Recorder_Filter_Dependencies_pod_hdrs", "@CreationKitComponents//:Recorder_Filter_Service_pod_hdrs"],
+  srcs = [],
+  non_arc_srcs = [],
+  deps = ["@CreationKitComponents//:CreationKitComponents_Recorder_BeautyPanelComponent_Core_VendoredLibraries", "@CreationKitComponents//:CreationKitComponents_Recorder_Filter_Core_VendoredLibraries"],
+  pod_deps = ["CreationKitArch", "CreationKitBeauty", "CreationKitInfra", "CreativeKit", "Mantle", "Masonry", "ReactiveObjC", "EffectPlatformSDK"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "CreationKitComponents_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "CreationKitComponents_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["Foundation"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "CreationKitComponents_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "CreationKitComponents_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "CreationKitComponents_dynamic", False),
+  tags = getattr(defs_external_objc_library, "CreationKitComponents_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("CreationKitComponents", {}),
+  visibility = ["//visibility:public"],
+)

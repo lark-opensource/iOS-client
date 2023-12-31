@@ -1,0 +1,637 @@
+# coding: utf-8
+
+require 'yaml'
+
+build = ENV["build"]
+
+ci = "ee.byted.org/ci/job/devops/job/bricks/"
+job = "ee-ios-infra"
+
+task :default do
+  if not build
+    puts "build not found. Please use rake build=[build number]"
+    exit
+  end
+  if File.exist?("personal-ci-auth")
+    output = "/tmp/#{job}-#{build}"
+    system("JENKINS_URL=https://`cat personal-ci-auth`@#{ci} nestor console #{job} #{build} > #{output}")
+    puts(output)
+  else
+    puts "未检测到配置，让我们先配置一下再使用吧。"
+    system("rake setupNestor")
+  end
+end
+
+task :setupNestor do
+  system("command -v nestor > /dev/null || npm install -g nestor")
+  username = `git config user.email|awk -F@ '{print $1}'`.strip()
+  puts "接下来将打开Jenkins，请点击“添加新Token”来生成token，然后复制token内容，返回这里"
+  `read -p "按回车键继续..."`
+  `open https://ee.byted.org/ci/user/#{username}/configure`
+  `read -p "已复制token？按回车键继续..."`
+  `echo #{username}:\`pbpaste\` > personal-ci-auth`
+  puts `echo export JENKINS_URL=https://\`cat personal-ci-auth\`@#{ci}`
+  `export JENKINS_URL=https://\`cat personal-ci-auth\`@#{ci}`
+end
+
+# Update all biz and libs podspec version to next alpha one.
+task :minor do
+  Dir.glob("./**/*.podspec").each do |path|
+    podspec = File.open(path).read
+    version = podspec[/\w+\.version\s*=\s*['"]([^'"]+)['"]/, 1]
+    first_version = version[/(\d+)/, 1]
+    second_version = Integer(version[/\d+\.(\d+).+/, 1])
+    new_version = "#{first_version}.#{second_version+1}.0"
+    File.write(path, podspec.sub!(version, new_version))
+  end
+end
+
+# 升高Pod patch位  e.g. rake patch[larkaccount] (larkaccount支持写成小写的)
+# 如果需要升级多个pod, 可以使用: echo larkaccount larkaccountinterface larkbaseservice | xargs -n1 -I {} rake patch[{}]
+task :patch, [:arg1] do |t, args|
+  pod = args[:arg1]
+  path = `fd -a -e podspec #{pod}.podspec`.chomp
+  podname = `fd -e podspec #{pod}.podspec -x echo {/.}`.chomp
+
+  major, minor, patch, alpha = find_podspec_version(path)
+  patch += 1
+  new_version = "#{major}.#{minor}.#{patch}"
+
+  podspec = File.open(path).read
+  version = podspec[/s\.version\s*=\s*['"]([^'"]+)['"]/, 1]
+  File.write(path, podspec.sub!(version, new_version))
+
+  puts "#{podname}从#{version}升级到#{new_version}"
+end
+
+def find_podspec_version(path)
+  podspec = File.open(path).read
+  version = podspec[/s\.version\s*=\s*['"]([^'"]+)['"]/, 1]
+  major = Integer(version[/(\d+)/, 1] || "0")
+  minor = Integer(version[/\d+\.(\d+).+/, 1] || "0")
+  patch = Integer(version[/\d+\.\d+\.(\d+).*/, 1] || "0")
+  alpha = Integer(version[/.*alpha.(\d+)/, 1] || "-1")
+  [major, minor, patch, alpha]
+end
+
+# 根据ios-client中podfile.lock中记录的版本信息，生成ios-infra中pod对应的podspec.patch文件。
+# 需要保证ios-infra和ios-client同一目录
+# e.g. rake podspec_patch[LarkAccount] （LarkAccount可忽略大小写）
+# e.g. rake podspec_patch[LarkAccount,../ios-client]（LarkAccount可忽略大小写,指定ios-client目录）
+# 推荐直接执行 rake podspec_patch[LarkAccount] | pbcopy，然后粘贴到对应podspec.patch文件中
+# 如果遇到fd找不到，执行一下brew insall fd
+task :podspec_patch, [:arg1, :arg2] do |t, args|
+  pod_name = args[:arg1]
+  ios_client_path = args[:arg2]
+  pod_lock_path = "../ios-client/Podfile.lock"
+  if !ios_client_path.nil?
+    pod_lock_path = "#{ios_client_path}/Podfile.lock"
+  end
+
+  ios_client_podfile_lock = YAML.load_file (pod_lock_path)
+
+  # 解析 pod name 和 version
+  def parsePodAndVersion(message)
+    items = message.split(" ")
+    return items[0].split("/")[0], items[1][/\((.*)\)/, 1]
+  end
+
+  pods_with_version = Hash.new #记录有所pod的版本信息
+  pods_with_dependency = Hash.new #记录所有pod的依赖信息
+  pods_with_repos = Hash.new
+
+  ios_client_podfile_lock["PODS"].each do |item|
+    if item.class == Hash
+      key = item.keys[0]
+      pod, version = parsePodAndVersion(key)
+      pods_with_version[pod] = version
+      pods_with_dependency[key.split(" ")[0] ] = item[key].map { |v| v.split(" ")[0] }
+    else
+      pod, version = parsePodAndVersion(item)
+      pods_with_version[pod] = version
+    end
+  end
+
+  # gem install fast_trie fast_trie-0.5.1.gem
+  require 'trie'
+  pods_trie = Trie.new
+  all_pods = pods_with_dependency.keys + pods_with_dependency.values
+  all_pods.flatten.uniq.each { |d|
+    pods_trie.add d
+  }
+
+  ios_client_podfile_lock["SPEC REPOS"].each do |item|
+      repo = item[0]
+      pods = item[1]
+      pods.each { |pod|
+        pods_with_repos[pod] = repo
+      }
+  end
+
+  pod_real_name = `fd -e podspec #{pod_name}.podspec -x echo {/.}`.chomp
+  pod_spec_path = `fd -e podspec #{pod_name}.podspec`.chomp
+  pod_spec_app_path = File.expand_path("app/app", File.dirname(pod_spec_path))
+  pod_lock_path = File.expand_path("Podfile.lock", File.dirname(pod_spec_path))
+  pod_spec_patch_path = File.expand_path("#{pod_name}.podspec.patch", File.dirname(pod_spec_path))
+  `rm #{pod_lock_path}`
+
+  pod_spec_dependencies = Array.new
+  File.open(pod_spec_path).read
+  File.readlines(pod_spec_path).each { |line|
+    dependency = line[/dependency.*['"](\w+)['"].*/, 1]
+    if !dependency.nil?
+      pod_spec_dependencies << dependency
+    end
+  }
+
+  app_dependencies = Array.new
+  Dir["#{pod_spec_app_path}/**/*.swift"].each { |d|
+    File.open(d).read
+    File.readlines(d).each { |line|
+      dependency = line[/import\s(\w+)\s*/, 1]
+      if !dependency.nil? && dependency != pod_name
+        app_dependencies << dependency
+      end
+    }
+  }
+  app_dependencies = app_dependencies.uniq.sort
+
+  def find_dependencies(d, pods_with_dependency, pods_trie)
+    new_dependencies = pods_with_dependency[d]
+    if new_dependencies.nil?
+      new_dependencies = []
+    end
+    if !d.include?("/")
+      new_dependencies += pods_trie.children("#{d}/")
+    end
+    if !new_dependencies.nil? and new_dependencies.size > 0
+      [d] + new_dependencies.map { |d|
+        find_dependencies(d, pods_with_dependency, pods_trie)
+      }.flatten
+    else
+      [d]
+    end
+  end
+
+  class Pod
+    def initialize(name, subspecs, version, source, feature)
+      @name = name
+      @subspecs = subspecs
+      @version = version
+      @source = source
+      @feature = feature
+    end
+
+    def description
+      prefix = "debug_dependency '#{@name}', '#{@version}'"
+      if !@source.nil? and @source.start_with?("git")
+        prefix += ", :source => '#{@source}'"
+      end
+      if !@subspecs.nil? and !@subspecs.empty?
+        Array.new.join
+        sufix = @subspecs.map { |subspec| """#{subspec}"""}
+        sufix.join(", ")
+        sufix = ", :subspecs => #{sufix}"
+        prefix += sufix
+      end
+
+      if !@feature.nil?
+        prefix + ", :feature => '#{@feature}'"
+      else
+        prefix
+      end
+    end
+  end
+
+  # podspec feature 信息不好找, grep -rh ".feature" **/*.podspec 查出来的写死
+  features = %w[CallKit AppsFlyerFramework KA OneKeyLogin InternalDependency InternalSnsShareDependency InternationalSnsShareDependency InternalDependency OverSeaDependency]
+
+  verify_dependencies = pod_spec_dependencies + app_dependencies
+
+  all_verify_spec_dependencies = verify_dependencies
+                                     .map { |d|
+                                       sub_deps = pods_with_dependency.keys.select { |sub_dep|
+                                         sub_dep.start_with?("#{d}/")
+                                       }
+                                       [d] + [sub_deps]
+                                     }.flatten
+
+  all_verify_spec_dependencies = all_verify_spec_dependencies
+                                     .map { |d| find_dependencies(d, pods_with_dependency, pods_trie) }
+                                     .flatten.uniq.sort
+  all_verify_spec_dependencies = all_verify_spec_dependencies.map { |d|
+    if d.include?("/")
+      d[/(\w+)\/\w+/, 1]
+    else
+      d
+    end
+  }.uniq.sort
+  all_pods = Array.new
+  all_verify_spec_dependencies.each { |dependency|
+    name = dependency
+    subspecs = Array.new
+    feature = nil
+    all_pod_deps = pods_with_dependency.values + pods_with_dependency.keys
+    all_pod_deps.flatten.uniq.each { |d|
+      prefix = "#{dependency}/"
+      if d.start_with?(prefix)
+        sub_name = d[prefix.length, d.length - prefix.length]
+        if !features.include?(sub_name)
+          subspecs << sub_name
+        else
+          feature = sub_name
+        end
+      end
+    }
+    version = pods_with_version[dependency]
+    repo = pods_with_repos[dependency]
+    unless version.nil?
+      all_pods << Pod.new(name, subspecs, version, repo, feature)
+    end
+  }
+
+  dep_des = "\n\n"
+  all_pods.each { |pod|
+    puts pod.description
+    dep_des += "#{pod.description}\n"
+  }
+  dep_des += "\n"
+
+  podspec_patch = File.open(pod_spec_patch_path).read
+  template_start = "#START_PODSPEC_GENERATE"
+  template_end = "#END_PODSPEC_GENERATE"
+  split_res = podspec_patch.split(template_start).flatten.map { |d| d.split(template_end) }.flatten
+  if split_res.length == 3
+    agg_res =  split_res[0] + template_start + dep_des + template_end + split_res[2]
+    File.write(pod_spec_patch_path, agg_res)
+  else
+    require 'colorize'
+    puts "#{pod_name}.podspec.path Template错误未能自动替换".red
+  end
+end
+
+def load_path_to_module_map
+  require 'inifile'
+  module_ini = IniFile.load('.eescaffold/podspecs.rclt')
+  path_to_module_map = Hash.new
+  module_ini.each_section do |module_name|
+    path = module_ini[module_name]['PATH']
+    path_to_module_map[path] = module_name
+  end
+  path_to_module_map
+end
+
+def load_module_to_path_map
+  require 'inifile'
+  module_ini = IniFile.load('.eescaffold/podspecs.rclt')
+  module_to_path_map = Hash.new
+  module_ini.each_section do |module_name|
+    path = module_ini[module_name]['PATH']
+    module_to_path_map[module_name] = path
+  end
+  module_to_path_map
+end
+
+def head_change_modules
+  path_to_module_map = load_path_to_module_map
+  changes = `git diff HEAD HEAD^ --name-only`.split("\n")
+
+  def find_change_module(path, path_to_module_map)
+    if path == '.' || path == Dir.pwd
+      return nil
+    end
+    unless path_to_module_map[path].nil?
+      return path_to_module_map[path]
+    end
+    find_change_module(File.dirname(path), path_to_module_map)
+  end
+
+  change_modules = Array.new
+
+  changes.each do |change_file|
+    pod_mod = find_change_module(File.expand_path(change_file, Dir.pwd), path_to_module_map)
+    if !pod_mod.nil?
+      change_modules.append(pod_mod)
+    end
+  end
+  change_modules.uniq
+end
+
+task :head_patch do
+  change_modules = head_change_modules
+  puts "changed pods #{change_modules}."
+  change_modules.uniq do | mod |
+    `rake patch[#{mod}]`
+  end
+end
+
+def find_pod_define(pod_name, pod_file)
+  pod_define = pod_file[/(pod\s*['"]#{pod_name}['"][\s]*,['\w\.\/=:>\- ]*,{0,1}[\S ]*)\n/, 1]
+  version_or_path = pod_file[/pod\s*['"]#{pod_name}['"][\s]*,(['\w\.\/=:>\- ]*),{0,1}[\S ]*\n/, 1]
+  return pod_define, version_or_path
+end
+
+def to_dev_pod(pod_name, client_path)
+  ios_client_path = "../ios-client"
+  if !client_path.nil?
+    ios_client_path = client_path
+  end
+
+  pod_file_path = "#{ios_client_path}/Podfile"
+  module_to_path_map = load_module_to_path_map
+
+  pod_file = File.open(pod_file_path).read
+  pod_define, version_or_path = find_pod_define(pod_name, pod_file)
+  path_define = " :path => '#{module_to_path_map[pod_name]}'"
+  new_pod_define = pod_define.sub(version_or_path, path_define)
+  puts new_pod_define
+  File.write(pod_file_path, pod_file.sub!(pod_define, new_pod_define))
+end
+
+def get_podspec_version(path)
+  podspec = File.open(path).read
+  podspec[/s\.version\s*=\s*['"]([^'"]+)['"]/, 1]
+end
+
+def to_remote_pod(pod_name, client_path)
+  ios_client_path = "../ios-client"
+  if !client_path.nil?
+    ios_client_path = client_path
+  end
+
+  pod_file_path = "#{ios_client_path}/Podfile"
+  module_to_path_map = load_module_to_path_map
+
+  version = get_podspec_version("#{module_to_path_map[pod_name]}/#{pod_name}.podspec")
+
+  pod_file = File.open(pod_file_path).read
+  pod_define, version_or_path = find_pod_define(pod_name, pod_file)
+  version_define = " '#{version}'"
+  new_pod_define = pod_define.sub(version_or_path, version_define)
+  puts new_pod_define
+  File.write(pod_file_path, pod_file.sub!(pod_define, new_pod_define))
+end
+
+task :dev_pod, [:pod_name, :client_path] do |t, args|
+  pod_name = args[:pod_name]
+  client_path = args[:client_path]
+  to_dev_pod(pod_name, client_path)
+end
+
+task :head_dev_pod, [:client_path] do |t, args|
+  client_path = args[:client_path]
+  change_modules = head_change_modules
+  puts "changed pods #{change_modules}."
+  change_modules.uniq do |mod|
+    if !client_path.nil?
+      `rake dev_pod[#{mod},#{client_path}]`
+    else
+      `rake dev_pod[#{mod}]`
+    end
+  end
+end
+
+task :remote_pod, [:pod_name, :client_path] do |t, args|
+  pod_name = args[:pod_name]
+  client_path = args[:client_path]
+  to_remote_pod(pod_name, client_path)
+end
+
+task :head_remote_pod, [:client_path] do |t, args|
+  client_path = args[:client_path]
+  change_modules = head_change_modules
+  puts "changed pods #{change_modules}."
+  change_modules.uniq do |mod|
+    if !client_path.nil?
+      `rake remote_pod[#{mod},#{client_path}]`
+    else
+      `rake remote_pod[#{mod}]`
+    end
+  end
+end
+
+task :head_change do
+  change_modules = head_change_modules
+  puts "haed changed pods:"
+  change_modules.each { |m| puts m }
+end
+
+task :head_podspec_patch, [:client_path] do |t, args|
+  client_path = args[:client_path]
+  change_modules = head_change_modules
+  puts "head changed pods #{change_modules}."
+  change_modules.each do |mod|
+    if !client_path.nil?
+      `rake podspec_patch[#{mod},#{client_path}]`
+    else
+      `rake podspec_patch[#{mod}]`
+    end
+  end
+end
+
+# 输出 ios-infra 全部组件信息 需要使用 bundle exec 执行
+task :components do
+  require 'EEScaffold'
+  require 'json'
+  require 'cocoapods'
+  require 'csv'
+
+  paths = `fd -e podspec`
+  puts ["name", "version", "summary", "desc", "authors", "dep"].to_csv
+  paths.split("\n") do |path|
+    info = parsePodSpec(path)
+    puts info.csv
+  end
+end
+
+# 解析 podspec 信息
+def parsePodSpec(path) 
+  spec = Pod::Specification.from_file(path)
+  jsonStr = spec.to_pretty_json
+  obj = JSON.parse(jsonStr)
+  return SpecInfo.new(obj)
+end
+
+# spec 对象
+class SpecInfo 
+  def initialize(json)
+    @name = json["name"]
+    @version = json["version"]
+    @summary = json["summary"]
+    @desc = json["description"]
+    @authors = json["authors"]
+    @dep = Array.new
+    dep = json["dependencies"]
+
+    def parseDep(dep)
+      if !dep.nil?
+        dep.each_key do |key|
+          depPod = key.split("/")[0]
+          if !depPod.include? "#@name" and !@dep.include?(depPod)
+            @dep.push(depPod)
+          end
+        end
+      end
+    end
+
+    parseDep(dep)
+    subspec = json["subspecs"]
+    if !subspec.nil?
+      subspec.each do |item|
+        subdep = item["dependencies"]
+        parseDep(subdep)
+      end
+    end
+  end
+
+  # 按照 csv 格式返回数据
+  def csv
+    return [@name, @version, @summary, @desc, @authors, @dep].to_csv
+  end
+end
+
+# 通过字符串匹配的方式 寻找 podspec 无效依赖，查询方式比较原始，需要人工确认
+task :checkImport do
+  require 'EEScaffold'
+  require 'json'
+  require 'cocoapods'
+  require 'csv'
+
+  pods = Hash.new
+  podsPath = Hash.new
+  nodeclared = Hash.new
+
+  paths = `fd -e podspec`
+  paths.split("\n") do |path|
+    info = parsePodSpec(path)
+    name = info.instance_variable_get(:@name)
+    deps = info.instance_variable_get(:@dep)
+    fullPath = File.expand_path(File::dirname(path), Dir.pwd)
+    podsPath[name] = path
+
+    # 下面逻辑用于检测无效依赖
+
+    # 名称转化
+    nameMap = Hash.new
+    nameMap["AppsFlyerFramework"] = "AppsFlyerLib"
+    nameMap["ReachabilitySwift"] = "Reachability"
+    nameMap["lottie-ios"] = "Lottie"
+    nameMap["libPhoneNumber-iOS"] = "libPhoneNumber_iOS"
+    nameMap["ReachabilitySwift"] = "Reachability"
+    nameMap["Socket.IO-Client-Swift"] = "SocketIO"
+    nameMap["AnyCodable-FlightSchool"] = "AnyCodable"
+
+    # 自定义 check
+    custom = Hash.new
+    custom["SnapKit"] = ".snp."
+    custom["smash"] = "Enigma_API"
+
+    deps.each do |dep|
+      needImport = false
+      # 检查 swift 文件
+      Dir.glob("#{fullPath}/**/*.swift").each do |p|
+        if !needImport 
+          file = File.open(p)
+          fileStr = file.read
+          if fileStr.include? (custom[dep] ? custom[dep] : "import #{nameMap[dep] ? nameMap[dep] : dep}")
+            needImport = true
+          end
+          file.close
+        end
+      end
+      # 检查 oc 文件
+      Dir.glob("#{fullPath}/**/*.{h,m,mm}").each do |p|
+        if !needImport 
+          file = File.open(p)
+          fileStr = file.read
+          if fileStr.include? (custom[dep] ? custom[dep] : "import <#{nameMap[dep] ? nameMap[dep] : dep}")
+            needImport = true
+          end
+          file.close
+        end
+      end
+
+      if !needImport 
+        list = pods[name]
+        if list.nil? 
+          list = Array.new
+        end
+        list.push(dep)
+        pods[name] = list
+      end
+    end
+
+    # 下面逻辑用于检测未声明依赖
+    
+    systemPod = [
+      "sys", "mach", "Foundation", "XCTest", "objc", "QuartzCore", "Accelerate", "mach-o", "UIKit", "WebKit",
+      "AVFoundation", "QuartzCore", "os", "CoreVideo", "CoreMedia", "libkern", "CommonCrypto", "CoreFoundation",
+      "os.signpost", "CoreGraphics", "CFNetwork", "MediaPlayer", "CoreMotion", "MachO", "Contacts", "AudioToolbox",
+      "Dispatch", "BackgroundTasks", "os.log", "MobileCoreServices", "CoreTelephony", "HTTProtocol", "ImageIO", "AppKit",
+      "AVKit", "CoreMotion", "MapKit", "CoreLocation", "CoreText", "AdSupport", "struct", "UserNotifications"
+    ]
+
+    nameMap2 = Hash.new
+    nameMap2["AppsFlyerLib"] = "AppsFlyerFramework"
+    nameMap2["Reachability"] = "ReachabilitySwift"
+    nameMap2["Lottie"] = "lottie-ios"
+    nameMap2["libPhoneNumber_iOS"] = "libPhoneNumber-iOS"
+    nameMap2["Reachability"] = "ReachabilitySwift"
+    nameMap2["SocketIO"] = "Socket.IO-Client-Swift"
+    nameMap2["AnyCodable"] = "AnyCodable-FlightSchool"
+
+    swiftR = /^import (\S+)/
+    ocR = /^#import <(\S+)\//
+
+    # 检查 swift 文件
+    Dir.glob("#{fullPath}/src/**/*.swift").each do |p|
+      file = File.open(p)
+      fileStr = file.read
+      fileStr.scan(swiftR) { |s|
+        podName = nameMap2["#{s[0]}"] ? nameMap2["#{s[0]}"] : "#{s[0]}"
+
+        if !systemPod.include? podName and !deps.include? podName and podName != name
+          list = nodeclared[name]
+          if list.nil? 
+            list = Array.new
+          end
+          if !list.include? podName
+            list.push(podName)
+          end
+          nodeclared[name] = list
+        end
+      }
+      file.close
+    end
+
+    #检查 oc 文件
+    Dir.glob("#{fullPath}/src/**/*.{h,m,mm}").each do |p|
+      file = File.open(p)
+      fileStr = file.read
+      fileStr.scan(ocR) { |s|
+        podName = nameMap2["#{s[0]}"] ? nameMap2["#{s[0]}"] : "#{s[0]}"
+
+        if !systemPod.include? podName and !deps.include? podName and podName != name
+          list = nodeclared[name]
+          if list.nil? 
+            list = Array.new
+          end
+          if !list.include? podName
+            list.push(podName)
+          end
+          nodeclared[name] = list
+        end
+      }
+      file.close
+    end
+
+  end
+  puts ["name", "无效依赖", "路径"].to_csv
+  pods.each do |key, value|
+    puts [key, value, File::dirname(podsPath[key])].to_csv
+  end
+  puts ["name", "隐式依赖", "路径"].to_csv
+  nodeclared.each do |key, value|
+    puts [key, value, File::dirname(podsPath[key])].to_csv
+  end
+end

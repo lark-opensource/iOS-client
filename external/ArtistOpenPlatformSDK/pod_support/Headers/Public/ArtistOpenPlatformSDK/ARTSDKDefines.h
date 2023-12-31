@@ -1,0 +1,1 @@
+../../../../ArtistOpenPlatformSDK/Classes/Core/ARTSDKDefines.h

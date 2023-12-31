@@ -1,0 +1,1 @@
+../../../../../../../../src/google/protobuf/util/internal/type_info.h

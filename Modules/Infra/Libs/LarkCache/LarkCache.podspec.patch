@@ -1,0 +1,12 @@
+#debug_dependency 'LarkRustClient', :integration => :local
+#debug_dependency 'LarkCache', :integration => :local, :subspecs => ['Core', 'CryptoRustImpl']
+
+debug_dependency 'LarkCache', :integration => :local, :subspecs => ['Core']
+debug_dependency 'LarkFileKit', :integration => :local
+debug_dependency 'LKLoadable', :integration => :local
+debug_dependency 'YYCache', :integration => :local
+debug_dependency 'LarkStorage', :integration => :local
+debug_dependency 'EEAtomic', :integration => :local
+debug_dependency 'LarkAccountInterface', '5.24.0.1'
+
+eval_tonic 'pod_pre_install_0.0'

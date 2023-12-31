@@ -1,0 +1,1 @@
+../../../../CreativeAlbumKit/Classes/Core/Transition/CAKAlbumTransitionInteractionController.h

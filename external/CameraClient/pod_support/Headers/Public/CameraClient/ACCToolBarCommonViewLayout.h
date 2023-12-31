@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/ViewContainer/Common/Views/ACCToolBarCommonViewLayout.h

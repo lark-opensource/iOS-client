@@ -1,0 +1,836 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "HTSServiceKit_pod_hdrs",
+  srcs = [
+    ":HTSServiceKit_root_pod_hdrs",
+    ":Boot_pod_hdrs",
+    ":Service_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "HTSServiceKit_private_includes",
+  include = [
+    "external/HTSServiceKit/pod_support/Headers/Private/HTSServiceKit/"
+  ],
+  deps = [],
+  external_name = "HTSServiceKit"
+)
+gen_includes(
+  name = "HTSServiceKit_public_includes",
+  include = [
+    "external/HTSServiceKit/pod_support/Headers/Public/HTSServiceKit/"
+  ],
+  deps = [],
+  external_name = "HTSServiceKit"
+)
+filegroup(
+  name = "_HTSServiceKit_hdrs",
+  srcs = [
+    ":HTSServiceKit_root_hdrs",
+    ":Boot_hdrs",
+    ":Service_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "HTSServiceKit_xcode_hmapsource",
+  hdrs = [
+    ":HTSServiceKit_root_hdrs",
+    ":Boot_hdrs",
+    ":Service_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "HTSServiceKit_xcode_hmap",
+  dep = ":HTSServiceKit_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/HTSServiceKit/*-bitsky-generated.modulemap", "pod_support/Headers/Public/HTSServiceKit/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "HTSServiceKit_Boot_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libHTSServiceKit-9fda21a.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "HTSServiceKit_Service_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libHTSServiceKit-c631b3b.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "HTSServiceKit_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "HTSServiceKit",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "HTSServiceKit_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":HTSServiceKit_xcode_hmap"
+  ],
+  external_name = "HTSServiceKit",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "HTSServiceKit_root_hdrs",
+  srcs = [
+    "HTSServiceKit/Classes/AWEAppContext.h",
+    "HTSServiceKit/Classes/HTSAppContext.h",
+    "HTSServiceKit/Classes/HTSAppLifeCycle.h",
+    "HTSServiceKit/Classes/HTSBootAppDelegate.h",
+    "HTSServiceKit/Classes/HTSBootInterface.h",
+    "HTSServiceKit/Classes/HTSBootLogger.h",
+    "HTSServiceKit/Classes/HTSEventPlugin.h",
+    "HTSServiceKit/Classes/HTSLifeCycleForMode.h",
+    "HTSServiceKit/Classes/HTSSignpost.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "HTSServiceKit_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Public/HTSServiceKit/AWEAppContext.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSAppContext.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSAppLifeCycle.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSBootAppDelegate.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSBootInterface.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSBootLogger.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSEventPlugin.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSLifeCycleForMode.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSSignpost.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "HTSServiceKit_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "HTSServiceKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "HTSServiceKit_module_map",
+  module_map = "pod_support/Headers/Public/HTSServiceKit/HTSServiceKit-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/HTSServiceKit/HTSServiceKit-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "HTSServiceKit_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "HTSServiceKit_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":HTSServiceKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":HTSServiceKit_private_includes",
+    ":HTSServiceKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":HTSServiceKit_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "HTSServiceKit",
+  deps = [
+    ":HTSServiceKit_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "HTSServiceKit_lib",
+  deps = [
+    ":HTSServiceKit"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Boot_hdrs",
+  srcs = [
+    "HTSServiceKit/Classes/AWEAppContext.h",
+    "HTSServiceKit/Classes/Boot/HTSBootConfigKey.h",
+    "HTSServiceKit/Classes/Boot/HTSBootConfiguration.h",
+    "HTSServiceKit/Classes/Boot/HTSBootLoader+Private.h",
+    "HTSServiceKit/Classes/Boot/HTSBootLoader.h",
+    "HTSServiceKit/Classes/Boot/HTSBootNode.h",
+    "HTSServiceKit/Classes/Boot/HTSBootNodeGroup.h",
+    "HTSServiceKit/Classes/BundleLoader/HTSBundleLoader+Private.h",
+    "HTSServiceKit/Classes/BundleLoader/HTSBundleLoader.h",
+    "HTSServiceKit/Classes/BundleLoader/HTSLazyModuleDelegate.h",
+    "HTSServiceKit/Classes/HTSAppContext.h",
+    "HTSServiceKit/Classes/HTSAppLifeCycle.h",
+    "HTSServiceKit/Classes/HTSBootAppDelegate.h",
+    "HTSServiceKit/Classes/HTSBootInterface.h",
+    "HTSServiceKit/Classes/HTSBootLogger.h",
+    "HTSServiceKit/Classes/HTSEventPlugin.h",
+    "HTSServiceKit/Classes/HTSLifeCycleForMode.h",
+    "HTSServiceKit/Classes/HTSSignpost.h",
+    "HTSServiceKit/Classes/LifeCircle/HTSAppLifeCycleCenter.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Boot_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/HTSServiceKit/AWEAppContext.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSAppContext.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSAppLifeCycle.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSAppLifeCycleCenter.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSBootAppDelegate.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSBootConfigKey.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSBootConfiguration.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSBootInterface.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSBootLoader+Private.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSBootLoader.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSBootLogger.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSBootNode.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSBootNodeGroup.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSBundleLoader+Private.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSBundleLoader.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSEventPlugin.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSLazyModuleDelegate.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSLifeCycleForMode.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSSignpost.h",
+    "pod_support/Headers/Public/HTSServiceKit/AWEAppContext.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSAppContext.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSAppLifeCycle.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSAppLifeCycleCenter.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSBootAppDelegate.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSBootConfigKey.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSBootConfiguration.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSBootInterface.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSBootLoader+Private.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSBootLoader.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSBootLogger.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSBootNode.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSBootNodeGroup.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSBundleLoader+Private.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSBundleLoader.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSEventPlugin.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSLazyModuleDelegate.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSLifeCycleForMode.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSSignpost.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Boot_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Boot_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Boot_module_map",
+  module_map = "pod_support/Headers/Public/HTSServiceKit/HTSServiceKit_Boot-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/HTSServiceKit/HTSServiceKit_Boot-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Boot_srcs",
+  srcs = [
+    "HTSServiceKit/Classes/LifeCircle/HTSAppLifeCycleCenter.m",
+    "HTSServiceKit/Classes/BundleLoader/HTSBundleLoader.m",
+    "rock_dummy/rock_dummy_9fda21a.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Boot_oc",
+  enable_modules = 1,
+  srcs = [
+    "Boot_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Boot_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":HTSServiceKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":HTSServiceKit_private_includes",
+    ":HTSServiceKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Aspects//:Aspects_objc_interface",
+    "@ByteDanceKit//:Foundation_objc_interface",
+    "@Aspects//:Aspects_swift_interface",
+    "@ByteDanceKit//:Foundation_swift_interface",
+    ":HTSServiceKit_Boot_VendoredLibraries",
+    ":Boot_objc_interface",
+    "@Aspects//:Aspects_module_map",
+    "@ByteDanceKit//:Foundation_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Boot",
+  deps = [
+    ":Boot_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Boot_lib",
+  deps = [
+    ":Boot"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Service_hdrs",
+  srcs = [
+    "HTSServiceKit/Classes/Service/HTSAppMode.h",
+    "HTSServiceKit/Classes/Service/HTSCompileTimeAdapterManager.h",
+    "HTSServiceKit/Classes/Service/HTSCompileTimeDyldServiceManager.h",
+    "HTSServiceKit/Classes/Service/HTSCompileTimeMessageManager.h",
+    "HTSServiceKit/Classes/Service/HTSCompileTimeNotificationManager.h",
+    "HTSServiceKit/Classes/Service/HTSCompileTimeServiceManager.h",
+    "HTSServiceKit/Classes/Service/HTSMacro.h",
+    "HTSServiceKit/Classes/Service/HTSMessageCenter.h",
+    "HTSServiceKit/Classes/Service/HTSMessageHash.h",
+    "HTSServiceKit/Classes/Service/HTSService.h",
+    "HTSServiceKit/Classes/Service/HTSServiceCenter.h",
+    "HTSServiceKit/Classes/Service/HTSServiceForMode.h",
+    "HTSServiceKit/Classes/Service/HTSServiceInterceptor.h",
+    "HTSServiceKit/Classes/Service/HTSServiceKitDefines.h",
+    "HTSServiceKit/Classes/Service/metamacros.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Service_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/HTSServiceKit/HTSAppMode.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSCompileTimeAdapterManager.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSCompileTimeDyldServiceManager.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSCompileTimeMessageManager.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSCompileTimeNotificationManager.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSCompileTimeServiceManager.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSMacro.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSMessageCenter.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSMessageHash.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSService.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSServiceCenter.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSServiceForMode.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSServiceInterceptor.h",
+    "pod_support/Headers/Private/HTSServiceKit/HTSServiceKitDefines.h",
+    "pod_support/Headers/Private/HTSServiceKit/metamacros.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSAppMode.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSCompileTimeAdapterManager.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSCompileTimeDyldServiceManager.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSCompileTimeMessageManager.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSCompileTimeNotificationManager.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSCompileTimeServiceManager.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSMacro.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSMessageCenter.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSMessageHash.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSService.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSServiceCenter.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSServiceForMode.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSServiceInterceptor.h",
+    "pod_support/Headers/Public/HTSServiceKit/HTSServiceKitDefines.h",
+    "pod_support/Headers/Public/HTSServiceKit/metamacros.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Service_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Service_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Service_module_map",
+  module_map = "pod_support/Headers/Public/HTSServiceKit/HTSServiceKit_Service-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/HTSServiceKit/HTSServiceKit_Service-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Service_srcs",
+  srcs = [
+    "HTSServiceKit/Classes/Service/HTSCompileTimeDyldServiceManager.m",
+    "HTSServiceKit/Classes/Service/HTSCompileTimeMessageManager.m",
+    "HTSServiceKit/Classes/Service/HTSCompileTimeNotificationManager.m",
+    "HTSServiceKit/Classes/Service/HTSCompileTimeServiceManager.m",
+    "HTSServiceKit/Classes/Service/HTSMessageCenter.mm",
+    "HTSServiceKit/Classes/Service/HTSServiceCenter.mm",
+    "rock_dummy/rock_dummy_c631b3b.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Service_oc",
+  enable_modules = 1,
+  srcs = [
+    "Service_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Service_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit"
+  ],
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":HTSServiceKit_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":HTSServiceKit_private_includes",
+    ":HTSServiceKit_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":HTSServiceKit_Service_VendoredLibraries",
+    ":Service_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Service",
+  deps = [
+    ":Service_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Service_lib",
+  deps = [
+    ":Service"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_HTSServiceKit_module_map",
+  module_map = "@HTSServiceKit//:pod_support/Headers/Public/HTSServiceKit/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@HTSServiceKit//:pod_support/Headers/Public/HTSServiceKit/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_HTSServiceKit_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@HTSServiceKit//:Boot_objc_interface", "@HTSServiceKit//:HTSServiceKit_objc_interface", "@HTSServiceKit//:Service_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_HTSServiceKit",
+  target_name = "Lark",
+  module_name = "HTSServiceKit",
+  hdrs = ["@HTSServiceKit//:Boot_pod_hdrs", "@HTSServiceKit//:HTSServiceKit_root_pod_hdrs", "@HTSServiceKit//:Service_pod_hdrs"],
+  srcs = ["@HTSServiceKit//:Boot_srcs", "@HTSServiceKit//:Service_srcs"],
+  non_arc_srcs = [],
+  deps = ["@HTSServiceKit//:HTSServiceKit_Boot_VendoredLibraries", "@HTSServiceKit//:HTSServiceKit_Service_VendoredLibraries"],
+  pod_deps = ["Aspects", "ByteDanceKit"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "HTSServiceKit_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "HTSServiceKit_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["UIKit"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = ["c++"],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "HTSServiceKit_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "HTSServiceKit_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "HTSServiceKit_dynamic", False),
+  tags = getattr(defs_external_objc_library, "HTSServiceKit_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("HTSServiceKit", {}),
+  visibility = ["//visibility:public"],
+)

@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayAbility/Base/Util/CJPayQueryMergeBindRelationResponse.h

@@ -1,0 +1,856 @@
+load('@build_bazel_rules_swift//swift:swift.bzl', 'swift_library')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "LarkMeegoProjectBiz_pod_hdrs",
+  srcs = [
+    ":LarkMeegoProjectBiz_root_pod_hdrs",
+    ":Interface_pod_hdrs",
+    ":Core_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "LarkMeegoProjectBiz_private_includes",
+  include = [
+    "external/LarkMeegoProjectBiz/pod_support/Headers/Private/LarkMeegoProjectBiz/"
+  ],
+  deps = [],
+  external_name = "LarkMeegoProjectBiz"
+)
+gen_includes(
+  name = "LarkMeegoProjectBiz_public_includes",
+  include = [
+    "external/LarkMeegoProjectBiz/pod_support/Headers/Public/LarkMeegoProjectBiz/"
+  ],
+  deps = [],
+  external_name = "LarkMeegoProjectBiz"
+)
+filegroup(
+  name = "_LarkMeegoProjectBiz_hdrs",
+  srcs = [
+    ":LarkMeegoProjectBiz_root_hdrs",
+    ":Interface_hdrs",
+    ":Core_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "LarkMeegoProjectBiz_xcode_hmapsource",
+  hdrs = [
+    ":LarkMeegoProjectBiz_root_hdrs",
+    ":Core_hdrs",
+    ":Interface_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "LarkMeegoProjectBiz_xcode_hmap",
+  dep = ":LarkMeegoProjectBiz_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/LarkMeegoProjectBiz/*-bitsky-generated.modulemap", "pod_support/Headers/Public/LarkMeegoProjectBiz/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "LarkMeegoProjectBiz_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "LarkMeegoProjectBiz",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "LarkMeegoProjectBiz_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "LarkMeegoProjectBiz_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "LarkMeegoProjectBiz_swift_interface",
+  deps = [],
+  minimum_os_version = "11.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "LarkMeegoProjectBiz_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "LarkMeegoProjectBiz_module_map",
+  module_map = "pod_support/Headers/Public/LarkMeegoProjectBiz/LarkMeegoProjectBiz-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/LarkMeegoProjectBiz/LarkMeegoProjectBiz-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "LarkMeegoProjectBiz_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "LarkMeegoProjectBiz_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":LarkMeegoProjectBiz_private_includes",
+    ":LarkMeegoProjectBiz_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":LarkMeegoProjectBiz_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DLarkMeegoProjectBiz_POD_VERSION=@\\\"137801_6.4.0.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "LarkMeegoProjectBiz",
+  deps = [
+    ":LarkMeegoProjectBiz_oc"
+  ],
+  minimum_os_version = "11.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "LarkMeegoProjectBiz_lib",
+  deps = [
+    ":LarkMeegoProjectBiz"
+  ],
+  minimum_os_version = "11.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Interface_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Interface_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Interface_swift_interface",
+  deps = [
+    ":Interface_swift"
+  ],
+  minimum_os_version = "11.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Interface_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Interface_module_map",
+  module_map = "pod_support/Headers/Public/LarkMeegoProjectBiz/LarkMeegoProjectBiz_Interface-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/LarkMeegoProjectBiz/LarkMeegoProjectBiz_Interface-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Interface_swift_srcs",
+  srcs = [
+    "src/Interface/ProjectService.swift"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+swift_library(
+  name = "Interface_swift",
+  module_name = "LarkMeegoProjectBiz",
+  srcs = [
+    "Interface_swift_srcs"
+  ],
+  deps = [
+    "@PodHeaders//:PodHeaders_namespace_public_interface",
+    ":LarkMeegoProjectBiz_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Interface_module_map",
+    ":Interface_objc_interface"
+  ],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ) + [
+    "-DCOCOAPODS",
+    "-suppress-warnings",
+    "-import-underlying-module",
+    "-swift-version",
+    "5",
+    "-Xcc",
+    "-fobjc-weak",
+    "-Xcc",
+    "-stdlib=libc++",
+    "-Xcc",
+    "-DCOCOAPODS=1",
+    "-Xcc",
+    "-fdiagnostics-show-note-include-stack",
+    "-Xcc",
+    "-fno-common",
+    "-Xcc",
+    "-fmessage-length=0",
+    "-Xcc",
+    "-fpascal-strings",
+    "-Xcc",
+    "-fstrict-aliasing",
+    "-Xcc",
+    "-DLarkMeegoProjectBiz_POD_VERSION=@\\\"137801_6.4.0.1\\\"",
+    "-Xcc",
+    "-I.",
+    "-Xcc",
+    "-Wno-nullability-completeness",
+    "-Xcc",
+    "-Wno-nonnull",
+    "-Xcc",
+    "-Wno-nullability",
+    "-Xcc",
+    "-Wno-incomplete-umbrella"
+  ],
+  generates_header = True,
+  generated_header_name = "LarkMeegoProjectBiz-Swift.h",
+  features = [
+    "swift.no_generated_module_map",
+    "swift.opt_uses_wmo",
+    "swift.opt_uses_osize"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Interface_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Interface_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":LarkMeegoProjectBiz_private_includes",
+    ":LarkMeegoProjectBiz_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Interface_swift",
+    ":Interface_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DLarkMeegoProjectBiz_POD_VERSION=@\\\"137801_6.4.0.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Interface",
+  deps = [
+    ":Interface_oc",
+    ":Interface_swift"
+  ],
+  minimum_os_version = "11.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Interface_lib",
+  deps = [
+    ":Interface"
+  ],
+  minimum_os_version = "11.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [
+    ":Core_swift"
+  ],
+  minimum_os_version = "11.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/LarkMeegoProjectBiz/LarkMeegoProjectBiz_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/LarkMeegoProjectBiz/LarkMeegoProjectBiz_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_swift_srcs",
+  srcs = [
+    "src/Core/ProjectBizAssembly.swift",
+    "src/Core/ProjectServiceImpl.swift"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+swift_library(
+  name = "Core_swift",
+  module_name = "LarkMeegoProjectBiz",
+  srcs = [
+    "Core_swift_srcs"
+  ],
+  deps = [
+    "@PodHeaders//:PodHeaders_namespace_public_interface",
+    ":LarkMeegoProjectBiz_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@LarkAccountInterface//:LarkAccountInterface_objc_interface",
+    "@LarkAssembler//:LarkAssembler_objc_interface",
+    "@LarkContainer//:LarkContainer_objc_interface",
+    "@LarkMeegoLogger//:LarkMeegoLogger_objc_interface",
+    "@LarkMeegoStorage//:LarkMeegoStorage_objc_interface",
+    "@LarkSetting//:LarkSetting_objc_interface",
+    "@LarkAccountInterface//:LarkAccountInterface_swift_interface",
+    "@LarkAssembler//:LarkAssembler_swift_interface",
+    "@LarkContainer//:LarkContainer_swift_interface",
+    "@LarkMeegoLogger//:LarkMeegoLogger_swift_interface",
+    "@LarkMeegoStorage//:LarkMeegoStorage_swift_interface",
+    "@LarkSetting//:LarkSetting_swift_interface",
+    "@LarkAccountInterface//:LarkAccountInterface_module_map",
+    "@LarkAssembler//:LarkAssembler_module_map",
+    "@LarkContainer//:LarkContainer_module_map",
+    "@LarkMeegoLogger//:LarkMeegoLogger_module_map",
+    "@LarkMeegoStorage//:LarkMeegoStorage_module_map",
+    "@LarkSetting//:LarkSetting_module_map",
+    ":Core_module_map",
+    ":Core_objc_interface"
+  ],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ) + [
+    "-DCOCOAPODS",
+    "-suppress-warnings",
+    "-import-underlying-module",
+    "-swift-version",
+    "5",
+    "-Xcc",
+    "-fobjc-weak",
+    "-Xcc",
+    "-stdlib=libc++",
+    "-Xcc",
+    "-DCOCOAPODS=1",
+    "-Xcc",
+    "-fdiagnostics-show-note-include-stack",
+    "-Xcc",
+    "-fno-common",
+    "-Xcc",
+    "-fmessage-length=0",
+    "-Xcc",
+    "-fpascal-strings",
+    "-Xcc",
+    "-fstrict-aliasing",
+    "-Xcc",
+    "-DLarkMeegoProjectBiz_POD_VERSION=@\\\"137801_6.4.0.1\\\"",
+    "-Xcc",
+    "-I.",
+    "-Xcc",
+    "-Wno-nullability-completeness",
+    "-Xcc",
+    "-Wno-nonnull",
+    "-Xcc",
+    "-Wno-nullability",
+    "-Xcc",
+    "-Wno-incomplete-umbrella"
+  ],
+  generates_header = True,
+  generated_header_name = "LarkMeegoProjectBiz-Swift.h",
+  features = [
+    "swift.no_generated_module_map",
+    "swift.opt_uses_wmo",
+    "swift.opt_uses_osize"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":LarkMeegoProjectBiz_private_includes",
+    ":LarkMeegoProjectBiz_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@LarkAccountInterface//:LarkAccountInterface_objc_interface",
+    "@LarkAssembler//:LarkAssembler_objc_interface",
+    "@LarkContainer//:LarkContainer_objc_interface",
+    "@LarkMeegoLogger//:LarkMeegoLogger_objc_interface",
+    "@LarkMeegoStorage//:LarkMeegoStorage_objc_interface",
+    "@LarkSetting//:LarkSetting_objc_interface",
+    "@LarkAccountInterface//:LarkAccountInterface_swift_interface",
+    "@LarkAssembler//:LarkAssembler_swift_interface",
+    "@LarkContainer//:LarkContainer_swift_interface",
+    "@LarkMeegoLogger//:LarkMeegoLogger_swift_interface",
+    "@LarkMeegoStorage//:LarkMeegoStorage_swift_interface",
+    "@LarkSetting//:LarkSetting_swift_interface",
+    ":Core_swift",
+    ":Core_objc_interface",
+    "@LarkAccountInterface//:LarkAccountInterface_module_map",
+    "@LarkAssembler//:LarkAssembler_module_map",
+    "@LarkContainer//:LarkContainer_module_map",
+    "@LarkMeegoLogger//:LarkMeegoLogger_module_map",
+    "@LarkMeegoStorage//:LarkMeegoStorage_module_map",
+    "@LarkSetting//:LarkSetting_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DLarkMeegoProjectBiz_POD_VERSION=@\\\"137801_6.4.0.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc",
+    ":Core_swift"
+  ],
+  minimum_os_version = "11.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "11.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_LarkMeegoProjectBiz_module_map",
+  module_map = "@LarkMeegoProjectBiz//:pod_support/Headers/Public/LarkMeegoProjectBiz/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@LarkMeegoProjectBiz//:pod_support/Headers/Public/LarkMeegoProjectBiz/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_LarkMeegoProjectBiz_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@LarkMeegoProjectBiz//:Core_objc_interface", "@LarkMeegoProjectBiz//:Interface_objc_interface", "@LarkMeegoProjectBiz//:LarkMeegoProjectBiz_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_LarkMeegoProjectBiz",
+  target_name = "Lark",
+  module_name = "LarkMeegoProjectBiz",
+  hdrs = ["@LarkMeegoProjectBiz//:Core_pod_hdrs", "@LarkMeegoProjectBiz//:Interface_pod_hdrs", "@LarkMeegoProjectBiz//:LarkMeegoProjectBiz_root_pod_hdrs"],
+  srcs = ["@LarkMeegoProjectBiz//:Core_swift_srcs", "@LarkMeegoProjectBiz//:Interface_swift_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["LarkAccountInterface", "LarkAssembler", "LarkContainer", "LarkMeegoLogger", "LarkMeegoStorage", "LarkSetting"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DLarkMeegoProjectBiz_POD_VERSION=@\\\"137801_6.4.0.1\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "LarkMeegoProjectBiz_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "LarkMeegoProjectBiz_cxxopts", []),
+  swift_copts = select({
+      "//conditions:default": [],
+      ":release": []
+    }) + [
+    "-DCOCOAPODS",
+    "-suppress-warnings",
+    "-import-underlying-module",
+    "-swift-version",
+    "5",
+    "-Xcc",
+    "-fobjc-weak",
+    "-Xcc",
+    "-stdlib=libc++",
+    "-Xcc",
+    "-DCOCOAPODS=1",
+    "-Xcc",
+    "-fdiagnostics-show-note-include-stack",
+    "-Xcc",
+    "-fno-common",
+    "-Xcc",
+    "-fmessage-length=0",
+    "-Xcc",
+    "-fpascal-strings",
+    "-Xcc",
+    "-fstrict-aliasing",
+    "-Xcc",
+    "-DLarkMeegoProjectBiz_POD_VERSION=@\\\"137801_6.4.0.1\\\"",
+    "-Xcc",
+    "-Wno-nullability-completeness",
+    "-Xcc",
+    "-Wno-nonnull",
+    "-Xcc",
+    "-Wno-nullability",
+    "-Xcc",
+    "-Wno-incomplete-umbrella",
+    ] + getattr(defs_external_swift_library, "common_copts", []) 
+      + getattr(defs_external_swift_library, "LarkMeegoProjectBiz_copts", []),
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "LarkMeegoProjectBiz_features", []),
+  swift_features = ["swift.no_generated_module_map", "swift.opt_uses_wmo", "swift.opt_uses_osize"] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "LarkMeegoProjectBiz_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "LarkMeegoProjectBiz_dynamic", False),
+  tags = getattr(defs_external_objc_library, "LarkMeegoProjectBiz_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("LarkMeegoProjectBiz", {}),
+  visibility = ["//visibility:public"],
+)

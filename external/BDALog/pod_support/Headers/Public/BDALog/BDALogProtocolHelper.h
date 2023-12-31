@@ -1,0 +1,1 @@
+../../../../BDALog/Classes/Public/BDALogProtocolHelper.h

@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/Album/Protocol/ACCSelectAlbumAssetsProtocol.h

@@ -1,0 +1,1 @@
+../../../../ios/Classes/TemplateModels/Models/TemplateInfo+iOS.h

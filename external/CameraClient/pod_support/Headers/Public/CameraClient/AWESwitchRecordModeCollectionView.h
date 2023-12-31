@@ -1,0 +1,1 @@
+../../../../CameraClient/CameraArch/ViewContainer/Recorder/AWESwitchRecordModeCollectionView.h

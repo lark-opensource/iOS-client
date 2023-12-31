@@ -1,0 +1,31 @@
+# Copyright 2021 The Lynx Authors. All rights reserved.
+
+import("//Lynx/Lynx.gni")
+import("//testing/test.gni")
+
+unittest_set("config_testset") {
+  sources = [
+    "config_unittest.cc",
+    "feature_unittest.cc"
+  ]
+  deps = [
+    "//Lynx:gen_config",
+  ]
+  public_configs = [
+    "//Lynx:config"
+  ]
+}
+
+unit_test("config_unittests") {
+  sources = []
+  deps = [
+    "//Lynx/config:config_testset"
+  ]
+}
+
+group("config_tests") {
+  testonly = true
+  public_deps = [
+    "//Lynx/config:config_testset"
+  ]
+}

@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_effect_hand_detect.h

@@ -1,0 +1,1 @@
+../../../../NLEEditor/Classes/LiteEditor/Preview/Plugin/DVELiteStickerEditTrashPlugin.h

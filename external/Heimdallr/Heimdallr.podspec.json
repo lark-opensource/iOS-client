@@ -1,0 +1,1378 @@
+{
+  "name": "Heimdallr",
+  "version": "0.8.45.0-rc.2-Lark",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/iOS_Library/Heimdallr",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "liushibin": "liushibin@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:iOS_Library/Heimdallr.git",
+    "commit": "d14067d39edb1968e765d1584593df7b7b188bbf"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "default_subspecs": [
+    "Core",
+    "CrashDetector",
+    "Monitors",
+    "TTMonitor"
+  ],
+  "prefix_header_file": "Heimdallr/Heimdallr-LogPrefix.pch",
+  "pod_target_xcconfig": {
+    "OTHER_CPLUSPLUSFLAGS": "-fno-c++-static-destructors",
+    "DEFINES_MODULE": "YES",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "Heimdallr_POD_VERSION=@\\\"34338756_0.8.45.0-rc.2-Lark\\\"",
+    "GCC_PREPROCESSOR_DEFINITIONS[config=Release]": "$(inherited) NDEBUG=1"
+  },
+  "preserve_paths": "Heimdallr/Classes/**/{hmd_section_data_utility,NSObject+Attributes,HMDDynamicCall,HMDUploadHelper,HMDExcludeModuleHelper,NSDictionary+HMDSafe,hmd_crash_async_stack_trace,HMDAsyncThreadRecordPool,HMDUserDefaults,HMDExcludeModule}.h",
+  "testspecs": [
+    {
+      "name": "Tests",
+      "test_type": "unit",
+      "source_files": "Heimdallr/Tests/src/**/*.{h,m,mm,c,cpp,s,hpp,inc,swift}",
+      "dependencies": {
+        "BDFishhook": [
+          ">= 0.2.12-alpha.1"
+        ],
+        "OCMock": []
+      },
+      "requires_app_host": true,
+      "xcconfig": {
+        "DEBUG_INFORMATION_FORMAT": "dwarf-with-dsym"
+      },
+      "scheme": {
+        "code_coverage": true,
+        "environment_variables": {
+          "UNIT_TEST": "1"
+        },
+        "launch_arguments": []
+      }
+    }
+  ],
+  "subspecs": [
+    {
+      "name": "HMDAlogProtocol",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDALogProtocol/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDALogProtocol/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDALogProtocol/{Common,ToD}/Private/**/*.h"
+    },
+    {
+      "name": "CloudCommand",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/CloudCommand/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/CloudCommand/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/CloudCommand/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "AWECloudCommand": [
+          ">=1.3.9"
+        ],
+        "BDALog": [
+          ">= 0.2.6"
+        ],
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/DebugLogger": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/PrivateServices/Monitor": [],
+        "Heimdallr/PrivateServices/URLSettings": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "ALog",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/ALog/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/ALog/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/ALog/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "BDALog": [
+          ">= 0.2.6"
+        ],
+        "BDAlogProtocol": [
+          ">= 0.1.7"
+        ],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/DebugLogger": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/PrivateServices/Monitor": [],
+        "Heimdallr/PrivateServices/URLSettings": [],
+        "Heimdallr/PrivateServices/ZipArchive": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDConfig",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/Config/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/Config/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/Config/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/URLSettings": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDDomestic",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/Localization/URLDomestic/{Common,ToD}/**/*.{h,c,m,mm}",
+      "private_header_files": "Heimdallr/Classes/Localization/URLDomestic/{Common,ToD}/**/*.h",
+      "dependencies": {
+        "Heimdallr/PrivateServices/URLSettings": []
+      }
+    },
+    {
+      "name": "HMDOverseas",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/Localization/URLOverseas/{Common,ToD}/**/*.{h,c,m,mm}",
+      "private_header_files": "Heimdallr/Classes/Localization/URLOverseas/{Common,ToD}/**/*.h",
+      "dependencies": {
+        "Heimdallr/PrivateServices/URLSettings": []
+      }
+    },
+    {
+      "name": "Monitors",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/Monitors/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/Monitors/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/Monitors/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/PrivateServices/Monitor": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HTTPRequestTracker",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HTTPRequestTracker/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HTTPRequestTracker/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HTTPRequestTracker/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "Dart",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/Dart/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/Dart/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/Dart/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/URLSettings": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "Game",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/Game/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/Game/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/Game/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/URLSettings": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDSession",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDSession/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDSession/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDSession/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "Hermas": [
+          ">= 0.0.5-rc.5"
+        ],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDStore",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/Store/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/Store/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/Store/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "FMDB": [
+          ">= 2.6.2"
+        ],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "Upload",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/Upload/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/Upload/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/Upload/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "TTReachability": [
+          ">= 1.8.6"
+        ],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/PrivateServices/URLSettings": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "Network",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/Network/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/Network/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/Network/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "BDDataDecorator": [
+          ">= 2.0.0"
+        ],
+        "Hermas": [
+          ">= 0.0.5-rc.5"
+        ],
+        "TTReachability": [
+          ">= 1.8.6"
+        ],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDStart",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDStart/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDStart/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDStart/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDLaunchTiming",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDLaunchTiming/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDLaunchTiming/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDLaunchTiming/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/HMDStart": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/HTTPRequestTracker": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDLaunchTracing",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDLaunchTracing/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDLaunchTracing/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDLaunchTracing/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDStart": [],
+        "Heimdallr/OpenTracing": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "BootingProtect",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/BootingProtect/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/BootingProtect/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/BootingProtect/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/CrashCapture": [],
+        "Heimdallr/CrashDetector": [],
+        "Heimdallr/HMDOOMCrash": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "TTMonitor",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/TTMonitor/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/TTMonitor/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/TTMonitor/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/DebugLogger": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/PrivateServices/Monitor": [],
+        "Heimdallr/PrivateServices/URLSettings": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "Mach",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/Mach/{Common,ToD}/{Public,Private}/**/*.{h,hpp,c,cpp,m,mm}",
+      "public_header_files": "Heimdallr/Classes/Mach/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/Mach/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "BDFishhook": [
+          ">= 0.2.7-alpha.1"
+        ],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "UITracker",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/UITrackers/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/UITrackers/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/UITrackers/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/Monitors": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/UserException": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "Utility",
+      "requires_arc": "Heimdallr/Classes/Utility/{Common,ToD}/{Public,Private}/ARC/**/*.{m,mm}",
+      "source_files": "Heimdallr/Classes/Utility/{Common,ToD}/{Public,Private}/**/*.{h,hpp,c,cpp,m,mm,s}",
+      "public_header_files": "Heimdallr/Classes/Utility/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/Utility/{Common,ToD}/Private/**/*.h",
+      "libraries": "z",
+      "dependencies": {
+        "TTMacroManager": [
+          ">= 1.1.0"
+        ],
+        "Heimdallr/HMDAlogProtocol": []
+      }
+    },
+    {
+      "name": "HMDANR",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDANR/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDANR/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDANR/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/Log": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/DebugLogger": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/Runloop": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "DeviceInfo",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/DeviceInfo/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/DeviceInfo/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/DeviceInfo/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Heimdallr/Utility": [],
+        "Heimdallr/HMDAlogProtocol": []
+      }
+    },
+    {
+      "name": "HMDOOMCrash",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDOOMCrash/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDOOMCrash/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDOOMCrash/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAPPExitReason": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/PrivateServices/DebugLogger": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDAPPExitReason",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDAppExitReasonDetector/{Common,ToD}/{Public,Private}/**/*.{h,hpp,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDAppExitReasonDetector/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDAppExitReasonDetector/{Common,ToD}/Private/**/*.{h,hpp}",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/CrashCapture": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/HMDWatchDog": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/PrivateServices/Monitor": [],
+        "Heimdallr/PrivateServices/URLSettings": [],
+        "Heimdallr/PrivateServices/ZipArchive": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDSlardarMalloc",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDSlardarMalloc/{Common,ToD}/{Public,Private}/**/*.{h,hpp,c,cpp,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDSlardarMalloc/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDSlardarMalloc/{Common,ToD}/Private/**/*.{h,hpp}",
+      "libraries": "c++",
+      "dependencies": {
+        "Heimdallr/CrashCapture": [],
+        "Heimdallr/Utility": [],
+        "Heimdallr/Core": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/Mach": []
+      },
+      "subspecs": [
+        {
+          "name": "HMDTracker",
+          "requires_arc": true,
+          "source_files": "Heimdallr/Classes/HMDSlardarMalloc/{Common,ToD}/{Public,Private}/HMDTracker/**/*.{h,hpp,c,cpp,m,mm}",
+          "private_header_files": "Heimdallr/Classes/HMDSlardarMalloc/{Common,ToD}/Private/HMDTracker/**/*.{h,hpp}",
+          "libraries": "c++"
+        },
+        {
+          "name": "NanoOptimize",
+          "requires_arc": true,
+          "source_files": "Heimdallr/Classes/HMDSlardarMalloc/{Common,ToD}/{Public,Private}/NanoOptimize/**/*.{h,hpp,c,cpp,m,mm}",
+          "private_header_files": "Heimdallr/Classes/HMDSlardarMalloc/{Common,ToD}/Private/NanoOptimize/**/*.{h,hpp}",
+          "dependencies": {
+            "Heimdallr/HMDSlardarMalloc/HMDTracker": []
+          }
+        },
+        {
+          "name": "ScalableOptimize",
+          "requires_arc": true,
+          "source_files": "Heimdallr/Classes/HMDSlardarMalloc/{Common,ToD}/{Public,Private}/ScalableOptimize/**/*.{h,hpp,c,cpp,m,mm}",
+          "private_header_files": "Heimdallr/Classes/HMDSlardarMalloc/{Common,ToD}/Private/ScalableOptimize/**/*.{h,hpp}",
+          "dependencies": {
+            "Heimdallr/HMDSlardarMalloc/HMDTracker": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Zombie",
+      "requires_arc": "Heimdallr/Classes/Zombie/{Common,ToD}/{Public,Private}/ARC/**/*.{m,mm}",
+      "source_files": "Heimdallr/Classes/Zombie/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/Zombie/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/Zombie/{Common,ToD}/Private/**/*.h",
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS[config=Release]": "$(inherited) NS_BLOCK_ASSERTIONS"
+      },
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/CrashCapture": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "CrashCapture",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/CrashCapture/{Common,ToD}/{Public,Private}/**/*.{h,hpp,c,cpp,m,mm,s}",
+      "public_header_files": "Heimdallr/Classes/CrashCapture/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/CrashCapture/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++abi",
+      "dependencies": {
+        "BDFishhook": [
+          ">= 0.2.7-alpha.1"
+        ],
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/DebugLogger": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/PrivateServices/URLSettings": [],
+        "Heimdallr/PrivateServices/ZipArchive": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "OtherSDKSignal",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/OtherSDKSignal/{Common,ToD}/{Public,Private}/**/*.{h,hpp,c,cpp,m,mm,s}",
+      "public_header_files": "Heimdallr/Classes/OtherSDKSignal/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/OtherSDKSignal/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Heimdallr/CrashCapture": [],
+        "Heimdallr/Utility": [],
+        "Heimdallr/Mach": []
+      }
+    },
+    {
+      "name": "CrashDetector",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/CrashDetector/{Common,ToD}/{Public,Private}/**/*.{h,hpp,c,cpp,m,mm}",
+      "public_header_files": "Heimdallr/Classes/CrashDetector/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/CrashDetector/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/CrashCapture": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/DebugLogger": [],
+        "Heimdallr/PrivateServices/Monitor": [],
+        "Heimdallr/PrivateServices/URLSettings": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "TTNet",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/TTNet/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/TTNet/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/TTNet/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "TTNetworkManager": [],
+        "BDNetworkTag": [
+          ">= 0.2.0"
+        ],
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HTTPRequestTracker": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDURLProtocolTracker",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDURLProtocolTracker/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDURLProtocolTracker/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDURLProtocolTracker/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/HTTPRequestTracker": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/Monitor": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDWebViewMonitor",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDWebViewMonitor/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDWebViewMonitor/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDWebViewMonitor/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/HTTPRequestTracker": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "Protect",
+      "requires_arc": "Heimdallr/Classes/Protect/{Common,ToD}/{Public,Private}/ARC/**/*.{m,mm}",
+      "source_files": "Heimdallr/Classes/Protect/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/Protect/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/Protect/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/CrashCapture": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/Log": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/PrivateServices/DebugLogger": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "ProtectCustomCatch",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/ProtectCustomCatch/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/ProtectCustomCatch/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/ProtectCustomCatch/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Stinger": [
+          ">=1.0.5"
+        ],
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "Log",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/Log/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/Log/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/Log/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Heimdallr/Mach": [],
+        "Heimdallr/Utility": [],
+        "Heimdallr/DeviceInfo": []
+      }
+    },
+    {
+      "name": "Core",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/Core/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/Core/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/Core/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "resources": "Heimdallr/Assets/Core/**/*",
+      "preserve_paths": "Heimdallr/*.sh",
+      "script_phases": {
+        "name": "DI",
+        "script": "\n            IFS=$'\\n'\n            if [[ -d ${PODS_ROOT}/Heimdallr/Heimdallr ]]; then\n                cd ${PODS_ROOT}/Heimdallr/Heimdallr\n                bash DI.sh\n                fi\n                ",
+        "execution_position": "before_compile"
+      },
+      "dependencies": {
+        "TTReachability": [
+          ">= 1.8.6"
+        ],
+        "Hermas": [
+          ">= 0.0.5-rc.5"
+        ],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/Monitor": [],
+        "Heimdallr/PrivateServices/URLSettings": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "UserException",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/UserException/{Common,ToD}/{Public,Private}/**/*.{h,c,cpp,m,mm}",
+      "public_header_files": "Heimdallr/Classes/UserException/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/UserException/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/Log": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/DebugLogger": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/PrivateServices/URLSettings": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "CPUException",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/CPUException/{Common,ToD}/{Public,Private}/**/*.{h,c,cpp,m,mm}",
+      "public_header_files": "Heimdallr/Classes/CPUException/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/CPUException/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/Log": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/PrivateServices/DebugLogger": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/TTMonitor": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDCaptureBacktrace",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDCaptureBacktrace/{Common,ToD}/{Public,Private}/**/*.{h,c,cpp,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDCaptureBacktrace/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDCaptureBacktrace/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/PrivateServices/Monitor": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDCoreDump",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDCoreDump/{Common,ToD}/{Public,Private}/**/*.{h,hpp,c,cpp,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDCoreDump/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDCoreDump/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/CrashCapture": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/PrivateServices/ZipArchive": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDEvilMethodTracer",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDEvilMethodTracer/{Common,ToD}/{Public,Private}/**/*.{h,hpp,c,cpp,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDEvilMethodTracer/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDEvilMethodTracer/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/PrivateServices/URLSettings": [],
+        "Heimdallr/PrivateServices/ZipArchive": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDOrderFile",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDOrderFile/{Common,ToD}/{Public,Private}/**/*.{h,hpp,c,cpp,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDOrderFile/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDOrderFile/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "preserve_paths": "Heimdallr/libHeimdallrPass.dylib",
+      "dependencies": {
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "GWPASan",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/GWPASan/{Common,ToD}/{Public,Private}/**/*.{h,hpp,c,cpp,m,mm}",
+      "public_header_files": "Heimdallr/Classes/GWPASan/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/GWPASan/{Common,ToD}/Private/**/*.h",
+      "platforms": {
+        "ios": "10.0"
+      },
+      "dependencies": {
+        "HMDGWPASan": [
+          ">= 0.1.0-alpha.1"
+        ],
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDMallocHook": [],
+        "Heimdallr/Utility": [],
+        "Heimdallr/CrashCapture": []
+      }
+    },
+    {
+      "name": "HMDLaunchAnalyse",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDLaunchAnalyse/{Common,ToD}/{Public,Private}/**/*.{h,c,cpp,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDLaunchAnalyse/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDLaunchAnalyse/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/HMDCaptureBacktrace": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDWatchDog",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDWatchDog/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDWatchDog/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDWatchDog/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/Log": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/PrivateServices/Monitor": [],
+        "Heimdallr/Runloop": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "Runloop",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/Runloop/{Common,ToD}/{Public,Private}/**/*.{h,hpp,c,cpp,m,mm}",
+      "public_header_files": "Heimdallr/Classes/Runloop/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/Runloop/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDSDKMonitor",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDSDKMonitor/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDSDKMonitor/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDSDKMonitor/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/TTMonitor": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "OpenTracing",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/OpenTracing/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/OpenTracing/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/OpenTracing/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/PrivateServices/URLSettings": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "MemoryGraph",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/MemoryGraph/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/MemoryGraph/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/MemoryGraph/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "MemoryGraphCapture": [
+          ">= 1.4.2"
+        ],
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/DebugLogger": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/PrivateServices/Monitor": [],
+        "Heimdallr/PrivateServices/URLSettings": [],
+        "Heimdallr/PrivateServices/ZipArchive": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDMallocHook",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDMallocHook/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDMallocHook/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDMallocHook/{Common,ToD}/Private/**/*.h",
+      "libraries": "c++",
+      "dependencies": {
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "AutoReleaseProtection",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDTTKAutoReleaseProtection/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDTTKAutoReleaseProtection/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDTTKAutoReleaseProtection/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Stinger": [
+          ">1.0.0"
+        ],
+        "BDFishhook": [
+          ">= 0.2.7-alpha.1"
+        ],
+        "Heimdallr/Core": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "UIFrozen",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/UIFrozen/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/UIFrozen/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/UIFrozen/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/PrivateServices/Monitor": [],
+        "Heimdallr/UITracker": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/UserException": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "WatchdogProtect",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/WatchdogProtect/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/WatchdogProtect/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/WatchdogProtect/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Stinger": [
+          ">=1.0.5"
+        ],
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/Log": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/UserException": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "ClassCoverage",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/ClassCoverage/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/ClassCoverage/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/ClassCoverage/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/PrivateServices/ZipArchive": [],
+        "Heimdallr/TTMonitor": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "NetworkTraffic",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/NetworkTraffic/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/NetworkTraffic/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/NetworkTraffic/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/HTTPRequestTracker": [],
+        "Heimdallr/Monitors": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/Monitor": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "GPUUsage",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/GPUUsage/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/GPUUsage/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/GPUUsage/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/Monitors": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "CPUFrequency",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/CPUFrequency/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/CPUFrequency/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/CPUFrequency/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDMetricKit",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDMetricKit/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDMetricKit/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDMetricKit/{Common,ToD}/Private/**/*.h",
+      "weak_frameworks": "MetricKit",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDFDMonitor",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDFDMonitor/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDFDMonitor/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDFDMonitor/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "BDFishhook": [
+          ">= 0.2.7-alpha.1"
+        ],
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDStore": [],
+        "Heimdallr/Log": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/Network": [],
+        "Heimdallr/PrivateServices/Disaster": [],
+        "Heimdallr/Upload": [],
+        "Heimdallr/UserException": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDCrashPrevent",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDCrashPrevent/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDCrashPrevent/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDCrashPrevent/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "FrameRecover": [
+          ">= 1.22.0"
+        ],
+        "Heimdallr/CrashCapture": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/Log": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/Protect": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDThreadMonitor",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDThreadMonitor/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDThreadMonitor/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDThreadMonitor/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "BDFishhook": [
+          ">= 0.2.7-alpha.1"
+        ],
+        "Heimdallr/Core": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/HMDSession": [],
+        "Heimdallr/Log": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/Runloop": [],
+        "Heimdallr/UserException": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDLaunchOptimizer",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDLaunchOptimizer/{Common,ToD}/{Public,Private}/**/*.{h,hpp,c,cpp,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDLaunchOptimizer/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDLaunchOptimizer/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "BDFishhook": [
+          ">= 0.2.7-alpha.1"
+        ],
+        "Heimdallr/Core": [],
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDStabilityTest",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDStabilityTest/{Common,ToD}/{Public,Private}/**/*.{h,c,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDStabilityTest/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDStabilityTest/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Heimdallr/DeviceInfo": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDMainThreadDispatch",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDMainThreadDispatch/{Common,ToD}/{Public,Private}/**/*.{h,hpp,c,cpp,m,mm,s}",
+      "public_header_files": "Heimdallr/Classes/HMDMainThreadDispatch/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDMainThreadDispatch/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Stinger": [
+          ">=1.0.5"
+        ],
+        "Heimdallr/Core": [],
+        "Heimdallr/HMDAlogProtocol": [],
+        "Heimdallr/Mach": [],
+        "Heimdallr/UserException": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "HMDPowerMonitor",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDPowerMonitor/{Common,ToD}/{Public,Private}/**/*.{h,hpp,c,cpp,m,mm}",
+      "public_header_files": "Heimdallr/Classes/HMDPowerMonitor/{Common,ToD}/Public/**/*.h",
+      "private_header_files": "Heimdallr/Classes/HMDPowerMonitor/{Common,ToD}/Private/**/*.h",
+      "dependencies": {
+        "Heimdallr/Core": [],
+        "Heimdallr/HMDConfig": [],
+        "Heimdallr/Monitors": [],
+        "Heimdallr/Utility": []
+      }
+    },
+    {
+      "name": "PrivateServices",
+      "subspecs": [
+        {
+          "name": "DebugLogger",
+          "requires_arc": true,
+          "source_files": "Heimdallr/Classes/PrivateServices/DebugLogger/{Common,ToD}/**/*.{h,c,m,mm}",
+          "private_header_files": "Heimdallr/Classes/PrivateServices/DebugLogger/{Common,ToD}/**/*.h"
+        },
+        {
+          "name": "Disaster",
+          "requires_arc": true,
+          "source_files": "Heimdallr/Classes/PrivateServices/Disaster/{Common,ToD}/**/*.{h,c,m,mm}",
+          "private_header_files": "Heimdallr/Classes/PrivateServices/Disaster/{Common,ToD}/**/*.h",
+          "dependencies": {
+            "Heimdallr/DeviceInfo": [],
+            "Heimdallr/HMDAlogProtocol": [],
+            "Heimdallr/Network": [],
+            "Heimdallr/PrivateServices/URLSettings": [],
+            "Heimdallr/Utility": []
+          }
+        },
+        {
+          "name": "Monitor",
+          "requires_arc": true,
+          "source_files": "Heimdallr/Classes/PrivateServices/Monitor/{Common,ToD}/**/*.{h,c,m,mm}",
+          "private_header_files": "Heimdallr/Classes/PrivateServices/Monitor/{Common,ToD}/**/*.h"
+        },
+        {
+          "name": "URLSettings",
+          "requires_arc": true,
+          "source_files": "Heimdallr/Classes/PrivateServices/URLSettings/{Common,ToD}/**/*.{h,c,m,mm}",
+          "private_header_files": "Heimdallr/Classes/PrivateServices/URLSettings/{Common,ToD}/**/*.h",
+          "dependencies": {
+            "Heimdallr/Utility": []
+          }
+        },
+        {
+          "name": "ZipArchive",
+          "requires_arc": true,
+          "source_files": "Heimdallr/Classes/PrivateServices/ZipArchive/Common/**/*.{h,c,m,mm}",
+          "private_header_files": "Heimdallr/Classes/PrivateServices/ZipArchive/Common/**/*.h",
+          "dependencies": {
+            "SSZipArchive": [
+              ">= 1.6.3"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "337",
+    "app_id": "34338756"
+  },
+  "repoId": "337",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "Heimdallr_POD_VERSION=@\\\"34338756_0.8.45.0-rc.2-Lark\\\""
+  }
+}

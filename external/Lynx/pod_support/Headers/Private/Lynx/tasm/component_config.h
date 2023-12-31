@@ -1,0 +1,1 @@
+../../../../../Lynx/tasm/component_config.h

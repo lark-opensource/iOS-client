@@ -1,0 +1,1 @@
+EEScaffold module publish -n ECOProbeMeta

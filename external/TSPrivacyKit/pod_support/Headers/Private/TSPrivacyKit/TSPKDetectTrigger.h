@@ -1,0 +1,1 @@
+../../../../TSPrivacyKit/Classes/Custom/Trigger/TSPKDetectTrigger.h

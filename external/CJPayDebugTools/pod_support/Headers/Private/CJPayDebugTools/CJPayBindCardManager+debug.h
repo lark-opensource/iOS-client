@@ -1,0 +1,1 @@
+../../../../CJPayDebugTools/Classes/EnvConfig/BaseEnvConfig/CJPayBindCardManager+debug.h

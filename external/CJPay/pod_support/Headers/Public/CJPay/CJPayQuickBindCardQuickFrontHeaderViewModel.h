@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayAbility/NativeBindCard/QuickBindCard/ViewModel/CJPayQuickBindCardQuickFrontHeaderViewModel.h

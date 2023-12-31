@@ -1,0 +1,1210 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "CreationKitArch_pod_hdrs",
+  srcs = [
+    ":CreationKitArch_root_pod_hdrs",
+    ":CameraArch_pod_hdrs",
+    ":Models_pod_hdrs",
+    ":Debug_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "CreationKitArch_private_includes",
+  include = [
+    "external/CreationKitArch/pod_support/Headers/Private/CreationKitArch/"
+  ],
+  deps = [],
+  external_name = "CreationKitArch"
+)
+gen_includes(
+  name = "CreationKitArch_public_includes",
+  include = [
+    "external/CreationKitArch/pod_support/Headers/Public/CreationKitArch/"
+  ],
+  deps = [],
+  external_name = "CreationKitArch"
+)
+filegroup(
+  name = "_CreationKitArch_hdrs",
+  srcs = [
+    ":CreationKitArch_root_hdrs",
+    ":CameraArch_hdrs",
+    ":Models_hdrs",
+    ":Debug_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "CreationKitArch_xcode_hmapsource",
+  hdrs = [
+    ":CreationKitArch_root_hdrs",
+    ":CameraArch_hdrs",
+    ":Models_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "CreationKitArch_xcode_hmap",
+  dep = ":CreationKitArch_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/CreationKitArch/*-bitsky-generated.modulemap", "pod_support/Headers/Public/CreationKitArch/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "CreationKitArch_CameraArch_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libCreationKitArch-1208ec2.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "CreationKitArch_Models_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libCreationKitArch-92697c3.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "CreationKitArch_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "CreationKitArch",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "CreationKitArch_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":CreationKitArch_xcode_hmap"
+  ],
+  external_name = "CreationKitArch",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CreationKitArch_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CreationKitArch_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CreationKitArch_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CreationKitArch_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "CreationKitArch_module_map",
+  module_map = "pod_support/Headers/Public/CreationKitArch/CreationKitArch-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreationKitArch/CreationKitArch-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CreationKitArch_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "CreationKitArch_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreationKitArch_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreationKitArch_private_includes",
+    ":CreationKitArch_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":CreationKitArch_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CreationKitArch",
+  deps = [
+    ":CreationKitArch_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "CreationKitArch_lib",
+  deps = [
+    ":CreationKitArch"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CameraArch_hdrs",
+  srcs = [
+    "CameraArch/Common/Interface/CommonProtocol/ACCCustomFontProtocol.h",
+    "CameraArch/Common/Interface/CommonProtocol/ACCModelFactoryServiceProtocol.h",
+    "CameraArch/Common/Interface/CommonProtocol/ACCStickerMigrationProtocol.h",
+    "CameraArch/Common/Interface/CommonProtocol/ACCUserServiceProtocol.h",
+    "CameraArch/Common/Interface/CommonProtocol/ACCVideoConfigProtocol.h",
+    "CameraArch/Common/Interface/CommonProtocol/Record/ACCRecodInputDataProtocol.h",
+    "CameraArch/Common/Interface/ConstantAndDefine/ACCStudioDefines.h",
+    "CameraArch/Common/Interface/ConstantAndDefine/AWEAVMutableCompositionBuilderDefine.h",
+    "CameraArch/Common/Interface/ConstantAndDefine/AWEVideoPublishViewModelDefine.h",
+    "CameraArch/Common/Interface/ConstantAndDefine/CKConfigKeysDefines.h",
+    "CameraArch/Common/Interface/ConstantAndDefine/HTSVideoDefines.h",
+    "CameraArch/Common/Interface/I18nProtocol/ACCMultiAnchorOrdering.h",
+    "CameraArch/Common/Interface/ModelProtocol/ACCAwemeModelProtocol.h",
+    "CameraArch/Common/Interface/ModelProtocol/ACCChallengeModelProtocol.h",
+    "CameraArch/Common/Interface/ModelProtocol/ACCCommerceStickerDetailModelProtocol.h",
+    "CameraArch/Common/Interface/ModelProtocol/ACCCutSameFragmentModelProtocol.h",
+    "CameraArch/Common/Interface/ModelProtocol/ACCCutSameTemplateModelProtocol.h",
+    "CameraArch/Common/Interface/ModelProtocol/ACCMVTemplateModelProtocol.h",
+    "CameraArch/Common/Interface/ModelProtocol/ACCMusicModelProtocol.h",
+    "CameraArch/Common/Interface/ModelProtocol/ACCStudioNewFaceStickerModelProtocol.h",
+    "CameraArch/Common/Interface/ModelProtocol/ACCTextExtraProtocol.h",
+    "CameraArch/Common/Interface/ModelProtocol/ACCURLModelProtocol.h",
+    "CameraArch/Common/Interface/ModelProtocol/ACCURLTransModelProtocol.h",
+    "CameraArch/Common/Interface/ModelProtocol/ACCUserModelProtocol.h",
+    "CameraArch/Common/Interface/ModelProtocol/ACCVideoModelProtocol.h",
+    "CameraArch/Common/Interface/ModuleServiceProtocol/ACCModuleConfigProtocol.h",
+    "CameraArch/Common/Interface/ModuleServiceProtocol/ACCStudioServiceProtocol.h",
+    "CameraArch/Common/Interface/ModuleServiceProtocol/ACCTextInputServiceProtocol.h",
+    "CameraArch/Common/Interface/NetServiceProtocol/ACCCaptionsNetServiceProtocol.h",
+    "CameraArch/Common/Interface/NetServiceProtocol/ACCStickerNetServiceProtocol.h",
+    "CameraArch/Common/Manager/AWEColorFilterConfigurationHelper.h",
+    "CameraArch/Common/Manager/AWEColorFilterDataManager.h",
+    "CameraArch/Common/Manager/AWEDraftUtils.h",
+    "CameraArch/Common/Manager/AWEEffectPlatformManageable.h",
+    "CameraArch/Common/Manager/AWEEffectPlatformTrackModel.h",
+    "CameraArch/Common/Manager/AWEStudioMeasureManager.h",
+    "CameraArch/Common/Model/ACCPublishInteractionModel.h",
+    "CameraArch/Common/Model/ACCPublishMusicTrackModel.h",
+    "CameraArch/Common/Model/ACCPublishShareModel.h",
+    "CameraArch/Common/Model/ACCTextStickerExtraModel.h",
+    "CameraArch/Common/Model/AWEAutoCaptionStickerInfoModel.h",
+    "CameraArch/Common/Model/AWECoverTextModel.h",
+    "CameraArch/Common/Model/AWEInfoStickerInfo.h",
+    "CameraArch/Common/Model/AWEInfoStickerResponse.h",
+    "CameraArch/Common/Model/AWEInteractionStickerLocationModel+ACCSticker.h",
+    "CameraArch/Common/Model/AWEStoryTextImageModel.h",
+    "CameraArch/Common/Model/AWEStudioCaptionModel.h",
+    "CameraArch/Common/Model/AWEStudioSpringDefine.h",
+    "CameraArch/Common/Model/AWETimeRange.h",
+    "CameraArch/Common/Model/AWEVideoPublishDraftTempProductModel.h",
+    "CameraArch/Common/Model/AWEVideoStickerSavePhotoInfo.h",
+    "CameraArch/Common/Model/HTSVideoSepcialEffect.h",
+    "CameraArch/Common/Model/IESEffectModel+ACCSticker.h",
+    "CameraArch/Common/PublishRepository/ACCPublishRepository.h",
+    "CameraArch/Common/PublishRepository/ACCPublishRepositoryElementProtocols.h",
+    "CameraArch/Common/PublishRepository/ACCRepositoryWrapper.h",
+    "CameraArch/Common/PublishRepository/AWEVideoPublishViewModel+Repository.h",
+    "CameraArch/Common/PublishRepository/AWEVideoPublishViewModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRecordInformationRepoModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoAuthorityModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoBeautyModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoCaptionModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoChallengeModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoContextModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoCutSameModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoDraftModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoDuetModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoEditPropModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoFilterModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoFlowControlModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoGameModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoMVModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoMusicModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoPropModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoPublishConfigModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoReshootModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoShareModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoStickerModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoTrackModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoTranscodingModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoUploadInfomationModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoVideoInfoModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCRepoVoiceChangerModel.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCVideoDataProtocol.h",
+    "CameraArch/Common/PublishRepository/BasicRepo/ACCVideoFragmentInfoProtocol.h",
+    "CameraArch/Common/PublishRepository/Internal/NSMutableDictionary+RepositoryContainer.h",
+    "CameraArch/Edit/Manager/AWEEffectFilterDataManager.h",
+    "CameraArch/Edit/Manager/Wikipedia/ACCEditPageLayoutManager.h",
+    "CameraArch/Edit/Manager/Wikipedia/ACCEditPageStrokeConfig.h",
+    "CameraArch/Edit/Model/ACCSegmentBlender.h",
+    "CameraArch/Edit/Model/ACCVoiceEffectSegment.h",
+    "CameraArch/Edit/Utils/AWEFeedBackGenerator.h",
+    "CameraArch/Edit/Utils/AWEVideoCoverConfig.h",
+    "CameraArch/Edit/Utils/AWEVideoImageGenerator.h",
+    "CameraArch/Edit/Utils/VEEditorSession+ACCPreview.h",
+    "CameraArch/Edit/View/AWEAnimatedMusicCoverButton.h",
+    "CameraArch/Edit/View/AWEEditGradientView.h",
+    "CameraArch/Edit/View/AWEImagesView.h",
+    "CameraArch/Edit/View/AWEStudioExcludeSelfView.h",
+    "CameraArch/Record/ComponentConfig/ACCRecorderViewModel.h",
+    "CameraArch/Record/Constants/ACCEditAndPublishConstants.h",
+    "CameraArch/Record/Constants/ACCUserFrameRatio.h",
+    "CameraArch/Record/Constants/AWERecordEnterFromDefine.h",
+    "CameraArch/Record/Constants/AWESwitchRecordModelDefine.h",
+    "CameraArch/Record/Manager/AWEEffectPlatformPostSerializer.h",
+    "CameraArch/Record/Manager/AWEEffectPlatformRequestManager.h",
+    "CameraArch/Record/Manager/AWEStickerMusicManager.h",
+    "CameraArch/Record/Model/ACCMVTemplateInfo.h",
+    "CameraArch/Record/Model/ACCRecordMode.h",
+    "CameraArch/Record/Service/CameraService/DefaultImpl/Wrapper/ACCFilterEffectItem.h",
+    "CameraArch/Record/Service/CameraService/IESEffectModel+ComposerFilter.h",
+    "CameraArch/Record/Service/SwitchModeService/ACCRecordSwitchModeService.h",
+    "CameraArch/Record/Service/Track/ACCRecordTrackService.h",
+    "CameraArch/Record/Utils/ACCTimeTraceUtil.h",
+    "CameraArch/Record/View/AWECameraContainerToolButtonWrapView.h",
+    "CameraArch/Record/View/AWEScrollStringFadeLabel.h",
+    "CameraArch/Record/View/AWEScrollStringLabel.h",
+    "CameraArch/Record/View/CaptureAnimation/AWEAnimatedRecordButton.h",
+    "CameraArch/Record/View/CaptureAnimation/AWEAnimatedRecordLayerProtocol.h",
+    "CameraArch/Record/View/CaptureAnimation/AWEAnimatedRecordShapeLayer.h",
+    "CameraArch/ViewContainer/ACCBarItemResourceConfigManagerProtocol.h",
+    "CameraArch/ViewContainer/AWESwitchModeSingleTabConfig.h",
+    "CameraArch/ViewContainer/Recorder/ACCRecorderToolBarDefines.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CameraArch_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CreationKitArch/ACCAwemeModelProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCBarItemResourceConfigManagerProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCCaptionsNetServiceProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCChallengeModelProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCCommerceStickerDetailModelProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCCustomFontProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCCutSameFragmentModelProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCCutSameTemplateModelProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCEditAndPublishConstants.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCEditPageLayoutManager.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCEditPageStrokeConfig.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCFilterEffectItem.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCMVTemplateInfo.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCMVTemplateModelProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCModelFactoryServiceProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCModuleConfigProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCMultiAnchorOrdering.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCMusicModelProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCPublishInteractionModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCPublishMusicTrackModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCPublishRepository.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCPublishRepositoryElementProtocols.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCPublishShareModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRecodInputDataProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRecordInformationRepoModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRecordMode.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRecordSwitchModeService.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRecordTrackService.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRecorderToolBarDefines.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRecorderViewModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoAuthorityModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoBeautyModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoCaptionModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoChallengeModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoContextModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoCutSameModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoDraftModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoDuetModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoEditPropModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoFilterModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoFlowControlModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoGameModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoMVModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoMusicModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoPropModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoPublishConfigModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoReshootModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoShareModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoStickerModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoTrackModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoTranscodingModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoUploadInfomationModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoVideoInfoModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepoVoiceChangerModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCRepositoryWrapper.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCSegmentBlender.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCStickerMigrationProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCStickerNetServiceProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCStudioDefines.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCStudioNewFaceStickerModelProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCStudioServiceProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCTextExtraProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCTextInputServiceProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCTextStickerExtraModel.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCTimeTraceUtil.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCURLModelProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCURLTransModelProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCUserFrameRatio.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCUserModelProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCUserServiceProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCVideoConfigProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCVideoDataProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCVideoFragmentInfoProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCVideoModelProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/ACCVoiceEffectSegment.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEAVMutableCompositionBuilderDefine.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEAnimatedMusicCoverButton.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEAnimatedRecordButton.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEAnimatedRecordLayerProtocol.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEAnimatedRecordShapeLayer.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEAutoCaptionStickerInfoModel.h",
+    "pod_support/Headers/Private/CreationKitArch/AWECameraContainerToolButtonWrapView.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEColorFilterConfigurationHelper.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEColorFilterDataManager.h",
+    "pod_support/Headers/Private/CreationKitArch/AWECoverTextModel.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEDraftUtils.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEEditGradientView.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEEffectFilterDataManager.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEEffectPlatformManageable.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEEffectPlatformPostSerializer.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEEffectPlatformRequestManager.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEEffectPlatformTrackModel.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEFeedBackGenerator.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEImagesView.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEInfoStickerInfo.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEInfoStickerResponse.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEInteractionStickerLocationModel+ACCSticker.h",
+    "pod_support/Headers/Private/CreationKitArch/AWERecordEnterFromDefine.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEScrollStringFadeLabel.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEScrollStringLabel.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEStickerMusicManager.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEStoryTextImageModel.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEStudioCaptionModel.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEStudioExcludeSelfView.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEStudioMeasureManager.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEStudioSpringDefine.h",
+    "pod_support/Headers/Private/CreationKitArch/AWESwitchModeSingleTabConfig.h",
+    "pod_support/Headers/Private/CreationKitArch/AWESwitchRecordModelDefine.h",
+    "pod_support/Headers/Private/CreationKitArch/AWETimeRange.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEVideoCoverConfig.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEVideoImageGenerator.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEVideoPublishDraftTempProductModel.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEVideoPublishViewModel+Repository.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEVideoPublishViewModel.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEVideoPublishViewModelDefine.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEVideoStickerSavePhotoInfo.h",
+    "pod_support/Headers/Private/CreationKitArch/CKConfigKeysDefines.h",
+    "pod_support/Headers/Private/CreationKitArch/HTSVideoDefines.h",
+    "pod_support/Headers/Private/CreationKitArch/HTSVideoSepcialEffect.h",
+    "pod_support/Headers/Private/CreationKitArch/IESEffectModel+ACCSticker.h",
+    "pod_support/Headers/Private/CreationKitArch/IESEffectModel+ComposerFilter.h",
+    "pod_support/Headers/Private/CreationKitArch/NSMutableDictionary+RepositoryContainer.h",
+    "pod_support/Headers/Private/CreationKitArch/VEEditorSession+ACCPreview.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCAwemeModelProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCBarItemResourceConfigManagerProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCCaptionsNetServiceProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCChallengeModelProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCCommerceStickerDetailModelProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCCustomFontProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCCutSameFragmentModelProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCCutSameTemplateModelProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCEditAndPublishConstants.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCEditPageLayoutManager.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCEditPageStrokeConfig.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCFilterEffectItem.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCMVTemplateInfo.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCMVTemplateModelProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCModelFactoryServiceProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCModuleConfigProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCMultiAnchorOrdering.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCMusicModelProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCPublishInteractionModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCPublishMusicTrackModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCPublishRepository.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCPublishRepositoryElementProtocols.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCPublishShareModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRecodInputDataProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRecordInformationRepoModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRecordMode.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRecordSwitchModeService.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRecordTrackService.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRecorderToolBarDefines.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRecorderViewModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoAuthorityModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoBeautyModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoCaptionModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoChallengeModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoContextModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoCutSameModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoDraftModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoDuetModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoEditPropModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoFilterModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoFlowControlModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoGameModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoMVModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoMusicModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoPropModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoPublishConfigModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoReshootModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoShareModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoStickerModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoTrackModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoTranscodingModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoUploadInfomationModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoVideoInfoModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepoVoiceChangerModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCRepositoryWrapper.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCSegmentBlender.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCStickerMigrationProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCStickerNetServiceProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCStudioDefines.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCStudioNewFaceStickerModelProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCStudioServiceProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCTextExtraProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCTextInputServiceProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCTextStickerExtraModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCTimeTraceUtil.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCURLModelProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCURLTransModelProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCUserFrameRatio.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCUserModelProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCUserServiceProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCVideoConfigProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCVideoDataProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCVideoFragmentInfoProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCVideoModelProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCVoiceEffectSegment.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEAVMutableCompositionBuilderDefine.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEAnimatedMusicCoverButton.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEAnimatedRecordButton.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEAnimatedRecordLayerProtocol.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEAnimatedRecordShapeLayer.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEAutoCaptionStickerInfoModel.h",
+    "pod_support/Headers/Public/CreationKitArch/AWECameraContainerToolButtonWrapView.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEColorFilterConfigurationHelper.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEColorFilterDataManager.h",
+    "pod_support/Headers/Public/CreationKitArch/AWECoverTextModel.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEDraftUtils.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEEditGradientView.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEEffectFilterDataManager.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEEffectPlatformManageable.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEEffectPlatformPostSerializer.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEEffectPlatformRequestManager.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEEffectPlatformTrackModel.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEFeedBackGenerator.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEImagesView.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEInfoStickerInfo.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEInfoStickerResponse.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEInteractionStickerLocationModel+ACCSticker.h",
+    "pod_support/Headers/Public/CreationKitArch/AWERecordEnterFromDefine.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEScrollStringFadeLabel.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEScrollStringLabel.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEStickerMusicManager.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEStoryTextImageModel.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEStudioCaptionModel.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEStudioExcludeSelfView.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEStudioMeasureManager.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEStudioSpringDefine.h",
+    "pod_support/Headers/Public/CreationKitArch/AWESwitchModeSingleTabConfig.h",
+    "pod_support/Headers/Public/CreationKitArch/AWESwitchRecordModelDefine.h",
+    "pod_support/Headers/Public/CreationKitArch/AWETimeRange.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEVideoCoverConfig.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEVideoImageGenerator.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEVideoPublishDraftTempProductModel.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEVideoPublishViewModel+Repository.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEVideoPublishViewModel.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEVideoPublishViewModelDefine.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEVideoStickerSavePhotoInfo.h",
+    "pod_support/Headers/Public/CreationKitArch/CKConfigKeysDefines.h",
+    "pod_support/Headers/Public/CreationKitArch/HTSVideoDefines.h",
+    "pod_support/Headers/Public/CreationKitArch/HTSVideoSepcialEffect.h",
+    "pod_support/Headers/Public/CreationKitArch/IESEffectModel+ACCSticker.h",
+    "pod_support/Headers/Public/CreationKitArch/IESEffectModel+ComposerFilter.h",
+    "pod_support/Headers/Public/CreationKitArch/NSMutableDictionary+RepositoryContainer.h",
+    "pod_support/Headers/Public/CreationKitArch/VEEditorSession+ACCPreview.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CameraArch_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CameraArch_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "CameraArch_module_map",
+  module_map = "pod_support/Headers/Public/CreationKitArch/CreationKitArch_CameraArch-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreationKitArch/CreationKitArch_CameraArch-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CameraArch_srcs",
+  srcs = [
+    "CameraArch/Record/Constants/ACCEditAndPublishConstants.m",
+    "CameraArch/Common/Manager/AWEColorFilterDataManager.m",
+    "CameraArch/Edit/Manager/AWEEffectFilterDataManager.m",
+    "CameraArch/Common/Manager/AWEStudioMeasureManager.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CameraArch_oc",
+  enable_modules = 1,
+  srcs = [
+    "CameraArch_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "CameraArch_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "Foundation",
+    "AVFoundation",
+    "CoreMedia",
+    "QuartzCore",
+    "UIKit"
+  ],
+  deps = [
+    ":CreationKitArch_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreationKitArch_private_includes",
+    ":CreationKitArch_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@CreationKitInfra//:CreationKitInfra_objc_interface",
+    "@CreationKitRTProtocol//:CreationKitRTProtocol_objc_interface",
+    "@CreativeKit//:CameraArch_objc_interface",
+    "@CreativeKit//:MobileInfra_objc_interface",
+    "@CreativeKitSticker//:CreativeKitSticker_objc_interface",
+    "@EffectPlatformSDK//:ModelDistribute_objc_interface",
+    "@Mantle//:Mantle_objc_interface",
+    "@Masonry//:Masonry_objc_interface",
+    "@TTNetworkManager//:TTNetworkManager_objc_interface",
+    "@TTVideoEditor//:Core_objc_interface",
+    "@TTVideoEditor//:IESMMEffect_objc_interface",
+    "@CreationKitInfra//:CreationKitInfra_swift_interface",
+    "@CreationKitRTProtocol//:CreationKitRTProtocol_swift_interface",
+    "@CreativeKit//:CameraArch_swift_interface",
+    "@CreativeKit//:MobileInfra_swift_interface",
+    "@CreativeKitSticker//:CreativeKitSticker_swift_interface",
+    "@EffectPlatformSDK//:ModelDistribute_swift_interface",
+    "@Mantle//:Mantle_swift_interface",
+    "@Masonry//:Masonry_swift_interface",
+    "@TTNetworkManager//:TTNetworkManager_swift_interface",
+    "@TTVideoEditor//:Core_swift_interface",
+    "@TTVideoEditor//:IESMMEffect_swift_interface",
+    ":CreationKitArch_CameraArch_VendoredLibraries",
+    ":CameraArch_objc_interface",
+    "@CreationKitInfra//:CreationKitInfra_module_map",
+    "@CreationKitRTProtocol//:CreationKitRTProtocol_module_map",
+    "@CreativeKit//:CameraArch_module_map",
+    "@CreativeKit//:MobileInfra_module_map",
+    "@CreativeKitSticker//:CreativeKitSticker_module_map",
+    "@EffectPlatformSDK//:ModelDistribute_module_map",
+    "@Mantle//:Mantle_module_map",
+    "@Masonry//:Masonry_module_map",
+    "@TTNetworkManager//:TTNetworkManager_module_map",
+    "@TTVideoEditor//:Core_module_map",
+    "@TTVideoEditor//:IESMMEffect_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CameraArch",
+  deps = [
+    ":CameraArch_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "CameraArch_lib",
+  deps = [
+    ":CameraArch"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Models_hdrs",
+  srcs = [
+    "CameraArch/Common/Model/ACCLoginUserContext.h",
+    "CameraArch/Common/Model/AWEInteractionStickerModel.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Models_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/CreationKitArch/ACCLoginUserContext.h",
+    "pod_support/Headers/Private/CreationKitArch/AWEInteractionStickerModel.h",
+    "pod_support/Headers/Public/CreationKitArch/ACCLoginUserContext.h",
+    "pod_support/Headers/Public/CreationKitArch/AWEInteractionStickerModel.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Models_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Models_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Models_module_map",
+  module_map = "pod_support/Headers/Public/CreationKitArch/CreationKitArch_Models-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreationKitArch/CreationKitArch_Models-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Models_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Models_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreationKitArch_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreationKitArch_private_includes",
+    ":CreationKitArch_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@CreativeKit//:CameraArch_objc_interface",
+    "@Mantle//:Mantle_objc_interface",
+    "@CreativeKit//:CameraArch_swift_interface",
+    "@Mantle//:Mantle_swift_interface",
+    ":CreationKitArch_Models_VendoredLibraries",
+    ":Models_objc_interface",
+    "@CreativeKit//:CameraArch_module_map",
+    "@Mantle//:Mantle_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Models",
+  deps = [
+    ":Models_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Models_lib",
+  deps = [
+    ":Models"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Debug_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Debug_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Debug_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Debug_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Debug_module_map",
+  module_map = "pod_support/Headers/Public/CreationKitArch/CreationKitArch_Debug-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/CreationKitArch/CreationKitArch_Debug-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Debug_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Debug_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":CreationKitArch_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":CreationKitArch_private_includes",
+    ":CreationKitArch_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Debug_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-DACC_DEBUG_MODE=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Debug",
+  deps = [
+    ":Debug_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Debug_lib",
+  deps = [
+    ":Debug"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_CreationKitArch_module_map",
+  module_map = "@CreationKitArch//:pod_support/Headers/Public/CreationKitArch/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@CreationKitArch//:pod_support/Headers/Public/CreationKitArch/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_CreationKitArch_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@CreationKitArch//:CameraArch_objc_interface", "@CreationKitArch//:CreationKitArch_objc_interface", "@CreationKitArch//:Models_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_CreationKitArch",
+  target_name = "Lark",
+  module_name = "CreationKitArch",
+  hdrs = ["@CreationKitArch//:CameraArch_pod_hdrs", "@CreationKitArch//:CreationKitArch_root_pod_hdrs", "@CreationKitArch//:Models_pod_hdrs"],
+  srcs = ["@CreationKitArch//:CameraArch_srcs"],
+  non_arc_srcs = [],
+  deps = ["@CreationKitArch//:CreationKitArch_CameraArch_VendoredLibraries", "@CreationKitArch//:CreationKitArch_Models_VendoredLibraries"],
+  pod_deps = ["CreationKitInfra", "CreationKitRTProtocol", "CreativeKit", "CreativeKitSticker", "EffectPlatformSDK", "Mantle", "Masonry", "TTNetworkManager", "TTVideoEditor"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "CreationKitArch_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "CreationKitArch_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["Foundation", "AVFoundation", "CoreMedia", "QuartzCore", "UIKit"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "CreationKitArch_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "CreationKitArch_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "CreationKitArch_dynamic", False),
+  tags = getattr(defs_external_objc_library, "CreationKitArch_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("CreationKitArch", {}),
+  visibility = ["//visibility:public"],
+)

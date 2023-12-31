@@ -1,0 +1,1 @@
+../../../../CJPay/Classes/PayComponent/Base/PublicHeader/CJPayBioPaymentPlugin.h

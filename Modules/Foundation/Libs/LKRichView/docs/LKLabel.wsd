@@ -1,0 +1,78 @@
+@startuml LKLabel
+
+class LKTextCharacterGroup {
+    ~NSRange originRange
+    ~Map<NSAttributedString.Key, Any> attributes
+}
+
+interface ILKTextParser {
+    ~UIFont defaultFont
+    ~NSAttributedString originAttrString
+    ~NSMutableAttributedString renderAttrString
+    ~Array<CFIndex> parserIndicesToOriginIndices
+    ~CFIndex getOriginIndex(from parserIndex: CFIndex)
+    ~CFIndex getParserIndex(from originIndex: CFIndex)
+    ~void parse()
+}
+
+interface ILKTextParserIndices {
+    ~Array<CFIndex> parserIndicesToOriginIndices
+    ~CFIndex getOriginIndex(from parserIndex: CFIndex)
+    ~CFIndex getParserIndex(from originIndex: CFIndex)
+}
+
+class LKCharacterAttrsCommit {
+    ~NSRange range
+    ~Map<NSAttributedString.Key, Any> updateAttrs
+    ~Array<NSAttributedString.Key> removeAttrs
+}
+
+class LKCharacterReplaceWithRunDelegateCommit {
+    ~NSRange range
+    ~CTRunDelegate runDelegate
+    ~Map<NSAttributedString.Key, Any> updateAttrs
+}
+
+class LKTextParserContext {
+    ~UIFont defaultFont
+}
+
+interface ILKCharacterParser {
+    ~Array<LKTextCharacterGroup> inputCharacterGroups
+    ~Bool filter(character: LKTextCharacterGroup)
+    ~void parse(attributedString: NSAttributedString, context: LKTextParserContext)
+    ~Array<LKCharacterAttrsCommit> attributesCommit()
+    ~Array<LKCharacterReplaceWithRunDelegateCommit> repalceCommit()
+}
+
+class LKTextParser extends ILKTextParser, ILKTextParserIndices {
+    +Array<ILKCharacterParser> characterParsers
+}
+
+class PointCharacterParser extends ILKCharacterParser {
+}
+class AtCharacterParser extends ILKCharacterParser {
+}
+class BackgroundCharacterParser extends ILKCharacterParser {
+}
+class ItalicCharacterParser extends ILKCharacterParser {
+}
+class EmojiCharacterParser extends ILKCharacterParser {
+}
+class AttachmentCharacterParser extends ILKCharacterParser {
+}
+
+class LKLabel {
+    ILKTextParser textParser
+    ILKTextParser linkParser
+}
+
+LKLabel ..|> ILKTextParser
+ILKTextParser ..|> ILKCharacterParser
+ILKTextParser ..|> LKTextCharacterGroup
+ILKCharacterParser ..|> LKTextParserContext
+ILKCharacterParser ..|> LKCharacterAttrsCommit
+ILKCharacterParser ..|> LKCharacterReplaceWithRunDelegateCommit
+ILKCharacterParser ..|> LKTextCharacterGroup
+
+@enduml

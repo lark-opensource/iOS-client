@@ -1,0 +1,1335 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "BulletX_pod_hdrs",
+  srcs = [
+    ":BulletX_root_pod_hdrs",
+    ":ModuleInterface_pod_hdrs",
+    ":ModuleInterface_Model_pod_hdrs",
+    ":ModuleInterface_Interface_pod_hdrs",
+    ":Core_pod_hdrs",
+    ":Assembler_pod_hdrs",
+    ":Dependency_pod_hdrs",
+    ":Bridge_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "BulletX_private_includes",
+  include = [
+    "external/BulletX/pod_support/Headers/Private/BulletX/"
+  ],
+  deps = [],
+  external_name = "BulletX"
+)
+gen_includes(
+  name = "BulletX_public_includes",
+  include = [
+    "external/BulletX/pod_support/Headers/Public/BulletX/"
+  ],
+  deps = [],
+  external_name = "BulletX"
+)
+filegroup(
+  name = "_BulletX_hdrs",
+  srcs = [
+    ":BulletX_root_hdrs",
+    ":ModuleInterface_hdrs",
+    ":ModuleInterface_Model_hdrs",
+    ":ModuleInterface_Interface_hdrs",
+    ":Core_hdrs",
+    ":Assembler_hdrs",
+    ":Dependency_hdrs",
+    ":Bridge_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "BulletX_xcode_hmapsource",
+  hdrs = [
+    ":BulletX_root_hdrs",
+    ":Assembler_hdrs",
+    ":Bridge_hdrs",
+    ":Core_hdrs",
+    ":Dependency_hdrs",
+    ":ModuleInterface_hdrs",
+    ":ModuleInterface_Interface_hdrs",
+    ":ModuleInterface_Model_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "BulletX_xcode_hmap",
+  dep = ":BulletX_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/BulletX/*-bitsky-generated.modulemap", "pod_support/Headers/Public/BulletX/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "BulletX_Core_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libBulletX-3c6d893.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "BulletX_Assembler_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libBulletX-e3f048d.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "BulletX_Bridge_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libBulletX-bf5c3a2.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "BulletX_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "BulletX",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "BulletX_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":BulletX_xcode_hmap"
+  ],
+  external_name = "BulletX",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BulletX_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "BulletX_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BulletX_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BulletX_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "BulletX_module_map",
+  module_map = "pod_support/Headers/Public/BulletX/BulletX-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BulletX/BulletX-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "BulletX_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "BulletX_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BulletX_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BulletX_private_includes",
+    ":BulletX_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":BulletX_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "BulletX",
+  deps = [
+    ":BulletX_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "BulletX_lib",
+  deps = [
+    ":BulletX"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ModuleInterface_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ModuleInterface_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ModuleInterface_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ModuleInterface_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ModuleInterface_module_map",
+  module_map = "pod_support/Headers/Public/BulletX/BulletX_ModuleInterface-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BulletX/BulletX_ModuleInterface-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ModuleInterface_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "ModuleInterface_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BulletX_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BulletX_private_includes",
+    ":BulletX_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":ModuleInterface_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ModuleInterface",
+  deps = [
+    ":ModuleInterface_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ModuleInterface_lib",
+  deps = [
+    ":ModuleInterface"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ModuleInterface_Model_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ModuleInterface_Model_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ModuleInterface_Model_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ModuleInterface_Model_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ModuleInterface_Model_module_map",
+  module_map = "pod_support/Headers/Public/BulletX/BulletX_ModuleInterface_Model-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BulletX/BulletX_ModuleInterface_Model-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ModuleInterface_Model_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "ModuleInterface_Model_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BulletX_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BulletX_private_includes",
+    ":BulletX_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":ModuleInterface_Model_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ModuleInterface_Model",
+  deps = [
+    ":ModuleInterface_Model_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ModuleInterface_Model_lib",
+  deps = [
+    ":ModuleInterface_Model"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ModuleInterface_Interface_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ModuleInterface_Interface_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ModuleInterface_Interface_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ModuleInterface_Interface_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ModuleInterface_Interface_module_map",
+  module_map = "pod_support/Headers/Public/BulletX/BulletX_ModuleInterface_Interface-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BulletX/BulletX_ModuleInterface_Interface-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ModuleInterface_Interface_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "ModuleInterface_Interface_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BulletX_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BulletX_private_includes",
+    ":BulletX_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":ModuleInterface_Interface_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ModuleInterface_Interface",
+  deps = [
+    ":ModuleInterface_Interface_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ModuleInterface_Interface_lib",
+  deps = [
+    ":ModuleInterface_Interface"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [
+    "BulletX/Classes/Core/Lib/NSString+BulletXUUID.h",
+    "BulletX/Classes/Core/Lib/NSString+BulletXUrlExt.h",
+    "BulletX/Classes/Core/Lib/NSURL+BulletXQueryExt.h",
+    "BulletX/Classes/Core/Lib/NSURLComponents+BulletXQueryExt.h",
+    "BulletX/Classes/Core/Lib/NSURLQueryItem+BulletXUrlExt.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BulletX/NSString+BulletXUUID.h",
+    "pod_support/Headers/Private/BulletX/NSString+BulletXUrlExt.h",
+    "pod_support/Headers/Private/BulletX/NSURL+BulletXQueryExt.h",
+    "pod_support/Headers/Private/BulletX/NSURLComponents+BulletXQueryExt.h",
+    "pod_support/Headers/Private/BulletX/NSURLQueryItem+BulletXUrlExt.h",
+    "pod_support/Headers/Public/BulletX/NSString+BulletXUUID.h",
+    "pod_support/Headers/Public/BulletX/NSString+BulletXUrlExt.h",
+    "pod_support/Headers/Public/BulletX/NSURL+BulletXQueryExt.h",
+    "pod_support/Headers/Public/BulletX/NSURLComponents+BulletXQueryExt.h",
+    "pod_support/Headers/Public/BulletX/NSURLQueryItem+BulletXUrlExt.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/BulletX/BulletX_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BulletX/BulletX_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_srcs",
+  srcs = [
+    "BulletX/Classes/Core/Lib/NSString+BulletXUrlExt.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [
+    "Core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/Core-prefix.pch",
+  deps = [
+    ":BulletX_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BulletX_private_includes",
+    ":BulletX_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_objc_interface",
+    "@Mantle//:Mantle_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_swift_interface",
+    "@Mantle//:Mantle_swift_interface",
+    ":BulletX_Core_VendoredLibraries",
+    ":Core_objc_interface",
+    "@ByteDanceKit//:ByteDanceKit_module_map",
+    "@Mantle//:Mantle_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Assembler_hdrs",
+  srcs = [
+    "BulletX/Entry/Assembler/BulletAssembler.h",
+    "BulletX/Entry/Assembler/Utils/BulletXDefines.h",
+    "BulletX/Entry/Assembler/Utils/BulletXLog.h",
+    "BulletX/Entry/Assembler/Utils/NSData+BulletXSecurity.h",
+    "BulletX/Entry/Assembler/Utils/NSError+BulletX.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Assembler_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BulletX/BulletAssembler.h",
+    "pod_support/Headers/Private/BulletX/BulletXDefines.h",
+    "pod_support/Headers/Private/BulletX/BulletXLog.h",
+    "pod_support/Headers/Private/BulletX/NSData+BulletXSecurity.h",
+    "pod_support/Headers/Private/BulletX/NSError+BulletX.h",
+    "pod_support/Headers/Public/BulletX/BulletAssembler.h",
+    "pod_support/Headers/Public/BulletX/BulletXDefines.h",
+    "pod_support/Headers/Public/BulletX/BulletXLog.h",
+    "pod_support/Headers/Public/BulletX/NSData+BulletXSecurity.h",
+    "pod_support/Headers/Public/BulletX/NSError+BulletX.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Assembler_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Assembler_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Assembler_module_map",
+  module_map = "pod_support/Headers/Public/BulletX/BulletX_Assembler-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BulletX/BulletX_Assembler-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Assembler_srcs",
+  srcs = [
+    "BulletX/Entry/Assembler/BulletAssembler.m",
+    "BulletX/Entry/Assembler/Utils/BulletXDefines.m",
+    "rock_dummy/rock_dummy_e3f048d.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Assembler_oc",
+  enable_modules = 1,
+  srcs = [
+    "Assembler_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Assembler_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/Assembler-prefix.pch",
+  deps = [
+    ":BulletX_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BulletX_private_includes",
+    ":BulletX_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_objc_interface",
+    "@BDXServiceCenter//:BDXServiceCenter_objc_interface",
+    "@ByteDanceKit//:Foundation_objc_interface",
+    "@ByteDanceKit//:UIKit_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_swift_interface",
+    "@BDXServiceCenter//:BDXServiceCenter_swift_interface",
+    "@ByteDanceKit//:Foundation_swift_interface",
+    "@ByteDanceKit//:UIKit_swift_interface",
+    ":BulletX_Assembler_VendoredLibraries",
+    ":Assembler_objc_interface",
+    "@BDAlogProtocol//:BDAlogProtocol_module_map",
+    "@BDXServiceCenter//:BDXServiceCenter_module_map",
+    "@ByteDanceKit//:Foundation_module_map",
+    "@ByteDanceKit//:UIKit_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Assembler",
+  deps = [
+    ":Assembler_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Assembler_lib",
+  deps = [
+    ":Assembler"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Dependency_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Dependency_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Dependency_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Dependency_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Dependency_module_map",
+  module_map = "pod_support/Headers/Public/BulletX/BulletX_Dependency-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BulletX/BulletX_Dependency-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Dependency_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Dependency_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/Dependency-prefix.pch",
+  deps = [
+    ":BulletX_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BulletX_private_includes",
+    ":BulletX_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Dependency_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Dependency",
+  deps = [
+    ":Dependency_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Dependency_lib",
+  deps = [
+    ":Dependency"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Bridge_hdrs",
+  srcs = [
+    "BulletX/Entry/Bridge/BDXBridge+BulletXMethod.h",
+    "BulletX/Entry/Bridge/BulletXBridgeDefines.h",
+    "BulletX/Entry/Bridge/BulletXXBridgeAutoRegister.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Bridge_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/BulletX/BDXBridge+BulletXMethod.h",
+    "pod_support/Headers/Private/BulletX/BulletXBridgeDefines.h",
+    "pod_support/Headers/Private/BulletX/BulletXXBridgeAutoRegister.h",
+    "pod_support/Headers/Public/BulletX/BDXBridge+BulletXMethod.h",
+    "pod_support/Headers/Public/BulletX/BulletXBridgeDefines.h",
+    "pod_support/Headers/Public/BulletX/BulletXXBridgeAutoRegister.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Bridge_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Bridge_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Bridge_module_map",
+  module_map = "pod_support/Headers/Public/BulletX/BulletX_Bridge-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/BulletX/BulletX_Bridge-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Bridge_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Bridge_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":BulletX_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":BulletX_private_includes",
+    ":BulletX_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDXBridgeKit//:Core_objc_interface",
+    "@BDXBridgeKit//:Core_swift_interface",
+    ":BulletX_Bridge_VendoredLibraries",
+    ":Bridge_objc_interface",
+    "@BDXBridgeKit//:Core_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Bridge",
+  deps = [
+    ":Bridge_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Bridge_lib",
+  deps = [
+    ":Bridge"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_BulletX_module_map",
+  module_map = "@BulletX//:pod_support/Headers/Public/BulletX/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@BulletX//:pod_support/Headers/Public/BulletX/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_BulletX_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@BulletX//:Assembler_objc_interface", "@BulletX//:Bridge_objc_interface", "@BulletX//:BulletX_objc_interface", "@BulletX//:Core_objc_interface", "@BulletX//:Dependency_objc_interface", "@BulletX//:ModuleInterface_objc_interface", "@BulletX//:ModuleInterface_Interface_objc_interface", "@BulletX//:ModuleInterface_Model_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_BulletX",
+  target_name = "Lark",
+  module_name = "BulletX",
+  hdrs = ["@BulletX//:Assembler_pod_hdrs", "@BulletX//:Bridge_pod_hdrs", "@BulletX//:BulletX_root_pod_hdrs", "@BulletX//:Core_pod_hdrs", "@BulletX//:Dependency_pod_hdrs", "@BulletX//:ModuleInterface_pod_hdrs", "@BulletX//:ModuleInterface_Interface_pod_hdrs", "@BulletX//:ModuleInterface_Model_pod_hdrs"],
+  srcs = ["@BulletX//:Assembler_srcs", "@BulletX//:Core_srcs"],
+  non_arc_srcs = [],
+  deps = ["@BulletX//:BulletX_Assembler_VendoredLibraries", "@BulletX//:BulletX_Bridge_VendoredLibraries", "@BulletX//:BulletX_Core_VendoredLibraries"],
+  pod_deps = ["BDAlogProtocol", "BDXServiceCenter", "ByteDanceKit", "BDXBridgeKit", "Mantle"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "BulletX_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "BulletX_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "BulletX_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "BulletX_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "BulletX_dynamic", False),
+  tags = getattr(defs_external_objc_library, "BulletX_tags", []),
+  pch = "pod_support/Headers/Private/Lark_BulletX-prefix.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("BulletX", {}),
+  visibility = ["//visibility:public"],
+)

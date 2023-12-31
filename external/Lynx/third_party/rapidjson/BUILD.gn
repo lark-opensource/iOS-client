@@ -1,0 +1,96 @@
+# Copyright 2020 The Lynx Authors. All rights reserved.
+
+import("//config.gni")
+import("//build/toolchain/gen_subspec_file.gni")
+
+config("rapidjson_config") {
+  include_dirs = [
+    ".",
+    "//third_party",
+  ]
+  # rapidjson needs these defines to support C++11 features. These features
+  # are intentionally not autodetected by rapidjson.
+  defines = [
+    "RAPIDJSON_HAS_STDSTRING",
+    "RAPIDJSON_HAS_CXX11_RANGE_FOR",
+    "RAPIDJSON_HAS_CXX11_RVALUE_REFS",
+    "RAPIDJSON_HAS_CXX11_TYPETRAITS",
+    "RAPIDJSON_HAS_CXX11_NOEXCEPT",
+  ]
+}
+
+# rapidjson_shared_sources
+rapidjson_shared_sources = []
+rapidjson_sources_folders = [
+  "./",
+  "error",
+  "internal"
+]
+
+paths = ""
+foreach(folder_name, rapidjson_sources_folders) {
+  paths += rebase_path(folder_name) + ";"
+}
+output = exec_script("//build/read_file_names.py", ["-p", paths, "-b", rebase_path("./"), "-e", "unittest.cc"], "list lines", [])
+rapidjson_shared_sources += output
+# rapidjson_shared_sources end
+
+
+rapidjson_public_headers = [
+  "memorystream.h",
+  "reader.h",
+  "prettywriter.h",
+  "ostreamwrapper.h",
+  "encodedstream.h",
+  "fwd_c.h",
+  "filereadstream.h",
+  "cursorstreamwrapper.h",
+  "istreamwrapper.h",
+  "stringbuffer.h",
+  "encodings.h",
+  "schema.h",
+  "stream.h",
+  "filewritestream.h",
+  "rapidjson.h",
+  "document.h",
+  "allocators.h",
+  "writer.h",
+  "error/error.h",
+  "error/en.h",
+  "memorybuffer.h",
+  "pointer.h",
+  "msinttypes/inttypes.h",
+  "msinttypes/stdint.h",
+]
+
+
+source_set("rapidjson") {
+  sources = rapidjson_shared_sources
+
+  public = rapidjson_public_headers
+
+  public_configs = [ ":rapidjson_config" ]
+}
+
+source_set("android_devtool_rapidjson") {
+  sources = rapidjson_shared_sources
+
+  public = rapidjson_public_headers
+
+  public_configs = [ ":rapidjson_config" ]
+}
+
+if (enable_gen_podspec) {
+  gen_subspec_file("rapidjson_podspec") {
+    exclude_files = [
+      "third_party/rapidjson/msinttypes/*",
+      "third_party/rapidjson/internal/pow10_unittest.cc"
+    ]
+    module_name = "Lynx-Devtool"
+    parent_path = "subspecs-Native-third_party"
+    podspec_name = "rapidjson"
+    private_header_files = "third_party/rapidjson/**/*.h"
+    sources = rapidjson_shared_sources
+  }
+}
+

@@ -1,0 +1,22 @@
+debug_dependency 'LarkUIKit', '1.33.7'
+debug_dependency 'EEImageService', '0.22.1'
+debug_dependency 'Kingfisher', '5.3.1-lark.15'
+debug_dependency 'KingfisherWebP', '0.6.0-lark.0'
+debug_dependency 'LarkLocalizations', '1.15.1'
+debug_dependency 'ServerPB', '1.0.769'
+debug_dependency 'SnapKit', '5.0.1', :source => 'git@code.byted.org:ee/pods_specs.git'
+
+debug_dependency 'CryptoSwift', '1.1.3', :source => 'git@code.byted.org:ee/pods_specs.git'
+debug_dependency 'UGContainer', :integration => :local
+debug_cocoapods do
+  pre_install "patch build settings", <<-'PRE_INSTALL'
+  installer.pod_targets.each do |pod_target|
+    attributes_hash = pod_target.root_spec.attributes_hash
+    pod_target_xcconfig = (attributes_hash['pod_target_xcconfig'] ||= {})
+    pod_target_xcconfig['SWIFT_VERSION'] = '5.1'
+    pod_target_xcconfig['IPHONEOS_DEPLOYMENT_TARGET'] = '11.0'
+    # enable binary support verify
+    pod_target_xcconfig['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
+  end
+  PRE_INSTALL
+end

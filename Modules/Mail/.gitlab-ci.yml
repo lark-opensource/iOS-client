@@ -1,0 +1,47 @@
+# This file is a template, and might need editing before it works on your project.
+# Lifted from: https://about.gitlab.com/2016/03/10/setting-up-gitlab-ci-for-ios-projects/
+# This file assumes an own GitLab CI runner, setup on an OS X system.
+stages:
+  - lint
+  - build
+  # Duplicate code analysis & Unused code analysis
+  - analysis
+  - package
+
+variables:
+  LC_ALL: "en_US.UTF-8"
+  LANG: "en_US.UTF-8"
+
+lint:
+  dependencies: []
+  stage: lint
+  script:
+    - export
+    - swiftlint
+  tags:
+    - Mail-CI
+  only:
+    - triggers
+    - web
+
+build:
+  dependencies: []
+  stage: build
+  script:
+    - export
+    # setup ios-client
+    - mkdir -p /Users/jenkins_node/Documents/Gitlab-ios-temp; cd /Users/jenkins_node/Documents/Gitlab-ios-temp
+    # clone ios-client & checkout to feature/mail/develop
+    - if [ -d "ios-client" ]; then echo "ios-client found"; else git clone "git@code.byted.org:lark/iOS-client.git"; fi; 
+    - cd ios-client; git clean -fd; git fetch; git reset --hard origin/feature/mail/develop
+    # change MailSDK pointing to local pod
+    - sed -i '' -Ee "/pod[[:space:]]+[']MailSDK[']/s~,.*~, :path => '$CI_PROJECT_DIR/MailSDK'~" Podfile
+    # Modify Fastfile to skip swiftlint on ios-client
+    - sed -i '' -Ee 's/if swift_file_list.length > 0/if false/g' fastlane/Fastfile
+    # execute fastlane build
+    - rm -rf Pods; ruby --version; rm -rf Logs/; bundle install; bundle exec fastlane ios LarkCI
+  tags:
+    - Mail-CI
+  only:
+    - triggers
+    - web

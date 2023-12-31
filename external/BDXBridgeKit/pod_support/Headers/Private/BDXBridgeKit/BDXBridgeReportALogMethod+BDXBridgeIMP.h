@@ -1,0 +1,1 @@
+../../../../BDXBridgeKit/Classes/Methods/Log/BDXBridgeReportALogMethod+BDXBridgeIMP.h

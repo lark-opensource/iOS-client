@@ -1,0 +1,182 @@
+require 'fileutils'
+
+default_platform(:ios)
+
+# 增加 XCODE 编译的稳定性
+ENV['FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT'] ||= '60'
+ENV['FASTLANE_XCODE_LIST_TIMEOUT'] ||= '60'
+
+platform :ios do
+
+    lane :build_lark do |options|
+        params = {
+            :lark_path              => options[:lark_path]              || ENV["LB_LARK_PATH"],
+            :lark_config_name       => options[:lark_config_name]       || ENV["LB_LARK_CONFIG_NAME"],
+            :customized_config_path => options[:customized_config_path] || ENV["LB_CUSTOMIZED_CONFIG_PATH"],
+            :output_directory       => options[:output_directory]       || ENV["LB_OUTPUT_DIRECTORY"],
+            :export_method          => options[:export_method]          || ENV["LB_EXPORT_METHOD"],
+            :use_developer_sign     => options[:use_developer_sign]     || ENV["LB_USE_DEVELOPER_SIGN"],
+            :build_number           => options[:build_number]           || ENV["LB_BUILD_NUMBER"],
+
+            # the following values will be inserted into plist
+            :lark_git_commit        => options[:lark_git_commit]        || ENV["LB_LARK_GIT_COMMIT"],
+            :lark_git_branch        => options[:lark_git_branch]        || ENV["LB_LARK_GIT_BRANCH"],
+            :byteview_git_commit    => options[:byteview_git_commit]    || ENV["LB_BYTEVIEW_GIT_COMMIT"],
+            :byteview_git_branch    => options[:byteview_git_branch]    || ENV["LB_BYTEVIEW_GIT_BRANCH"],
+            :byteview_version       => options[:byteview_version]       || ENV["LB_BYTEVIEW_VERSION"],
+            :rustpb_version         => options[:rustpb_version]         || ENV["LB_RUSTPB_VERSION"],
+            :rtcsdk_version         => options[:rtcsdk_version]         || ENV["LB_RTCSDK_VERSION"],
+            :registry_ip            => options[:registry_ip]            || ENV["LB_REGISTRY_IP"]
+        }
+
+        do_build_lark(params)
+    end
+    
+    private_lane :do_build_lark do |options|
+        # get options
+        lark_path = with_value(options, :lark_path, nil, false)
+        lark_config_name = with_value(options, :lark_config_name, nil, false)
+        customized_config_path = with_value(options, :customized_config_path, nil)
+        output_directory = with_value(options, :output_directory, nil, false)
+        export_method = with_value(options, :export_method, nil, false)
+        use_developer_sign = with_value(options, :use_developer_sign, false)
+        build_number = with_value(options, :build_number, ci_build_number)
+
+        # with default value should be enough
+        main_scheme = "Lark"
+        configuration = "Release"
+        iCloud_container_environment = "Production"
+
+        # for plist injection
+        lark_git_commit = with_value(options, :lark_git_commit, nil)
+        lark_git_branch = with_value(options, :lark_git_branch, nil)
+        byteview_git_commit = with_value(options, :byteview_git_commit, nil)
+        byteview_git_branch = with_value(options, :byteview_git_branch, nil)
+        byteview_version = with_value(options, :byteview_version, nil)
+        rustpb_version = with_value(options, :rustpb_version, nil)
+        rtcsdk_version = with_value(options, :rtcsdk_version, nil)
+        registry_ip = with_value(options, :registry_ip, nil)
+
+        # update lark build settings and may override with our own values
+        patch_lark_build_config(lark_path, customized_config_path)
+        update_lark_build_setting(lark_path, lark_config_name)
+
+        # just make sure the build number is aligned with CI
+        build = increment_build_number(lark_path, main_scheme, build_number)
+        increment_build_number(lark_path, "ShareExtension", build_number)
+        increment_build_number(lark_path, "NotificationServiceExtension", build_number)
+        increment_build_number(lark_path, "BroadcastUploadExtension", build_number)
+
+        # add the suffix of ByteView, showing it's our team's build
+        version = append_version_number_suffix(lark_path, main_scheme)
+
+        # update plist with customized values
+        update_lark_plist(lark_path, :CMDSERV_LARK_GIT_COMMIT, lark_git_commit)
+        update_lark_plist(lark_path, :CMDSERV_LARK_GIT_BRANCH, lark_git_branch)
+        update_lark_plist(lark_path, :CMDSERV_BYTEVIEW_GIT_COMMIT, byteview_git_commit)
+        update_lark_plist(lark_path, :CMDSERV_BYTEVIEW_GIT_BRANCH, byteview_git_branch)
+        update_lark_plist(lark_path, :CMDSERV_BYTEVIEW_VERSION, byteview_version)
+        update_lark_plist(lark_path, :CMDSERV_RUSTPB_VERSION, rustpb_version)
+        update_lark_plist(lark_path, :CMDSERV_RTCSDK_VERSION, rtcsdk_version)
+        update_lark_plist(lark_path, :CMDSERV_REGISTRY_IP, registry_ip)
+
+        # start the build
+        gym(
+            workspace: File.expand_path("#{lark_path}/Lark.xcworkspace"),
+            scheme: main_scheme,
+            clean: true,
+            configuration: configuration,
+            export_method: export_method,
+            export_options: { iCloudContainerEnvironment: iCloud_container_environment },
+            codesigning_identity: get_codesigning_identity(use_developer_sign),
+            buildlog_path: output_directory,
+            output_directory: output_directory,
+            output_name: "#{main_scheme}_#{version}_#{build}"
+        )
+    end
+end
+
+def get_codesigning_identity(use_developer_sign)
+    used_identity = nil
+    if (use_developer_sign.is_a?(String) and use_developer_sign == "true")
+        used_identity = "iPhone Developer"
+    elsif (!(use_developer_sign.is_a?(String)) and use_developer_sign)
+        used_identity = "iPhone Developer"
+    else
+        used_identity = nil
+    end
+
+    puts("used codesigning_identity: #{used_identity}")
+    return used_identity
+end
+
+def patch_lark_build_config(lark_path, customized_config_path)
+    if (!customized_config_path or customized_config_path.empty? or !File.exist?(customized_config_path))
+        return
+    end
+
+    # override the root config content
+    lark_config_path = File.expand_path("#{lark_path}/BuildScript/config.json")
+    FileUtils.cp_r(customized_config_path, lark_config_path, :remove_destination => true)
+end
+
+def update_lark_build_setting(lark_path, lark_config_name)
+    project_dir = File.expand_path("#{lark_path}")
+    sh "cd #{project_dir} && ./BuildScript/XcodeEdit ./ BuildScript/config.json #{lark_config_name}"
+end
+
+def with_value(options, name, or_default, allow_nil=true)
+    value = options[name]
+    if (!value and !or_default and !allow_nil)
+        raise "#{name} shouldn't be null"
+    else
+        value ||= or_default
+    end
+
+    puts("{build lark option: #{name}=#{value}}")
+    return value
+end
+
+def increment_build_number(lark_path, schema, build_number)
+    increment_build_number_in_plist(
+        xcodeproj: File.expand_path("#{lark_path}/Lark.xcodeproj"),
+        scheme: schema,
+        build_number: build_number
+    )
+
+    return get_build_number_from_plist(
+        xcodeproj: File.expand_path("#{lark_path}/Lark.xcodeproj"),
+        scheme: schema
+    )
+end
+
+def append_version_number_suffix(lark_path, schema)
+    version = get_version_number_from_plist(
+        xcodeproj: File.expand_path("#{lark_path}/Lark.xcodeproj"),
+        scheme: schema
+    )
+
+    # mark as byteview build
+    version += '-ByteView'
+
+    increment_version_number_in_plist(
+        xcodeproj: File.expand_path("#{lark_path}/Lark.xcodeproj"),
+        scheme: schema,
+        version_number: version
+    )
+
+    return version
+end
+
+def update_lark_plist(lark_path, key, value)
+    if !value
+        return
+    end
+    plist_path = File.expand_path("#{lark_path}/Lark/Info.plist")
+    update_plist(
+        plist_path: plist_path,
+        block: proc do |plist|
+            plist[key] = value
+        end
+    )
+end

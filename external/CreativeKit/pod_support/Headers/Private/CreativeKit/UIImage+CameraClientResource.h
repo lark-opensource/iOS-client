@@ -1,0 +1,1 @@
+../../../../CreativeKit/CameraArch/Tools/Resource/UIImage+CameraClientResource.h

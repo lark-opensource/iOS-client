@@ -1,0 +1,1611 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "TemplateConsumer_pod_hdrs",
+  srcs = [
+    ":TemplateConsumer_root_pod_hdrs",
+    ":ScriptConsumer_pod_hdrs",
+    ":Common_pod_hdrs",
+    ":Movie_pod_hdrs",
+    ":Cutsame_pod_hdrs",
+    ":All_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "TemplateConsumer_private_includes",
+  include = [
+    "external/TemplateConsumer/pod_support/Headers/Private/TemplateConsumer/"
+  ],
+  deps = [],
+  external_name = "TemplateConsumer"
+)
+gen_includes(
+  name = "TemplateConsumer_public_includes",
+  include = [
+    "external/TemplateConsumer/pod_support/Headers/Public/TemplateConsumer/"
+  ],
+  deps = [],
+  external_name = "TemplateConsumer"
+)
+filegroup(
+  name = "_TemplateConsumer_hdrs",
+  srcs = [
+    ":TemplateConsumer_root_hdrs",
+    ":ScriptConsumer_hdrs",
+    ":Common_hdrs",
+    ":Movie_hdrs",
+    ":Cutsame_hdrs",
+    ":All_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "TemplateConsumer_xcode_hmapsource",
+  hdrs = [
+    ":TemplateConsumer_root_hdrs",
+    ":Common_hdrs",
+    ":Cutsame_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "TemplateConsumer_xcode_hmap",
+  dep = ":TemplateConsumer_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/TemplateConsumer/*-bitsky-generated.modulemap", "pod_support/Headers/Public/TemplateConsumer/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "TemplateConsumer_ScriptConsumer_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libTemplateConsumer_ScriptConsumer_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "TemplateConsumer_Common_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libTemplateConsumer_Common_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "TemplateConsumer_Movie_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libTemplateConsumer_Movie_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_import(
+  name = "TemplateConsumer_Cutsame_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "ios-arch-iphone/libTemplateConsumer_Cutsame_awesome_ios.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "TemplateConsumer_custom_includes",
+  include = [
+    "external/TemplateConsumer/thirdparty",
+    "external/TemplateConsumer/thirdparty/nlohmann",
+    "external/TemplateConsumer/thirdparty/sha1",
+    "external/Protobuf/objectivec",
+    "external/TemplateConsumer/core/script",
+    "external/TemplateConsumer/core/common",
+    "external/TemplateConsumer/core/movie",
+    "external/TemplateConsumer/core/cutsame"
+  ],
+  include_files = [],
+  external_name = "TemplateConsumer",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "TemplateConsumer_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":TemplateConsumer_xcode_hmap"
+  ],
+  external_name = "TemplateConsumer",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TemplateConsumer_root_hdrs",
+  srcs = [
+    "thirdparty/nlohmann/adl_serializer.hpp",
+    "thirdparty/nlohmann/detail/conversions/from_json.hpp",
+    "thirdparty/nlohmann/detail/conversions/to_chars.hpp",
+    "thirdparty/nlohmann/detail/conversions/to_json.hpp",
+    "thirdparty/nlohmann/detail/exceptions.hpp",
+    "thirdparty/nlohmann/detail/input/binary_reader.hpp",
+    "thirdparty/nlohmann/detail/input/input_adapters.hpp",
+    "thirdparty/nlohmann/detail/input/json_sax.hpp",
+    "thirdparty/nlohmann/detail/input/lexer.hpp",
+    "thirdparty/nlohmann/detail/input/parser.hpp",
+    "thirdparty/nlohmann/detail/input/position_t.hpp",
+    "thirdparty/nlohmann/detail/iterators/internal_iterator.hpp",
+    "thirdparty/nlohmann/detail/iterators/iter_impl.hpp",
+    "thirdparty/nlohmann/detail/iterators/iteration_proxy.hpp",
+    "thirdparty/nlohmann/detail/iterators/iterator_traits.hpp",
+    "thirdparty/nlohmann/detail/iterators/json_reverse_iterator.hpp",
+    "thirdparty/nlohmann/detail/iterators/primitive_iterator.hpp",
+    "thirdparty/nlohmann/detail/json_pointer.hpp",
+    "thirdparty/nlohmann/detail/json_ref.hpp",
+    "thirdparty/nlohmann/detail/macro_scope.hpp",
+    "thirdparty/nlohmann/detail/macro_unscope.hpp",
+    "thirdparty/nlohmann/detail/meta/cpp_future.hpp",
+    "thirdparty/nlohmann/detail/meta/detected.hpp",
+    "thirdparty/nlohmann/detail/meta/is_sax.hpp",
+    "thirdparty/nlohmann/detail/meta/type_traits.hpp",
+    "thirdparty/nlohmann/detail/meta/void_t.hpp",
+    "thirdparty/nlohmann/detail/output/binary_writer.hpp",
+    "thirdparty/nlohmann/detail/output/output_adapters.hpp",
+    "thirdparty/nlohmann/detail/output/serializer.hpp",
+    "thirdparty/nlohmann/detail/value_t.hpp",
+    "thirdparty/nlohmann/json.hpp",
+    "thirdparty/nlohmann/json_fwd.hpp",
+    "thirdparty/nlohmann/thirdparty/hedley/hedley.hpp",
+    "thirdparty/nlohmann/thirdparty/hedley/hedley_undef.hpp",
+    "thirdparty/sha1/sha1.hpp"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "TemplateConsumer_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TemplateConsumer/adl_serializer.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/binary_reader.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/binary_writer.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/cpp_future.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/detected.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/exceptions.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/from_json.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/hedley.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/hedley_undef.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/input_adapters.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/internal_iterator.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/is_sax.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/iter_impl.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/iteration_proxy.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/iterator_traits.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/json.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/json_fwd.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/json_pointer.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/json_ref.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/json_reverse_iterator.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/json_sax.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/lexer.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/macro_scope.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/macro_unscope.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/output_adapters.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/parser.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/position_t.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/primitive_iterator.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/serializer.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/sha1.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/to_chars.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/to_json.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/type_traits.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/value_t.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/void_t.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/adl_serializer.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/binary_reader.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/binary_writer.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/cpp_future.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/detected.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/exceptions.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/from_json.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/hedley.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/hedley_undef.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/input_adapters.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/internal_iterator.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/is_sax.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/iter_impl.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/iteration_proxy.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/iterator_traits.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/json.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/json_fwd.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/json_pointer.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/json_ref.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/json_reverse_iterator.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/json_sax.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/lexer.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/macro_scope.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/macro_unscope.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/output_adapters.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/parser.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/position_t.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/primitive_iterator.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/serializer.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/sha1.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/to_chars.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/to_json.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/type_traits.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/value_t.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/void_t.hpp"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TemplateConsumer_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TemplateConsumer_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "TemplateConsumer_module_map",
+  module_map = "pod_support/Headers/Public/TemplateConsumer/TemplateConsumer-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TemplateConsumer/TemplateConsumer-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "TemplateConsumer_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "TemplateConsumer_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":TemplateConsumer_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TemplateConsumer_private_includes",
+    ":TemplateConsumer_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":TemplateConsumer_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-D__V_IPHONE_PLATFORM__",
+    "-DTemplateConsumer_POD_VERSION=@\\\"9999_0.1.21.1-bugfix\\\"",
+    "-lc++",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=c++14",
+    "-stdlib=libc++"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "TemplateConsumer",
+  deps = [
+    ":TemplateConsumer_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "TemplateConsumer_lib",
+  deps = [
+    ":TemplateConsumer"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ScriptConsumer_hdrs",
+  srcs = [
+    "core/script/AlignModelType.h",
+    "core/script/ScriptConsumeHelper.hpp",
+    "core/script/ScriptConsumer.h",
+    "core/script/ScriptConsumerConst.hpp",
+    "core/script/ScriptUtils.h",
+    "core/script/model/SMutableMaterial.h",
+    "core/script/model/SceneConfig.h",
+    "core/script/model/SceneType.h",
+    "core/script/model/ScriptFeature.h",
+    "core/script/model/ScriptModel.h",
+    "core/script/model/ScriptModelConfig.h",
+    "core/script/model/ScriptResourceLoader.h",
+    "core/script/model/ScriptScene.h",
+    "ios/ScriptConsumer/Classes/Model/NLEResourceNode_OC+ScriptModel.h",
+    "ios/ScriptConsumer/Classes/Model/SCSceneConfig+iOS.h",
+    "ios/ScriptConsumer/Classes/Model/SCScriptConsumer+iOS.h",
+    "ios/ScriptConsumer/Classes/Model/SCScriptModel+iOS.h",
+    "ios/ScriptConsumer/Classes/Model/SCScriptModelConfig+iOS.h",
+    "ios/ScriptConsumer/Classes/Model/SCScriptResourceLoader+iOS.h",
+    "ios/ScriptConsumer/Classes/Model/SCScriptScene+iOS.h",
+    "ios/ScriptConsumer/Classes/Model/SCSmutableMaterial+iOS.h",
+    "ios/ScriptConsumer/Classes/Private/SCScriptConsumer+Private.h",
+    "ios/ScriptConsumer/Classes/Service/SCScriptConsumerConstant.h",
+    "ios/ScriptConsumer/Classes/Service/SCScriptConsumerService.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "ScriptConsumer_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ScriptConsumer_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ScriptConsumer_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "ScriptConsumer_module_map",
+  module_map = "pod_support/Headers/Public/TemplateConsumer/TemplateConsumer_ScriptConsumer-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TemplateConsumer/TemplateConsumer_ScriptConsumer-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "ScriptConsumer_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "ScriptConsumer_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":TemplateConsumer_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TemplateConsumer_private_includes",
+    ":TemplateConsumer_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@NLEPlatform//:NLEPlatform_objc_interface",
+    "@NLEPlatform//:NLEPlatform_swift_interface",
+    ":TemplateConsumer_ScriptConsumer_VendoredLibraries",
+    ":ScriptConsumer_objc_interface",
+    "@NLEPlatform//:NLEPlatform_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-D__V_IPHONE_PLATFORM__",
+    "-DTemplateConsumer_POD_VERSION=@\\\"9999_0.1.21.1-bugfix\\\"",
+    "-lc++",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=c++14",
+    "-stdlib=libc++"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "ScriptConsumer",
+  deps = [
+    ":ScriptConsumer_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "ScriptConsumer_lib",
+  deps = [
+    ":ScriptConsumer"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Common_hdrs",
+  srcs = [
+    "core/common/ConvertUtils.h",
+    "core/common/NLEFactory.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Common_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TemplateConsumer/ConvertUtils.h",
+    "pod_support/Headers/Private/TemplateConsumer/NLEFactory.h",
+    "pod_support/Headers/Public/TemplateConsumer/ConvertUtils.h",
+    "pod_support/Headers/Public/TemplateConsumer/NLEFactory.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Common_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Common_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Common_module_map",
+  module_map = "pod_support/Headers/Public/TemplateConsumer/TemplateConsumer_Common-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TemplateConsumer/TemplateConsumer_Common-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Common_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Common_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":TemplateConsumer_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TemplateConsumer_private_includes",
+    ":TemplateConsumer_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":TemplateConsumer_Common_VendoredLibraries",
+    ":Common_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-D__V_IPHONE_PLATFORM__",
+    "-DTemplateConsumer_POD_VERSION=@\\\"9999_0.1.21.1-bugfix\\\"",
+    "-lc++",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=c++14",
+    "-stdlib=libc++"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Common",
+  deps = [
+    ":Common_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Common_lib",
+  deps = [
+    ":Common"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Movie_hdrs",
+  srcs = [
+    "core/movie/FileUtils.h",
+    "core/movie/MovieConfig.hpp",
+    "core/movie/MovieStudioConsumer.h",
+    "core/movie/NLEDownloader_OC.h",
+    "core/movie/NLEModel_OC+movie.h",
+    "core/movie/VectorUtils.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Movie_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Movie_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Movie_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Movie_module_map",
+  module_map = "pod_support/Headers/Public/TemplateConsumer/TemplateConsumer_Movie-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TemplateConsumer/TemplateConsumer_Movie-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Movie_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Movie_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":TemplateConsumer_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TemplateConsumer_private_includes",
+    ":TemplateConsumer_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@NLEPlatform//:Model_objc_interface",
+    "@NLEPlatform//:Movie_objc_interface",
+    "@NLEPlatform//:Model_swift_interface",
+    "@NLEPlatform//:Movie_swift_interface",
+    ":TemplateConsumer_Movie_VendoredLibraries",
+    ":Movie_objc_interface",
+    "@NLEPlatform//:Model_module_map",
+    "@NLEPlatform//:Movie_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-D__V_IPHONE_PLATFORM__",
+    "-DTemplateConsumer_POD_VERSION=@\\\"9999_0.1.21.1-bugfix\\\"",
+    "-lc++",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=c++14",
+    "-stdlib=libc++"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Movie",
+  deps = [
+    ":Movie_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Movie_lib",
+  deps = [
+    ":Movie"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Cutsame_hdrs",
+  srcs = [
+    "core/cutsame/CutSameConsumer.h",
+    "core/cutsame/CutSameConsumerConst.hpp",
+    "core/cutsame/CutSameConsumerConvert.hpp",
+    "core/cutsame/CutSameConsumerHelper.hpp",
+    "core/cutsame/CutSameConsumerKeyFrame.hpp",
+    "core/cutsame/CutsameConvertUtils.h",
+    "core/cutsame/EffectLayerUtils.hpp",
+    "core/cutsame/MaterialMiddleware.h",
+    "core/cutsame/RGBConverterUtils.h",
+    "core/cutsame/RGBConverterUtils.hpp",
+    "core/cutsame/VectorUtils.h",
+    "core/cutsame/templatemodel/AdjustKeyframe.h",
+    "core/cutsame/templatemodel/AdjustParamsInfo.h",
+    "core/cutsame/templatemodel/AiBeats.h",
+    "core/cutsame/templatemodel/Animations.h",
+    "core/cutsame/templatemodel/AudioKeyframe.h",
+    "core/cutsame/templatemodel/AutogenModel.h",
+    "core/cutsame/templatemodel/CanvasConfig.h",
+    "core/cutsame/templatemodel/Clip.h",
+    "core/cutsame/templatemodel/Config.h",
+    "core/cutsame/templatemodel/Cover.h",
+    "core/cutsame/templatemodel/CoverDraft.h",
+    "core/cutsame/templatemodel/CoverFrameInfo.h",
+    "core/cutsame/templatemodel/CoverImageInfo.h",
+    "core/cutsame/templatemodel/CoverMaterials.h",
+    "core/cutsame/templatemodel/CoverTemplate.h",
+    "core/cutsame/templatemodel/CoverText.h",
+    "core/cutsame/templatemodel/CoverType.h",
+    "core/cutsame/templatemodel/Crop.h",
+    "core/cutsame/templatemodel/CropRatio.h",
+    "core/cutsame/templatemodel/CurveSpeed.h",
+    "core/cutsame/templatemodel/DependencyResource.h",
+    "core/cutsame/templatemodel/EffectTemplate.h",
+    "core/cutsame/templatemodel/ExtraInfo.h",
+    "core/cutsame/templatemodel/FilterKeyframe.h",
+    "core/cutsame/templatemodel/Flip.h",
+    "core/cutsame/templatemodel/GamePlay.h",
+    "core/cutsame/templatemodel/Generators.h",
+    "core/cutsame/templatemodel/Keyframe.h",
+    "core/cutsame/templatemodel/Keyframes.h",
+    "core/cutsame/templatemodel/MaskConfig.h",
+    "core/cutsame/templatemodel/Material.h",
+    "core/cutsame/templatemodel/MaterialAnimation.h",
+    "core/cutsame/templatemodel/MaterialAudio.h",
+    "core/cutsame/templatemodel/MaterialAudioEffect.h",
+    "core/cutsame/templatemodel/MaterialAudioFade.h",
+    "core/cutsame/templatemodel/MaterialBeat.h",
+    "core/cutsame/templatemodel/MaterialCanvas.h",
+    "core/cutsame/templatemodel/MaterialChroma.h",
+    "core/cutsame/templatemodel/MaterialEffect.h",
+    "core/cutsame/templatemodel/MaterialImage.h",
+    "core/cutsame/templatemodel/MaterialMask.h",
+    "core/cutsame/templatemodel/MaterialPlaceholder.h",
+    "core/cutsame/templatemodel/MaterialResource.h",
+    "core/cutsame/templatemodel/MaterialSpeed.h",
+    "core/cutsame/templatemodel/MaterialSticker.h",
+    "core/cutsame/templatemodel/MaterialTailLeader.h",
+    "core/cutsame/templatemodel/MaterialText.h",
+    "core/cutsame/templatemodel/MaterialTextTemplate.h",
+    "core/cutsame/templatemodel/MaterialTransition.h",
+    "core/cutsame/templatemodel/MaterialVideo.h",
+    "core/cutsame/templatemodel/Materials.h",
+    "core/cutsame/templatemodel/MutableConfig.h",
+    "core/cutsame/templatemodel/MutableMaterial.h",
+    "core/cutsame/templatemodel/PlatformClass.h",
+    "core/cutsame/templatemodel/PlatformEnum.h",
+    "core/cutsame/templatemodel/Point.h",
+    "core/cutsame/templatemodel/RealtimeDenoises.h",
+    "core/cutsame/templatemodel/RelationShip.h",
+    "core/cutsame/templatemodel/Segment.h",
+    "core/cutsame/templatemodel/Stable.h",
+    "core/cutsame/templatemodel/StickerKeyframe.h",
+    "core/cutsame/templatemodel/TailSegment.h",
+    "core/cutsame/templatemodel/TemplateModel.h",
+    "core/cutsame/templatemodel/TemplateParam.h",
+    "core/cutsame/templatemodel/TemplateText.h",
+    "core/cutsame/templatemodel/TextKeyframe.h",
+    "core/cutsame/templatemodel/TextSegment.h",
+    "core/cutsame/templatemodel/TimeClipParam.h",
+    "core/cutsame/templatemodel/Timerange.h",
+    "core/cutsame/templatemodel/Track.h",
+    "core/cutsame/templatemodel/TrackInfo.h",
+    "core/cutsame/templatemodel/TutorialInfo.h",
+    "core/cutsame/templatemodel/TypePathInfo.h",
+    "core/cutsame/templatemodel/UserDeleteAiBeats.h",
+    "core/cutsame/templatemodel/VeConfig.h",
+    "core/cutsame/templatemodel/VideoCompileParam.h",
+    "core/cutsame/templatemodel/VideoKeyframe.h",
+    "core/cutsame/templatemodel/VideoPreviewConfig.h",
+    "core/cutsame/templatemodel/VideoSegment.h",
+    "core/cutsame/templatemodel/helper.hpp",
+    "core/cutsame/templatemodel/model.hpp",
+    "thirdparty/nlohmann/adl_serializer.hpp",
+    "thirdparty/nlohmann/detail/conversions/from_json.hpp",
+    "thirdparty/nlohmann/detail/conversions/to_chars.hpp",
+    "thirdparty/nlohmann/detail/conversions/to_json.hpp",
+    "thirdparty/nlohmann/detail/exceptions.hpp",
+    "thirdparty/nlohmann/detail/input/binary_reader.hpp",
+    "thirdparty/nlohmann/detail/input/input_adapters.hpp",
+    "thirdparty/nlohmann/detail/input/json_sax.hpp",
+    "thirdparty/nlohmann/detail/input/lexer.hpp",
+    "thirdparty/nlohmann/detail/input/parser.hpp",
+    "thirdparty/nlohmann/detail/input/position_t.hpp",
+    "thirdparty/nlohmann/detail/iterators/internal_iterator.hpp",
+    "thirdparty/nlohmann/detail/iterators/iter_impl.hpp",
+    "thirdparty/nlohmann/detail/iterators/iteration_proxy.hpp",
+    "thirdparty/nlohmann/detail/iterators/iterator_traits.hpp",
+    "thirdparty/nlohmann/detail/iterators/json_reverse_iterator.hpp",
+    "thirdparty/nlohmann/detail/iterators/primitive_iterator.hpp",
+    "thirdparty/nlohmann/detail/json_pointer.hpp",
+    "thirdparty/nlohmann/detail/json_ref.hpp",
+    "thirdparty/nlohmann/detail/macro_scope.hpp",
+    "thirdparty/nlohmann/detail/macro_unscope.hpp",
+    "thirdparty/nlohmann/detail/meta/cpp_future.hpp",
+    "thirdparty/nlohmann/detail/meta/detected.hpp",
+    "thirdparty/nlohmann/detail/meta/is_sax.hpp",
+    "thirdparty/nlohmann/detail/meta/type_traits.hpp",
+    "thirdparty/nlohmann/detail/meta/void_t.hpp",
+    "thirdparty/nlohmann/detail/output/binary_writer.hpp",
+    "thirdparty/nlohmann/detail/output/output_adapters.hpp",
+    "thirdparty/nlohmann/detail/output/serializer.hpp",
+    "thirdparty/nlohmann/detail/value_t.hpp",
+    "thirdparty/nlohmann/json.hpp",
+    "thirdparty/nlohmann/json_fwd.hpp",
+    "thirdparty/nlohmann/thirdparty/hedley/hedley.hpp",
+    "thirdparty/nlohmann/thirdparty/hedley/hedley_undef.hpp",
+    "thirdparty/sha1/sha1.hpp"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Cutsame_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/TemplateConsumer/AdjustKeyframe.h",
+    "pod_support/Headers/Private/TemplateConsumer/AdjustParamsInfo.h",
+    "pod_support/Headers/Private/TemplateConsumer/AiBeats.h",
+    "pod_support/Headers/Private/TemplateConsumer/Animations.h",
+    "pod_support/Headers/Private/TemplateConsumer/AudioKeyframe.h",
+    "pod_support/Headers/Private/TemplateConsumer/AutogenModel.h",
+    "pod_support/Headers/Private/TemplateConsumer/CanvasConfig.h",
+    "pod_support/Headers/Private/TemplateConsumer/Clip.h",
+    "pod_support/Headers/Private/TemplateConsumer/Config.h",
+    "pod_support/Headers/Private/TemplateConsumer/Cover.h",
+    "pod_support/Headers/Private/TemplateConsumer/CoverDraft.h",
+    "pod_support/Headers/Private/TemplateConsumer/CoverFrameInfo.h",
+    "pod_support/Headers/Private/TemplateConsumer/CoverImageInfo.h",
+    "pod_support/Headers/Private/TemplateConsumer/CoverMaterials.h",
+    "pod_support/Headers/Private/TemplateConsumer/CoverTemplate.h",
+    "pod_support/Headers/Private/TemplateConsumer/CoverText.h",
+    "pod_support/Headers/Private/TemplateConsumer/CoverType.h",
+    "pod_support/Headers/Private/TemplateConsumer/Crop.h",
+    "pod_support/Headers/Private/TemplateConsumer/CropRatio.h",
+    "pod_support/Headers/Private/TemplateConsumer/CurveSpeed.h",
+    "pod_support/Headers/Private/TemplateConsumer/CutSameConsumer.h",
+    "pod_support/Headers/Private/TemplateConsumer/CutSameConsumerConst.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/CutSameConsumerConvert.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/CutSameConsumerHelper.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/CutSameConsumerKeyFrame.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/CutsameConvertUtils.h",
+    "pod_support/Headers/Private/TemplateConsumer/DependencyResource.h",
+    "pod_support/Headers/Private/TemplateConsumer/EffectLayerUtils.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/EffectTemplate.h",
+    "pod_support/Headers/Private/TemplateConsumer/ExtraInfo.h",
+    "pod_support/Headers/Private/TemplateConsumer/FilterKeyframe.h",
+    "pod_support/Headers/Private/TemplateConsumer/Flip.h",
+    "pod_support/Headers/Private/TemplateConsumer/GamePlay.h",
+    "pod_support/Headers/Private/TemplateConsumer/Generators.h",
+    "pod_support/Headers/Private/TemplateConsumer/Keyframe.h",
+    "pod_support/Headers/Private/TemplateConsumer/Keyframes.h",
+    "pod_support/Headers/Private/TemplateConsumer/MaskConfig.h",
+    "pod_support/Headers/Private/TemplateConsumer/Material.h",
+    "pod_support/Headers/Private/TemplateConsumer/MaterialAnimation.h",
+    "pod_support/Headers/Private/TemplateConsumer/MaterialAudio.h",
+    "pod_support/Headers/Private/TemplateConsumer/MaterialAudioEffect.h",
+    "pod_support/Headers/Private/TemplateConsumer/MaterialAudioFade.h",
+    "pod_support/Headers/Private/TemplateConsumer/MaterialBeat.h",
+    "pod_support/Headers/Private/TemplateConsumer/MaterialCanvas.h",
+    "pod_support/Headers/Private/TemplateConsumer/MaterialChroma.h",
+    "pod_support/Headers/Private/TemplateConsumer/MaterialEffect.h",
+    "pod_support/Headers/Private/TemplateConsumer/MaterialImage.h",
+    "pod_support/Headers/Private/TemplateConsumer/MaterialMask.h",
+    "pod_support/Headers/Private/TemplateConsumer/MaterialMiddleware.h",
+    "pod_support/Headers/Private/TemplateConsumer/MaterialPlaceholder.h",
+    "pod_support/Headers/Private/TemplateConsumer/MaterialResource.h",
+    "pod_support/Headers/Private/TemplateConsumer/MaterialSpeed.h",
+    "pod_support/Headers/Private/TemplateConsumer/MaterialSticker.h",
+    "pod_support/Headers/Private/TemplateConsumer/MaterialTailLeader.h",
+    "pod_support/Headers/Private/TemplateConsumer/MaterialText.h",
+    "pod_support/Headers/Private/TemplateConsumer/MaterialTextTemplate.h",
+    "pod_support/Headers/Private/TemplateConsumer/MaterialTransition.h",
+    "pod_support/Headers/Private/TemplateConsumer/MaterialVideo.h",
+    "pod_support/Headers/Private/TemplateConsumer/Materials.h",
+    "pod_support/Headers/Private/TemplateConsumer/MutableConfig.h",
+    "pod_support/Headers/Private/TemplateConsumer/MutableMaterial.h",
+    "pod_support/Headers/Private/TemplateConsumer/PlatformClass.h",
+    "pod_support/Headers/Private/TemplateConsumer/PlatformEnum.h",
+    "pod_support/Headers/Private/TemplateConsumer/Point.h",
+    "pod_support/Headers/Private/TemplateConsumer/RGBConverterUtils.h",
+    "pod_support/Headers/Private/TemplateConsumer/RGBConverterUtils.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/RealtimeDenoises.h",
+    "pod_support/Headers/Private/TemplateConsumer/RelationShip.h",
+    "pod_support/Headers/Private/TemplateConsumer/Segment.h",
+    "pod_support/Headers/Private/TemplateConsumer/Stable.h",
+    "pod_support/Headers/Private/TemplateConsumer/StickerKeyframe.h",
+    "pod_support/Headers/Private/TemplateConsumer/TailSegment.h",
+    "pod_support/Headers/Private/TemplateConsumer/TemplateModel.h",
+    "pod_support/Headers/Private/TemplateConsumer/TemplateParam.h",
+    "pod_support/Headers/Private/TemplateConsumer/TemplateText.h",
+    "pod_support/Headers/Private/TemplateConsumer/TextKeyframe.h",
+    "pod_support/Headers/Private/TemplateConsumer/TextSegment.h",
+    "pod_support/Headers/Private/TemplateConsumer/TimeClipParam.h",
+    "pod_support/Headers/Private/TemplateConsumer/Timerange.h",
+    "pod_support/Headers/Private/TemplateConsumer/Track.h",
+    "pod_support/Headers/Private/TemplateConsumer/TrackInfo.h",
+    "pod_support/Headers/Private/TemplateConsumer/TutorialInfo.h",
+    "pod_support/Headers/Private/TemplateConsumer/TypePathInfo.h",
+    "pod_support/Headers/Private/TemplateConsumer/UserDeleteAiBeats.h",
+    "pod_support/Headers/Private/TemplateConsumer/VeConfig.h",
+    "pod_support/Headers/Private/TemplateConsumer/VectorUtils.h",
+    "pod_support/Headers/Private/TemplateConsumer/VideoCompileParam.h",
+    "pod_support/Headers/Private/TemplateConsumer/VideoKeyframe.h",
+    "pod_support/Headers/Private/TemplateConsumer/VideoPreviewConfig.h",
+    "pod_support/Headers/Private/TemplateConsumer/VideoSegment.h",
+    "pod_support/Headers/Private/TemplateConsumer/adl_serializer.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/binary_reader.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/binary_writer.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/cpp_future.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/detected.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/exceptions.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/from_json.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/hedley.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/hedley_undef.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/helper.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/input_adapters.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/internal_iterator.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/is_sax.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/iter_impl.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/iteration_proxy.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/iterator_traits.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/json.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/json_fwd.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/json_pointer.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/json_ref.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/json_reverse_iterator.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/json_sax.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/lexer.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/macro_scope.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/macro_unscope.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/model.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/output_adapters.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/parser.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/position_t.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/primitive_iterator.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/serializer.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/sha1.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/to_chars.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/to_json.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/type_traits.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/value_t.hpp",
+    "pod_support/Headers/Private/TemplateConsumer/void_t.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/AdjustKeyframe.h",
+    "pod_support/Headers/Public/TemplateConsumer/AdjustParamsInfo.h",
+    "pod_support/Headers/Public/TemplateConsumer/AiBeats.h",
+    "pod_support/Headers/Public/TemplateConsumer/Animations.h",
+    "pod_support/Headers/Public/TemplateConsumer/AudioKeyframe.h",
+    "pod_support/Headers/Public/TemplateConsumer/AutogenModel.h",
+    "pod_support/Headers/Public/TemplateConsumer/CanvasConfig.h",
+    "pod_support/Headers/Public/TemplateConsumer/Clip.h",
+    "pod_support/Headers/Public/TemplateConsumer/Config.h",
+    "pod_support/Headers/Public/TemplateConsumer/Cover.h",
+    "pod_support/Headers/Public/TemplateConsumer/CoverDraft.h",
+    "pod_support/Headers/Public/TemplateConsumer/CoverFrameInfo.h",
+    "pod_support/Headers/Public/TemplateConsumer/CoverImageInfo.h",
+    "pod_support/Headers/Public/TemplateConsumer/CoverMaterials.h",
+    "pod_support/Headers/Public/TemplateConsumer/CoverTemplate.h",
+    "pod_support/Headers/Public/TemplateConsumer/CoverText.h",
+    "pod_support/Headers/Public/TemplateConsumer/CoverType.h",
+    "pod_support/Headers/Public/TemplateConsumer/Crop.h",
+    "pod_support/Headers/Public/TemplateConsumer/CropRatio.h",
+    "pod_support/Headers/Public/TemplateConsumer/CurveSpeed.h",
+    "pod_support/Headers/Public/TemplateConsumer/CutSameConsumer.h",
+    "pod_support/Headers/Public/TemplateConsumer/CutSameConsumerConst.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/CutSameConsumerConvert.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/CutSameConsumerHelper.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/CutSameConsumerKeyFrame.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/CutsameConvertUtils.h",
+    "pod_support/Headers/Public/TemplateConsumer/DependencyResource.h",
+    "pod_support/Headers/Public/TemplateConsumer/EffectLayerUtils.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/EffectTemplate.h",
+    "pod_support/Headers/Public/TemplateConsumer/ExtraInfo.h",
+    "pod_support/Headers/Public/TemplateConsumer/FilterKeyframe.h",
+    "pod_support/Headers/Public/TemplateConsumer/Flip.h",
+    "pod_support/Headers/Public/TemplateConsumer/GamePlay.h",
+    "pod_support/Headers/Public/TemplateConsumer/Generators.h",
+    "pod_support/Headers/Public/TemplateConsumer/Keyframe.h",
+    "pod_support/Headers/Public/TemplateConsumer/Keyframes.h",
+    "pod_support/Headers/Public/TemplateConsumer/MaskConfig.h",
+    "pod_support/Headers/Public/TemplateConsumer/Material.h",
+    "pod_support/Headers/Public/TemplateConsumer/MaterialAnimation.h",
+    "pod_support/Headers/Public/TemplateConsumer/MaterialAudio.h",
+    "pod_support/Headers/Public/TemplateConsumer/MaterialAudioEffect.h",
+    "pod_support/Headers/Public/TemplateConsumer/MaterialAudioFade.h",
+    "pod_support/Headers/Public/TemplateConsumer/MaterialBeat.h",
+    "pod_support/Headers/Public/TemplateConsumer/MaterialCanvas.h",
+    "pod_support/Headers/Public/TemplateConsumer/MaterialChroma.h",
+    "pod_support/Headers/Public/TemplateConsumer/MaterialEffect.h",
+    "pod_support/Headers/Public/TemplateConsumer/MaterialImage.h",
+    "pod_support/Headers/Public/TemplateConsumer/MaterialMask.h",
+    "pod_support/Headers/Public/TemplateConsumer/MaterialMiddleware.h",
+    "pod_support/Headers/Public/TemplateConsumer/MaterialPlaceholder.h",
+    "pod_support/Headers/Public/TemplateConsumer/MaterialResource.h",
+    "pod_support/Headers/Public/TemplateConsumer/MaterialSpeed.h",
+    "pod_support/Headers/Public/TemplateConsumer/MaterialSticker.h",
+    "pod_support/Headers/Public/TemplateConsumer/MaterialTailLeader.h",
+    "pod_support/Headers/Public/TemplateConsumer/MaterialText.h",
+    "pod_support/Headers/Public/TemplateConsumer/MaterialTextTemplate.h",
+    "pod_support/Headers/Public/TemplateConsumer/MaterialTransition.h",
+    "pod_support/Headers/Public/TemplateConsumer/MaterialVideo.h",
+    "pod_support/Headers/Public/TemplateConsumer/Materials.h",
+    "pod_support/Headers/Public/TemplateConsumer/MutableConfig.h",
+    "pod_support/Headers/Public/TemplateConsumer/MutableMaterial.h",
+    "pod_support/Headers/Public/TemplateConsumer/PlatformClass.h",
+    "pod_support/Headers/Public/TemplateConsumer/PlatformEnum.h",
+    "pod_support/Headers/Public/TemplateConsumer/Point.h",
+    "pod_support/Headers/Public/TemplateConsumer/RGBConverterUtils.h",
+    "pod_support/Headers/Public/TemplateConsumer/RGBConverterUtils.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/RealtimeDenoises.h",
+    "pod_support/Headers/Public/TemplateConsumer/RelationShip.h",
+    "pod_support/Headers/Public/TemplateConsumer/Segment.h",
+    "pod_support/Headers/Public/TemplateConsumer/Stable.h",
+    "pod_support/Headers/Public/TemplateConsumer/StickerKeyframe.h",
+    "pod_support/Headers/Public/TemplateConsumer/TailSegment.h",
+    "pod_support/Headers/Public/TemplateConsumer/TemplateModel.h",
+    "pod_support/Headers/Public/TemplateConsumer/TemplateParam.h",
+    "pod_support/Headers/Public/TemplateConsumer/TemplateText.h",
+    "pod_support/Headers/Public/TemplateConsumer/TextKeyframe.h",
+    "pod_support/Headers/Public/TemplateConsumer/TextSegment.h",
+    "pod_support/Headers/Public/TemplateConsumer/TimeClipParam.h",
+    "pod_support/Headers/Public/TemplateConsumer/Timerange.h",
+    "pod_support/Headers/Public/TemplateConsumer/Track.h",
+    "pod_support/Headers/Public/TemplateConsumer/TrackInfo.h",
+    "pod_support/Headers/Public/TemplateConsumer/TutorialInfo.h",
+    "pod_support/Headers/Public/TemplateConsumer/TypePathInfo.h",
+    "pod_support/Headers/Public/TemplateConsumer/UserDeleteAiBeats.h",
+    "pod_support/Headers/Public/TemplateConsumer/VeConfig.h",
+    "pod_support/Headers/Public/TemplateConsumer/VectorUtils.h",
+    "pod_support/Headers/Public/TemplateConsumer/VideoCompileParam.h",
+    "pod_support/Headers/Public/TemplateConsumer/VideoKeyframe.h",
+    "pod_support/Headers/Public/TemplateConsumer/VideoPreviewConfig.h",
+    "pod_support/Headers/Public/TemplateConsumer/VideoSegment.h",
+    "pod_support/Headers/Public/TemplateConsumer/helper.hpp",
+    "pod_support/Headers/Public/TemplateConsumer/model.hpp"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Cutsame_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Cutsame_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Cutsame_module_map",
+  module_map = "pod_support/Headers/Public/TemplateConsumer/TemplateConsumer_Cutsame-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TemplateConsumer/TemplateConsumer_Cutsame-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Cutsame_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "Cutsame_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":TemplateConsumer_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TemplateConsumer_private_includes",
+    ":TemplateConsumer_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@NLEPlatform//:NLEPlatform_objc_interface",
+    "@NLEPlatform//:NLEPlatform_swift_interface",
+    ":TemplateConsumer_Cutsame_VendoredLibraries",
+    ":Cutsame_objc_interface",
+    "@NLEPlatform//:NLEPlatform_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-D__V_IPHONE_PLATFORM__",
+    "-DTemplateConsumer_POD_VERSION=@\\\"9999_0.1.21.1-bugfix\\\"",
+    "-lc++",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=c++14",
+    "-stdlib=libc++"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Cutsame",
+  deps = [
+    ":Cutsame_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Cutsame_lib",
+  deps = [
+    ":Cutsame"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "All_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "All_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "All_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "All_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "All_module_map",
+  module_map = "pod_support/Headers/Public/TemplateConsumer/TemplateConsumer_All-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/TemplateConsumer/TemplateConsumer_All-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "All_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "All_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit",
+    "Foundation",
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":TemplateConsumer_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":TemplateConsumer_private_includes",
+    ":TemplateConsumer_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":All_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-D__V_IPHONE_PLATFORM__",
+    "-DTemplateConsumer_POD_VERSION=@\\\"9999_0.1.21.1-bugfix\\\"",
+    "-lc++",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=c++14",
+    "-stdlib=libc++"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "All",
+  deps = [
+    ":All_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "All_lib",
+  deps = [
+    ":All"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_TemplateConsumer_module_map",
+  module_map = "@TemplateConsumer//:pod_support/Headers/Public/TemplateConsumer/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@TemplateConsumer//:pod_support/Headers/Public/TemplateConsumer/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_TemplateConsumer_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@TemplateConsumer//:Common_objc_interface", "@TemplateConsumer//:Cutsame_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_library")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_library(
+  name = "Lark_TemplateConsumer",
+  target_name = "Lark",
+  module_name = "TemplateConsumer",
+  hdrs = ["@TemplateConsumer//:Common_pod_hdrs", "@TemplateConsumer//:Cutsame_pod_hdrs"],
+  srcs = [],
+  non_arc_srcs = [],
+  deps = ["@TemplateConsumer//:TemplateConsumer_Common_VendoredLibraries", "@TemplateConsumer//:TemplateConsumer_Cutsame_VendoredLibraries"],
+  pod_deps = ["NLEPlatform"],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-D__V_IPHONE_PLATFORM__",
+    "-DTemplateConsumer_POD_VERSION=@\\\"9999_0.1.21.1-bugfix\\\"",
+    "-lc++",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "TemplateConsumer_copts", []),
+  cxxopts = ["-std=c++14", "-stdlib=libc++", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "TemplateConsumer_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["UIKit", "Foundation", "JavaScriptCore"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "TemplateConsumer_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "TemplateConsumer_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "TemplateConsumer_dynamic", False),
+  tags = getattr(defs_external_objc_library, "TemplateConsumer_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("TemplateConsumer", {}),
+  visibility = ["//visibility:public"],
+)

@@ -1,0 +1,1 @@
+../../../../Heimdallr/Classes/HMDAppExitReasonDetector/Common/Public/HMDAPPExitReasonDetectorProtocol.h

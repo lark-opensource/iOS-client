@@ -1,0 +1,4713 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "vmsdk_pod_hdrs",
+  srcs = [
+    ":vmsdk_root_pod_hdrs",
+    ":umbrella_pod_hdrs",
+    ":quickjs_pod_hdrs",
+    ":quickjs_debugger_pod_hdrs",
+    ":quickjs_heapprofiler_pod_hdrs",
+    ":quickjs_profiler_pod_hdrs",
+    ":quickjs_debugger_hdt_pod_hdrs",
+    ":security_quickjs_pod_hdrs",
+    ":napi_pod_hdrs",
+    ":napi_core_pod_hdrs",
+    ":napi_env_pod_hdrs",
+    ":napi_jsc_pod_hdrs",
+    ":napi_v8_pod_hdrs",
+    ":napi_quickjs_pod_hdrs",
+    ":basic_pod_hdrs",
+    ":basic_log_pod_hdrs",
+    ":jsbridge_pod_hdrs",
+    ":worker_pod_hdrs",
+    ":lark_worker_pod_hdrs",
+    ":monitor_pod_hdrs",
+    ":monitor_core_pod_hdrs",
+    ":monitor_domestic_pod_hdrs",
+    ":monitor_overseas_pod_hdrs",
+    ":jsc_wasm_wasm3_pod_hdrs",
+    ":jsc_wasm_wamr_pod_hdrs",
+    ":jsc_wasm_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "vmsdk_private_includes",
+  include = [
+    "external/vmsdk/pod_support/Headers/Private/vmsdk/"
+  ],
+  deps = [],
+  external_name = "vmsdk"
+)
+gen_includes(
+  name = "vmsdk_public_includes",
+  include = [
+    "external/vmsdk/pod_support/Headers/Public/vmsdk/"
+  ],
+  deps = [],
+  external_name = "vmsdk"
+)
+filegroup(
+  name = "_vmsdk_hdrs",
+  srcs = [
+    ":vmsdk_root_hdrs",
+    ":umbrella_hdrs",
+    ":quickjs_hdrs",
+    ":quickjs_debugger_hdrs",
+    ":quickjs_heapprofiler_hdrs",
+    ":quickjs_profiler_hdrs",
+    ":quickjs_debugger_hdt_hdrs",
+    ":security_quickjs_hdrs",
+    ":napi_hdrs",
+    ":napi_core_hdrs",
+    ":napi_env_hdrs",
+    ":napi_jsc_hdrs",
+    ":napi_v8_hdrs",
+    ":napi_quickjs_hdrs",
+    ":basic_hdrs",
+    ":basic_log_hdrs",
+    ":jsbridge_hdrs",
+    ":worker_hdrs",
+    ":lark_worker_hdrs",
+    ":monitor_hdrs",
+    ":monitor_core_hdrs",
+    ":monitor_domestic_hdrs",
+    ":monitor_overseas_hdrs",
+    ":jsc_wasm_wasm3_hdrs",
+    ":jsc_wasm_wamr_hdrs",
+    ":jsc_wasm_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "vmsdk_xcode_hmapsource",
+  hdrs = [
+    ":vmsdk_root_hdrs",
+    ":basic_hdrs",
+    ":basic_log_hdrs",
+    ":jsbridge_hdrs",
+    ":lark_worker_hdrs",
+    ":monitor_core_hdrs",
+    ":monitor_domestic_hdrs",
+    ":napi_hdrs",
+    ":napi_core_hdrs",
+    ":napi_env_hdrs",
+    ":napi_jsc_hdrs",
+    ":napi_quickjs_hdrs",
+    ":napi_v8_hdrs",
+    ":quickjs_hdrs",
+    ":quickjs_debugger_hdrs",
+    ":quickjs_heapprofiler_hdrs",
+    ":umbrella_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "vmsdk_xcode_hmap",
+  dep = ":vmsdk_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/vmsdk/*-bitsky-generated.modulemap", "pod_support/Headers/Public/vmsdk/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "vmsdk_custom_includes",
+  include = [
+    "external/Protobuf/objectivec",
+    "external/vmsdk",
+    "external/vmsdk/jsb/wasm"
+  ],
+  include_files = [],
+  external_name = "vmsdk",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "vmsdk_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":vmsdk_xcode_hmap"
+  ],
+  external_name = "vmsdk",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "vmsdk_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "vmsdk_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "vmsdk_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "vmsdk_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "vmsdk_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "vmsdk_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "vmsdk_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":vmsdk_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "vmsdk",
+  deps = [
+    ":vmsdk_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "vmsdk_lib",
+  deps = [
+    ":vmsdk"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "umbrella_hdrs",
+  srcs = [
+    "vmsdk-umbrella.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "umbrella_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/vmsdk/vmsdk-umbrella.h",
+    "pod_support/Headers/Public/vmsdk/vmsdk-umbrella.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "umbrella_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "umbrella_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "umbrella_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_umbrella-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "umbrella_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "umbrella_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":umbrella_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "umbrella",
+  deps = [
+    ":umbrella_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "umbrella_lib",
+  deps = [
+    ":umbrella"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "quickjs_hdrs",
+  srcs = [
+    "devtool/quickjs/interface.h",
+    "quickjs/include/base_export.h",
+    "quickjs/include/cutils.h",
+    "quickjs/include/debugger_struct.h",
+    "quickjs/include/dlmalloc.h",
+    "quickjs/include/libbf.h",
+    "quickjs/include/libregexp-opcode.h",
+    "quickjs/include/libregexp.h",
+    "quickjs/include/libunicode-table.h",
+    "quickjs/include/libunicode.h",
+    "quickjs/include/list.h",
+    "quickjs/include/malloc_debug_check.h",
+    "quickjs/include/quickjs-atom.h",
+    "quickjs/include/quickjs-inner.h",
+    "quickjs/include/quickjs-libc.h",
+    "quickjs/include/quickjs-opcode.h",
+    "quickjs/include/quickjs.h",
+    "quickjs/include/quickjs_version.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "quickjs_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/vmsdk/devtool/quickjs/interface.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/include/base_export.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/include/cutils.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/include/debugger_struct.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/include/dlmalloc.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/include/libbf.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/include/libregexp-opcode.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/include/libregexp.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/include/libunicode-table.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/include/libunicode.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/include/list.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/include/malloc_debug_check.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/include/quickjs-atom.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/include/quickjs-inner.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/include/quickjs-libc.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/include/quickjs-opcode.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/include/quickjs.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/include/quickjs_version.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/include/base_export.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/include/cutils.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/include/debugger_struct.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/include/dlmalloc.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/include/libbf.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/include/libregexp-opcode.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/include/libregexp.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/include/libunicode-table.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/include/libunicode.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/include/list.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/include/malloc_debug_check.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/include/quickjs-atom.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/include/quickjs-inner.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/include/quickjs-libc.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/include/quickjs-opcode.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/include/quickjs.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/include/quickjs_version.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "quickjs_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "quickjs_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "quickjs_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_quickjs-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "quickjs_srcs",
+  srcs = [
+    "quickjs/source/cutils.cc",
+    "quickjs/source/dlmalloc.cc",
+    "quickjs/source/gen/ios/embedded.S",
+    "quickjs/source/libregexp.cc",
+    "quickjs/source/libunicode.cc",
+    "quickjs/source/malloc_debug_check.cc",
+    "quickjs/source/quickjs-libc.cc",
+    "quickjs/source/quickjs.cc",
+    "quickjs/source/quickjs_version.cc"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "quickjs_oc",
+  enable_modules = 1,
+  srcs = [
+    "quickjs_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "quickjs_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":quickjs_objc_interface"
+  ],
+  per_label_options = [
+    ".*quickjs/source/cutils.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/source/dlmalloc.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/source/gen/ios/embedded.S@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/source/libregexp.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/source/libunicode.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/source/malloc_debug_check.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/source/quickjs-libc.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/source/quickjs.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/source/quickjs_version.cc@-Wall,-Wno-shorten-64-to-32,-Os"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-DENABLE_LEPUSNG",
+    "-DLYNX_DEV",
+    "-DLYNX_SIMPLIFY=0",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "quickjs",
+  deps = [
+    ":quickjs_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "quickjs_lib",
+  deps = [
+    ":quickjs"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "quickjs_debugger_hdrs",
+  srcs = [
+    "devtool/quickjs/debugger/debugger.h",
+    "devtool/quickjs/debugger/debugger_breakpoint.h",
+    "devtool/quickjs/debugger/debugger_callframe.h",
+    "devtool/quickjs/debugger/debugger_properties.h",
+    "devtool/quickjs/debugger/debugger_queue.h",
+    "devtool/quickjs/debugger_inner.h",
+    "devtool/quickjs/heapprofiler/heapprofiler.h",
+    "devtool/quickjs/interface.h",
+    "devtool/quickjs/protocols.h",
+    "devtool/quickjs/runtime/runtime.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "quickjs_debugger_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/vmsdk/devtool/quickjs/debugger/debugger.h",
+    "pod_support/Headers/Private/vmsdk/devtool/quickjs/debugger/debugger_breakpoint.h",
+    "pod_support/Headers/Private/vmsdk/devtool/quickjs/debugger/debugger_callframe.h",
+    "pod_support/Headers/Private/vmsdk/devtool/quickjs/debugger/debugger_properties.h",
+    "pod_support/Headers/Private/vmsdk/devtool/quickjs/debugger/debugger_queue.h",
+    "pod_support/Headers/Private/vmsdk/devtool/quickjs/debugger_inner.h",
+    "pod_support/Headers/Private/vmsdk/devtool/quickjs/heapprofiler/heapprofiler.h",
+    "pod_support/Headers/Private/vmsdk/devtool/quickjs/interface.h",
+    "pod_support/Headers/Private/vmsdk/devtool/quickjs/protocols.h",
+    "pod_support/Headers/Private/vmsdk/devtool/quickjs/runtime/runtime.h",
+    "pod_support/Headers/Public/vmsdk/devtool/quickjs/debugger/debugger.h",
+    "pod_support/Headers/Public/vmsdk/devtool/quickjs/debugger/debugger_breakpoint.h",
+    "pod_support/Headers/Public/vmsdk/devtool/quickjs/debugger/debugger_callframe.h",
+    "pod_support/Headers/Public/vmsdk/devtool/quickjs/debugger/debugger_properties.h",
+    "pod_support/Headers/Public/vmsdk/devtool/quickjs/debugger/debugger_queue.h",
+    "pod_support/Headers/Public/vmsdk/devtool/quickjs/debugger_inner.h",
+    "pod_support/Headers/Public/vmsdk/devtool/quickjs/interface.h",
+    "pod_support/Headers/Public/vmsdk/devtool/quickjs/protocols.h",
+    "pod_support/Headers/Public/vmsdk/devtool/quickjs/runtime/runtime.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "quickjs_debugger_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "quickjs_debugger_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "quickjs_debugger_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_quickjs_debugger-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "quickjs_debugger_srcs",
+  srcs = [
+    "devtool/quickjs/debugger/debugger.cc",
+    "devtool/quickjs/debugger/debugger_breakpoint.cc",
+    "devtool/quickjs/debugger/debugger_callframe.cc",
+    "devtool/quickjs/debugger/debugger_properties.cc",
+    "devtool/quickjs/debugger/debugger_queue.cc",
+    "quickjs/source/gen/ios/embedded-inspector.S",
+    "devtool/quickjs/heapprofiler/heapprofiler.cc",
+    "devtool/quickjs/protocols.cc",
+    "devtool/quickjs/runtime/runtime.cc",
+    "devtool/quickjs/string_tools.cc"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "quickjs_debugger_oc",
+  enable_modules = 1,
+  srcs = [
+    "quickjs_debugger_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "quickjs_debugger_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":quickjs_debugger_objc_interface"
+  ],
+  per_label_options = [
+    ".*devtool/quickjs/debugger/debugger.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/debugger/debugger_breakpoint.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/debugger/debugger_callframe.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/debugger/debugger_properties.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/debugger/debugger_queue.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/heapprofiler/heapprofiler.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/protocols.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/runtime/runtime.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/string_tools.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/source/gen/ios/embedded-inspector.S@-Wall,-Wno-shorten-64-to-32,-Os"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-DENABLE_LEPUSNG",
+    "-DLYNX_DEV",
+    "-DLYNX_SIMPLIFY=0",
+    "-DENABLE_QUICKJS_DEBUGGER",
+    "-DENABLE_QUICKJS_STEP_STATEMENT",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "quickjs_debugger",
+  deps = [
+    ":quickjs_debugger_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "quickjs_debugger_lib",
+  deps = [
+    ":quickjs_debugger"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "quickjs_heapprofiler_hdrs",
+  srcs = [
+    "quickjs/heapprofiler/include/edge.h",
+    "quickjs/heapprofiler/include/entry.h",
+    "quickjs/heapprofiler/include/gen.h",
+    "quickjs/heapprofiler/include/heapexplorer.h",
+    "quickjs/heapprofiler/include/heapprofiler.h",
+    "quickjs/heapprofiler/include/quickjs-ext.h",
+    "quickjs/heapprofiler/include/serialize.h",
+    "quickjs/heapprofiler/include/snapshot.h",
+    "quickjs/heapprofiler/include/take-snapshot.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "quickjs_heapprofiler_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/vmsdk/quickjs/heapprofiler/include/edge.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/heapprofiler/include/entry.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/heapprofiler/include/gen.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/heapprofiler/include/heapexplorer.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/heapprofiler/include/heapprofiler.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/heapprofiler/include/quickjs-ext.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/heapprofiler/include/serialize.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/heapprofiler/include/snapshot.h",
+    "pod_support/Headers/Private/vmsdk/quickjs/heapprofiler/include/take-snapshot.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/heapprofiler/include/edge.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/heapprofiler/include/entry.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/heapprofiler/include/gen.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/heapprofiler/include/heapexplorer.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/heapprofiler/include/heapprofiler.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/heapprofiler/include/quickjs-ext.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/heapprofiler/include/serialize.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/heapprofiler/include/snapshot.h",
+    "pod_support/Headers/Public/vmsdk/quickjs/heapprofiler/include/take-snapshot.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "quickjs_heapprofiler_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "quickjs_heapprofiler_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "quickjs_heapprofiler_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_quickjs_heapprofiler-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "quickjs_heapprofiler_srcs",
+  srcs = [
+    "quickjs/heapprofiler/source/edge.cc",
+    "quickjs/heapprofiler/source/entry.cc",
+    "quickjs/heapprofiler/source/gen.cc",
+    "quickjs/heapprofiler/source/heapexplorer.cc",
+    "quickjs/heapprofiler/source/heapprofiler.cc",
+    "quickjs/heapprofiler/source/serialize.cc",
+    "quickjs/heapprofiler/source/snapshot.cc",
+    "quickjs/heapprofiler/source/take-snapshot.cc"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "quickjs_heapprofiler_oc",
+  enable_modules = 1,
+  srcs = [
+    "quickjs_heapprofiler_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "quickjs_heapprofiler_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":quickjs_heapprofiler_objc_interface"
+  ],
+  per_label_options = [
+    ".*quickjs/heapprofiler/source/edge.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/heapprofiler/source/entry.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/heapprofiler/source/gen.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/heapprofiler/source/heapexplorer.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/heapprofiler/source/heapprofiler.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/heapprofiler/source/serialize.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/heapprofiler/source/snapshot.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/heapprofiler/source/take-snapshot.cc@-Wall,-Wno-shorten-64-to-32,-Os"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-DENABLE_HEAPPROFILER=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "quickjs_heapprofiler",
+  deps = [
+    ":quickjs_heapprofiler_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "quickjs_heapprofiler_lib",
+  deps = [
+    ":quickjs_heapprofiler"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "quickjs_profiler_hdrs",
+  srcs = [
+    "devtool/quickjs/debugger/debugger.h",
+    "devtool/quickjs/debugger/debugger_breakpoint.h",
+    "devtool/quickjs/debugger/debugger_callframe.h",
+    "devtool/quickjs/debugger/debugger_properties.h",
+    "devtool/quickjs/debugger/debugger_queue.h",
+    "devtool/quickjs/debugger_inner.h",
+    "devtool/quickjs/interface.h",
+    "devtool/quickjs/profiler/cpu_profiler.h",
+    "devtool/quickjs/profiler/profile_generator.h",
+    "devtool/quickjs/profiler/profile_result.h",
+    "devtool/quickjs/profiler/profile_tree.h",
+    "devtool/quickjs/profiler/profiler_sampling.h",
+    "devtool/quickjs/profiler/tracing_cpu_profiler.h",
+    "devtool/quickjs/protocols.h",
+    "devtool/quickjs/runtime/runtime.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "quickjs_profiler_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "quickjs_profiler_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "quickjs_profiler_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "quickjs_profiler_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_quickjs_profiler-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "quickjs_profiler_srcs",
+  srcs = [
+    "devtool/quickjs/profiler/cpu_profiler.cc",
+    "devtool/quickjs/profiler/profile_generator.cc",
+    "devtool/quickjs/profiler/profile_result.cc",
+    "devtool/quickjs/profiler/profile_tree.cc",
+    "devtool/quickjs/profiler/profiler_sampling.cc",
+    "devtool/quickjs/protocols.cc",
+    "devtool/quickjs/string_tools.cc",
+    "devtool/quickjs/profiler/tracing_cpu_profiler.cc"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "quickjs_profiler_oc",
+  enable_modules = 1,
+  srcs = [
+    "quickjs_profiler_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "quickjs_profiler_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":quickjs_profiler_objc_interface"
+  ],
+  per_label_options = [
+    ".*devtool/quickjs/profiler/cpu_profiler.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/profiler/profile_generator.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/profiler/profile_result.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/profiler/profile_tree.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/profiler/profiler_sampling.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/profiler/tracing_cpu_profiler.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/protocols.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/string_tools.cc@-Wall,-Wno-shorten-64-to-32,-Os"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-DENABLE_LEPUSNG",
+    "-DLYNX_DEV",
+    "-DLYNX_SIMPLIFY=0",
+    "-DENABLE_QUICKJS_CPU_PROFILER",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "quickjs_profiler",
+  deps = [
+    ":quickjs_profiler_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "quickjs_profiler_lib",
+  deps = [
+    ":quickjs_profiler"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "quickjs_debugger_hdt_hdrs",
+  srcs = [
+    "devtool/iOS/JSWorkerIOS+QuickJSDebugger.h",
+    "devtool/iOS/ObjcVMSDKDebugIC.h",
+    "devtool/iOS/VMSDKDebugICBase.h",
+    "devtool/iOS/devtool_manager_iOS.h",
+    "devtool/iOS/inspector_bridge_iOS.h",
+    "devtool/iOS/inspector_protocol.h",
+    "devtool/inspector_factory_impl.h",
+    "devtool/inspector_impl.h",
+    "devtool/quickjs/debugger/debugger.h",
+    "devtool/quickjs/debugger/debugger_breakpoint.h",
+    "devtool/quickjs/debugger/debugger_callframe.h",
+    "devtool/quickjs/debugger/debugger_properties.h",
+    "devtool/quickjs/debugger/debugger_queue.h",
+    "devtool/quickjs/debugger_inner.h",
+    "devtool/quickjs/heapprofiler/heapprofiler.h",
+    "devtool/quickjs/interface.h",
+    "devtool/quickjs/protocols.h",
+    "devtool/quickjs/qjs_inspector_handle.h",
+    "devtool/quickjs/runtime/runtime.h",
+    "jsb/devtool/inspector.h",
+    "jsb/devtool/inspector_factory.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "quickjs_debugger_hdt_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "quickjs_debugger_hdt_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "quickjs_debugger_hdt_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "quickjs_debugger_hdt_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_quickjs_debugger_hdt-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "quickjs_debugger_hdt_srcs",
+  srcs = [
+    "devtool/quickjs/debugger/debugger.cc",
+    "devtool/quickjs/debugger/debugger_breakpoint.cc",
+    "devtool/quickjs/debugger/debugger_callframe.cc",
+    "devtool/quickjs/debugger/debugger_properties.cc",
+    "devtool/quickjs/debugger/debugger_queue.cc",
+    "devtool/iOS/devtool_manager_iOS.mm",
+    "devtool/quickjs/heapprofiler/heapprofiler.cc",
+    "devtool/iOS/inspector_bridge_iOS.mm",
+    "jsb/devtool/inspector_factory.cc",
+    "devtool/inspector_factory_impl.cc",
+    "devtool/inspector_impl.cc",
+    "devtool/iOS/JSWorkerIOS+QuickJSDebugger.mm",
+    "devtool/quickjs/protocols.cc",
+    "devtool/quickjs/qjs_inspector_handle.cc",
+    "devtool/quickjs/runtime/runtime.cc",
+    "devtool/quickjs/string_tools.cc"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "quickjs_debugger_hdt_oc",
+  enable_modules = 1,
+  srcs = [
+    "quickjs_debugger_hdt_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "quickjs_debugger_hdt_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":quickjs_debugger_hdt_objc_interface"
+  ],
+  per_label_options = [
+    ".*devtool/iOS/JSWorkerIOS+QuickJSDebugger.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/iOS/devtool_manager_iOS.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/iOS/inspector_bridge_iOS.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/inspector_factory_impl.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/inspector_impl.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/debugger/debugger.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/debugger/debugger_breakpoint.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/debugger/debugger_callframe.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/debugger/debugger_properties.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/debugger/debugger_queue.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/heapprofiler/heapprofiler.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/protocols.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/qjs_inspector_handle.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/runtime/runtime.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/string_tools.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/devtool/inspector_factory.cc@-Wall,-Wno-shorten-64-to-32,-Os"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-DENABLE_LEPUSNG",
+    "-DLYNX_DEV",
+    "-DLYNX_SIMPLIFY=0",
+    "-DENABLE_DEBUGGER",
+    "-DENABLE_QUICKJS_DEBUGGER",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "quickjs_debugger_hdt",
+  deps = [
+    ":quickjs_debugger_hdt_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "quickjs_debugger_hdt_lib",
+  deps = [
+    ":quickjs_debugger_hdt"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "security_quickjs_hdrs",
+  srcs = [
+    "quickjs/include/base_export.h",
+    "quickjs/include/cutils.h",
+    "quickjs/include/debugger_struct.h",
+    "quickjs/include/dlmalloc.h",
+    "quickjs/include/libbf.h",
+    "quickjs/include/libregexp-opcode.h",
+    "quickjs/include/libregexp.h",
+    "quickjs/include/libunicode-table.h",
+    "quickjs/include/libunicode.h",
+    "quickjs/include/list.h",
+    "quickjs/include/malloc_debug_check.h",
+    "quickjs/include/quickjs-atom.h",
+    "quickjs/include/quickjs-inner.h",
+    "quickjs/include/quickjs-libc.h",
+    "quickjs/include/quickjs-opcode.h",
+    "quickjs/include/quickjs.h",
+    "quickjs/include/quickjs/tools/bytecode_context.h",
+    "quickjs/include/quickjs/tools/bytecode_fmt.h",
+    "quickjs/include/quickjs/tools/bytecode_shuffle_mode.inc",
+    "quickjs/include/quickjs/tools/bytecode_writer.h",
+    "quickjs/include/quickjs/tools/c_interface.h",
+    "quickjs/include/quickjs/tools/context.h",
+    "quickjs/include/quickjs/tools/data_buffer.h",
+    "quickjs/include/quickjs/tools/data_extractor.h",
+    "quickjs/include/quickjs/tools/status.h",
+    "quickjs/include/quickjs/tools/value.h",
+    "quickjs/include/quickjs_version.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "security_quickjs_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "security_quickjs_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "security_quickjs_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "security_quickjs_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_security_quickjs-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "security_quickjs_srcs",
+  srcs = [
+    "quickjs/tools/bytecode_context.cpp",
+    "quickjs/tools/bytecode_writer.cpp"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "security_quickjs_oc",
+  enable_modules = 1,
+  srcs = [
+    "security_quickjs_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "security_quickjs_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":security_quickjs_objc_interface"
+  ],
+  per_label_options = [
+    ".*quickjs/tools/bytecode_context.cpp@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/tools/bytecode_writer.cpp@-Wall,-Wno-shorten-64-to-32,-Os"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-DENABLE_LEPUSNG",
+    "-DLYNX_DEV",
+    "-DLYNX_SIMPLIFY=0",
+    "-DENABLE_QUICKJS_SECURITY_MODE",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "security_quickjs",
+  deps = [
+    ":security_quickjs_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "security_quickjs_lib",
+  deps = [
+    ":security_quickjs"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "napi_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "napi_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "napi_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "napi_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "napi_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_napi-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "napi_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "napi_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":napi_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "napi",
+  deps = [
+    ":napi_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "napi_lib",
+  deps = [
+    ":napi"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "napi_core_hdrs",
+  srcs = [
+    "napi/napi/common/code_cache.h",
+    "napi/napi/common/napi_state.h",
+    "napi/napi/js_native_api.h",
+    "napi/napi/js_native_api_types.h",
+    "napi/napi/napi.h",
+    "napi/napi/napi_module.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "napi_core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/vmsdk/code_cache.h",
+    "pod_support/Headers/Private/vmsdk/js_native_api.h",
+    "pod_support/Headers/Private/vmsdk/js_native_api_types.h",
+    "pod_support/Headers/Private/vmsdk/napi.h",
+    "pod_support/Headers/Private/vmsdk/napi_module.h",
+    "pod_support/Headers/Private/vmsdk/napi_state.h",
+    "pod_support/Headers/Public/vmsdk/code_cache.h",
+    "pod_support/Headers/Public/vmsdk/js_native_api.h",
+    "pod_support/Headers/Public/vmsdk/js_native_api_types.h",
+    "pod_support/Headers/Public/vmsdk/napi.h",
+    "pod_support/Headers/Public/vmsdk/napi_module.h",
+    "pod_support/Headers/Public/vmsdk/napi_state.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "napi_core_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "napi_core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "napi_core_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_napi_core-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "napi_core_srcs",
+  srcs = [
+    "napi/napi/common/code_cache.cc",
+    "napi/napi/napi.cc",
+    "napi/napi/napi_module.cc"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "napi_core_oc",
+  enable_modules = 1,
+  srcs = [
+    "napi_core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "napi_core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":napi_core_objc_interface"
+  ],
+  per_label_options = [
+    ".*napi/napi/common/code_cache.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*napi/napi/napi.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*napi/napi/napi_module.cc@-Wall,-Wno-shorten-64-to-32,-Os"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "napi_core",
+  deps = [
+    ":napi_core_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "napi_core_lib",
+  deps = [
+    ":napi_core"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "napi_env_hdrs",
+  srcs = [
+    "napi/napi/env/napi_env.h",
+    "napi/napi/env/napi_runtime.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "napi_env_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/vmsdk/napi_env.h",
+    "pod_support/Headers/Private/vmsdk/napi_runtime.h",
+    "pod_support/Headers/Public/vmsdk/napi_env.h",
+    "pod_support/Headers/Public/vmsdk/napi_runtime.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "napi_env_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "napi_env_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "napi_env_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_napi_env-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "napi_env_srcs",
+  srcs = [
+    "napi/napi/env/napi_env.cc",
+    "napi/napi/env/napi_runtime.cc"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "napi_env_oc",
+  enable_modules = 1,
+  srcs = [
+    "napi_env_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "napi_env_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":napi_env_objc_interface"
+  ],
+  per_label_options = [
+    ".*napi/napi/env/napi_env.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*napi/napi/env/napi_runtime.cc@-Wall,-Wno-shorten-64-to-32,-Os"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "napi_env",
+  deps = [
+    ":napi_env_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "napi_env_lib",
+  deps = [
+    ":napi_env"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "napi_jsc_hdrs",
+  srcs = [
+    "napi/napi/jsc/js_native_api_JavaScriptCore.h",
+    "napi/napi/jsc/napi_env_jsc.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "napi_jsc_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/vmsdk/js_native_api_JavaScriptCore.h",
+    "pod_support/Headers/Private/vmsdk/napi_env_jsc.h",
+    "pod_support/Headers/Public/vmsdk/napi_env_jsc.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "napi_jsc_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "napi_jsc_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "napi_jsc_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_napi_jsc-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "napi_jsc_srcs",
+  srcs = [
+    "napi/napi/jsc/js_native_api_JavaScriptCore.cc"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "napi_jsc_oc",
+  enable_modules = 1,
+  srcs = [
+    "napi_jsc_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "napi_jsc_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":napi_jsc_objc_interface"
+  ],
+  per_label_options = [
+    ".*napi/napi/jsc/js_native_api_JavaScriptCore.cc@-Wall,-Wno-shorten-64-to-32,-Os"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-DJSC_OBJC_API_ENABLED=0",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "napi_jsc",
+  deps = [
+    ":napi_jsc_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "napi_jsc_lib",
+  deps = [
+    ":napi_jsc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "napi_v8_hdrs",
+  srcs = [
+    "napi/napi/v8/js_native_api_v8.cc.h",
+    "napi/napi/v8/js_native_api_v8.h",
+    "napi/napi/v8/js_native_api_v8_internals.h",
+    "napi/napi/v8/napi_env_v8.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "napi_v8_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/vmsdk/js_native_api_v8.cc.h",
+    "pod_support/Headers/Private/vmsdk/js_native_api_v8.h",
+    "pod_support/Headers/Private/vmsdk/js_native_api_v8_internals.h",
+    "pod_support/Headers/Private/vmsdk/napi_env_v8.h",
+    "pod_support/Headers/Public/vmsdk/js_native_api_v8.cc.h",
+    "pod_support/Headers/Public/vmsdk/js_native_api_v8.h",
+    "pod_support/Headers/Public/vmsdk/js_native_api_v8_internals.h",
+    "pod_support/Headers/Public/vmsdk/napi_env_v8.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "napi_v8_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "napi_v8_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "napi_v8_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_napi_v8-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "napi_v8_srcs",
+  srcs = [
+    "napi/napi/v8/js_native_api_v8.cc"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "napi_v8_oc",
+  enable_modules = 1,
+  srcs = [
+    "napi_v8_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "napi_v8_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":napi_v8_objc_interface"
+  ],
+  per_label_options = [
+    ".*napi/napi/v8/js_native_api_v8.cc@-Wall,-Wno-shorten-64-to-32,-Os,-D_NAPI_V8_EXPORT_SOURCE_ONLY_"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "napi_v8",
+  deps = [
+    ":napi_v8_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "napi_v8_lib",
+  deps = [
+    ":napi_v8"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "napi_quickjs_hdrs",
+  srcs = [
+    "napi/napi/quickjs/js_native_api_QuickJS.h",
+    "napi/napi/quickjs/napi_env_quickjs.h",
+    "napi/napi/quickjs/quickjs_id.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "napi_quickjs_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/vmsdk/js_native_api_QuickJS.h",
+    "pod_support/Headers/Private/vmsdk/napi_env_quickjs.h",
+    "pod_support/Headers/Private/vmsdk/quickjs_id.h",
+    "pod_support/Headers/Public/vmsdk/napi_env_quickjs.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "napi_quickjs_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "napi_quickjs_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "napi_quickjs_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_napi_quickjs-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "napi_quickjs_srcs",
+  srcs = [
+    "napi/napi/quickjs/js_native_api_QuickJS.cc"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "napi_quickjs_oc",
+  enable_modules = 1,
+  srcs = [
+    "napi_quickjs_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "napi_quickjs_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":napi_quickjs_objc_interface"
+  ],
+  per_label_options = [
+    ".*napi/napi/quickjs/js_native_api_QuickJS.cc@-Wall,-Wno-shorten-64-to-32,-Os"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "napi_quickjs",
+  deps = [
+    ":napi_quickjs_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "napi_quickjs_lib",
+  deps = [
+    ":napi_quickjs"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "basic_hdrs",
+  srcs = [
+    "basic/atomic_ref_count.h",
+    "basic/base_export.h",
+    "basic/compiler_specific.h",
+    "basic/debug/backtrace.h",
+    "basic/iOS/VmsdkDefines.h",
+    "basic/iOS/VmsdkThreadManager.h",
+    "basic/iOS/cf_utils.h",
+    "basic/modp_b64/modp_b64.h",
+    "basic/modp_b64/modp_b64_data.h",
+    "basic/no_destructor.h",
+    "basic/poller/poller.h",
+    "basic/poller/select_poller.h",
+    "basic/poller/utility.h",
+    "basic/ref_counted.h",
+    "basic/ref_counted_ptr.h",
+    "basic/task/callback.h",
+    "basic/task/task.h",
+    "basic/threading/completion_event.h",
+    "basic/threading/condition.h",
+    "basic/threading/lock.h",
+    "basic/threading/message_loop.h",
+    "basic/threading/message_pump.h",
+    "basic/threading/message_pump_io_posix.h",
+    "basic/threading/message_pump_ios.h",
+    "basic/threading/message_pump_ios_js.h",
+    "basic/threading/message_pump_posix.h",
+    "basic/threading/read_write_lock.h",
+    "basic/threading/thread.h",
+    "basic/threading/thread_impl.h",
+    "basic/threading/thread_impl_ios.h",
+    "basic/threading/thread_impl_posix.h",
+    "basic/threading/thread_local.h",
+    "basic/timer/time_utils.h",
+    "basic/timer/timer.h",
+    "basic/timer/timer_heap.h",
+    "basic/timer/timer_node.h",
+    "basic/trace_event/trace_event.h",
+    "basic/vmsdk_exception_common.h",
+    "basic/weak_ptr.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "basic_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/vmsdk/basic/atomic_ref_count.h",
+    "pod_support/Headers/Private/vmsdk/basic/base_export.h",
+    "pod_support/Headers/Private/vmsdk/basic/compiler_specific.h",
+    "pod_support/Headers/Private/vmsdk/basic/debug/backtrace.h",
+    "pod_support/Headers/Private/vmsdk/basic/iOS/VmsdkDefines.h",
+    "pod_support/Headers/Private/vmsdk/basic/iOS/VmsdkThreadManager.h",
+    "pod_support/Headers/Private/vmsdk/basic/iOS/cf_utils.h",
+    "pod_support/Headers/Private/vmsdk/basic/modp_b64/modp_b64.h",
+    "pod_support/Headers/Private/vmsdk/basic/modp_b64/modp_b64_data.h",
+    "pod_support/Headers/Private/vmsdk/basic/no_destructor.h",
+    "pod_support/Headers/Private/vmsdk/basic/poller/poller.h",
+    "pod_support/Headers/Private/vmsdk/basic/poller/select_poller.h",
+    "pod_support/Headers/Private/vmsdk/basic/poller/utility.h",
+    "pod_support/Headers/Private/vmsdk/basic/ref_counted.h",
+    "pod_support/Headers/Private/vmsdk/basic/ref_counted_ptr.h",
+    "pod_support/Headers/Private/vmsdk/basic/task/callback.h",
+    "pod_support/Headers/Private/vmsdk/basic/task/task.h",
+    "pod_support/Headers/Private/vmsdk/basic/threading/completion_event.h",
+    "pod_support/Headers/Private/vmsdk/basic/threading/condition.h",
+    "pod_support/Headers/Private/vmsdk/basic/threading/lock.h",
+    "pod_support/Headers/Private/vmsdk/basic/threading/message_loop.h",
+    "pod_support/Headers/Private/vmsdk/basic/threading/message_pump.h",
+    "pod_support/Headers/Private/vmsdk/basic/threading/message_pump_io_posix.h",
+    "pod_support/Headers/Private/vmsdk/basic/threading/message_pump_ios.h",
+    "pod_support/Headers/Private/vmsdk/basic/threading/message_pump_ios_js.h",
+    "pod_support/Headers/Private/vmsdk/basic/threading/message_pump_posix.h",
+    "pod_support/Headers/Private/vmsdk/basic/threading/read_write_lock.h",
+    "pod_support/Headers/Private/vmsdk/basic/threading/thread.h",
+    "pod_support/Headers/Private/vmsdk/basic/threading/thread_impl.h",
+    "pod_support/Headers/Private/vmsdk/basic/threading/thread_impl_ios.h",
+    "pod_support/Headers/Private/vmsdk/basic/threading/thread_impl_posix.h",
+    "pod_support/Headers/Private/vmsdk/basic/threading/thread_local.h",
+    "pod_support/Headers/Private/vmsdk/basic/timer/time_utils.h",
+    "pod_support/Headers/Private/vmsdk/basic/timer/timer.h",
+    "pod_support/Headers/Private/vmsdk/basic/timer/timer_heap.h",
+    "pod_support/Headers/Private/vmsdk/basic/timer/timer_node.h",
+    "pod_support/Headers/Private/vmsdk/basic/trace_event/trace_event.h",
+    "pod_support/Headers/Private/vmsdk/basic/vmsdk_exception_common.h",
+    "pod_support/Headers/Private/vmsdk/basic/weak_ptr.h",
+    "pod_support/Headers/Public/vmsdk/basic/atomic_ref_count.h",
+    "pod_support/Headers/Public/vmsdk/basic/base_export.h",
+    "pod_support/Headers/Public/vmsdk/basic/compiler_specific.h",
+    "pod_support/Headers/Public/vmsdk/basic/debug/backtrace.h",
+    "pod_support/Headers/Public/vmsdk/basic/iOS/VmsdkDefines.h",
+    "pod_support/Headers/Public/vmsdk/basic/iOS/VmsdkThreadManager.h",
+    "pod_support/Headers/Public/vmsdk/basic/iOS/cf_utils.h",
+    "pod_support/Headers/Public/vmsdk/basic/modp_b64/modp_b64.h",
+    "pod_support/Headers/Public/vmsdk/basic/modp_b64/modp_b64_data.h",
+    "pod_support/Headers/Public/vmsdk/basic/no_destructor.h",
+    "pod_support/Headers/Public/vmsdk/basic/poller/poller.h",
+    "pod_support/Headers/Public/vmsdk/basic/poller/select_poller.h",
+    "pod_support/Headers/Public/vmsdk/basic/poller/utility.h",
+    "pod_support/Headers/Public/vmsdk/basic/ref_counted.h",
+    "pod_support/Headers/Public/vmsdk/basic/ref_counted_ptr.h",
+    "pod_support/Headers/Public/vmsdk/basic/task/callback.h",
+    "pod_support/Headers/Public/vmsdk/basic/task/task.h",
+    "pod_support/Headers/Public/vmsdk/basic/threading/completion_event.h",
+    "pod_support/Headers/Public/vmsdk/basic/threading/condition.h",
+    "pod_support/Headers/Public/vmsdk/basic/threading/lock.h",
+    "pod_support/Headers/Public/vmsdk/basic/threading/message_loop.h",
+    "pod_support/Headers/Public/vmsdk/basic/threading/message_pump.h",
+    "pod_support/Headers/Public/vmsdk/basic/threading/message_pump_io_posix.h",
+    "pod_support/Headers/Public/vmsdk/basic/threading/message_pump_ios.h",
+    "pod_support/Headers/Public/vmsdk/basic/threading/message_pump_ios_js.h",
+    "pod_support/Headers/Public/vmsdk/basic/threading/message_pump_posix.h",
+    "pod_support/Headers/Public/vmsdk/basic/threading/read_write_lock.h",
+    "pod_support/Headers/Public/vmsdk/basic/threading/thread.h",
+    "pod_support/Headers/Public/vmsdk/basic/threading/thread_impl.h",
+    "pod_support/Headers/Public/vmsdk/basic/threading/thread_impl_ios.h",
+    "pod_support/Headers/Public/vmsdk/basic/threading/thread_impl_posix.h",
+    "pod_support/Headers/Public/vmsdk/basic/threading/thread_local.h",
+    "pod_support/Headers/Public/vmsdk/basic/timer/time_utils.h",
+    "pod_support/Headers/Public/vmsdk/basic/timer/timer.h",
+    "pod_support/Headers/Public/vmsdk/basic/timer/timer_heap.h",
+    "pod_support/Headers/Public/vmsdk/basic/timer/timer_node.h",
+    "pod_support/Headers/Public/vmsdk/basic/trace_event/trace_event.h",
+    "pod_support/Headers/Public/vmsdk/basic/vmsdk_exception_common.h",
+    "pod_support/Headers/Public/vmsdk/basic/weak_ptr.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "basic_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "basic_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "basic_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_basic-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "basic_srcs",
+  srcs = [
+    "basic/debug/backtrace.cc",
+    "basic/threading/message_loop.cc",
+    "basic/threading/message_pump_io_posix.cc",
+    "basic/threading/message_pump_ios.mm",
+    "basic/threading/message_pump_ios_js.mm",
+    "basic/threading/message_pump_posix.cc",
+    "basic/modp_b64/modp_b64.cc",
+    "basic/poller/select_poller.cc",
+    "basic/threading/thread.cc",
+    "basic/threading/thread_impl_ios.mm",
+    "basic/threading/thread_impl_posix.cc",
+    "basic/threading/thread_local_posix.cc",
+    "basic/timer/time_utils.cc",
+    "basic/timer/timer.cc",
+    "basic/timer/timer_heap.cc",
+    "basic/poller/utility.cc",
+    "basic/vmsdk_exception_common.cc",
+    "basic/iOS/VmsdkThreadManager.mm"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "basic_oc",
+  enable_modules = 1,
+  srcs = [
+    "basic_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "basic_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":basic_objc_interface"
+  ],
+  per_label_options = [
+    ".*basic/debug/backtrace.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/iOS/VmsdkThreadManager.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/modp_b64/modp_b64.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/poller/select_poller.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/poller/utility.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/threading/message_loop.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/threading/message_pump_io_posix.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/threading/message_pump_ios.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/threading/message_pump_ios_js.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/threading/message_pump_posix.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/threading/thread.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/threading/thread_impl_ios.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/threading/thread_impl_posix.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/threading/thread_local_posix.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/timer/time_utils.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/timer/timer.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/timer/timer_heap.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/vmsdk_exception_common.cc@-Wall,-Wno-shorten-64-to-32,-Os"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "basic",
+  deps = [
+    ":basic_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "basic_lib",
+  deps = [
+    ":basic"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "basic_log_hdrs",
+  srcs = [
+    "basic/base_export.h",
+    "basic/iOS/VmsdkDefines.h",
+    "basic/log/iOS/VLog.h",
+    "basic/log/logging.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "basic_log_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/vmsdk/basic/base_export.h",
+    "pod_support/Headers/Private/vmsdk/basic/iOS/VmsdkDefines.h",
+    "pod_support/Headers/Private/vmsdk/basic/log/iOS/VLog.h",
+    "pod_support/Headers/Private/vmsdk/basic/log/logging.h",
+    "pod_support/Headers/Public/vmsdk/basic/base_export.h",
+    "pod_support/Headers/Public/vmsdk/basic/iOS/VmsdkDefines.h",
+    "pod_support/Headers/Public/vmsdk/basic/log/iOS/VLog.h",
+    "pod_support/Headers/Public/vmsdk/basic/log/logging.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "basic_log_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "basic_log_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "basic_log_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_basic_log-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "basic_log_srcs",
+  srcs = [
+    "basic/log/logging.cc",
+    "basic/log/iOS/VLog.mm"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "basic_log_oc",
+  enable_modules = 1,
+  srcs = [
+    "basic_log_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "basic_log_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDALog//:BDALog_objc_interface",
+    "@BDALog//:BDALog_swift_interface",
+    ":basic_log_objc_interface",
+    "@BDALog//:BDALog_module_map"
+  ],
+  per_label_options = [
+    ".*basic/log/iOS/VLog.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/log/logging.cc@-Wall,-Wno-shorten-64-to-32,-Os"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "basic_log",
+  deps = [
+    ":basic_log_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "basic_log_lib",
+  deps = [
+    ":basic_log"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "jsbridge_hdrs",
+  srcs = [
+    "devtool/iOS/VMSDKDebugICBase.h",
+    "jsb/devtool/inspector.h",
+    "jsb/devtool/inspector_factory.h",
+    "jsb/iOS/framework/JSModule.h",
+    "jsb/iOS/vmsdk_callback_darwin.h",
+    "jsb/iOS/vmsdk_module_darwin.h",
+    "jsb/iOS/vmsdk_module_manager_darwin.h",
+    "jsb/module/module_delegate.h",
+    "jsb/module/module_delegate_impl.h",
+    "jsb/module/vmsdk_module.h",
+    "jsb/module/vmsdk_module_binding.h",
+    "jsb/module/vmsdk_module_callback.h",
+    "jsb/module/vmsdk_module_manager.h",
+    "jsb/runtime/js_executor.h",
+    "jsb/runtime/js_executor_wraper.h",
+    "jsb/runtime/js_runtime.h",
+    "jsb/runtime/napi_runtime_wraper.h",
+    "jsb/runtime/runtime_delegate.h",
+    "jsb/runtime/task_runner.h",
+    "jsb/runtime/task_runner_manufacture.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "jsbridge_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/vmsdk/devtool/iOS/VMSDKDebugICBase.h",
+    "pod_support/Headers/Private/vmsdk/jsb/devtool/inspector.h",
+    "pod_support/Headers/Private/vmsdk/jsb/devtool/inspector_factory.h",
+    "pod_support/Headers/Private/vmsdk/jsb/iOS/framework/JSModule.h",
+    "pod_support/Headers/Private/vmsdk/jsb/iOS/vmsdk_callback_darwin.h",
+    "pod_support/Headers/Private/vmsdk/jsb/iOS/vmsdk_module_darwin.h",
+    "pod_support/Headers/Private/vmsdk/jsb/iOS/vmsdk_module_manager_darwin.h",
+    "pod_support/Headers/Private/vmsdk/jsb/module/module_delegate.h",
+    "pod_support/Headers/Private/vmsdk/jsb/module/module_delegate_impl.h",
+    "pod_support/Headers/Private/vmsdk/jsb/module/vmsdk_module.h",
+    "pod_support/Headers/Private/vmsdk/jsb/module/vmsdk_module_binding.h",
+    "pod_support/Headers/Private/vmsdk/jsb/module/vmsdk_module_callback.h",
+    "pod_support/Headers/Private/vmsdk/jsb/module/vmsdk_module_manager.h",
+    "pod_support/Headers/Private/vmsdk/jsb/runtime/js_executor.h",
+    "pod_support/Headers/Private/vmsdk/jsb/runtime/js_executor_wraper.h",
+    "pod_support/Headers/Private/vmsdk/jsb/runtime/js_runtime.h",
+    "pod_support/Headers/Private/vmsdk/jsb/runtime/napi_runtime_wraper.h",
+    "pod_support/Headers/Private/vmsdk/jsb/runtime/runtime_delegate.h",
+    "pod_support/Headers/Private/vmsdk/jsb/runtime/task_runner.h",
+    "pod_support/Headers/Private/vmsdk/jsb/runtime/task_runner_manufacture.h",
+    "pod_support/Headers/Public/vmsdk/devtool/iOS/VMSDKDebugICBase.h",
+    "pod_support/Headers/Public/vmsdk/jsb/devtool/inspector.h",
+    "pod_support/Headers/Public/vmsdk/jsb/devtool/inspector_factory.h",
+    "pod_support/Headers/Public/vmsdk/jsb/iOS/framework/JSModule.h",
+    "pod_support/Headers/Public/vmsdk/jsb/iOS/vmsdk_callback_darwin.h",
+    "pod_support/Headers/Public/vmsdk/jsb/iOS/vmsdk_module_darwin.h",
+    "pod_support/Headers/Public/vmsdk/jsb/iOS/vmsdk_module_manager_darwin.h",
+    "pod_support/Headers/Public/vmsdk/jsb/module/module_delegate.h",
+    "pod_support/Headers/Public/vmsdk/jsb/module/module_delegate_impl.h",
+    "pod_support/Headers/Public/vmsdk/jsb/module/vmsdk_module.h",
+    "pod_support/Headers/Public/vmsdk/jsb/module/vmsdk_module_binding.h",
+    "pod_support/Headers/Public/vmsdk/jsb/module/vmsdk_module_callback.h",
+    "pod_support/Headers/Public/vmsdk/jsb/module/vmsdk_module_manager.h",
+    "pod_support/Headers/Public/vmsdk/jsb/runtime/js_executor.h",
+    "pod_support/Headers/Public/vmsdk/jsb/runtime/js_executor_wraper.h",
+    "pod_support/Headers/Public/vmsdk/jsb/runtime/js_runtime.h",
+    "pod_support/Headers/Public/vmsdk/jsb/runtime/napi_runtime_wraper.h",
+    "pod_support/Headers/Public/vmsdk/jsb/runtime/runtime_delegate.h",
+    "pod_support/Headers/Public/vmsdk/jsb/runtime/task_runner.h",
+    "pod_support/Headers/Public/vmsdk/jsb/runtime/task_runner_manufacture.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "jsbridge_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "jsbridge_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "jsbridge_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_jsbridge-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "jsbridge_srcs",
+  srcs = [
+    "jsb/devtool/inspector_factory.cc",
+    "jsb/runtime/js_executor_wraper.cc",
+    "jsb/runtime/js_runtime.cc",
+    "jsb/module/module_delegate_impl.cc",
+    "jsb/runtime/napi_runtime_wraper.cc",
+    "jsb/runtime/task_runner.cc",
+    "jsb/runtime/task_runner_manufacture.cc",
+    "jsb/iOS/vmsdk_callback_darwin.mm",
+    "jsb/module/vmsdk_module.cc",
+    "jsb/module/vmsdk_module_binding.cc",
+    "jsb/module/vmsdk_module_callback.cc",
+    "jsb/iOS/vmsdk_module_darwin.mm",
+    "jsb/iOS/vmsdk_module_manager_darwin.mm"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "jsbridge_oc",
+  enable_modules = 1,
+  srcs = [
+    "jsbridge_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "jsbridge_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_dylibs = [
+    "stdc++"
+  ],
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":jsbridge_objc_interface"
+  ],
+  per_label_options = [
+    ".*jsb/devtool/inspector_factory.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/iOS/vmsdk_callback_darwin.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/iOS/vmsdk_module_darwin.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/iOS/vmsdk_module_manager_darwin.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/module/module_delegate_impl.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/module/vmsdk_module.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/module/vmsdk_module_binding.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/module/vmsdk_module_callback.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/runtime/js_executor_wraper.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/runtime/js_runtime.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/runtime/napi_runtime_wraper.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/runtime/task_runner.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/runtime/task_runner_manufacture.cc@-Wall,-Wno-shorten-64-to-32,-Os"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "jsbridge",
+  deps = [
+    ":jsbridge_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "jsbridge_lib",
+  deps = [
+    ":jsbridge"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "worker_hdrs",
+  srcs = [
+    "worker/iOS/js_worker_ios.h",
+    "worker/iOS/net/request_ios.h",
+    "worker/iOS/net/response_ios.h",
+    "worker/iOS/worker_delegate_ios.h",
+    "worker/js_worker.h",
+    "worker/net/js_headers.h",
+    "worker/net/js_request.h",
+    "worker/net/response_delegate.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "worker_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "worker_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "worker_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "worker_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_worker-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "worker_srcs",
+  srcs = [
+    "worker/js_worker.cc",
+    "worker/iOS/js_worker_ios.mm",
+    "worker/iOS/net/request_ios.mm",
+    "worker/net/response_delegate.cc",
+    "worker/iOS/net/response_ios.mm"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "worker_oc",
+  enable_modules = 1,
+  srcs = [
+    "worker_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "worker_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":worker_objc_interface"
+  ],
+  per_label_options = [
+    ".*worker/iOS/js_worker_ios.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*worker/iOS/net/request_ios.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*worker/iOS/net/response_ios.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*worker/js_worker.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*worker/net/response_delegate.cc@-Wall,-Wno-shorten-64-to-32,-Os"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "worker",
+  deps = [
+    ":worker_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "worker_lib",
+  deps = [
+    ":worker"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "lark_worker_hdrs",
+  srcs = [
+    "worker/iOS/js_worker_ios.h",
+    "worker/iOS/net/request_ios.h",
+    "worker/iOS/net/response_ios.h",
+    "worker/iOS/worker_delegate_ios.h",
+    "worker/js_worker.h",
+    "worker/net/response_delegate.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "lark_worker_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/vmsdk/worker/iOS/js_worker_ios.h",
+    "pod_support/Headers/Private/vmsdk/worker/iOS/net/request_ios.h",
+    "pod_support/Headers/Private/vmsdk/worker/iOS/net/response_ios.h",
+    "pod_support/Headers/Private/vmsdk/worker/iOS/worker_delegate_ios.h",
+    "pod_support/Headers/Private/vmsdk/worker/js_worker.h",
+    "pod_support/Headers/Private/vmsdk/worker/net/response_delegate.h",
+    "pod_support/Headers/Public/vmsdk/worker/iOS/js_worker_ios.h",
+    "pod_support/Headers/Public/vmsdk/worker/iOS/net/request_ios.h",
+    "pod_support/Headers/Public/vmsdk/worker/iOS/net/response_ios.h",
+    "pod_support/Headers/Public/vmsdk/worker/iOS/worker_delegate_ios.h",
+    "pod_support/Headers/Public/vmsdk/worker/js_worker.h",
+    "pod_support/Headers/Public/vmsdk/worker/net/response_delegate.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "lark_worker_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "lark_worker_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "lark_worker_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_lark_worker-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "lark_worker_srcs",
+  srcs = [
+    "worker/js_worker.cc",
+    "worker/iOS/js_worker_ios.mm"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "lark_worker_oc",
+  enable_modules = 1,
+  srcs = [
+    "lark_worker_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "lark_worker_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":lark_worker_objc_interface"
+  ],
+  per_label_options = [
+    ".*worker/iOS/js_worker_ios.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*worker/js_worker.cc@-Wall,-Wno-shorten-64-to-32,-Os"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-DLARK_MINIAPP",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "lark_worker",
+  deps = [
+    ":lark_worker_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "lark_worker_lib",
+  deps = [
+    ":lark_worker"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "monitor_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "monitor_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "monitor_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "monitor_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "monitor_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_monitor-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "monitor_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "monitor_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":monitor_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "monitor",
+  deps = [
+    ":monitor_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "monitor_lib",
+  deps = [
+    ":monitor"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "monitor_core_hdrs",
+  srcs = [
+    "monitor/MonitorInfo.h",
+    "monitor/VmsdkMonitor.h",
+    "monitor/VmsdkSettingsManager.h",
+    "monitor/VmsdkVersion.h",
+    "monitor/common/vmsdk_monitor.h",
+    "monitor/vmsdk_monitor_ios.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "monitor_core_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/vmsdk/monitor/MonitorInfo.h",
+    "pod_support/Headers/Private/vmsdk/monitor/VmsdkMonitor.h",
+    "pod_support/Headers/Private/vmsdk/monitor/VmsdkSettingsManager.h",
+    "pod_support/Headers/Private/vmsdk/monitor/VmsdkVersion.h",
+    "pod_support/Headers/Private/vmsdk/monitor/common/vmsdk_monitor.h",
+    "pod_support/Headers/Private/vmsdk/monitor/vmsdk_monitor_ios.h",
+    "pod_support/Headers/Public/vmsdk/monitor/MonitorInfo.h",
+    "pod_support/Headers/Public/vmsdk/monitor/VmsdkMonitor.h",
+    "pod_support/Headers/Public/vmsdk/monitor/VmsdkSettingsManager.h",
+    "pod_support/Headers/Public/vmsdk/monitor/VmsdkVersion.h",
+    "pod_support/Headers/Public/vmsdk/monitor/common/vmsdk_monitor.h",
+    "pod_support/Headers/Public/vmsdk/monitor/vmsdk_monitor_ios.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "monitor_core_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "monitor_core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "monitor_core_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_monitor_core-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "monitor_core_srcs",
+  srcs = [
+    "monitor/MonitorInfo.m",
+    "monitor/common/vmsdk_monitor.cc",
+    "monitor/vmsdk_monitor_ios.m",
+    "monitor/VmsdkMonitor.m",
+    "monitor/VmsdkSettingsManager.m",
+    "monitor/VmsdkVersion.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "monitor_core_oc",
+  enable_modules = 1,
+  srcs = [
+    "monitor_core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "monitor_core_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Heimdallr//:Core_objc_interface",
+    "@Heimdallr//:TTMonitor_objc_interface",
+    "@Heimdallr//:Core_swift_interface",
+    "@Heimdallr//:TTMonitor_swift_interface",
+    ":monitor_core_objc_interface",
+    "@Heimdallr//:Core_module_map",
+    "@Heimdallr//:TTMonitor_module_map"
+  ],
+  per_label_options = [
+    ".*monitor/MonitorInfo.m@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*monitor/VmsdkMonitor.m@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*monitor/VmsdkSettingsManager.m@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*monitor/VmsdkVersion.m@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*monitor/common/vmsdk_monitor.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*monitor/vmsdk_monitor_ios.m@-Wall,-Wno-shorten-64-to-32,-Os"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "monitor_core",
+  deps = [
+    ":monitor_core_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "monitor_core_lib",
+  deps = [
+    ":monitor_core"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "monitor_domestic_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "monitor_domestic_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "monitor_domestic_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "monitor_domestic_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "monitor_domestic_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_monitor_domestic-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "monitor_domestic_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "monitor_domestic_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Heimdallr//:HMDDomestic_objc_interface",
+    "@Heimdallr//:HMDDomestic_swift_interface",
+    ":monitor_domestic_objc_interface",
+    "@Heimdallr//:HMDDomestic_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "monitor_domestic",
+  deps = [
+    ":monitor_domestic_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "monitor_domestic_lib",
+  deps = [
+    ":monitor_domestic"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "monitor_overseas_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "monitor_overseas_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "monitor_overseas_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "monitor_overseas_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "monitor_overseas_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_monitor_overseas-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "monitor_overseas_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "monitor_overseas_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@Heimdallr//:HMDOverseas_objc_interface",
+    "@Heimdallr//:HMDOverseas_swift_interface",
+    ":monitor_overseas_objc_interface",
+    "@Heimdallr//:HMDOverseas_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "monitor_overseas",
+  deps = [
+    ":monitor_overseas_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "monitor_overseas_lib",
+  deps = [
+    ":monitor_overseas"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "jsc_wasm_wasm3_hdrs",
+  srcs = [
+    "jsb/iOS/vmsdk_wasm_bridge.h",
+    "jsb/wasm/common/js_env.h",
+    "jsb/wasm/common/js_type.h",
+    "jsb/wasm/common/messages.h",
+    "jsb/wasm/common/wasm_alog.h",
+    "jsb/wasm/common/wasm_config.h",
+    "jsb/wasm/common/wasm_log.h",
+    "jsb/wasm/common/wasm_utils.h",
+    "jsb/wasm/jsc/js_env_jsc.h",
+    "jsb/wasm/jsc/jsc_builtin_objects.h",
+    "jsb/wasm/jsc/jsc_class_creator.h",
+    "jsb/wasm/jsc/jsc_ext_api.h",
+    "jsb/wasm/jsc/jsc_wasm.h",
+    "jsb/wasm/jsc/jsc_wasm_global.h",
+    "jsb/wasm/jsc/jsc_wasm_instance.h",
+    "jsb/wasm/jsc/jsc_wasm_memory.h",
+    "jsb/wasm/jsc/jsc_wasm_module.h",
+    "jsb/wasm/jsc/jsc_wasm_table.h",
+    "jsb/wasm/runtime/wasm3/wasm_func_pack.h",
+    "jsb/wasm/runtime/wasm3/wasm_global.h",
+    "jsb/wasm/runtime/wasm3/wasm_instance.h",
+    "jsb/wasm/runtime/wasm3/wasm_memory.h",
+    "jsb/wasm/runtime/wasm3/wasm_module.h",
+    "jsb/wasm/runtime/wasm3/wasm_runtime.h",
+    "jsb/wasm/runtime/wasm3/wasm_table.h",
+    "jsb/wasm/runtime/wasm_func_pack.h",
+    "jsb/wasm/runtime/wasm_global.h",
+    "jsb/wasm/runtime/wasm_instance.h",
+    "jsb/wasm/runtime/wasm_memory.h",
+    "jsb/wasm/runtime/wasm_module.h",
+    "jsb/wasm/runtime/wasm_runtime.h",
+    "jsb/wasm/runtime/wasm_table.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "jsc_wasm_wasm3_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "jsc_wasm_wasm3_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "jsc_wasm_wasm3_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "jsc_wasm_wasm3_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_jsc_wasm_wasm3-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "jsc_wasm_wasm3_srcs",
+  srcs = [
+    "jsb/wasm/jsc/js_env_jsc.cc",
+    "jsb/wasm/jsc/jsc_builtin_objects.cc",
+    "jsb/wasm/jsc/jsc_class_creator.cc",
+    "jsb/wasm/jsc/jsc_ext_api.cc",
+    "jsb/wasm/jsc/jsc_wasm.cc",
+    "jsb/wasm/jsc/jsc_wasm_global.cc",
+    "jsb/wasm/jsc/jsc_wasm_instance.cc",
+    "jsb/wasm/jsc/jsc_wasm_memory.cc",
+    "jsb/wasm/jsc/jsc_wasm_module.cc",
+    "jsb/wasm/jsc/jsc_wasm_table.cc",
+    "jsb/iOS/vmsdk_wasm_bridge.mm",
+    "jsb/wasm/runtime/wasm3/wasm_func_pack.cc",
+    "jsb/wasm/runtime/wasm3/wasm_global.cc",
+    "jsb/wasm/runtime/wasm3/wasm_instance.cc",
+    "jsb/wasm/runtime/wasm3/wasm_memory.cc",
+    "jsb/wasm/runtime/wasm3/wasm_module.cc",
+    "jsb/wasm/runtime/wasm3/wasm_runtime.cc",
+    "jsb/wasm/runtime/wasm3/wasm_table.cc"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "jsc_wasm_wasm3_oc",
+  enable_modules = 1,
+  srcs = [
+    "jsc_wasm_wasm3_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "jsc_wasm_wasm3_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@wasm3//:runtime_objc_interface",
+    "@wasm3//:runtime_swift_interface",
+    ":jsc_wasm_wasm3_objc_interface",
+    "@wasm3//:runtime_module_map"
+  ],
+  per_label_options = [
+    ".*jsb/iOS/vmsdk_wasm_bridge.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/jsc/js_env_jsc.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/jsc/jsc_builtin_objects.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/jsc/jsc_class_creator.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/jsc/jsc_ext_api.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/jsc/jsc_wasm.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/jsc/jsc_wasm_global.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/jsc/jsc_wasm_instance.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/jsc/jsc_wasm_memory.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/jsc/jsc_wasm_module.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/jsc/jsc_wasm_table.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/runtime/wasm3/wasm_func_pack.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/runtime/wasm3/wasm_global.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/runtime/wasm3/wasm_instance.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/runtime/wasm3/wasm_memory.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/runtime/wasm3/wasm_module.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/runtime/wasm3/wasm_runtime.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/runtime/wasm3/wasm_table.cc@-Wall,-Wno-shorten-64-to-32,-Os"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-DWASM_ENGINE_WASM3=1",
+    "-DJS_ENGINE_JSC=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "jsc_wasm_wasm3",
+  deps = [
+    ":jsc_wasm_wasm3_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "jsc_wasm_wasm3_lib",
+  deps = [
+    ":jsc_wasm_wasm3"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "jsc_wasm_wamr_hdrs",
+  srcs = [
+    "jsb/wasm/common/js_env.h",
+    "jsb/wasm/common/js_type.h",
+    "jsb/wasm/common/messages.h",
+    "jsb/wasm/common/wasm_alog.h",
+    "jsb/wasm/common/wasm_config.h",
+    "jsb/wasm/common/wasm_log.h",
+    "jsb/wasm/common/wasm_utils.h",
+    "jsb/wasm/jsc/js_env_jsc.h",
+    "jsb/wasm/jsc/jsc_builtin_objects.h",
+    "jsb/wasm/jsc/jsc_class_creator.h",
+    "jsb/wasm/jsc/jsc_ext_api.h",
+    "jsb/wasm/jsc/jsc_wasm.h",
+    "jsb/wasm/jsc/jsc_wasm_global.h",
+    "jsb/wasm/jsc/jsc_wasm_instance.h",
+    "jsb/wasm/jsc/jsc_wasm_memory.h",
+    "jsb/wasm/jsc/jsc_wasm_module.h",
+    "jsb/wasm/jsc/jsc_wasm_table.h",
+    "jsb/wasm/runtime/wamr/wasm_func_pack.h",
+    "jsb/wasm/runtime/wamr/wasm_global.h",
+    "jsb/wasm/runtime/wamr/wasm_instance.h",
+    "jsb/wasm/runtime/wamr/wasm_memory.h",
+    "jsb/wasm/runtime/wamr/wasm_module.h",
+    "jsb/wasm/runtime/wamr/wasm_runtime.h",
+    "jsb/wasm/runtime/wamr/wasm_table.h",
+    "jsb/wasm/runtime/wasm_func_pack.h",
+    "jsb/wasm/runtime/wasm_global.h",
+    "jsb/wasm/runtime/wasm_instance.h",
+    "jsb/wasm/runtime/wasm_memory.h",
+    "jsb/wasm/runtime/wasm_module.h",
+    "jsb/wasm/runtime/wasm_runtime.h",
+    "jsb/wasm/runtime/wasm_table.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "jsc_wasm_wamr_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "jsc_wasm_wamr_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "jsc_wasm_wamr_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "jsc_wasm_wamr_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_jsc_wasm_wamr-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "jsc_wasm_wamr_srcs",
+  srcs = [
+    "jsb/wasm/jsc/js_env_jsc.cc",
+    "jsb/wasm/jsc/jsc_builtin_objects.cc",
+    "jsb/wasm/jsc/jsc_class_creator.cc",
+    "jsb/wasm/jsc/jsc_ext_api.cc",
+    "jsb/wasm/jsc/jsc_wasm.cc",
+    "jsb/wasm/jsc/jsc_wasm_global.cc",
+    "jsb/wasm/jsc/jsc_wasm_instance.cc",
+    "jsb/wasm/jsc/jsc_wasm_memory.cc",
+    "jsb/wasm/jsc/jsc_wasm_module.cc",
+    "jsb/wasm/jsc/jsc_wasm_table.cc",
+    "jsb/wasm/runtime/wamr/wasm_func_pack.cc",
+    "jsb/wasm/runtime/wamr/wasm_global.cc",
+    "jsb/wasm/runtime/wamr/wasm_instance.cc",
+    "jsb/wasm/runtime/wamr/wasm_memory.cc",
+    "jsb/wasm/runtime/wamr/wasm_module.cc",
+    "jsb/wasm/runtime/wamr/wasm_runtime.cc",
+    "jsb/wasm/runtime/wamr/wasm_table.cc"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "jsc_wasm_wamr_oc",
+  enable_modules = 1,
+  srcs = [
+    "jsc_wasm_wamr_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "jsc_wasm_wamr_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "JavaScriptCore"
+  ],
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@wamr//:runtime_objc_interface",
+    "@wamr//:runtime_swift_interface",
+    ":jsc_wasm_wamr_objc_interface",
+    "@wamr//:runtime_module_map"
+  ],
+  per_label_options = [
+    ".*jsb/wasm/jsc/js_env_jsc.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/jsc/jsc_builtin_objects.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/jsc/jsc_class_creator.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/jsc/jsc_ext_api.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/jsc/jsc_wasm.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/jsc/jsc_wasm_global.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/jsc/jsc_wasm_instance.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/jsc/jsc_wasm_memory.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/jsc/jsc_wasm_module.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/jsc/jsc_wasm_table.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/runtime/wamr/wasm_func_pack.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/runtime/wamr/wasm_global.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/runtime/wamr/wasm_instance.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/runtime/wamr/wasm_memory.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/runtime/wamr/wasm_module.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/runtime/wamr/wasm_runtime.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/wasm/runtime/wamr/wasm_table.cc@-Wall,-Wno-shorten-64-to-32,-Os"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-DWASM_ENGINE_WAMR=1",
+    "-DJS_ENGINE_JSC=1",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "jsc_wasm_wamr",
+  deps = [
+    ":jsc_wasm_wamr_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "jsc_wasm_wamr_lib",
+  deps = [
+    ":jsc_wasm_wamr"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "jsc_wasm_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "jsc_wasm_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "jsc_wasm_swift_interface",
+  deps = [],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "jsc_wasm_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "jsc_wasm_module_map",
+  module_map = "pod_support/Headers/Public/vmsdk/vmsdk_jsc_wasm-bazel-generated.modulemap",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "jsc_wasm_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "jsc_wasm_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":vmsdk_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":vmsdk_private_includes",
+    ":vmsdk_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":jsc_wasm_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "jsc_wasm",
+  deps = [
+    ":jsc_wasm_oc"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "jsc_wasm_lib",
+  deps = [
+    ":jsc_wasm"
+  ],
+  minimum_os_version = "9.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_vmsdk_module_map",
+  module_map = "@vmsdk//:pod_support/Headers/Public/vmsdk/Lark-bitsky-generated.modulemap",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_vmsdk_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@vmsdk//:basic_objc_interface", "@vmsdk//:basic_log_objc_interface", "@vmsdk//:jsbridge_objc_interface", "@vmsdk//:lark_worker_objc_interface", "@vmsdk//:monitor_core_objc_interface", "@vmsdk//:monitor_domestic_objc_interface", "@vmsdk//:napi_objc_interface", "@vmsdk//:napi_core_objc_interface", "@vmsdk//:napi_env_objc_interface", "@vmsdk//:napi_jsc_objc_interface", "@vmsdk//:napi_quickjs_objc_interface", "@vmsdk//:napi_v8_objc_interface", "@vmsdk//:quickjs_objc_interface", "@vmsdk//:quickjs_debugger_objc_interface", "@vmsdk//:quickjs_heapprofiler_objc_interface", "@vmsdk//:umbrella_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_vmsdk",
+  target_name = "Lark",
+  module_name = "vmsdk",
+  module_map = "vmsdk.modulemap",
+  hdrs = ["@vmsdk//:basic_pod_hdrs", "@vmsdk//:basic_log_pod_hdrs", "@vmsdk//:jsbridge_pod_hdrs", "@vmsdk//:lark_worker_pod_hdrs", "@vmsdk//:monitor_core_pod_hdrs", "@vmsdk//:monitor_domestic_pod_hdrs", "@vmsdk//:napi_pod_hdrs", "@vmsdk//:napi_core_pod_hdrs", "@vmsdk//:napi_env_pod_hdrs", "@vmsdk//:napi_jsc_pod_hdrs", "@vmsdk//:napi_quickjs_pod_hdrs", "@vmsdk//:napi_v8_pod_hdrs", "@vmsdk//:quickjs_pod_hdrs", "@vmsdk//:quickjs_debugger_pod_hdrs", "@vmsdk//:quickjs_heapprofiler_pod_hdrs", "@vmsdk//:umbrella_pod_hdrs"],
+  srcs = ["@vmsdk//:basic_log_srcs", "@vmsdk//:basic_srcs", "@vmsdk//:jsbridge_srcs", "@vmsdk//:lark_worker_srcs", "@vmsdk//:monitor_core_srcs", "@vmsdk//:napi_core_srcs", "@vmsdk//:napi_env_srcs", "@vmsdk//:napi_jsc_srcs", "@vmsdk//:napi_quickjs_srcs", "@vmsdk//:napi_v8_srcs", "@vmsdk//:quickjs_debugger_srcs", "@vmsdk//:quickjs_heapprofiler_srcs", "@vmsdk//:quickjs_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = ["BDALog", "Heimdallr"],
+  per_label_options = [".*basic/debug/backtrace.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/iOS/VmsdkThreadManager.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/modp_b64/modp_b64.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/poller/select_poller.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/poller/utility.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/threading/message_loop.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/threading/message_pump_io_posix.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/threading/message_pump_ios.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/threading/message_pump_ios_js.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/threading/message_pump_posix.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/threading/thread.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/threading/thread_impl_ios.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/threading/thread_impl_posix.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/threading/thread_local_posix.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/timer/time_utils.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/timer/timer.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/timer/timer_heap.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/vmsdk_exception_common.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/log/iOS/VLog.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*basic/log/logging.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/devtool/inspector_factory.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/iOS/vmsdk_callback_darwin.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/iOS/vmsdk_module_darwin.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/iOS/vmsdk_module_manager_darwin.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/module/module_delegate_impl.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/module/vmsdk_module.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/module/vmsdk_module_binding.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/module/vmsdk_module_callback.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/runtime/js_executor_wraper.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/runtime/js_runtime.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/runtime/napi_runtime_wraper.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/runtime/task_runner.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*jsb/runtime/task_runner_manufacture.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*worker/iOS/js_worker_ios.mm@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*worker/js_worker.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*monitor/MonitorInfo.m@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*monitor/VmsdkMonitor.m@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*monitor/VmsdkSettingsManager.m@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*monitor/VmsdkVersion.m@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*monitor/common/vmsdk_monitor.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*monitor/vmsdk_monitor_ios.m@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*napi/napi/common/code_cache.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*napi/napi/napi.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*napi/napi/napi_module.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*napi/napi/env/napi_env.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*napi/napi/env/napi_runtime.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*napi/napi/jsc/js_native_api_JavaScriptCore.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*napi/napi/quickjs/js_native_api_QuickJS.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*napi/napi/v8/js_native_api_v8.cc@-Wall,-Wno-shorten-64-to-32,-Os,-D_NAPI_V8_EXPORT_SOURCE_ONLY_",
+    ".*quickjs/source/cutils.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/source/dlmalloc.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/source/gen/ios/embedded.S@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/source/libregexp.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/source/libunicode.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/source/malloc_debug_check.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/source/quickjs-libc.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/source/quickjs.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/source/quickjs_version.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/debugger/debugger.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/debugger/debugger_breakpoint.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/debugger/debugger_callframe.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/debugger/debugger_properties.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/debugger/debugger_queue.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/heapprofiler/heapprofiler.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/protocols.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/runtime/runtime.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*devtool/quickjs/string_tools.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/source/gen/ios/embedded-inspector.S@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/heapprofiler/source/edge.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/heapprofiler/source/entry.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/heapprofiler/source/gen.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/heapprofiler/source/heapexplorer.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/heapprofiler/source/heapprofiler.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/heapprofiler/source/serialize.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/heapprofiler/source/snapshot.cc@-Wall,-Wno-shorten-64-to-32,-Os",
+    ".*quickjs/heapprofiler/source/take-snapshot.cc@-Wall,-Wno-shorten-64-to-32,-Os"],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DOS_IOS=1",
+    "-DENABLE_MONITOR",
+    "-DJSC_OBJC_API_ENABLED=1",
+    "-Dvmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-DLARK_MINIAPP",
+    "-DJSC_OBJC_API_ENABLED=0",
+    "-DENABLE_LEPUSNG",
+    "-DLYNX_DEV",
+    "-DLYNX_SIMPLIFY=0",
+    "-DENABLE_QUICKJS_DEBUGGER",
+    "-DENABLE_QUICKJS_STEP_STATEMENT",
+    "-DENABLE_HEAPPROFILER=1",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "vmsdk_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "vmsdk_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["JavaScriptCore"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = ["stdc++"],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "vmsdk_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "vmsdk_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "vmsdk_dynamic", False),
+  tags = getattr(defs_external_objc_library, "vmsdk_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  header_mappings = {
+    "*": "*",
+    "basic/atomic_ref_count.h": "atomic_ref_count.h",
+    "basic/base_export.h": "base_export.h",
+    "basic/compiler_specific.h": "compiler_specific.h",
+    "basic/debug/backtrace.h": "debug/backtrace.h",
+    "basic/iOS/VmsdkDefines.h": "iOS/VmsdkDefines.h",
+    "basic/iOS/VmsdkThreadManager.h": "iOS/VmsdkThreadManager.h",
+    "basic/iOS/cf_utils.h": "iOS/cf_utils.h",
+    "basic/log/iOS/VLog.h": "log/iOS/VLog.h",
+    "basic/log/logging.h": "log/logging.h",
+    "basic/modp_b64/modp_b64.h": "modp_b64/modp_b64.h",
+    "basic/modp_b64/modp_b64_data.h": "modp_b64/modp_b64_data.h",
+    "basic/no_destructor.h": "no_destructor.h",
+    "basic/poller/poller.h": "poller/poller.h",
+    "basic/poller/select_poller.h": "poller/select_poller.h",
+    "basic/poller/utility.h": "poller/utility.h",
+    "basic/ref_counted.h": "ref_counted.h",
+    "basic/ref_counted_ptr.h": "ref_counted_ptr.h",
+    "basic/task/callback.h": "task/callback.h",
+    "basic/task/task.h": "task/task.h",
+    "basic/threading/completion_event.h": "threading/completion_event.h",
+    "basic/threading/condition.h": "threading/condition.h",
+    "basic/threading/lock.h": "threading/lock.h",
+    "basic/threading/message_loop.h": "threading/message_loop.h",
+    "basic/threading/message_pump.h": "threading/message_pump.h",
+    "basic/threading/message_pump_io_posix.h": "threading/message_pump_io_posix.h",
+    "basic/threading/message_pump_ios.h": "threading/message_pump_ios.h",
+    "basic/threading/message_pump_ios_js.h": "threading/message_pump_ios_js.h",
+    "basic/threading/message_pump_posix.h": "threading/message_pump_posix.h",
+    "basic/threading/read_write_lock.h": "threading/read_write_lock.h",
+    "basic/threading/thread.h": "threading/thread.h",
+    "basic/threading/thread_impl.h": "threading/thread_impl.h",
+    "basic/threading/thread_impl_ios.h": "threading/thread_impl_ios.h",
+    "basic/threading/thread_impl_posix.h": "threading/thread_impl_posix.h",
+    "basic/threading/thread_local.h": "threading/thread_local.h",
+    "basic/timer/time_utils.h": "timer/time_utils.h",
+    "basic/timer/timer.h": "timer/timer.h",
+    "basic/timer/timer_heap.h": "timer/timer_heap.h",
+    "basic/timer/timer_node.h": "timer/timer_node.h",
+    "basic/trace_event/trace_event.h": "trace_event/trace_event.h",
+    "basic/vmsdk_exception_common.h": "vmsdk_exception_common.h",
+    "basic/weak_ptr.h": "weak_ptr.h",
+    "devtool/quickjs/debugger/debugger.h": "quickjs/debugger/debugger.h",
+    "devtool/quickjs/debugger/debugger_breakpoint.h": "quickjs/debugger/debugger_breakpoint.h",
+    "devtool/quickjs/debugger/debugger_callframe.h": "quickjs/debugger/debugger_callframe.h",
+    "devtool/quickjs/debugger/debugger_properties.h": "quickjs/debugger/debugger_properties.h",
+    "devtool/quickjs/debugger/debugger_queue.h": "quickjs/debugger/debugger_queue.h",
+    "devtool/quickjs/debugger_inner.h": "quickjs/debugger_inner.h",
+    "devtool/quickjs/heapprofiler/heapprofiler.h": "quickjs/heapprofiler/heapprofiler.h",
+    "devtool/quickjs/interface.h": "quickjs/interface.h",
+    "devtool/quickjs/protocols.h": "quickjs/protocols.h",
+    "devtool/quickjs/runtime/runtime.h": "quickjs/runtime/runtime.h",
+    "jsb/devtool/inspector.h": "devtool/inspector.h",
+    "jsb/devtool/inspector_factory.h": "devtool/inspector_factory.h",
+    "jsb/iOS/framework/JSModule.h": "iOS/framework/JSModule.h",
+    "jsb/iOS/vmsdk_callback_darwin.h": "iOS/vmsdk_callback_darwin.h",
+    "jsb/iOS/vmsdk_module_darwin.h": "iOS/vmsdk_module_darwin.h",
+    "jsb/iOS/vmsdk_module_manager_darwin.h": "iOS/vmsdk_module_manager_darwin.h",
+    "jsb/module/module_delegate.h": "module/module_delegate.h",
+    "jsb/module/module_delegate_impl.h": "module/module_delegate_impl.h",
+    "jsb/module/vmsdk_module.h": "module/vmsdk_module.h",
+    "jsb/module/vmsdk_module_binding.h": "module/vmsdk_module_binding.h",
+    "jsb/module/vmsdk_module_callback.h": "module/vmsdk_module_callback.h",
+    "jsb/module/vmsdk_module_manager.h": "module/vmsdk_module_manager.h",
+    "jsb/runtime/js_executor.h": "runtime/js_executor.h",
+    "jsb/runtime/js_executor_wraper.h": "runtime/js_executor_wraper.h",
+    "jsb/runtime/js_runtime.h": "runtime/js_runtime.h",
+    "jsb/runtime/napi_runtime_wraper.h": "runtime/napi_runtime_wraper.h",
+    "jsb/runtime/runtime_delegate.h": "runtime/runtime_delegate.h",
+    "jsb/runtime/task_runner.h": "runtime/task_runner.h",
+    "jsb/runtime/task_runner_manufacture.h": "runtime/task_runner_manufacture.h",
+    "monitor/MonitorInfo.h": "MonitorInfo.h",
+    "monitor/VmsdkMonitor.h": "VmsdkMonitor.h",
+    "monitor/VmsdkSettingsManager.h": "VmsdkSettingsManager.h",
+    "monitor/VmsdkVersion.h": "VmsdkVersion.h",
+    "monitor/common/vmsdk_monitor.h": "common/vmsdk_monitor.h",
+    "monitor/vmsdk_monitor_ios.h": "vmsdk_monitor_ios.h",
+    "quickjs/include/base_export.h": "include/base_export.h",
+    "quickjs/include/cutils.h": "include/cutils.h",
+    "quickjs/include/debugger_struct.h": "include/debugger_struct.h",
+    "quickjs/include/dlmalloc.h": "include/dlmalloc.h",
+    "quickjs/include/libbf.h": "include/libbf.h",
+    "quickjs/include/libregexp-opcode.h": "include/libregexp-opcode.h",
+    "quickjs/include/libregexp.h": "include/libregexp.h",
+    "quickjs/include/libunicode-table.h": "include/libunicode-table.h",
+    "quickjs/include/libunicode.h": "include/libunicode.h",
+    "quickjs/include/list.h": "include/list.h",
+    "quickjs/include/malloc_debug_check.h": "include/malloc_debug_check.h",
+    "quickjs/include/quickjs-atom.h": "include/quickjs-atom.h",
+    "quickjs/include/quickjs-inner.h": "include/quickjs-inner.h",
+    "quickjs/include/quickjs-libc.h": "include/quickjs-libc.h",
+    "quickjs/include/quickjs-opcode.h": "include/quickjs-opcode.h",
+    "quickjs/include/quickjs.h": "include/quickjs.h",
+    "quickjs/include/quickjs_version.h": "include/quickjs_version.h",
+    "worker/iOS/js_worker_ios.h": "iOS/js_worker_ios.h",
+    "worker/iOS/net/request_ios.h": "iOS/net/request_ios.h",
+    "worker/iOS/net/response_ios.h": "iOS/net/response_ios.h",
+    "worker/iOS/worker_delegate_ios.h": "iOS/worker_delegate_ios.h",
+    "worker/js_worker.h": "js_worker.h",
+    "worker/net/response_delegate.h": "net/response_delegate.h",
+  },
+  xcconfig_by_build_setting = defs_xcconfigs.get("vmsdk", {}),
+  visibility = ["//visibility:public"],
+)

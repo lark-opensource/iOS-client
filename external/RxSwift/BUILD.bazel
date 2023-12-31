@@ -1,0 +1,646 @@
+load('@build_bazel_rules_swift//swift:swift.bzl', 'swift_library')
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "RxSwift_pod_hdrs",
+  srcs = [
+    ":RxSwift_root_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "RxSwift_private_includes",
+  include = [
+    "external/RxSwift/pod_support/Headers/Private/RxSwift/"
+  ],
+  deps = [],
+  external_name = "RxSwift"
+)
+gen_includes(
+  name = "RxSwift_public_includes",
+  include = [
+    "external/RxSwift/pod_support/Headers/Public/RxSwift/"
+  ],
+  deps = [],
+  external_name = "RxSwift"
+)
+filegroup(
+  name = "_RxSwift_hdrs",
+  srcs = [
+    ":RxSwift_root_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "RxSwift_xcode_hmapsource",
+  hdrs = [
+    ":_RxSwift_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "RxSwift_xcode_hmap",
+  dep = ":RxSwift_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/RxSwift/*-bitsky-generated.modulemap", "pod_support/Headers/Public/RxSwift/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "RxSwift_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "RxSwift",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RxSwift_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RxSwift_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RxSwift_swift_interface",
+  deps = [
+    ":RxSwift_swift"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RxSwift_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "RxSwift_module_map",
+  module_map = "pod_support/Headers/Public/RxSwift/RxSwift-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/RxSwift/RxSwift-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "RxSwift_root_swift_srcs",
+  srcs = [
+    "RxSwift/Observables/AddRef.swift",
+    "RxSwift/Observables/Amb.swift",
+    "RxSwift/Disposables/AnonymousDisposable.swift",
+    "RxSwift/Observers/AnonymousObserver.swift",
+    "RxSwift/AnyObserver.swift",
+    "RxSwift/Observables/AsMaybe.swift",
+    "RxSwift/Observables/AsSingle.swift",
+    "RxSwift/Concurrency/AsyncLock.swift",
+    "RxSwift/Subjects/AsyncSubject.swift",
+    "Platform/AtomicInt.swift",
+    "RxSwift/Extensions/Bag+Rx.swift",
+    "Platform/DataStructures/Bag.swift",
+    "RxSwift/Subjects/BehaviorSubject.swift",
+    "RxSwift/Disposables/BinaryDisposable.swift",
+    "RxSwift/Disposables/BooleanDisposable.swift",
+    "RxSwift/Observables/Buffer.swift",
+    "RxSwift/Cancelable.swift",
+    "RxSwift/Observables/Catch.swift",
+    "RxSwift/Observables/CombineLatest+arity.swift",
+    "RxSwift/Observables/CombineLatest+Collection.swift",
+    "RxSwift/Observables/CombineLatest.swift",
+    "RxSwift/Observables/CompactMap.swift",
+    "RxSwift/Traits/Completable+AndThen.swift",
+    "RxSwift/Traits/Completable.swift",
+    "RxSwift/Disposables/CompositeDisposable.swift",
+    "RxSwift/Observables/Concat.swift",
+    "RxSwift/Schedulers/ConcurrentDispatchQueueScheduler.swift",
+    "RxSwift/Schedulers/ConcurrentMainScheduler.swift",
+    "RxSwift/ConnectableObservableType.swift",
+    "RxSwift/Observables/Create.swift",
+    "RxSwift/Schedulers/CurrentThreadScheduler.swift",
+    "RxSwift/Date+Dispatch.swift",
+    "RxSwift/Observables/Debounce.swift",
+    "RxSwift/Observables/Debug.swift",
+    "RxSwift/Observables/DefaultIfEmpty.swift",
+    "RxSwift/Observables/Deferred.swift",
+    "RxSwift/Observables/Delay.swift",
+    "RxSwift/Observables/DelaySubscription.swift",
+    "RxSwift/Observables/Dematerialize.swift",
+    "RxSwift/Deprecated.swift",
+    "Platform/DispatchQueue+Extensions.swift",
+    "RxSwift/Schedulers/Internal/DispatchQueueConfiguration.swift",
+    "RxSwift/Disposable.swift",
+    "RxSwift/Disposables/Disposables.swift",
+    "RxSwift/Disposables/DisposeBag.swift",
+    "RxSwift/Disposables/DisposeBase.swift",
+    "RxSwift/Observables/DistinctUntilChanged.swift",
+    "RxSwift/Observables/Do.swift",
+    "RxSwift/Observables/ElementAt.swift",
+    "RxSwift/Observables/Empty.swift",
+    "RxSwift/Observables/Enumerated.swift",
+    "RxSwift/Observables/Error.swift",
+    "RxSwift/Errors.swift",
+    "RxSwift/Event.swift",
+    "RxSwift/Observables/Filter.swift",
+    "RxSwift/Observables/First.swift",
+    "RxSwift/Observables/Generate.swift",
+    "RxSwift/Observables/GroupBy.swift",
+    "RxSwift/GroupedObservable.swift",
+    "RxSwift/Schedulers/HistoricalScheduler.swift",
+    "RxSwift/Schedulers/HistoricalSchedulerTimeConverter.swift",
+    "RxSwift/ImmediateSchedulerType.swift",
+    "Platform/DataStructures/InfiniteSequence.swift",
+    "RxSwift/Schedulers/Internal/InvocableScheduledItem.swift",
+    "RxSwift/Schedulers/Internal/InvocableType.swift",
+    "RxSwift/Observables/Just.swift",
+    "RxSwift/Concurrency/Lock.swift",
+    "RxSwift/Concurrency/LockOwnerType.swift",
+    "RxSwift/Schedulers/MainScheduler.swift",
+    "RxSwift/Observables/Map.swift",
+    "RxSwift/Observables/Materialize.swift",
+    "RxSwift/Traits/Maybe.swift",
+    "RxSwift/Observables/Merge.swift",
+    "RxSwift/Observables/Multicast.swift",
+    "RxSwift/Observables/Never.swift",
+    "RxSwift/Disposables/NopDisposable.swift",
+    "RxSwift/Observable.swift",
+    "RxSwift/ObservableConvertibleType.swift",
+    "RxSwift/ObservableType+Extensions.swift",
+    "RxSwift/Traits/ObservableType+PrimitiveSequence.swift",
+    "RxSwift/ObservableType.swift",
+    "RxSwift/Observables/ObserveOn.swift",
+    "RxSwift/Observers/ObserverBase.swift",
+    "RxSwift/ObserverType.swift",
+    "RxSwift/Schedulers/OperationQueueScheduler.swift",
+    "RxSwift/Observables/Optional.swift",
+    "Platform/Platform.Darwin.swift",
+    "Platform/Platform.Linux.swift",
+    "RxSwift/Traits/PrimitiveSequence+Zip+arity.swift",
+    "RxSwift/Traits/PrimitiveSequence.swift",
+    "Platform/DataStructures/PriorityQueue.swift",
+    "RxSwift/Observables/Producer.swift",
+    "RxSwift/Subjects/PublishSubject.swift",
+    "Platform/DataStructures/Queue.swift",
+    "RxSwift/Observables/Range.swift",
+    "RxSwift/Reactive.swift",
+    "Platform/RecursiveLock.swift",
+    "RxSwift/Schedulers/RecursiveScheduler.swift",
+    "RxSwift/Observables/Reduce.swift",
+    "RxSwift/Disposables/RefCountDisposable.swift",
+    "RxSwift/Observables/Repeat.swift",
+    "RxSwift/Subjects/ReplaySubject.swift",
+    "RxSwift/Observables/RetryWhen.swift",
+    "RxSwift/Rx.swift",
+    "RxSwift/RxMutableBox.swift",
+    "RxSwift/Observables/Sample.swift",
+    "RxSwift/Observables/Scan.swift",
+    "RxSwift/Disposables/ScheduledDisposable.swift",
+    "RxSwift/Schedulers/Internal/ScheduledItem.swift",
+    "RxSwift/Schedulers/Internal/ScheduledItemType.swift",
+    "RxSwift/Schedulers/SchedulerServices+Emulation.swift",
+    "RxSwift/SchedulerType.swift",
+    "RxSwift/Observables/Sequence.swift",
+    "RxSwift/Schedulers/SerialDispatchQueueScheduler.swift",
+    "RxSwift/Disposables/SerialDisposable.swift",
+    "RxSwift/Observables/ShareReplayScope.swift",
+    "RxSwift/Traits/Single.swift",
+    "RxSwift/Disposables/SingleAssignmentDisposable.swift",
+    "RxSwift/Observables/SingleAsync.swift",
+    "RxSwift/Observables/Sink.swift",
+    "RxSwift/Observables/Skip.swift",
+    "RxSwift/Observables/SkipUntil.swift",
+    "RxSwift/Observables/SkipWhile.swift",
+    "RxSwift/Observables/StartWith.swift",
+    "RxSwift/Subjects/SubjectType.swift",
+    "RxSwift/Observables/SubscribeOn.swift",
+    "RxSwift/Disposables/SubscriptionDisposable.swift",
+    "RxSwift/SwiftSupport/SwiftSupport.swift",
+    "RxSwift/Observables/Switch.swift",
+    "RxSwift/Observables/SwitchIfEmpty.swift",
+    "RxSwift/Concurrency/SynchronizedDisposeType.swift",
+    "RxSwift/Concurrency/SynchronizedOnType.swift",
+    "RxSwift/Concurrency/SynchronizedUnsubscribeType.swift",
+    "RxSwift/Observers/TailRecursiveSink.swift",
+    "RxSwift/Observables/Take.swift",
+    "RxSwift/Observables/TakeLast.swift",
+    "RxSwift/Observables/TakeUntil.swift",
+    "RxSwift/Observables/TakeWhile.swift",
+    "RxSwift/Observables/Throttle.swift",
+    "RxSwift/Observables/Timeout.swift",
+    "RxSwift/Observables/Timer.swift",
+    "RxSwift/Observables/ToArray.swift",
+    "RxSwift/Observables/Using.swift",
+    "RxSwift/Schedulers/VirtualTimeConverterType.swift",
+    "RxSwift/Schedulers/VirtualTimeScheduler.swift",
+    "RxSwift/Observables/Window.swift",
+    "RxSwift/Observables/WithLatestFrom.swift",
+    "RxSwift/Observables/Zip+arity.swift",
+    "RxSwift/Observables/Zip+Collection.swift",
+    "RxSwift/Observables/Zip.swift"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+swift_library(
+  name = "RxSwift_swift",
+  module_name = "RxSwift",
+  srcs = [
+    "RxSwift_root_swift_srcs"
+  ],
+  deps = [
+    "@PodHeaders//:PodHeaders_namespace_public_interface",
+    ":RxSwift_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":RxSwift_module_map",
+    ":RxSwift_objc_interface"
+  ],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ) + [
+    "-DCOCOAPODS",
+    "-suppress-warnings",
+    "-import-underlying-module",
+    "-swift-version",
+    "5",
+    "-Xcc",
+    "-fobjc-weak",
+    "-Xcc",
+    "-stdlib=libc++",
+    "-Xcc",
+    "-DCOCOAPODS=1",
+    "-Xcc",
+    "-fdiagnostics-show-note-include-stack",
+    "-Xcc",
+    "-fno-common",
+    "-Xcc",
+    "-fmessage-length=0",
+    "-Xcc",
+    "-fpascal-strings",
+    "-Xcc",
+    "-fstrict-aliasing",
+    "-Xcc",
+    "-I.",
+    "-Xcc",
+    "-Wno-nullability-completeness",
+    "-Xcc",
+    "-Wno-nonnull",
+    "-Xcc",
+    "-Wno-nullability",
+    "-Xcc",
+    "-Wno-incomplete-umbrella"
+  ],
+  generates_header = True,
+  generated_header_name = "RxSwift-Swift.h",
+  features = [
+    "swift.no_generated_module_map",
+    "swift.opt_uses_wmo",
+    "swift.opt_uses_osize"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "RxSwift_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "RxSwift_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":RxSwift_private_includes",
+    ":RxSwift_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":RxSwift_swift",
+    ":RxSwift_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "RxSwift",
+  deps = [
+    ":RxSwift_oc",
+    ":RxSwift_swift"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "RxSwift_lib",
+  deps = [
+    ":RxSwift"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_RxSwift_module_map",
+  module_map = "@RxSwift//:pod_support/Headers/Public/RxSwift/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@RxSwift//:pod_support/Headers/Public/RxSwift/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_RxSwift_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@RxSwift//:RxSwift_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_RxSwift",
+  target_name = "Lark",
+  module_name = "RxSwift",
+  hdrs = ["@RxSwift//:RxSwift_root_pod_hdrs"],
+  srcs = ["@RxSwift//:RxSwift_root_swift_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "RxSwift_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "RxSwift_cxxopts", []),
+  swift_copts = select({
+      "//conditions:default": [],
+      ":release": []
+    }) + [
+    "-DCOCOAPODS",
+    "-suppress-warnings",
+    "-import-underlying-module",
+    "-swift-version",
+    "5",
+    "-Xcc",
+    "-fobjc-weak",
+    "-Xcc",
+    "-stdlib=libc++",
+    "-Xcc",
+    "-DCOCOAPODS=1",
+    "-Xcc",
+    "-fdiagnostics-show-note-include-stack",
+    "-Xcc",
+    "-fno-common",
+    "-Xcc",
+    "-fmessage-length=0",
+    "-Xcc",
+    "-fpascal-strings",
+    "-Xcc",
+    "-fstrict-aliasing",
+    "-Xcc",
+    "-Wno-nullability-completeness",
+    "-Xcc",
+    "-Wno-nonnull",
+    "-Xcc",
+    "-Wno-nullability",
+    "-Xcc",
+    "-Wno-incomplete-umbrella",
+    ] + getattr(defs_external_swift_library, "common_copts", []) 
+      + getattr(defs_external_swift_library, "RxSwift_copts", []),
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "RxSwift_features", []),
+  swift_features = ["swift.no_generated_module_map", "swift.opt_uses_wmo", "swift.opt_uses_osize"] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "RxSwift_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "RxSwift_dynamic", False),
+  tags = getattr(defs_external_objc_library, "RxSwift_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("RxSwift", {}),
+  visibility = ["//visibility:public"],
+)

@@ -1,0 +1,50 @@
+{
+  "name": "EAccountApiSDK",
+  "version": "1.4.0-alpha.0",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/bytedance/EAccountApiSDK",
+  "license": {
+    "type": "MIT"
+  },
+  "authors": {
+    "chengshun": "chengshun@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:bytedance/EAccountApiSDK.git",
+    "commit": "12456a1fdf38"
+  },
+  "platforms": {
+    "ios": "8.0"
+  },
+  "source_files": "EAccountApiSDK/Classes/**/*.{h,m}",
+  "vendored_frameworks": "EAccountApiSDK/Classes/EAccountApiSDK.framework",
+  "ios": {
+    "frameworks": [
+      "CoreTelephony",
+      "SystemConfiguration",
+      "UIKit",
+      "Foundation",
+      "CFNetwork"
+    ],
+    "libraries": [
+      "z",
+      "sqlite3.0",
+      "c++",
+      "iconv"
+    ]
+  },
+  "_bytebus_platform": {
+    "repo_id": "1061",
+    "app_id": "9999"
+  },
+  "repoId": "1061",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "EAccountApiSDK_POD_VERSION=@\\\"9999_1.4.0-alpha.0\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "EAccountApiSDK_POD_VERSION=@\\\"9999_1.4.0-alpha.0\\\""
+  }
+}

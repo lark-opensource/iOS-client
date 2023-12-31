@@ -1,0 +1,136 @@
+{
+  "name": "CreationKitArch",
+  "version": "19.9.4-alpha.0-larktest.1.binary",
+  "summary": "base",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "https://code.byted.org/ugc/CreativeKit",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "hehai": "hehai.howie@bytedance.com"
+  },
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/aweme-rock/rock_binary/privatethird_binary_repo/CreationKitArch/19.9.4-alpha.0-larktest.1.binary/1655391624/CreationKitArch.tar.xz"
+  },
+  "platforms": {
+    "ios": "9.0"
+  },
+  "default_subspecs": "CameraArch",
+  "preserve_paths": [
+    "rock_document/**/*.{h,m,mm,cpp,hpp,swift}",
+    "rock_document/rock-document-files.txt"
+  ],
+  "source_code": {
+    "git": "git@code.byted.org:ugc/CreativeKit.git",
+    "commit": "110c322dc8e352f59ca13812020a10a01ebfb016"
+  },
+  "binary_type": "rock",
+  "package_env": {
+    "id": null,
+    "xcode": "Xcode 13.0\nBuild version 13A233\n"
+  },
+  "subspecs": [
+    {
+      "name": "CameraArch",
+      "source_files": "CameraArch/**/*.{h,m,mm,c}",
+      "exclude_files": [
+        "CameraArch/**/AWEInteractionStickerModel.*",
+        "CameraArch/**/ACCLoginUserContext.*",
+        "CameraArch/**/AWEInteractionStickerModel.*o",
+        "CameraArch/**/ACCLoginUserContext.*o"
+      ],
+      "frameworks": [
+        "Foundation",
+        "AVFoundation",
+        "CoreMedia",
+        "QuartzCore",
+        "UIKit"
+      ],
+      "dependencies": {
+        "CreationKitArch/Models": [
+
+        ],
+        "CreativeKit/MobileInfra": [
+
+        ],
+        "CreativeKit/CameraArch": [
+
+        ],
+        "CreationKitRTProtocol": [
+
+        ],
+        "CreationKitInfra": [
+
+        ],
+        "CreativeKitSticker": [
+
+        ],
+        "EffectPlatformSDK/ModelDistribute": [
+
+        ],
+        "TTNetworkManager": [
+
+        ],
+        "TTVideoEditor/Core": [
+
+        ],
+        "TTVideoEditor/IESMMEffect": [
+
+        ],
+        "Mantle": [
+
+        ],
+        "Masonry": [
+
+        ]
+      },
+      "vendored_libraries": [
+        "CameraArch/**/*.o"
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "CameraArch/**/*.o",
+          "libCreationKitArch-1208ec2.a"
+        ]
+      }
+    },
+    {
+      "name": "Models",
+      "source_files": [
+        "CameraArch/**/AWEInteractionStickerModel.*",
+        "CameraArch/**/ACCLoginUserContext.*"
+      ],
+      "dependencies": {
+        "CreativeKit/CameraArch": [
+
+        ],
+        "Mantle": [
+
+        ]
+      },
+      "vendored_libraries": [
+        "CameraArch/**/AWEInteractionStickerModel.*o",
+        "CameraArch/**/ACCLoginUserContext.*o"
+      ],
+      "exclude_files": [
+
+      ],
+      "ios": {
+        "vendored_libraries": [
+          "CameraArch/**/AWEInteractionStickerModel.*o",
+          "CameraArch/**/ACCLoginUserContext.*o",
+          "libCreationKitArch-92697c3.a"
+        ]
+      }
+    },
+    {
+      "name": "Debug",
+      "source_files": "CameraArch/Debug/**/*.{h,m,mm,c}",
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "$(inherited) ACC_DEBUG_MODE=1"
+      }
+    }
+  ]
+}

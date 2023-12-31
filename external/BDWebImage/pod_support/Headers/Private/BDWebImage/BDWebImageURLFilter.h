@@ -1,0 +1,1 @@
+../../../../BDWebImage/Classes/Public/BDWebImageURLFilter.h

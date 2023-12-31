@@ -1,0 +1,35 @@
+#!/bin/sh
+
+RED='\033[0;31m'
+NC='\033[0m'
+GREEN='\033[0;32m'
+
+echo "${NC}1. check brew..."
+if [ -f "/usr/local/bin/brew" ]
+then
+    echo "${GREEN}brew found!"
+else
+    echo "${NC}install brew..."
+    echo `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`
+fi
+
+echo "${NC}2. check pip..."
+if [ -f "/usr/local/bin/pip" ]
+then
+    echo "${GREEN}pip found"
+else
+    echo "${NC}install pip..."
+    echo `sudo python ./hooks/get-pip.py`
+fi
+
+echo "${NC}3. check xunique"
+if [ -f "/usr/local/bin/xunique" ]
+then
+   echo "${GREEN}xunique found"
+else
+   echo "${NC}install xunique"
+   echo `sudo pip install xunique`
+fi
+
+echo "${NC}5. config git-hooks path"
+git config core.hooksPath hooks  # 指定git-hook路径为当前目录下的hooks文件夹，git版本为2.9及以上支持

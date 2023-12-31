@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_effect_editor_api.h

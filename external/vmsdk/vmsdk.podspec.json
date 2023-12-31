@@ -1,0 +1,496 @@
+{
+  "name": "vmsdk",
+  "version": "2.2.7-lark",
+  "summary": "framework_summary",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/lynx/vmsdk",
+  "license": "MIT",
+  "authors": {
+    "Wang Xiang": "wangxiang.my@bytedance.com"
+  },
+  "source": {
+    "git": "git@code.byted.org:lynx/vmsdk.git",
+    "commit": "15020a4a8f797c8ceb36726d9fec334fa18b0e9c"
+  },
+  "compiler_flags": [
+    "-Wall",
+    "-Wno-shorten-64-to-32",
+    "-Os"
+  ],
+  "platforms": {
+    "ios": "9.0"
+  },
+  "pod_target_xcconfig": {
+    "GCC_PREPROCESSOR_DEFINITIONS": "OS_IOS=1 ENABLE_MONITOR JSC_OBJC_API_ENABLED=1 vmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\"",
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES"
+  },
+  "default_subspecs": [
+    "quickjs",
+    "umbrella"
+  ],
+  "module_map": "vmsdk.modulemap",
+  "prepare_command": "if [[ ! \"${IS_VMSDK_LOCAL_DEV}\" == \"yes\" ]]; then\n  find . -name \"*BUILD\"| xargs rm -f\nfi",
+  "subspecs": [
+    {
+      "name": "umbrella",
+      "source_files": "vmsdk-umbrella.h",
+      "public_header_files": "vmsdk-umbrella.h"
+    },
+    {
+      "name": "quickjs",
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "ENABLE_LEPUSNG LYNX_DEV LYNX_SIMPLIFY=0"
+      },
+      "public_header_files": "quickjs/include/*.h",
+      "header_dir": "quickjs",
+      "header_mappings_dir": "quickjs",
+      "source_files": [
+        "quickjs/include/base_export.h",
+        "quickjs/include/cutils.h",
+        "quickjs/include/libbf.h",
+        "quickjs/include/libregexp.h",
+        "quickjs/include/libregexp-opcode.h",
+        "quickjs/include/libunicode.h",
+        "quickjs/include/libunicode-table.h",
+        "quickjs/include/list.h",
+        "quickjs/include/quickjs.h",
+        "quickjs/include/debugger_struct.h",
+        "quickjs/include/quickjs-inner.h",
+        "quickjs/include/quickjs_version.h",
+        "quickjs/include/dlmalloc.h",
+        "quickjs/include/malloc_debug_check.h",
+        "quickjs/include/quickjs-atom.h",
+        "quickjs/include/quickjs-libc.h",
+        "quickjs/include/quickjs-opcode.h",
+        "devtool/quickjs/interface.h",
+        "quickjs/source/cutils.cc",
+        "quickjs/source/libregexp.cc",
+        "quickjs/source/libunicode.cc",
+        "quickjs/source/quickjs.cc",
+        "quickjs/source/dlmalloc.cc",
+        "quickjs/source/malloc_debug_check.cc",
+        "quickjs/source/gen/ios/embedded.S",
+        "quickjs/source/quickjs_version.cc",
+        "quickjs/source/quickjs-libc.cc"
+      ],
+      "dependencies": {
+        "vmsdk/monitor/core": [],
+        "vmsdk/basic/log": []
+      }
+    },
+    {
+      "name": "quickjs_debugger",
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "ENABLE_LEPUSNG LYNX_DEV LYNX_SIMPLIFY=0 ENABLE_QUICKJS_DEBUGGER ENABLE_QUICKJS_STEP_STATEMENT"
+      },
+      "header_dir": "devtool",
+      "header_mappings_dir": "devtool",
+      "public_header_files": [
+        "devtool/quickjs/*.h",
+        "devtool/quickjs/debugger/*.h",
+        "devtool/quickjs/runtime/*.h"
+      ],
+      "source_files": [
+        "devtool/quickjs/*",
+        "devtool/quickjs/debugger/*",
+        "devtool/quickjs/runtime/*",
+        "devtool/quickjs/heapprofiler/*",
+        "quickjs/source/gen/ios/embedded-inspector.S"
+      ],
+      "exclude_files": "devtool/quickjs/qjs_inspector_handle.*",
+      "dependencies": {
+        "vmsdk/quickjs": []
+      }
+    },
+    {
+      "name": "quickjs_heapprofiler",
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "ENABLE_HEAPPROFILER=1"
+      },
+      "header_dir": "devtool",
+      "header_mappings_dir": "devtool",
+      "public_header_files": "quickjs/heapprofiler/include/*.h",
+      "source_files": [
+        "quickjs/heapprofiler/source/*",
+        "quickjs/heapprofiler/include/*"
+      ],
+      "dependencies": {
+        "vmsdk/quickjs": []
+      }
+    },
+    {
+      "name": "quickjs_profiler",
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "ENABLE_LEPUSNG LYNX_DEV LYNX_SIMPLIFY=0 ENABLE_QUICKJS_CPU_PROFILER"
+      },
+      "header_dir": "devtool",
+      "header_mappings_dir": "devtool",
+      "public_header_files": [
+        "devtool/quickjs/*.h",
+        "devtool/quickjs/debugger/*.h",
+        "devtool/quickjs/runtime/*.h",
+        "devtool/quickjs/profiler/*.h",
+        "devtool/quickjs/*.h"
+      ],
+      "source_files": [
+        "devtool/quickjs/*",
+        "devtool/quickjs/profiler/*"
+      ],
+      "exclude_files": "devtool/quickjs/qjs_inspector_handle.*",
+      "dependencies": {
+        "vmsdk/quickjs": [],
+        "vmsdk/quickjs_debugger": []
+      }
+    },
+    {
+      "name": "quickjs_debugger_hdt",
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "ENABLE_LEPUSNG LYNX_DEV LYNX_SIMPLIFY=0 ENABLE_DEBUGGER ENABLE_QUICKJS_DEBUGGER"
+      },
+      "header_dir": "devtool",
+      "header_mappings_dir": "devtool",
+      "public_header_files": [
+        "devtool/*.h",
+        "devtool/quickjs/*.h",
+        "devtool/quickjs/debugger/*.h",
+        "devtool/quickjs/runtime/*.h",
+        "devtool/quickjs/heapprofiler/*.h",
+        "devtool/iOS/*.h",
+        "jsb/devtool/*.h"
+      ],
+      "source_files": [
+        "devtool/*",
+        "devtool/quickjs/*",
+        "devtool/quickjs/debugger/*",
+        "devtool/quickjs/runtime/*",
+        "devtool/quickjs/heapprofiler/*",
+        "devtool/iOS/*",
+        "jsb/devtool/*"
+      ],
+      "dependencies": {
+        "vmsdk/quickjs": []
+      }
+    },
+    {
+      "name": "security_quickjs",
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "ENABLE_LEPUSNG LYNX_DEV LYNX_SIMPLIFY=0 ENABLE_QUICKJS_SECURITY_MODE",
+        "HEADER_SEARCH_PATHS": "\"${PROJECT_DIR}/../../../quickjs/include\"/**"
+      },
+      "header_dir": "quickjs",
+      "header_mappings_dir": "quickjs",
+      "public_header_files": [
+        "quickjs/include/*.h",
+        "quickjs/include/quickjs/tools/*.h",
+        "quickjs/include/quickjs/tools/*.inc"
+      ],
+      "source_files": [
+        "quickjs/tools/bytecode_context.cpp",
+        "quickjs/tools/bytecode_writer.cpp",
+        "quickjs/include/quickjs/tools/*"
+      ],
+      "dependencies": {
+        "vmsdk/quickjs": []
+      }
+    },
+    {
+      "name": "napi",
+      "pod_target_xcconfig": {
+        "HEADER_SEARCH_PATHS": "\"${PODS_ROOT}/vmsdk\""
+      },
+      "subspecs": [
+        {
+          "name": "core",
+          "source_files": [
+            "napi/napi/*.{h,cc}",
+            "napi/napi/common/*.{h,cc}"
+          ],
+          "public_header_files": [
+            "napi/napi/*.h",
+            "napi/napi/common/*.h"
+          ]
+        },
+        {
+          "name": "env",
+          "source_files": "napi/napi/env/*.{h,cc}",
+          "public_header_files": "napi/napi/env/*.h",
+          "dependencies": {
+            "vmsdk/napi/core": []
+          }
+        },
+        {
+          "name": "jsc",
+          "pod_target_xcconfig": {
+            "GCC_PREPROCESSOR_DEFINITIONS": "JSC_OBJC_API_ENABLED=0"
+          },
+          "source_files": "napi/napi/jsc/*.{h,cc}",
+          "public_header_files": "napi/napi/jsc/napi_env_jsc.h",
+          "dependencies": {
+            "vmsdk/napi/core": []
+          },
+          "frameworks": "JavaScriptCore"
+        },
+        {
+          "name": "v8",
+          "public_header_files": "napi/napi/v8/*.h",
+          "source_files": "napi/napi/v8/*.{h,cc}",
+          "compiler_flags": "-D_NAPI_V8_EXPORT_SOURCE_ONLY_",
+          "dependencies": {
+            "vmsdk/napi/core": []
+          }
+        },
+        {
+          "name": "quickjs",
+          "source_files": "napi/napi/quickjs/*.{h,cc}",
+          "public_header_files": "napi/napi/quickjs/napi_env_quickjs.h",
+          "dependencies": {
+            "vmsdk/napi/core": [],
+            "vmsdk/quickjs": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "basic",
+      "header_dir": "basic",
+      "header_mappings_dir": "basic",
+      "source_files": [
+        "basic/atomic_ref_count.h",
+        "basic/base_export.h",
+        "basic/compiler_specific.h",
+        "basic/iOS/cf_utils.h",
+        "basic/ref_counted.h",
+        "basic/ref_counted_ptr.h",
+        "basic/weak_ptr.h",
+        "basic/no_destructor.h",
+        "basic/vmsdk_exception_common.*",
+        "basic/debug/backtrace.*",
+        "basic/task/*",
+        "basic/threading/*",
+        "basic/timer/*",
+        "basic/poller/*",
+        "basic/iOS/VmsdkDefines.h",
+        "basic/iOS/VmsdkThreadManager.*",
+        "basic/trace_event/trace_event.h",
+        "basic/json/*",
+        "basic/modp_b64/*"
+      ],
+      "exclude_files": [
+        "basic/threading/thread_impl_android.*",
+        "basic/threading/message_pump_android.*",
+        "basic/*test*",
+        "basic/**/*test*"
+      ],
+      "dependencies": {
+        "vmsdk/monitor/core": []
+      },
+      "subspecs": [
+        {
+          "name": "log",
+          "header_dir": "basic",
+          "header_mappings_dir": "basic",
+          "source_files": [
+            "basic/log/logging.*",
+            "basic/log/iOS/VLog.*",
+            "basic/base_export.h",
+            "basic/iOS/VmsdkDefines.h"
+          ],
+          "dependencies": {
+            "BDALog": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "jsbridge",
+      "header_dir": "jsb",
+      "header_mappings_dir": "jsb",
+      "libraries": "stdc++",
+      "source_files": [
+        "jsb/module/*",
+        "jsb/runtime/*",
+        "jsb/iOS/*",
+        "jsb/iOS/framework/*",
+        "jsb/devtool/*",
+        "devtool/iOS/VMSDKDebugICBase.h"
+      ],
+      "exclude_files": "jsb/iOS/vmsdk_wasm_bridge.{h,mm}",
+      "public_header_files": [
+        "jsb/module/*.h",
+        "jsb/runtime/*.h",
+        "jsb/iOS/*.h",
+        "jsb/iOS/framework/*.h",
+        "jsb/devtool/*.h",
+        "devtool/iOS/VMSDKDebugICBase.h"
+      ],
+      "dependencies": {
+        "vmsdk/basic": [],
+        "vmsdk/quickjs": [],
+        "vmsdk/napi/core": [],
+        "vmsdk/napi/env": [],
+        "vmsdk/napi/quickjs": [],
+        "vmsdk/napi/jsc": []
+      }
+    },
+    {
+      "name": "worker",
+      "header_mappings_dir": "worker",
+      "header_dir": "worker",
+      "source_files": [
+        "worker/js_worker.*",
+        "worker/net/*",
+        "worker/iOS/js_worker_ios.*",
+        "worker/iOS/worker_delegate_ios.*",
+        "worker/iOS/net/request_ios.*",
+        "worker/iOS/net/response_ios.*"
+      ],
+      "public_header_files": [
+        "worker/js_worker.h",
+        "worker/iOS/*.h",
+        "worker/iOS/net/*.h",
+        "worker/net/*.h"
+      ],
+      "dependencies": {
+        "vmsdk/jsbridge": []
+      }
+    },
+    {
+      "name": "lark_worker",
+      "pod_target_xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "LARK_MINIAPP"
+      },
+      "header_mappings_dir": "worker",
+      "header_dir": "worker",
+      "source_files": [
+        "worker/js_worker.*",
+        "worker/iOS/js_worker_ios.*",
+        "worker/iOS/worker_delegate_ios.*",
+        "worker/iOS/net/request_ios.h",
+        "worker/iOS/net/response_ios.h",
+        "worker/net/response_delegate.h"
+      ],
+      "public_header_files": [
+        "worker/js_worker.h",
+        "worker/iOS/js_worker_ios.h",
+        "worker/iOS/worker_delegate_ios.h",
+        "worker/iOS/net/request_ios.h",
+        "worker/iOS/net/response_ios.h",
+        "worker/net/response_delegate.h"
+      ],
+      "dependencies": {
+        "vmsdk/jsbridge": []
+      }
+    },
+    {
+      "name": "monitor",
+      "pod_target_xcconfig": {
+        "HEADER_SEARCH_PATHS": "\"${PODS_ROOT}/vmsdk\""
+      },
+      "subspecs": [
+        {
+          "name": "core",
+          "header_mappings_dir": "monitor",
+          "header_dir": "monitor",
+          "source_files": [
+            "monitor/*",
+            "monitor/common/*"
+          ],
+          "public_header_files": [
+            "monitor/*.h",
+            "monitor/common/*.h"
+          ],
+          "dependencies": {
+            "Heimdallr/TTMonitor": [],
+            "Heimdallr/Core": []
+          }
+        },
+        {
+          "name": "domestic",
+          "dependencies": {
+            "Heimdallr/HMDDomestic": []
+          }
+        },
+        {
+          "name": "overseas",
+          "dependencies": {
+            "Heimdallr/HMDOverseas": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "jsc_wasm_wasm3",
+      "pod_target_xcconfig": {
+        "HEADER_SEARCH_PATHS": "\"${PODS_TARGET_SRCROOT}/jsb/wasm\"",
+        "GCC_PREPROCESSOR_DEFINITIONS": [
+          "WASM_ENGINE_WASM3=1",
+          "JS_ENGINE_JSC=1"
+        ]
+      },
+      "header_dir": "jsb/wasm",
+      "header_mappings_dir": "jsb/wasm",
+      "public_header_files": "jsb/wasm/jsc/jsc_wasm.h",
+      "source_files": [
+        "jsb/iOS/vmsdk_wasm_bridge.h",
+        "jsb/iOS/vmsdk_wasm_bridge.mm",
+        "jsb/wasm/common/*.{h,cc}",
+        "jsb/wasm/jsc/jsc_builtin_objects.{h,cc}",
+        "jsb/wasm/jsc/jsc_class_creator.{h,cc}",
+        "jsb/wasm/jsc/jsc_ext_api.{h,cc}",
+        "jsb/wasm/jsc/jsc_wasm.{h,cc}",
+        "jsb/wasm/jsc/jsc_wasm_module.{h,cc}",
+        "jsb/wasm/jsc/jsc_wasm_instance.{h,cc}",
+        "jsb/wasm/jsc/jsc_wasm_memory.{h,cc}",
+        "jsb/wasm/jsc/jsc_wasm_global.{h,cc}",
+        "jsb/wasm/jsc/jsc_wasm_table.{h,cc}",
+        "jsb/wasm/jsc/js_env_jsc.{h,cc}",
+        "jsb/wasm/runtime/*.h",
+        "jsb/wasm/runtime/wasm3/*.{h,cc}"
+      ],
+      "dependencies": {
+        "wasm3/runtime": [],
+        "vmsdk/monitor/core": []
+      },
+      "frameworks": "JavaScriptCore"
+    },
+    {
+      "name": "jsc_wasm_wamr",
+      "pod_target_xcconfig": {
+        "HEADER_SEARCH_PATHS": "\"${PODS_TARGET_SRCROOT}/jsb/wasm\"",
+        "GCC_PREPROCESSOR_DEFINITIONS": [
+          "WASM_ENGINE_WAMR=1",
+          "JS_ENGINE_JSC=1"
+        ]
+      },
+      "header_dir": "jsb/wasm",
+      "header_mappings_dir": "jsb/wasm",
+      "public_header_files": "jsb/wasm/jsc/jsc_wasm.h",
+      "source_files": [
+        "jsb/wasm/common/*.{h,cc}",
+        "jsb/wasm/jsc/*.{h,cc}",
+        "jsb/wasm/runtime/*.h",
+        "jsb/wasm/runtime/wamr/*.{h,cc}"
+      ],
+      "dependencies": {
+        "wamr/runtime": [],
+        "vmsdk/monitor/core": []
+      },
+      "frameworks": "JavaScriptCore"
+    },
+    {
+      "name": "jsc_wasm",
+      "dependencies": {
+        "vmsdk/jsc_wasm_wasm3": []
+      }
+    }
+  ],
+  "_bytebus_platform": {
+    "repo_id": "21816",
+    "app_id": "9999"
+  },
+  "repoId": "21816",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "vmsdk_POD_VERSION=@\\\"9999_2.2.7-lark\\\""
+  }
+}

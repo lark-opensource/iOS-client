@@ -1,0 +1,1 @@
+../../../../NLEEditor/Classes/EditorArch/ModuleInterface/Protocol/InjectItems/DVEResourceMusicCategoryModelProtocol.h

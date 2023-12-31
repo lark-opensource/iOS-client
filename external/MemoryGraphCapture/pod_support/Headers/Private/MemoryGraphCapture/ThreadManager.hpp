@@ -1,0 +1,1 @@
+../../../../MemoryGraphCapture/Classes/Utils/ThreadManager.hpp

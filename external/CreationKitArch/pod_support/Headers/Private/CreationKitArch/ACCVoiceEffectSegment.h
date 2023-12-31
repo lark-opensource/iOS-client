@@ -1,0 +1,1 @@
+../../../../CameraArch/Edit/Model/ACCVoiceEffectSegment.h

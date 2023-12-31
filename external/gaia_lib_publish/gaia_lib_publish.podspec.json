@@ -1,0 +1,204 @@
+{
+  "extra": {
+    "bytedance_source_depends": [
+      {
+        "git": "git@code.byted.org:ies/gaia_lib.git",
+        "binary_name": "libgaia_lib.a",
+        "module": "gaia_lib_publish",
+        "sha1": "e78178563c1fda79ba6e02c7e80b3fcc1c9f963a"
+      }
+    ]
+  },
+  "platforms": {
+    "osx": "10.12",
+    "ios": "8.0"
+  },
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "gaia_lib_publish_POD_VERSION=@\\\"5_14.5.0.1-D\\\""
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "gaia_lib_publish_POD_VERSION=@\\\"5_14.5.0.1-D\\\""
+  },
+  "_bytebus_platform": {
+    "repo_id": "6606",
+    "app_id": "5"
+  },
+  "header_mappings_dir": "inc",
+  "libraries": "c++",
+  "source": {
+    "http": "https://ios.bytedance.net/wlapi/tosDownload/iosbinary/5/gaia_lib_publish/14.5.0.1-D.1.binary/gaia_lib_publish.framework.tar.xz"
+  },
+  "version": "14.5.0.1-D.1.binary",
+  "homepage": "https://code.byted.org/ies/gaia_lib_publish",
+  "repoId": "6606",
+  "subspecs": [
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_gaia_*awesome_*.a"
+      },
+      "public_header_files": [
+        "inc/Gaia/*.h**",
+        "inc/Gaia/Image/*.h**",
+        "inc/Gaia/Platform/*.h**",
+        "inc/Gaia/STL/*.h**"
+      ],
+      "vendored_libraries": "lib/ios/Release/libgaia_lib.a",
+      "name": "gaia",
+      "xcconfig": {
+        "LIBRARY_SEARCH_PATHS": "\"$(PODS_ROOT)/gaia_lib/lib/ios\"",
+        "HEADER_SEARCH_PATHS": ""
+      },
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_gaia_*awesome_*.a"
+      },
+      "source_files": [
+        "inc/Gaia/*.h**",
+        "inc/Gaia/Image/*.h**",
+        "inc/Gaia/Platform/*.h**",
+        "inc/Gaia/STL/*.h**"
+      ]
+    },
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_Math_*awesome_*.a"
+      },
+      "public_header_files": "inc/Gaia/Math/**/*.h**",
+      "name": "Math",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Math_*awesome_*.a"
+      },
+      "source_files": "inc/Gaia/Math/**/*.h**"
+    },
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_MemoryManager_*awesome_*.a"
+      },
+      "public_header_files": "inc/Gaia/MemoryManager/**/*.h**",
+      "name": "MemoryManager",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_MemoryManager_*awesome_*.a"
+      },
+      "source_files": "inc/Gaia/MemoryManager/**/*.h**"
+    },
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_Message_*awesome_*.a"
+      },
+      "public_header_files": "inc/Gaia/Message/**/*.h**",
+      "name": "Message",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Message_*awesome_*.a"
+      },
+      "source_files": "inc/Gaia/Message/**/*.h**"
+    },
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_Network_*awesome_*.a"
+      },
+      "public_header_files": "inc/Gaia/Network/**/*.h**",
+      "name": "Network",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Network_*awesome_*.a"
+      },
+      "source_files": "inc/Gaia/Network/**/*.h**"
+    },
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_Text_*awesome_*.a"
+      },
+      "public_header_files": "inc/Gaia/Text/**/*.h**",
+      "name": "Text",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Text_*awesome_*.a"
+      },
+      "source_files": "inc/Gaia/Text/**/*.h**"
+    },
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_Thread_*awesome_*.a"
+      },
+      "public_header_files": "inc/Gaia/Thread/**/*.h**",
+      "name": "Thread",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Thread_*awesome_*.a"
+      },
+      "source_files": "inc/Gaia/Thread/**/*.h**"
+    },
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_Performance_*awesome_*.a"
+      },
+      "public_header_files": "inc/Gaia/Performance/**/*.h**",
+      "name": "Performance",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Performance_*awesome_*.a"
+      },
+      "source_files": "inc/Gaia/Performance/**/*.h**"
+    },
+    {
+      "osx": {
+        "vendored_libraries": "ios-arch-osx/*_Files_*awesome_*.a"
+      },
+      "public_header_files": "inc/Gaia/Files/**/*.h**",
+      "name": "Files",
+      "preserve_paths": [
+        "**/*.bwp"
+      ],
+      "ios": {
+        "vendored_libraries": "ios-arch-iphone/*_Files_*awesome_*.a"
+      },
+      "source_files": "inc/Gaia/Files/**/*.h**"
+    }
+  ],
+  "prepare_command": "curl https://ios.bytedance.net/wlapi/tosDownload/iosbinary/platform/master/awesomecommand_xz.sh | bash ;",
+  "description": "framework_description",
+  "ios": {
+    "frameworks": [
+      "UIKit",
+      "Foundation",
+      "JavaScriptCore"
+    ]
+  },
+  "authors": {
+    "benny": "benny.liu@bytedance.com"
+  },
+  "source_code": {
+    "commit": "6d8c22a000ce776c23eaa2bdaeaf77cf02b60ca7",
+    "git": "git@code.byted.org:ies/gaia_lib_publish.git"
+  },
+  "build_type": "system",
+  "name": "gaia_lib_publish",
+  "license": "IES_SH",
+  "build_file_count": 0,
+  "preserve_paths": [
+    "**/*.bwp"
+  ],
+  "summary": "framework_summary",
+  "requires_arc": false
+}

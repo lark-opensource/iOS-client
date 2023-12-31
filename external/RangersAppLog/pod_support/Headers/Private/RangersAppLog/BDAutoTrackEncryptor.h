@@ -1,0 +1,1 @@
+../../../../BDAutoTracker/Classes/Encryptor/Volc/Sources/BDAutoTrackEncryptor.h

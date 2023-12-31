@@ -1,0 +1,1 @@
+../../../../CameraClient/ComponentPlugins/Record/Beauty/ACCBeautyFeatureComponentTrackerPlugin.h

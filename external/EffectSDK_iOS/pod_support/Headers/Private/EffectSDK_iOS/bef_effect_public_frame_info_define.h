@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_effect_public_frame_info_define.h

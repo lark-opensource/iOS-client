@@ -1,0 +1,28 @@
+// Copyright (c) 2022 The ByteDance Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+ZSTD_ERROR(OK, 0)
+
+// Stream Error
+ZSTD_ERROR(CREATE_DCTX, -101)
+
+ZSTD_ERROR(DECOMPRESS_STERAM, -102)
+
+ZSTD_ERROR(GET_DCTX, -103)
+
+ZSTD_ERROR(REF_DDICT, -104)
+
+ZSTD_ERROR(CREATE_DDICT, -105)
+
+// Dict Error
+ZSTD_ERROR(CREATE_DICT_DIRECTORY, -201)
+
+ZSTD_ERROR(CHECK_DICT_MD5, -202)
+
+ZSTD_ERROR(DICT_FILE_NOT_FOUND, -203)
+
+ZSTD_ERROR(DICT_SIZE_LIMIT, -204)
+
+ZSTD_ERROR(READ_DICT, -205)
+
+ZSTD_ERROR(DOWNLOAD_DICT_ERROR, -206)

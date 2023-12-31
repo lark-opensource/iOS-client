@@ -1,0 +1,1 @@
+../../../../Darwin/Common/Lynx/Public/Service/LynxServiceSettingsProtocol.h

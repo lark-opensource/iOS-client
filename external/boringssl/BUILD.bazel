@@ -1,0 +1,902 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "boringssl_pod_hdrs",
+  srcs = [
+    ":boringssl_root_pod_hdrs",
+    ":openssl_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "boringssl_private_includes",
+  include = [
+    "external/boringssl/pod_support/Headers/Private/boringssl/"
+  ],
+  deps = [],
+  external_name = "boringssl"
+)
+gen_includes(
+  name = "boringssl_public_includes",
+  include = [
+    "external/boringssl/pod_support/Headers/Public/boringssl/"
+  ],
+  deps = [],
+  external_name = "boringssl"
+)
+filegroup(
+  name = "_boringssl_hdrs",
+  srcs = [
+    ":boringssl_root_hdrs",
+    ":openssl_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "boringssl_xcode_hmapsource",
+  hdrs = [
+    ":boringssl_root_hdrs",
+    ":openssl_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "boringssl_xcode_hmap",
+  dep = ":boringssl_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/boringssl/*-bitsky-generated.modulemap", "pod_support/Headers/Public/boringssl/*-bitsky-generated-umbrella.h"]))
+objc_import(
+  name = "boringssl_VendoredLibraries",
+  archives = select(
+    {
+      "//conditions:default": [
+        "libboringssl_asm.a",
+        "libboringssl.a",
+        "libcrcrypto.a"
+      ]
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "boringssl_custom_includes",
+  include = [
+    "external/Protobuf/objectivec",
+    "external/boringssl/include"
+  ],
+  include_files = [],
+  external_name = "boringssl",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "boringssl_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":boringssl_xcode_hmap"
+  ],
+  external_name = "boringssl",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "boringssl_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "boringssl_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "boringssl_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "boringssl_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "boringssl_module_map",
+  module_map = "pod_support/Headers/Public/boringssl/boringssl-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/boringssl/boringssl-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "boringssl_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "boringssl_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":boringssl_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":boringssl_private_includes",
+    ":boringssl_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":boringssl_VendoredLibraries",
+    ":boringssl_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dboringssl_POD_VERSION=@\\\"13_0.2.3-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "boringssl",
+  deps = [
+    ":boringssl_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "boringssl_lib",
+  deps = [
+    ":boringssl"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "openssl_hdrs",
+  srcs = [
+    "include/openssl/aead.h",
+    "include/openssl/aes.h",
+    "include/openssl/arm_arch.h",
+    "include/openssl/asn1.h",
+    "include/openssl/asn1_mac.h",
+    "include/openssl/asn1t.h",
+    "include/openssl/base.h",
+    "include/openssl/base64.h",
+    "include/openssl/bio.h",
+    "include/openssl/blowfish.h",
+    "include/openssl/bn.h",
+    "include/openssl/buf.h",
+    "include/openssl/buffer.h",
+    "include/openssl/bytestring.h",
+    "include/openssl/cast.h",
+    "include/openssl/chacha.h",
+    "include/openssl/cipher.h",
+    "include/openssl/cmac.h",
+    "include/openssl/conf.h",
+    "include/openssl/cpu.h",
+    "include/openssl/crypto.h",
+    "include/openssl/curve25519.h",
+    "include/openssl/des.h",
+    "include/openssl/dh.h",
+    "include/openssl/digest.h",
+    "include/openssl/dsa.h",
+    "include/openssl/dtls1.h",
+    "include/openssl/e_os2.h",
+    "include/openssl/ec.h",
+    "include/openssl/ec_key.h",
+    "include/openssl/ecdh.h",
+    "include/openssl/ecdsa.h",
+    "include/openssl/engine.h",
+    "include/openssl/err.h",
+    "include/openssl/evp.h",
+    "include/openssl/ex_data.h",
+    "include/openssl/hkdf.h",
+    "include/openssl/hmac.h",
+    "include/openssl/hrss.h",
+    "include/openssl/is_boringssl.h",
+    "include/openssl/lhash.h",
+    "include/openssl/md4.h",
+    "include/openssl/md5.h",
+    "include/openssl/mem.h",
+    "include/openssl/nid.h",
+    "include/openssl/obj.h",
+    "include/openssl/obj_mac.h",
+    "include/openssl/objects.h",
+    "include/openssl/opensslconf.h",
+    "include/openssl/opensslv.h",
+    "include/openssl/ossl_typ.h",
+    "include/openssl/pem.h",
+    "include/openssl/pkcs12.h",
+    "include/openssl/pkcs7.h",
+    "include/openssl/pkcs8.h",
+    "include/openssl/poly1305.h",
+    "include/openssl/pool.h",
+    "include/openssl/rand.h",
+    "include/openssl/rc4.h",
+    "include/openssl/ripemd.h",
+    "include/openssl/rsa.h",
+    "include/openssl/safestack.h",
+    "include/openssl/sha.h",
+    "include/openssl/siphash.h",
+    "include/openssl/span.h",
+    "include/openssl/srtp.h",
+    "include/openssl/ssl.h",
+    "include/openssl/ssl3.h",
+    "include/openssl/stack.h",
+    "include/openssl/thread.h",
+    "include/openssl/tls1.h",
+    "include/openssl/trust_token.h",
+    "include/openssl/type_check.h",
+    "include/openssl/x509.h",
+    "include/openssl/x509_vfy.h",
+    "include/openssl/x509v3.h",
+    "include/ttnet/crypto/ec.h",
+    "include/ttnet/crypto/md32_common.h",
+    "include/ttnet/crypto/sm2.h",
+    "include/ttnet/crypto/sm2err.h",
+    "include/ttnet/crypto/sm3.h",
+    "include/ttnet/crypto/sm4.h",
+    "include/ttnet/internal/cryptlib.h",
+    "include/ttnet/internal/nelem.h",
+    "include/ttnet/internal/numbers.h",
+    "include/ttnet/internal/refcount.h",
+    "include/ttnet/openssl/cryptoerr.h",
+    "include/ttnet/openssl/safestack.h",
+    "include/ttnet/openssl/symhacks.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "openssl_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/boringssl/openssl/aead.h",
+    "pod_support/Headers/Private/boringssl/openssl/aes.h",
+    "pod_support/Headers/Private/boringssl/openssl/arm_arch.h",
+    "pod_support/Headers/Private/boringssl/openssl/asn1.h",
+    "pod_support/Headers/Private/boringssl/openssl/asn1_mac.h",
+    "pod_support/Headers/Private/boringssl/openssl/asn1t.h",
+    "pod_support/Headers/Private/boringssl/openssl/base.h",
+    "pod_support/Headers/Private/boringssl/openssl/base64.h",
+    "pod_support/Headers/Private/boringssl/openssl/bio.h",
+    "pod_support/Headers/Private/boringssl/openssl/blowfish.h",
+    "pod_support/Headers/Private/boringssl/openssl/bn.h",
+    "pod_support/Headers/Private/boringssl/openssl/buf.h",
+    "pod_support/Headers/Private/boringssl/openssl/buffer.h",
+    "pod_support/Headers/Private/boringssl/openssl/bytestring.h",
+    "pod_support/Headers/Private/boringssl/openssl/cast.h",
+    "pod_support/Headers/Private/boringssl/openssl/chacha.h",
+    "pod_support/Headers/Private/boringssl/openssl/cipher.h",
+    "pod_support/Headers/Private/boringssl/openssl/cmac.h",
+    "pod_support/Headers/Private/boringssl/openssl/conf.h",
+    "pod_support/Headers/Private/boringssl/openssl/cpu.h",
+    "pod_support/Headers/Private/boringssl/openssl/crypto.h",
+    "pod_support/Headers/Private/boringssl/openssl/curve25519.h",
+    "pod_support/Headers/Private/boringssl/openssl/des.h",
+    "pod_support/Headers/Private/boringssl/openssl/dh.h",
+    "pod_support/Headers/Private/boringssl/openssl/digest.h",
+    "pod_support/Headers/Private/boringssl/openssl/dsa.h",
+    "pod_support/Headers/Private/boringssl/openssl/dtls1.h",
+    "pod_support/Headers/Private/boringssl/openssl/e_os2.h",
+    "pod_support/Headers/Private/boringssl/openssl/ec.h",
+    "pod_support/Headers/Private/boringssl/openssl/ec_key.h",
+    "pod_support/Headers/Private/boringssl/openssl/ecdh.h",
+    "pod_support/Headers/Private/boringssl/openssl/ecdsa.h",
+    "pod_support/Headers/Private/boringssl/openssl/engine.h",
+    "pod_support/Headers/Private/boringssl/openssl/err.h",
+    "pod_support/Headers/Private/boringssl/openssl/evp.h",
+    "pod_support/Headers/Private/boringssl/openssl/ex_data.h",
+    "pod_support/Headers/Private/boringssl/openssl/hkdf.h",
+    "pod_support/Headers/Private/boringssl/openssl/hmac.h",
+    "pod_support/Headers/Private/boringssl/openssl/hrss.h",
+    "pod_support/Headers/Private/boringssl/openssl/is_boringssl.h",
+    "pod_support/Headers/Private/boringssl/openssl/lhash.h",
+    "pod_support/Headers/Private/boringssl/openssl/md4.h",
+    "pod_support/Headers/Private/boringssl/openssl/md5.h",
+    "pod_support/Headers/Private/boringssl/openssl/mem.h",
+    "pod_support/Headers/Private/boringssl/openssl/nid.h",
+    "pod_support/Headers/Private/boringssl/openssl/obj.h",
+    "pod_support/Headers/Private/boringssl/openssl/obj_mac.h",
+    "pod_support/Headers/Private/boringssl/openssl/objects.h",
+    "pod_support/Headers/Private/boringssl/openssl/opensslconf.h",
+    "pod_support/Headers/Private/boringssl/openssl/opensslv.h",
+    "pod_support/Headers/Private/boringssl/openssl/ossl_typ.h",
+    "pod_support/Headers/Private/boringssl/openssl/pem.h",
+    "pod_support/Headers/Private/boringssl/openssl/pkcs12.h",
+    "pod_support/Headers/Private/boringssl/openssl/pkcs7.h",
+    "pod_support/Headers/Private/boringssl/openssl/pkcs8.h",
+    "pod_support/Headers/Private/boringssl/openssl/poly1305.h",
+    "pod_support/Headers/Private/boringssl/openssl/pool.h",
+    "pod_support/Headers/Private/boringssl/openssl/rand.h",
+    "pod_support/Headers/Private/boringssl/openssl/rc4.h",
+    "pod_support/Headers/Private/boringssl/openssl/ripemd.h",
+    "pod_support/Headers/Private/boringssl/openssl/rsa.h",
+    "pod_support/Headers/Private/boringssl/openssl/safestack.h",
+    "pod_support/Headers/Private/boringssl/openssl/sha.h",
+    "pod_support/Headers/Private/boringssl/openssl/siphash.h",
+    "pod_support/Headers/Private/boringssl/openssl/span.h",
+    "pod_support/Headers/Private/boringssl/openssl/srtp.h",
+    "pod_support/Headers/Private/boringssl/openssl/ssl.h",
+    "pod_support/Headers/Private/boringssl/openssl/ssl3.h",
+    "pod_support/Headers/Private/boringssl/openssl/stack.h",
+    "pod_support/Headers/Private/boringssl/openssl/thread.h",
+    "pod_support/Headers/Private/boringssl/openssl/tls1.h",
+    "pod_support/Headers/Private/boringssl/openssl/trust_token.h",
+    "pod_support/Headers/Private/boringssl/openssl/type_check.h",
+    "pod_support/Headers/Private/boringssl/openssl/x509.h",
+    "pod_support/Headers/Private/boringssl/openssl/x509_vfy.h",
+    "pod_support/Headers/Private/boringssl/openssl/x509v3.h",
+    "pod_support/Headers/Private/boringssl/ttnet/crypto/ec.h",
+    "pod_support/Headers/Private/boringssl/ttnet/crypto/md32_common.h",
+    "pod_support/Headers/Private/boringssl/ttnet/crypto/sm2.h",
+    "pod_support/Headers/Private/boringssl/ttnet/crypto/sm2err.h",
+    "pod_support/Headers/Private/boringssl/ttnet/crypto/sm3.h",
+    "pod_support/Headers/Private/boringssl/ttnet/crypto/sm4.h",
+    "pod_support/Headers/Private/boringssl/ttnet/internal/cryptlib.h",
+    "pod_support/Headers/Private/boringssl/ttnet/internal/nelem.h",
+    "pod_support/Headers/Private/boringssl/ttnet/internal/numbers.h",
+    "pod_support/Headers/Private/boringssl/ttnet/internal/refcount.h",
+    "pod_support/Headers/Private/boringssl/ttnet/openssl/cryptoerr.h",
+    "pod_support/Headers/Private/boringssl/ttnet/openssl/safestack.h",
+    "pod_support/Headers/Private/boringssl/ttnet/openssl/symhacks.h",
+    "pod_support/Headers/Public/boringssl/openssl/aead.h",
+    "pod_support/Headers/Public/boringssl/openssl/aes.h",
+    "pod_support/Headers/Public/boringssl/openssl/arm_arch.h",
+    "pod_support/Headers/Public/boringssl/openssl/asn1.h",
+    "pod_support/Headers/Public/boringssl/openssl/asn1_mac.h",
+    "pod_support/Headers/Public/boringssl/openssl/asn1t.h",
+    "pod_support/Headers/Public/boringssl/openssl/base.h",
+    "pod_support/Headers/Public/boringssl/openssl/base64.h",
+    "pod_support/Headers/Public/boringssl/openssl/bio.h",
+    "pod_support/Headers/Public/boringssl/openssl/blowfish.h",
+    "pod_support/Headers/Public/boringssl/openssl/bn.h",
+    "pod_support/Headers/Public/boringssl/openssl/buf.h",
+    "pod_support/Headers/Public/boringssl/openssl/buffer.h",
+    "pod_support/Headers/Public/boringssl/openssl/bytestring.h",
+    "pod_support/Headers/Public/boringssl/openssl/cast.h",
+    "pod_support/Headers/Public/boringssl/openssl/chacha.h",
+    "pod_support/Headers/Public/boringssl/openssl/cipher.h",
+    "pod_support/Headers/Public/boringssl/openssl/cmac.h",
+    "pod_support/Headers/Public/boringssl/openssl/conf.h",
+    "pod_support/Headers/Public/boringssl/openssl/cpu.h",
+    "pod_support/Headers/Public/boringssl/openssl/crypto.h",
+    "pod_support/Headers/Public/boringssl/openssl/curve25519.h",
+    "pod_support/Headers/Public/boringssl/openssl/des.h",
+    "pod_support/Headers/Public/boringssl/openssl/dh.h",
+    "pod_support/Headers/Public/boringssl/openssl/digest.h",
+    "pod_support/Headers/Public/boringssl/openssl/dsa.h",
+    "pod_support/Headers/Public/boringssl/openssl/dtls1.h",
+    "pod_support/Headers/Public/boringssl/openssl/e_os2.h",
+    "pod_support/Headers/Public/boringssl/openssl/ec.h",
+    "pod_support/Headers/Public/boringssl/openssl/ec_key.h",
+    "pod_support/Headers/Public/boringssl/openssl/ecdh.h",
+    "pod_support/Headers/Public/boringssl/openssl/ecdsa.h",
+    "pod_support/Headers/Public/boringssl/openssl/engine.h",
+    "pod_support/Headers/Public/boringssl/openssl/err.h",
+    "pod_support/Headers/Public/boringssl/openssl/evp.h",
+    "pod_support/Headers/Public/boringssl/openssl/ex_data.h",
+    "pod_support/Headers/Public/boringssl/openssl/hkdf.h",
+    "pod_support/Headers/Public/boringssl/openssl/hmac.h",
+    "pod_support/Headers/Public/boringssl/openssl/hrss.h",
+    "pod_support/Headers/Public/boringssl/openssl/is_boringssl.h",
+    "pod_support/Headers/Public/boringssl/openssl/lhash.h",
+    "pod_support/Headers/Public/boringssl/openssl/md4.h",
+    "pod_support/Headers/Public/boringssl/openssl/md5.h",
+    "pod_support/Headers/Public/boringssl/openssl/mem.h",
+    "pod_support/Headers/Public/boringssl/openssl/nid.h",
+    "pod_support/Headers/Public/boringssl/openssl/obj.h",
+    "pod_support/Headers/Public/boringssl/openssl/obj_mac.h",
+    "pod_support/Headers/Public/boringssl/openssl/objects.h",
+    "pod_support/Headers/Public/boringssl/openssl/opensslconf.h",
+    "pod_support/Headers/Public/boringssl/openssl/opensslv.h",
+    "pod_support/Headers/Public/boringssl/openssl/ossl_typ.h",
+    "pod_support/Headers/Public/boringssl/openssl/pem.h",
+    "pod_support/Headers/Public/boringssl/openssl/pkcs12.h",
+    "pod_support/Headers/Public/boringssl/openssl/pkcs7.h",
+    "pod_support/Headers/Public/boringssl/openssl/pkcs8.h",
+    "pod_support/Headers/Public/boringssl/openssl/poly1305.h",
+    "pod_support/Headers/Public/boringssl/openssl/pool.h",
+    "pod_support/Headers/Public/boringssl/openssl/rand.h",
+    "pod_support/Headers/Public/boringssl/openssl/rc4.h",
+    "pod_support/Headers/Public/boringssl/openssl/ripemd.h",
+    "pod_support/Headers/Public/boringssl/openssl/rsa.h",
+    "pod_support/Headers/Public/boringssl/openssl/safestack.h",
+    "pod_support/Headers/Public/boringssl/openssl/sha.h",
+    "pod_support/Headers/Public/boringssl/openssl/siphash.h",
+    "pod_support/Headers/Public/boringssl/openssl/span.h",
+    "pod_support/Headers/Public/boringssl/openssl/srtp.h",
+    "pod_support/Headers/Public/boringssl/openssl/ssl.h",
+    "pod_support/Headers/Public/boringssl/openssl/ssl3.h",
+    "pod_support/Headers/Public/boringssl/openssl/stack.h",
+    "pod_support/Headers/Public/boringssl/openssl/thread.h",
+    "pod_support/Headers/Public/boringssl/openssl/tls1.h",
+    "pod_support/Headers/Public/boringssl/openssl/trust_token.h",
+    "pod_support/Headers/Public/boringssl/openssl/type_check.h",
+    "pod_support/Headers/Public/boringssl/openssl/x509.h",
+    "pod_support/Headers/Public/boringssl/openssl/x509_vfy.h",
+    "pod_support/Headers/Public/boringssl/openssl/x509v3.h",
+    "pod_support/Headers/Public/boringssl/ttnet/crypto/ec.h",
+    "pod_support/Headers/Public/boringssl/ttnet/crypto/md32_common.h",
+    "pod_support/Headers/Public/boringssl/ttnet/crypto/sm2.h",
+    "pod_support/Headers/Public/boringssl/ttnet/crypto/sm2err.h",
+    "pod_support/Headers/Public/boringssl/ttnet/crypto/sm3.h",
+    "pod_support/Headers/Public/boringssl/ttnet/crypto/sm4.h",
+    "pod_support/Headers/Public/boringssl/ttnet/internal/cryptlib.h",
+    "pod_support/Headers/Public/boringssl/ttnet/internal/nelem.h",
+    "pod_support/Headers/Public/boringssl/ttnet/internal/numbers.h",
+    "pod_support/Headers/Public/boringssl/ttnet/internal/refcount.h",
+    "pod_support/Headers/Public/boringssl/ttnet/openssl/cryptoerr.h",
+    "pod_support/Headers/Public/boringssl/ttnet/openssl/safestack.h",
+    "pod_support/Headers/Public/boringssl/ttnet/openssl/symhacks.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "openssl_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "openssl_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "openssl_module_map",
+  module_map = "pod_support/Headers/Public/boringssl/boringssl_openssl-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/boringssl/boringssl_openssl-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "openssl_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "openssl_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":boringssl_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":boringssl_private_includes",
+    ":boringssl_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":openssl_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dboringssl_POD_VERSION=@\\\"13_0.2.3-lark\\\"",
+    "-DTTNET_IMPLEMENT",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "openssl",
+  deps = [
+    ":openssl_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "openssl_lib",
+  deps = [
+    ":openssl"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_boringssl_module_map",
+  module_map = "@boringssl//:pod_support/Headers/Public/boringssl/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@boringssl//:pod_support/Headers/Public/boringssl/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_boringssl_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@boringssl//:boringssl_objc_interface", "@boringssl//:openssl_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_library")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_library(
+  name = "Lark_boringssl",
+  target_name = "Lark",
+  module_name = "boringssl",
+  hdrs = ["@boringssl//:boringssl_root_pod_hdrs", "@boringssl//:openssl_pod_hdrs"],
+  srcs = [],
+  non_arc_srcs = [],
+  deps = ["@boringssl//:boringssl_VendoredLibraries"],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dboringssl_POD_VERSION=@\\\"13_0.2.3-lark\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-DTTNET_IMPLEMENT",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "boringssl_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "boringssl_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "boringssl_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "boringssl_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "boringssl_dynamic", False),
+  tags = getattr(defs_external_objc_library, "boringssl_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  header_mappings = {
+    "*": "*",
+    "include/openssl/aead.h": "openssl/aead.h",
+    "include/openssl/aes.h": "openssl/aes.h",
+    "include/openssl/arm_arch.h": "openssl/arm_arch.h",
+    "include/openssl/asn1.h": "openssl/asn1.h",
+    "include/openssl/asn1_mac.h": "openssl/asn1_mac.h",
+    "include/openssl/asn1t.h": "openssl/asn1t.h",
+    "include/openssl/base.h": "openssl/base.h",
+    "include/openssl/base64.h": "openssl/base64.h",
+    "include/openssl/bio.h": "openssl/bio.h",
+    "include/openssl/blowfish.h": "openssl/blowfish.h",
+    "include/openssl/bn.h": "openssl/bn.h",
+    "include/openssl/buf.h": "openssl/buf.h",
+    "include/openssl/buffer.h": "openssl/buffer.h",
+    "include/openssl/bytestring.h": "openssl/bytestring.h",
+    "include/openssl/cast.h": "openssl/cast.h",
+    "include/openssl/chacha.h": "openssl/chacha.h",
+    "include/openssl/cipher.h": "openssl/cipher.h",
+    "include/openssl/cmac.h": "openssl/cmac.h",
+    "include/openssl/conf.h": "openssl/conf.h",
+    "include/openssl/cpu.h": "openssl/cpu.h",
+    "include/openssl/crypto.h": "openssl/crypto.h",
+    "include/openssl/curve25519.h": "openssl/curve25519.h",
+    "include/openssl/des.h": "openssl/des.h",
+    "include/openssl/dh.h": "openssl/dh.h",
+    "include/openssl/digest.h": "openssl/digest.h",
+    "include/openssl/dsa.h": "openssl/dsa.h",
+    "include/openssl/dtls1.h": "openssl/dtls1.h",
+    "include/openssl/e_os2.h": "openssl/e_os2.h",
+    "include/openssl/ec.h": "openssl/ec.h",
+    "include/openssl/ec_key.h": "openssl/ec_key.h",
+    "include/openssl/ecdh.h": "openssl/ecdh.h",
+    "include/openssl/ecdsa.h": "openssl/ecdsa.h",
+    "include/openssl/engine.h": "openssl/engine.h",
+    "include/openssl/err.h": "openssl/err.h",
+    "include/openssl/evp.h": "openssl/evp.h",
+    "include/openssl/ex_data.h": "openssl/ex_data.h",
+    "include/openssl/hkdf.h": "openssl/hkdf.h",
+    "include/openssl/hmac.h": "openssl/hmac.h",
+    "include/openssl/hrss.h": "openssl/hrss.h",
+    "include/openssl/is_boringssl.h": "openssl/is_boringssl.h",
+    "include/openssl/lhash.h": "openssl/lhash.h",
+    "include/openssl/md4.h": "openssl/md4.h",
+    "include/openssl/md5.h": "openssl/md5.h",
+    "include/openssl/mem.h": "openssl/mem.h",
+    "include/openssl/nid.h": "openssl/nid.h",
+    "include/openssl/obj.h": "openssl/obj.h",
+    "include/openssl/obj_mac.h": "openssl/obj_mac.h",
+    "include/openssl/objects.h": "openssl/objects.h",
+    "include/openssl/opensslconf.h": "openssl/opensslconf.h",
+    "include/openssl/opensslv.h": "openssl/opensslv.h",
+    "include/openssl/ossl_typ.h": "openssl/ossl_typ.h",
+    "include/openssl/pem.h": "openssl/pem.h",
+    "include/openssl/pkcs12.h": "openssl/pkcs12.h",
+    "include/openssl/pkcs7.h": "openssl/pkcs7.h",
+    "include/openssl/pkcs8.h": "openssl/pkcs8.h",
+    "include/openssl/poly1305.h": "openssl/poly1305.h",
+    "include/openssl/pool.h": "openssl/pool.h",
+    "include/openssl/rand.h": "openssl/rand.h",
+    "include/openssl/rc4.h": "openssl/rc4.h",
+    "include/openssl/ripemd.h": "openssl/ripemd.h",
+    "include/openssl/rsa.h": "openssl/rsa.h",
+    "include/openssl/safestack.h": "openssl/safestack.h",
+    "include/openssl/sha.h": "openssl/sha.h",
+    "include/openssl/siphash.h": "openssl/siphash.h",
+    "include/openssl/span.h": "openssl/span.h",
+    "include/openssl/srtp.h": "openssl/srtp.h",
+    "include/openssl/ssl.h": "openssl/ssl.h",
+    "include/openssl/ssl3.h": "openssl/ssl3.h",
+    "include/openssl/stack.h": "openssl/stack.h",
+    "include/openssl/thread.h": "openssl/thread.h",
+    "include/openssl/tls1.h": "openssl/tls1.h",
+    "include/openssl/trust_token.h": "openssl/trust_token.h",
+    "include/openssl/type_check.h": "openssl/type_check.h",
+    "include/openssl/x509.h": "openssl/x509.h",
+    "include/openssl/x509_vfy.h": "openssl/x509_vfy.h",
+    "include/openssl/x509v3.h": "openssl/x509v3.h",
+    "include/ttnet/crypto/ec.h": "ttnet/crypto/ec.h",
+    "include/ttnet/crypto/md32_common.h": "ttnet/crypto/md32_common.h",
+    "include/ttnet/crypto/sm2.h": "ttnet/crypto/sm2.h",
+    "include/ttnet/crypto/sm2err.h": "ttnet/crypto/sm2err.h",
+    "include/ttnet/crypto/sm3.h": "ttnet/crypto/sm3.h",
+    "include/ttnet/crypto/sm4.h": "ttnet/crypto/sm4.h",
+    "include/ttnet/internal/cryptlib.h": "ttnet/internal/cryptlib.h",
+    "include/ttnet/internal/nelem.h": "ttnet/internal/nelem.h",
+    "include/ttnet/internal/numbers.h": "ttnet/internal/numbers.h",
+    "include/ttnet/internal/refcount.h": "ttnet/internal/refcount.h",
+    "include/ttnet/openssl/cryptoerr.h": "ttnet/openssl/cryptoerr.h",
+    "include/ttnet/openssl/safestack.h": "ttnet/openssl/safestack.h",
+    "include/ttnet/openssl/symhacks.h": "ttnet/openssl/symhacks.h",
+  },
+  xcconfig_by_build_setting = defs_xcconfigs.get("boringssl", {}),
+  visibility = ["//visibility:public"],
+)

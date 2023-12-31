@@ -1,0 +1,1 @@
+../../../../cut_ios/Headers/Core/Helper/LVDraftPayloadTypeHelper.h

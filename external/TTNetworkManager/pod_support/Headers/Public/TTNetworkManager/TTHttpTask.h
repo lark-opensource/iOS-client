@@ -1,0 +1,1 @@
+../../../../Pod/Classes/Public/TTNetworkBase/HttpAdaptor/TTHttpTask.h

@@ -1,0 +1,1 @@
+../../../../BDTuring/Classes/Core/TipView/BDTuringImageTipView.h

@@ -1,0 +1,1 @@
+../../../../SDWebImage/Private/SDFileAttributeHelper.h

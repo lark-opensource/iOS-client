@@ -1,0 +1,1 @@
+../../../../CameraClient/MobileInfra/Foundation/Animation/AWEBigToSmallPresentAnimation.h

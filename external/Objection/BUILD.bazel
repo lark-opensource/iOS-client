@@ -1,0 +1,457 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "Objection_pod_hdrs",
+  srcs = [
+    ":Objection_root_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "Objection_private_includes",
+  include = [
+    "external/Objection/pod_support/Headers/Private/Objection/"
+  ],
+  deps = [],
+  external_name = "Objection"
+)
+gen_includes(
+  name = "Objection_public_includes",
+  include = [
+    "external/Objection/pod_support/Headers/Public/Objection/"
+  ],
+  deps = [],
+  external_name = "Objection"
+)
+filegroup(
+  name = "_Objection_hdrs",
+  srcs = [
+    ":Objection_root_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "Objection_xcode_hmapsource",
+  hdrs = [
+    ":_Objection_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "Objection_xcode_hmap",
+  dep = ":Objection_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/Objection/*-bitsky-generated.modulemap", "pod_support/Headers/Public/Objection/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "Objection_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "Objection",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "Objection_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":Objection_xcode_hmap"
+  ],
+  external_name = "Objection",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Objection_root_hdrs",
+  srcs = [
+    "Source/JSObjectFactory.h",
+    "Source/JSObjection.h",
+    "Source/JSObjectionBindingEntry.h",
+    "Source/JSObjectionEntry.h",
+    "Source/JSObjectionInjector.h",
+    "Source/JSObjectionInjectorEntry.h",
+    "Source/JSObjectionModule.h",
+    "Source/JSObjectionProviderEntry.h",
+    "Source/JSObjectionRuntimePropertyReflector.h",
+    "Source/JSObjectionUtils.h",
+    "Source/NSObject+Objection.h",
+    "Source/Objection.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Objection_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/Objection/JSObjectFactory.h",
+    "pod_support/Headers/Private/Objection/JSObjection.h",
+    "pod_support/Headers/Private/Objection/JSObjectionBindingEntry.h",
+    "pod_support/Headers/Private/Objection/JSObjectionEntry.h",
+    "pod_support/Headers/Private/Objection/JSObjectionInjector.h",
+    "pod_support/Headers/Private/Objection/JSObjectionInjectorEntry.h",
+    "pod_support/Headers/Private/Objection/JSObjectionModule.h",
+    "pod_support/Headers/Private/Objection/JSObjectionProviderEntry.h",
+    "pod_support/Headers/Private/Objection/JSObjectionRuntimePropertyReflector.h",
+    "pod_support/Headers/Private/Objection/JSObjectionUtils.h",
+    "pod_support/Headers/Private/Objection/NSObject+Objection.h",
+    "pod_support/Headers/Private/Objection/Objection.h",
+    "pod_support/Headers/Public/Objection/JSObjectFactory.h",
+    "pod_support/Headers/Public/Objection/JSObjection.h",
+    "pod_support/Headers/Public/Objection/JSObjectionBindingEntry.h",
+    "pod_support/Headers/Public/Objection/JSObjectionEntry.h",
+    "pod_support/Headers/Public/Objection/JSObjectionInjector.h",
+    "pod_support/Headers/Public/Objection/JSObjectionInjectorEntry.h",
+    "pod_support/Headers/Public/Objection/JSObjectionModule.h",
+    "pod_support/Headers/Public/Objection/JSObjectionProviderEntry.h",
+    "pod_support/Headers/Public/Objection/JSObjectionRuntimePropertyReflector.h",
+    "pod_support/Headers/Public/Objection/JSObjectionUtils.h",
+    "pod_support/Headers/Public/Objection/NSObject+Objection.h",
+    "pod_support/Headers/Public/Objection/Objection.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Objection_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Objection_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Objection_module_map",
+  module_map = "pod_support/Headers/Public/Objection/Objection-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/Objection/Objection-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Objection_root_srcs",
+  srcs = [
+    "Source/JSObjectFactory.m",
+    "Source/JSObjection.m",
+    "Source/JSObjectionBindingEntry.m",
+    "Source/JSObjectionEntry.m",
+    "Source/JSObjectionInjector.m",
+    "Source/JSObjectionInjectorEntry.m",
+    "Source/JSObjectionModule.m",
+    "Source/JSObjectionProviderEntry.m",
+    "Source/JSObjectionRuntimePropertyReflector.m",
+    "Source/JSObjectionUtils.m",
+    "Source/NSObject+Objection.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Objection_oc",
+  enable_modules = 1,
+  srcs = [
+    "Objection_root_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Objection_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  deps = [
+    ":Objection_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":Objection_private_includes",
+    ":Objection_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Objection_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Objection",
+  deps = [
+    ":Objection_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Objection_lib",
+  deps = [
+    ":Objection"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_Objection_module_map",
+  module_map = "@Objection//:pod_support/Headers/Public/Objection/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@Objection//:pod_support/Headers/Public/Objection/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_Objection_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@Objection//:Objection_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_Objection",
+  target_name = "Lark",
+  module_name = "Objection",
+  hdrs = ["@Objection//:Objection_root_pod_hdrs"],
+  srcs = ["@Objection//:Objection_root_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "Objection_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "Objection_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "Objection_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "Objection_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "Objection_dynamic", False),
+  tags = getattr(defs_external_objc_library, "Objection_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("Objection", {}),
+  visibility = ["//visibility:public"],
+)

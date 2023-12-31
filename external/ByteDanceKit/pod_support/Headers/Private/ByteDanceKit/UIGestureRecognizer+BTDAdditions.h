@@ -1,0 +1,1 @@
+../../../../ByteDanceKit/Classes/UIKit/UIGestureRecognizer+BTDAdditions.h

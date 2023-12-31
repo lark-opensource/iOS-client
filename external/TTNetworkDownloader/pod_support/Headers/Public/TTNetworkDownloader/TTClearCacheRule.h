@@ -1,0 +1,1 @@
+../../../../TTNetworkDownloader/Classes/TTDownload/TncConfigManager/TTClearCacheRule.h

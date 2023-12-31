@@ -1,0 +1,1 @@
+../../../../libEffectSDK/inc/bef_swing_key_frame_api.h

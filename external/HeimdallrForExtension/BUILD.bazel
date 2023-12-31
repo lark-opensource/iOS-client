@@ -1,0 +1,1982 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "HeimdallrForExtension_pod_hdrs",
+  srcs = [
+    ":HeimdallrForExtension_root_pod_hdrs",
+    ":Network_pod_hdrs",
+    ":HMDAlogProtocol_pod_hdrs",
+    ":Mach_pod_hdrs",
+    ":Utility_pod_hdrs",
+    ":CrashCapture_pod_hdrs",
+    ":CrashDetector_pod_hdrs",
+    ":Core_pod_hdrs",
+    ":DeviceInfo_pod_hdrs",
+    ":HMDDyldExtension_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "HeimdallrForExtension_private_includes",
+  include = [
+    "external/HeimdallrForExtension/pod_support/Headers/Private/HeimdallrForExtension/"
+  ],
+  deps = [],
+  external_name = "HeimdallrForExtension"
+)
+gen_includes(
+  name = "HeimdallrForExtension_public_includes",
+  include = [
+    "external/HeimdallrForExtension/pod_support/Headers/Public/HeimdallrForExtension/"
+  ],
+  deps = [],
+  external_name = "HeimdallrForExtension"
+)
+filegroup(
+  name = "_HeimdallrForExtension_hdrs",
+  srcs = [
+    ":HeimdallrForExtension_root_hdrs",
+    ":Network_hdrs",
+    ":HMDAlogProtocol_hdrs",
+    ":Mach_hdrs",
+    ":Utility_hdrs",
+    ":CrashCapture_hdrs",
+    ":CrashDetector_hdrs",
+    ":Core_hdrs",
+    ":DeviceInfo_hdrs",
+    ":HMDDyldExtension_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "HeimdallrForExtension_xcode_hmapsource",
+  hdrs = [
+    ":HeimdallrForExtension_root_hdrs",
+    ":HMDDyldExtension_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "HeimdallrForExtension_xcode_hmap",
+  dep = ":HeimdallrForExtension_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/HeimdallrForExtension/*-bitsky-generated.modulemap", "pod_support/Headers/Public/HeimdallrForExtension/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "HeimdallrForExtension_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "HeimdallrForExtension",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "HeimdallrForExtension_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":HeimdallrForExtension_xcode_hmap"
+  ],
+  external_name = "HeimdallrForExtension",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "HeimdallrForExtension_root_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "HeimdallrForExtension_root_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "HeimdallrForExtension_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "HeimdallrForExtension_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "HeimdallrForExtension_module_map",
+  module_map = "pod_support/Headers/Public/HeimdallrForExtension/HeimdallrForExtension-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/HeimdallrForExtension/HeimdallrForExtension-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "HeimdallrForExtension_oc",
+  enable_modules = 1,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [
+    "HeimdallrForExtension_root_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/HeimdallrForExtension-prefix.pch",
+  deps = [
+    ":HeimdallrForExtension_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":HeimdallrForExtension_private_includes",
+    ":HeimdallrForExtension_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":HeimdallrForExtension_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DHeimdallrForExtension_POD_VERSION=@\\\"9999_0.0.2-alpha.9\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "HeimdallrForExtension",
+  deps = [
+    ":HeimdallrForExtension_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "HeimdallrForExtension_lib",
+  deps = [
+    ":HeimdallrForExtension"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Network_hdrs",
+  srcs = [
+    "Heimdallr/Classes/Network/Private/HMDNetQualityProtocol.h",
+    "Heimdallr/Classes/Network/Private/HMDNetQualityTracker.h",
+    "Heimdallr/Classes/Network/Private/HMDNetworkHelper.h",
+    "Heimdallr/Classes/Network/Private/HMDNetworkReachability.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Network_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Network_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Network_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Network_module_map",
+  module_map = "pod_support/Headers/Public/HeimdallrForExtension/HeimdallrForExtension_Network-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/HeimdallrForExtension/HeimdallrForExtension_Network-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Network_srcs",
+  srcs = [
+    "Heimdallr/Classes/Network/Private/HMDNetQualityTracker.m",
+    "Heimdallr/Classes/Network/Private/HMDNetworkHelper.m",
+    "Heimdallr/Classes/Network/Private/HMDNetworkReachability.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Network_oc",
+  enable_modules = 1,
+  srcs = [
+    "Network_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Network_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/Network-prefix.pch",
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":HeimdallrForExtension_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":HeimdallrForExtension_private_includes",
+    ":HeimdallrForExtension_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTReachability//:TTReachability_objc_interface",
+    "@TTReachability//:TTReachability_swift_interface",
+    ":Network_objc_interface",
+    "@TTReachability//:TTReachability_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DHeimdallrForExtension_POD_VERSION=@\\\"9999_0.0.2-alpha.9\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Network",
+  deps = [
+    ":Network_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Network_lib",
+  deps = [
+    ":Network"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "HMDAlogProtocol_hdrs",
+  srcs = [
+    "Heimdallr/Classes/HMDALogProtocol/Public/HMDALogProtocol.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "HMDAlogProtocol_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "HMDAlogProtocol_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "HMDAlogProtocol_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "HMDAlogProtocol_module_map",
+  module_map = "pod_support/Headers/Public/HeimdallrForExtension/HeimdallrForExtension_HMDAlogProtocol-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/HeimdallrForExtension/HeimdallrForExtension_HMDAlogProtocol-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "HMDAlogProtocol_srcs",
+  srcs = [
+    "Heimdallr/Classes/HMDALogProtocol/Public/HMDALogProtocol.mm"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "HMDAlogProtocol_oc",
+  enable_modules = 1,
+  srcs = [
+    "HMDAlogProtocol_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "HMDAlogProtocol_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/HMDAlogProtocol-prefix.pch",
+  deps = [
+    ":HeimdallrForExtension_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":HeimdallrForExtension_private_includes",
+    ":HeimdallrForExtension_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":HMDAlogProtocol_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DHeimdallrForExtension_POD_VERSION=@\\\"9999_0.0.2-alpha.9\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "HMDAlogProtocol",
+  deps = [
+    ":HMDAlogProtocol_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "HMDAlogProtocol_lib",
+  deps = [
+    ":HMDAlogProtocol"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Mach_hdrs",
+  srcs = [
+    "Heimdallr/Classes/Mach/Private/Backtrace/HMDAsyncStackTraceDebug.h",
+    "Heimdallr/Classes/Mach/Private/Backtrace/HMDCrashAsyncStackRecordList.h",
+    "Heimdallr/Classes/Mach/Private/Backtrace/HMDCrashAsyncStackTrace.h",
+    "Heimdallr/Classes/Mach/Private/Backtrace/HMDCrashAsyncThreadUtils.h",
+    "Heimdallr/Classes/Mach/Private/Backtrace/HMDThreadBacktrace+Private.h",
+    "Heimdallr/Classes/Mach/Private/Backtrace/HMDThreadBacktraceFrame.h",
+    "Heimdallr/Classes/Mach/Private/Backtrace/hmd_crash_async_stack_trace.h",
+    "Heimdallr/Classes/Mach/Private/Backtrace/hmd_thread_backtrace.h",
+    "Heimdallr/Classes/Mach/Private/tools/HMDAsyncSymbolicator.h",
+    "Heimdallr/Classes/Mach/Private/tools/HMDAsyncThread.h",
+    "Heimdallr/Classes/Mach/Private/tools/SDKLog/HMDCrashSDKLog.h",
+    "Heimdallr/Classes/Mach/Private/tools/SDKLog/HMDCrashSDKLog_Namespace.h",
+    "Heimdallr/Classes/Mach/Private/tools/WriteBuffer/HMDCrashFileBuffer.h",
+    "Heimdallr/Classes/Mach/Private/tools/WriteBuffer/HMDCrashMemoryBuffer.h",
+    "Heimdallr/Classes/Mach/Private/tools/env/HMDEnvCheck.h",
+    "Heimdallr/Classes/Mach/Private/tools/hmd_crash_safe_tool.h",
+    "Heimdallr/Classes/Mach/Private/tools/hmd_logger.h",
+    "Heimdallr/Classes/Mach/Private/tools/hmd_mach.h",
+    "Heimdallr/Classes/Mach/Private/tools/hmd_mach_exception_protection_definition.h",
+    "Heimdallr/Classes/Mach/Private/tools/hmd_mach_exception_protection_tool.h",
+    "Heimdallr/Classes/Mach/Private/tools/hmd_memory.h",
+    "Heimdallr/Classes/Mach/Private/tools/hmd_objc_apple.h",
+    "Heimdallr/Classes/Mach/Private/tools/hmd_queue_name_offset.h",
+    "Heimdallr/Classes/Mach/Private/tools/hmd_signal_info.h",
+    "Heimdallr/Classes/Mach/Private/tools/hmd_symbolicator.h",
+    "Heimdallr/Classes/Mach/Private/tools/hmd_try_catch_detector.h",
+    "Heimdallr/Classes/Mach/Private/tools/hmd_types.h",
+    "Heimdallr/Classes/Mach/Private/tools/register/HMDAsyncRegister.h",
+    "Heimdallr/Classes/Mach/Private/tools/register/HMDAsyncThreadState.h",
+    "Heimdallr/Classes/Mach/Private/tools/stacktrace/hmd_machine_context.h",
+    "Heimdallr/Classes/Mach/Private/tools/stacktrace/hmd_stack_cursor.h",
+    "Heimdallr/Classes/Mach/Private/tools/stacktrace/hmd_stack_cursor_backtrace.h",
+    "Heimdallr/Classes/Mach/Private/tools/stacktrace/hmd_stack_cursor_machine_context.h",
+    "Heimdallr/Classes/Mach/Private/tools/stacktrace/hmd_stack_cursor_self_thread.h",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/Dwarf/HMDAsyncDwarfUnwind.h",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/Dwarf/HMDDwarfConfig.h",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/Dwarf/HMDDwarfDataParsing.h",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/Dwarf/HMDDwarfExpressionMachine.h",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/Dwarf/HMDDwarfUnwind.h",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/Dwarf/HMDDwarfUnwindRegisters.h",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/Dwarf/dwarf.h",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/HMDCompactUnwind.hpp",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/macho/HMDAsyncImageList.h",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/macho/HMDAsyncMachOImage.h",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/macho/HMDAsyncMemoryRange.h",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/macho/HMDAsyncSymbolReader.h",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/unwind/HMDAsyncCompactUnwindEncoding.h",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/unwind/HMDCompactUnwindConfig.h",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/unwind/HMDCompatConstants.h",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/unwind/HMDFrameCompactUnwind.h",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/unwind/HMDFrameStackUnwind.h",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/unwind/HMDFrameWalker.h",
+    "Heimdallr/Classes/Mach/Public/HMDThreadBacktrace.h",
+    "Heimdallr/Classes/Mach/Public/HMDThreadBacktraceParameter.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Mach_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Mach_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Mach_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Mach_module_map",
+  module_map = "pod_support/Headers/Public/HeimdallrForExtension/HeimdallrForExtension_Mach-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/HeimdallrForExtension/HeimdallrForExtension_Mach-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Mach_srcs",
+  srcs = [
+    "Heimdallr/Classes/Mach/Private/tools/hmd_crash_safe_tool.c",
+    "Heimdallr/Classes/Mach/Private/tools/hmd_mach.c",
+    "Heimdallr/Classes/Mach/Private/tools/hmd_mach_exception_protection_tool.m",
+    "Heimdallr/Classes/Mach/Private/tools/stacktrace/hmd_machine_context.c",
+    "Heimdallr/Classes/Mach/Private/tools/hmd_memory.c",
+    "Heimdallr/Classes/Mach/Private/tools/hmd_queue_name_offset.c",
+    "Heimdallr/Classes/Mach/Private/tools/hmd_signal_info.c",
+    "Heimdallr/Classes/Mach/Private/tools/stacktrace/hmd_stack_cursor.c",
+    "Heimdallr/Classes/Mach/Private/tools/stacktrace/hmd_stack_cursor_backtrace.c",
+    "Heimdallr/Classes/Mach/Private/tools/stacktrace/hmd_stack_cursor_machine_context.c",
+    "Heimdallr/Classes/Mach/Private/tools/stacktrace/hmd_stack_cursor_self_thread.c",
+    "Heimdallr/Classes/Mach/Private/tools/hmd_symbolicator.c",
+    "Heimdallr/Classes/Mach/Private/Backtrace/hmd_thread_backtrace.c",
+    "Heimdallr/Classes/Mach/Private/tools/hmd_try_catch_detector.mm",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/unwind/HMDAsyncCompactUnwindEncoding.c",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/Dwarf/HMDAsyncDwarfUnwind.c",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/macho/HMDAsyncImageList.cpp",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/macho/HMDAsyncMachOImage.c",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/macho/HMDAsyncMemoryRange.c",
+    "Heimdallr/Classes/Mach/Private/tools/register/HMDAsyncRegister_ARM32.c",
+    "Heimdallr/Classes/Mach/Private/tools/register/HMDAsyncRegister_ARM64.c",
+    "Heimdallr/Classes/Mach/Private/tools/register/HMDAsyncRegister_I386.c",
+    "Heimdallr/Classes/Mach/Private/tools/register/HMDAsyncRegister_X86_64.c",
+    "Heimdallr/Classes/Mach/Private/Backtrace/HMDAsyncStackTraceDebug.m",
+    "Heimdallr/Classes/Mach/Private/tools/HMDAsyncSymbolicator.c",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/macho/HMDAsyncSymbolReader.c",
+    "Heimdallr/Classes/Mach/Private/tools/HMDAsyncThread.c",
+    "Heimdallr/Classes/Mach/Private/tools/register/HMDAsyncThreadState.c",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/HMDCompactUnwind.cpp",
+    "Heimdallr/Classes/Mach/Private/Backtrace/HMDCrashAsyncStackRecordList.cpp",
+    "Heimdallr/Classes/Mach/Private/Backtrace/HMDCrashAsyncStackTrace.m",
+    "Heimdallr/Classes/Mach/Private/Backtrace/HMDCrashAsyncThreadUtils.c",
+    "Heimdallr/Classes/Mach/Private/tools/WriteBuffer/HMDCrashFileBuffer.c",
+    "Heimdallr/Classes/Mach/Private/tools/WriteBuffer/HMDCrashMemoryBuffer.c",
+    "Heimdallr/Classes/Mach/Private/tools/SDKLog/HMDCrashSDKLog.c",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/Dwarf/HMDDwarfDataParsing.c",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/Dwarf/HMDDwarfExpressionMachine.c",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/Dwarf/HMDDwarfUnwind.c",
+    "Heimdallr/Classes/Mach/Private/tools/env/HMDEnvCheck.c",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/unwind/HMDFrameCompactUnwind.c",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/unwind/HMDFrameStackUnwind.c",
+    "Heimdallr/Classes/Mach/Private/tools/stackunwind/unwind/HMDFrameWalker.c",
+    "Heimdallr/Classes/Mach/Public/HMDThreadBacktrace.m",
+    "Heimdallr/Classes/Mach/Private/Backtrace/HMDThreadBacktraceFrame.mm",
+    "Heimdallr/Classes/Mach/Public/HMDThreadBacktraceParameter.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Mach_oc",
+  enable_modules = 1,
+  srcs = [
+    "Mach_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Mach_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/Mach-prefix.pch",
+  sdk_dylibs = [
+    "c++"
+  ],
+  deps = [
+    ":HeimdallrForExtension_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":HeimdallrForExtension_private_includes",
+    ":HeimdallrForExtension_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Mach_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DHeimdallrForExtension_POD_VERSION=@\\\"9999_0.0.2-alpha.9\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Mach",
+  deps = [
+    ":Mach_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Mach_lib",
+  deps = [
+    ":Mach"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Utility_hdrs",
+  srcs = [
+    "Heimdallr/Classes/Utility/Private/ARC/HMDFishhookQueue.h",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDGCD.h",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDGCDTimer.h",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDJSON.h",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDMacro.h",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDSimpleBackgroundTask.h",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDStingerBlocker.h",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDSwizzle.h",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDThreadSafeArray.h",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDThreadSafeDictionary.h",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDUSELForwarder.h",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDUserDefaults.h",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDWPDynamicSafeData/HMDWPDynamicSafeData+ThreadSynchronize.h",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDWPDynamicSafeData/HMDWPDynamicSafeData.h",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDWeakProxy.h",
+    "Heimdallr/Classes/Utility/Private/ARC/NSArray+HMDJSON.h",
+    "Heimdallr/Classes/Utility/Private/ARC/NSArray+HMDSafe.h",
+    "Heimdallr/Classes/Utility/Private/ARC/NSData+HMDAES.h",
+    "Heimdallr/Classes/Utility/Private/ARC/NSData+HMDGzip.h",
+    "Heimdallr/Classes/Utility/Private/ARC/NSData+HMDJSON.h",
+    "Heimdallr/Classes/Utility/Private/ARC/NSDictionary+HMDHTTPQuery.h",
+    "Heimdallr/Classes/Utility/Private/ARC/NSDictionary+HMDImmutableCopy.h",
+    "Heimdallr/Classes/Utility/Private/ARC/NSDictionary+HMDJSON.h",
+    "Heimdallr/Classes/Utility/Private/ARC/NSDictionary+HMDSafe.h",
+    "Heimdallr/Classes/Utility/Private/ARC/NSNumber+HMDTypeClassify.h",
+    "Heimdallr/Classes/Utility/Private/ARC/NSObject+Attributes.h",
+    "Heimdallr/Classes/Utility/Private/ARC/NSObject+HMDPerformSelector.h",
+    "Heimdallr/Classes/Utility/Private/ARC/NSObject+HMDUtilities.h",
+    "Heimdallr/Classes/Utility/Private/ARC/NSObject+Validate.h",
+    "Heimdallr/Classes/Utility/Private/ARC/NSString+HDMUtility.h",
+    "Heimdallr/Classes/Utility/Private/ARC/NSString+HMDJSON.h",
+    "Heimdallr/Classes/Utility/Private/ARC/NSString+HMDSafe.h",
+    "Heimdallr/Classes/Utility/Private/ARC/UIApplication+HMDUtility.h",
+    "Heimdallr/Classes/Utility/Private/ARC/pthread_extended.h",
+    "Heimdallr/Classes/Utility/Private/C/HMDAsyncSafeLinkedList.hpp",
+    "Heimdallr/Classes/Utility/Private/C/HMDNumberUtils.h",
+    "Heimdallr/Classes/Utility/Private/C/HMDTimeSepc.h",
+    "Heimdallr/Classes/Utility/Private/MRC/HMDDynamicCall.h",
+    "Heimdallr/Classes/Utility/Private/MRC/HMDReference.h",
+    "Heimdallr/Classes/Utility/Public/ARC/HMDJSONable.h",
+    "Heimdallr/Classes/Utility/Public/ARC/HMDMacroManager.h",
+    "Heimdallr/Classes/Utility/Public/ARC/HMDPublicMacro.h",
+    "Heimdallr/Classes/Utility/Public/ARC/HMDUITrackerManagerSceneProtocol.h",
+    "Heimdallr/Classes/Utility/Public/ARC/HMDUITrackerTool.h",
+    "Heimdallr/Classes/Utility/Public/ARC/HeimdallrUtilities.h",
+    "Heimdallr/Classes/Utility/Public/ARC/NSArray+HMDTopN.h",
+    "Heimdallr/Classes/Utility/Public/ARC/NSDate+HMDAccurate.h",
+    "Heimdallr/Classes/Utility/Public/ARC/hmd_debug.h",
+    "Heimdallr/Classes/Utility/Public/C/HMDAppLaunchTool.h",
+    "Heimdallr/Classes/Utility/Public/C/HMDCPUUtilties.h",
+    "Heimdallr/Classes/Utility/Public/C/HMDFileTool.h",
+    "Heimdallr/Classes/Utility/Public/C/HMDMemoryUsage.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Utility_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Utility_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Utility_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Utility_module_map",
+  module_map = "pod_support/Headers/Public/HeimdallrForExtension/HeimdallrForExtension_Utility-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/HeimdallrForExtension/HeimdallrForExtension_Utility-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Utility_srcs",
+  srcs = [
+    "Heimdallr/Classes/Utility/Public/ARC/HeimdallrUtilities.m",
+    "Heimdallr/Classes/Utility/Public/C/HMDAppLaunchTool.c",
+    "Heimdallr/Classes/Utility/Private/C/HMDAsyncSafeLinkedList.cpp",
+    "Heimdallr/Classes/Utility/Public/C/HMDCPUUtilties.c",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDFishhookQueue.mm",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDGCD.m",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDGCDTimer.m",
+    "Heimdallr/Classes/Utility/Public/ARC/HMDMacroManager.m",
+    "Heimdallr/Classes/Utility/Private/C/HMDNumberUtils.c",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDSimpleBackgroundTask.m",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDStingerBlocker.m",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDSwizzle.m",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDThreadSafeArray.m",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDThreadSafeDictionary.m",
+    "Heimdallr/Classes/Utility/Private/C/HMDTimeSepc.c",
+    "Heimdallr/Classes/Utility/Public/ARC/HMDUITrackerTool.m",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDUSELForwarder.m",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDUserDefaults.m",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDWeakProxy.m",
+    "Heimdallr/Classes/Utility/Private/ARC/HMDWPDynamicSafeData/HMDWPDynamicSafeData.m",
+    "Heimdallr/Classes/Utility/Private/ARC/NSArray+HMDJSON.m",
+    "Heimdallr/Classes/Utility/Private/ARC/NSArray+HMDSafe.m",
+    "Heimdallr/Classes/Utility/Public/ARC/NSArray+HMDTopN.m",
+    "Heimdallr/Classes/Utility/Private/ARC/NSData+HMDAES.m",
+    "Heimdallr/Classes/Utility/Private/ARC/NSData+HMDGzip.m",
+    "Heimdallr/Classes/Utility/Private/ARC/NSData+HMDJSON.m",
+    "Heimdallr/Classes/Utility/Public/ARC/NSDate+HMDAccurate.m",
+    "Heimdallr/Classes/Utility/Private/ARC/NSDictionary+HMDHTTPQuery.m",
+    "Heimdallr/Classes/Utility/Private/ARC/NSDictionary+HMDImmutableCopy.m",
+    "Heimdallr/Classes/Utility/Private/ARC/NSDictionary+HMDJSON.m",
+    "Heimdallr/Classes/Utility/Private/ARC/NSDictionary+HMDSafe.m",
+    "Heimdallr/Classes/Utility/Private/ARC/NSNumber+HMDTypeClassify.m",
+    "Heimdallr/Classes/Utility/Private/ARC/NSObject+Attributes.m",
+    "Heimdallr/Classes/Utility/Private/ARC/NSObject+HMDPerformSelector.m",
+    "Heimdallr/Classes/Utility/Private/ARC/NSObject+HMDUtilities.m",
+    "Heimdallr/Classes/Utility/Private/ARC/NSObject+Validate.m",
+    "Heimdallr/Classes/Utility/Private/ARC/NSString+HDMUtility.m",
+    "Heimdallr/Classes/Utility/Private/ARC/NSString+HMDJSON.m",
+    "Heimdallr/Classes/Utility/Private/ARC/NSString+HMDSafe.m",
+    "Heimdallr/Classes/Utility/Private/ARC/UIApplication+HMDUtility.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Utility_non_arc_srcs",
+  srcs = [
+    "Heimdallr/Classes/Utility/Private/MRC/HMDDynamicCall.m",
+    "Heimdallr/Classes/Utility/Public/C/HMDFileTool.m",
+    "Heimdallr/Classes/Utility/Public/C/HMDMemoryUsage.m",
+    "Heimdallr/Classes/Utility/Private/MRC/HMDReference.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Utility_oc",
+  enable_modules = 1,
+  srcs = [
+    "Utility_srcs"
+  ],
+  non_arc_srcs = [
+    "Utility_non_arc_srcs"
+  ],
+  hdrs = [
+    "Utility_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/Utility-prefix.pch",
+  sdk_dylibs = [
+    "z"
+  ],
+  deps = [
+    ":HeimdallrForExtension_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":HeimdallrForExtension_private_includes",
+    ":HeimdallrForExtension_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDFishhook//:BDFishhook_objc_interface",
+    "@TTMacroManager//:TTMacroManager_objc_interface",
+    "@BDFishhook//:BDFishhook_swift_interface",
+    "@TTMacroManager//:TTMacroManager_swift_interface",
+    ":Utility_objc_interface",
+    "@BDFishhook//:BDFishhook_module_map",
+    "@TTMacroManager//:TTMacroManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DHeimdallrForExtension_POD_VERSION=@\\\"9999_0.0.2-alpha.9\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Utility",
+  deps = [
+    ":Utility_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Utility_lib",
+  deps = [
+    ":Utility"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CrashCapture_hdrs",
+  srcs = [
+    "Heimdallr/Classes/CrashCapture/Private/Exception/HMDCrashContentAnalyze/HMDCrashArrayAnalyze.h",
+    "Heimdallr/Classes/CrashCapture/Private/Exception/HMDCrashContentAnalyze/HMDCrashContentAnalyze.h",
+    "Heimdallr/Classes/CrashCapture/Private/Exception/HMDCrashContentAnalyze/HMDCrashContentAnalyzeBase.h",
+    "Heimdallr/Classes/CrashCapture/Private/Exception/HMDCrashContentAnalyze/HMDCrashDictionaryAnalyze.h",
+    "Heimdallr/Classes/CrashCapture/Private/Exception/HMDCrashContentAnalyze/HMDCrashStringAnalyze.h",
+    "Heimdallr/Classes/CrashCapture/Private/Exception/HMDCrashContentAnalyze/HMDCrashURLAnalyze.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Detect/Exception/HMDCrashException.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Detect/Exception/HMDCrashExceptionExtend.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Detect/Exception/HMDCrashException_Namespace.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Detect/Exception/HMDCrashOnceCatch/HMDCrashOnceCatch.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Detect/HMDCrashDetect_Private.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Detect/Internal/CPP/HMDCrashDetectCPP.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Detect/Internal/Mach/HMDCrashDetectMach.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Detect/Internal/Shared/HMDCrashDeadLockMonitor.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Detect/Internal/Shared/HMDCrashDetectShared.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Detect/Internal/Signal/HMDCrashDetectFatalSignal.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Directory/HMDCrashDirectory+Private.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Directory/HMDCrashDirectory_LowLevel.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Environment/BinaryImage/HMDCrashImages.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Environment/BinaryImage/HMDCrashImagesState.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Environment/DynamicData/HMDCrashDynamicData.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Environment/HMDCrashEnviroment.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/HMDCrashFlag.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/HMDCrashKit+Internal.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/HMDCrashReportInfo.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Utils/HMDCrashAddressAnalyze.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Utils/HMDCrashAsyncContainer.hpp",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Utils/HMDCrashDebugAssert.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Utils/HMDCrashHeader.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Utils/HMDCrashHeader_Public.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Utils/HMDCrashRegionFile.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Utils/HMDCrashVMRegionDescription.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Utils/HMDMachExceptionUtility.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Utils/HMDObjcRuntime.h",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Utils/hmd_cpp_exception.hpp",
+    "Heimdallr/Classes/CrashCapture/Public/HMDCrashAppGroupURL.h",
+    "Heimdallr/Classes/CrashCapture/Public/HMDCrashCallback.h",
+    "Heimdallr/Classes/CrashCapture/Public/HMDCrashDetect.h",
+    "Heimdallr/Classes/CrashCapture/Public/HMDCrashDirectory.h",
+    "Heimdallr/Classes/CrashCapture/Public/HMDCrashExtraDynamicData.h",
+    "Heimdallr/Classes/CrashCapture/Public/HMDCrashKit.h",
+    "Heimdallr/Classes/CrashCapture/Public/HMDCrashKitSwitch.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CrashCapture_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CrashCapture_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CrashCapture_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "CrashCapture_module_map",
+  module_map = "pod_support/Headers/Public/HeimdallrForExtension/HeimdallrForExtension_CrashCapture-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/HeimdallrForExtension/HeimdallrForExtension_CrashCapture-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CrashCapture_srcs",
+  srcs = [
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Utils/hmd_cpp_exception.cpp",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Utils/HMDCrashAddressAnalyze.c",
+    "Heimdallr/Classes/CrashCapture/Public/HMDCrashAppGroupURL.m",
+    "Heimdallr/Classes/CrashCapture/Private/Exception/HMDCrashContentAnalyze/HMDCrashArrayAnalyze.c",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Utils/HMDCrashAsyncContainer.cpp",
+    "Heimdallr/Classes/CrashCapture/Public/HMDCrashCallback.m",
+    "Heimdallr/Classes/CrashCapture/Private/Exception/HMDCrashContentAnalyze/HMDCrashContentAnalyze.c",
+    "Heimdallr/Classes/CrashCapture/Private/Exception/HMDCrashContentAnalyze/HMDCrashContentAnalyzeBase.c",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Detect/Internal/Shared/HMDCrashDeadLockMonitor.c",
+    "Heimdallr/Classes/CrashCapture/Public/HMDCrashDetect.c",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Detect/Internal/CPP/HMDCrashDetectCPP.mm",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Detect/Internal/Signal/HMDCrashDetectFatalSignal.c",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Detect/Internal/Mach/HMDCrashDetectMach.c",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Detect/Internal/Shared/HMDCrashDetectShared.c",
+    "Heimdallr/Classes/CrashCapture/Private/Exception/HMDCrashContentAnalyze/HMDCrashDictionaryAnalyze.c",
+    "Heimdallr/Classes/CrashCapture/Public/HMDCrashDirectory.m",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Environment/DynamicData/HMDCrashDynamicData.c",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Environment/HMDCrashEnviroment.m",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Detect/Exception/HMDCrashException.c",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Detect/Exception/HMDCrashExceptionExtend.c",
+    "Heimdallr/Classes/CrashCapture/Public/HMDCrashExtraDynamicData.cpp",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/HMDCrashFlag.c",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Environment/BinaryImage/HMDCrashImages.mm",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Environment/BinaryImage/HMDCrashImagesState.c",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/HMDCrashKit+Internal.m",
+    "Heimdallr/Classes/CrashCapture/Public/HMDCrashKit.m",
+    "Heimdallr/Classes/CrashCapture/Public/HMDCrashKitSwitch.c",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Detect/Exception/HMDCrashOnceCatch/HMDCrashOnceCatch.c",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Utils/HMDCrashRegionFile.c",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/HMDCrashReportInfo.m",
+    "Heimdallr/Classes/CrashCapture/Private/Exception/HMDCrashContentAnalyze/HMDCrashStringAnalyze.c",
+    "Heimdallr/Classes/CrashCapture/Private/Exception/HMDCrashContentAnalyze/HMDCrashURLAnalyze.c",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Utils/HMDCrashVMRegionDescription.c",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Utils/HMDMachExceptionUtility.c",
+    "Heimdallr/Classes/CrashCapture/Private/HMDCrashKit/Utils/HMDObjcRuntime.c"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CrashCapture_oc",
+  enable_modules = 1,
+  srcs = [
+    "CrashCapture_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "CrashCapture_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/CrashCapture-prefix.pch",
+  sdk_dylibs = [
+    "c++abi"
+  ],
+  deps = [
+    ":HeimdallrForExtension_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":HeimdallrForExtension_private_includes",
+    ":HeimdallrForExtension_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTMacroManager//:TTMacroManager_objc_interface",
+    "@TTMacroManager//:TTMacroManager_swift_interface",
+    ":CrashCapture_objc_interface",
+    "@TTMacroManager//:TTMacroManager_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DHeimdallrForExtension_POD_VERSION=@\\\"9999_0.0.2-alpha.9\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CrashCapture",
+  deps = [
+    ":CrashCapture_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "CrashCapture_lib",
+  deps = [
+    ":CrashCapture"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CrashDetector_hdrs",
+  srcs = [
+    "Heimdallr/Classes/CrashDetector/Private/HMDCrashDynamicDataProvider.h",
+    "Heimdallr/Classes/CrashDetector/Public/HMDCrashConfig.h",
+    "Heimdallr/Classes/CrashDetector/Public/HMDCrashTracker.h",
+    "Heimdallr/Classes/CrashDetector/Public/HMDExtensionCrashTracker.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CrashDetector_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CrashDetector_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CrashDetector_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "CrashDetector_module_map",
+  module_map = "pod_support/Headers/Public/HeimdallrForExtension/HeimdallrForExtension_CrashDetector-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/HeimdallrForExtension/HeimdallrForExtension_CrashDetector-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "CrashDetector_srcs",
+  srcs = [
+    "Heimdallr/Classes/CrashDetector/Public/HMDCrashConfig.m",
+    "Heimdallr/Classes/CrashDetector/Private/HMDCrashDynamicDataProvider.m",
+    "Heimdallr/Classes/CrashDetector/Public/HMDCrashTracker.mm",
+    "Heimdallr/Classes/CrashDetector/Public/HMDExtensionCrashTracker.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "CrashDetector_oc",
+  enable_modules = 1,
+  srcs = [
+    "CrashDetector_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "CrashDetector_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/CrashDetector-prefix.pch",
+  deps = [
+    ":HeimdallrForExtension_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":HeimdallrForExtension_private_includes",
+    ":HeimdallrForExtension_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@BDFishhook//:BDFishhook_objc_interface",
+    "@BDFishhook//:BDFishhook_swift_interface",
+    ":CrashDetector_objc_interface",
+    "@BDFishhook//:BDFishhook_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DHeimdallrForExtension_POD_VERSION=@\\\"9999_0.0.2-alpha.9\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "CrashDetector",
+  deps = [
+    ":CrashDetector_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "CrashDetector_lib",
+  deps = [
+    ":CrashDetector"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_hdrs",
+  srcs = [
+    "Heimdallr/Classes/Core/Private/HMDServiceContext/HMDServiceContext.h",
+    "Heimdallr/Classes/Core/Private/HMDServiceContext/HMDServiceProtocol/HMDEvilMethodServiceProtocol.h",
+    "Heimdallr/Classes/Core/Private/HMDServiceContext/HMDServiceProtocol/HMDFrameDropServiceProtocol.h",
+    "Heimdallr/Classes/Core/Private/HMDServiceContext/HMDServiceProtocol/HMDTTMonitorServiceProtocol.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Core_module_map",
+  module_map = "pod_support/Headers/Public/HeimdallrForExtension/HeimdallrForExtension_Core-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/HeimdallrForExtension/HeimdallrForExtension_Core-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "Core_srcs",
+  srcs = [
+    "Heimdallr/Classes/Core/Private/HMDServiceContext/HMDServiceContext.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "Core_oc",
+  enable_modules = 1,
+  srcs = [
+    "Core_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "Core_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/Core-prefix.pch",
+  deps = [
+    ":HeimdallrForExtension_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":HeimdallrForExtension_private_includes",
+    ":HeimdallrForExtension_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":Core_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DHeimdallrForExtension_POD_VERSION=@\\\"9999_0.0.2-alpha.9\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "Core",
+  deps = [
+    ":Core_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "Core_lib",
+  deps = [
+    ":Core"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DeviceInfo_hdrs",
+  srcs = [
+    "Heimdallr/Classes/DeviceInfo/Private/HMDDeviceTool.h",
+    "Heimdallr/Classes/DeviceInfo/Private/HMDInfo+AppInfo.h",
+    "Heimdallr/Classes/DeviceInfo/Private/HMDInfo+AutoTestInfo.h",
+    "Heimdallr/Classes/DeviceInfo/Private/HMDInfo+CustomInfo.h",
+    "Heimdallr/Classes/DeviceInfo/Private/HMDInfo+DeviceInfo.h",
+    "Heimdallr/Classes/DeviceInfo/Private/HMDInfo.h",
+    "Heimdallr/Classes/DeviceInfo/Public/HMDInjectedInfo.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DeviceInfo_pod_hdrs",
+  srcs = [],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DeviceInfo_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DeviceInfo_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "DeviceInfo_module_map",
+  module_map = "pod_support/Headers/Public/HeimdallrForExtension/HeimdallrForExtension_DeviceInfo-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/HeimdallrForExtension/HeimdallrForExtension_DeviceInfo-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "DeviceInfo_srcs",
+  srcs = [
+    "Heimdallr/Classes/DeviceInfo/Private/HMDDeviceTool.c",
+    "Heimdallr/Classes/DeviceInfo/Private/HMDInfo+AppInfo.m",
+    "Heimdallr/Classes/DeviceInfo/Private/HMDInfo+AutoTestInfo.m",
+    "Heimdallr/Classes/DeviceInfo/Private/HMDInfo+CustomInfo.m",
+    "Heimdallr/Classes/DeviceInfo/Private/HMDInfo+DeviceInfo.m",
+    "Heimdallr/Classes/DeviceInfo/Private/HMDInfo.m",
+    "Heimdallr/Classes/DeviceInfo/Public/HMDInjectedInfo.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "DeviceInfo_oc",
+  enable_modules = 1,
+  srcs = [
+    "DeviceInfo_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "DeviceInfo_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/DeviceInfo-prefix.pch",
+  deps = [
+    ":HeimdallrForExtension_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":HeimdallrForExtension_private_includes",
+    ":HeimdallrForExtension_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    "@TTReachability//:TTReachability_objc_interface",
+    "@TTReachability//:TTReachability_swift_interface",
+    ":DeviceInfo_objc_interface",
+    "@TTReachability//:TTReachability_module_map"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DHeimdallrForExtension_POD_VERSION=@\\\"9999_0.0.2-alpha.9\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "DeviceInfo",
+  deps = [
+    ":DeviceInfo_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "DeviceInfo_lib",
+  deps = [
+    ":DeviceInfo"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "HMDDyldExtension_hdrs",
+  srcs = [
+    "Heimdallr/Classes/HMDDyldExtension/Public/HMDDyldExtension.h",
+    "Heimdallr/Classes/HMDDyldExtension/Public/HMDDyldPreloadInfo.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "HMDDyldExtension_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/HeimdallrForExtension/HMDDyldExtension.h",
+    "pod_support/Headers/Private/HeimdallrForExtension/HMDDyldPreloadInfo.h",
+    "pod_support/Headers/Public/HeimdallrForExtension/HMDDyldExtension.h",
+    "pod_support/Headers/Public/HeimdallrForExtension/HMDDyldPreloadInfo.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "HMDDyldExtension_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "HMDDyldExtension_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "HMDDyldExtension_module_map",
+  module_map = "pod_support/Headers/Public/HeimdallrForExtension/HeimdallrForExtension_HMDDyldExtension-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/HeimdallrForExtension/HeimdallrForExtension_HMDDyldExtension-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "HMDDyldExtension_srcs",
+  srcs = [
+    "Heimdallr/Classes/HMDDyldExtension/Public/HMDDyldExtension.m",
+    "Heimdallr/Classes/HMDDyldExtension/Public/HMDDyldPreloadInfo.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "HMDDyldExtension_oc",
+  enable_modules = 1,
+  srcs = [
+    "HMDDyldExtension_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "HMDDyldExtension_hdrs"
+  ],
+  pch = "pod_support/Headers/Private/HMDDyldExtension-prefix.pch",
+  deps = [
+    ":HeimdallrForExtension_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":HeimdallrForExtension_private_includes",
+    ":HeimdallrForExtension_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":HMDDyldExtension_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DHeimdallrForExtension_POD_VERSION=@\\\"9999_0.0.2-alpha.9\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "HMDDyldExtension",
+  deps = [
+    ":HMDDyldExtension_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "HMDDyldExtension_lib",
+  deps = [
+    ":HMDDyldExtension"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_HeimdallrForExtension_module_map",
+  module_map = "@HeimdallrForExtension//:pod_support/Headers/Public/HeimdallrForExtension/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@HeimdallrForExtension//:pod_support/Headers/Public/HeimdallrForExtension/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_HeimdallrForExtension_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@HeimdallrForExtension//:HMDDyldExtension_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_HeimdallrForExtension",
+  target_name = "Lark",
+  module_name = "HeimdallrForExtension",
+  hdrs = ["@HeimdallrForExtension//:HMDDyldExtension_pod_hdrs"],
+  srcs = ["@HeimdallrForExtension//:HMDDyldExtension_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DHeimdallrForExtension_POD_VERSION=@\\\"9999_0.0.2-alpha.9\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "HeimdallrForExtension_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "HeimdallrForExtension_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "HeimdallrForExtension_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "HeimdallrForExtension_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "HeimdallrForExtension_dynamic", False),
+  tags = getattr(defs_external_objc_library, "HeimdallrForExtension_tags", []),
+  pch = "pod_support/Headers/Private/Lark_HeimdallrForExtension-prefix.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("HeimdallrForExtension", {}),
+  visibility = ["//visibility:public"],
+)
+module_map(
+  name = "NotificationServiceExtension_HeimdallrForExtension_module_map",
+  module_map = "@HeimdallrForExtension//:pod_support/Headers/Public/HeimdallrForExtension/NotificationServiceExtension-bitsky-generated.modulemap",
+  umbrella_hdr = "@HeimdallrForExtension//:pod_support/Headers/Public/HeimdallrForExtension/NotificationServiceExtension-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "NotificationServiceExtension_HeimdallrForExtension_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@HeimdallrForExtension//:HMDDyldExtension_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "NotificationServiceExtension_HeimdallrForExtension",
+  target_name = "NotificationServiceExtension",
+  module_name = "HeimdallrForExtension",
+  hdrs = ["@HeimdallrForExtension//:HMDDyldExtension_pod_hdrs"],
+  srcs = ["@HeimdallrForExtension//:HMDDyldExtension_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-DHeimdallrForExtension_POD_VERSION=@\\\"9999_0.0.2-alpha.9\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "HeimdallrForExtension_copts", []) + getattr(defs_extension_objc_library, "copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "HeimdallrForExtension_cxxopts", []) + getattr(defs_extension_objc_library, "cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = [],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "HeimdallrForExtension_features", []) + getattr(defs_extension_objc_library, "features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "HeimdallrForExtension_features", []) + getattr(defs_extension_swift_library, "features", []),
+  link_dynamic = getattr(defs_external_objc_library, "HeimdallrForExtension_dynamic", False),
+  tags = getattr(defs_external_objc_library, "HeimdallrForExtension_tags", []),
+  pch = "pod_support/Headers/Private/NotificationServiceExtension_HeimdallrForExtension-prefix.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("HeimdallrForExtension", {}),
+  visibility = ["//visibility:public"],
+)

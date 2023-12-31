@@ -1,0 +1,30 @@
+{
+  "name": "RxSwift",
+  "version": "5.1.1",
+  "summary": "RxSwift is a Swift implementation of Reactive Extensions",
+  "description": "This is a Swift port of [ReactiveX.io](https://github.com/ReactiveX)\n\nLike the original [Rx](https://github.com/Reactive-extensions/Rx.Net), its intention is to enable easy composition of asynchronous operations and event streams.\n\nIt tries to port as many concepts from the original Rx as possible, but some concepts were adapted for more pleasant and performant integration with iOS/macOS/Linux environment.\n\nProbably the best analogy for those who have never heard of Rx would be:\n\n```\ngit diff | grep bug | less          #  linux pipes - programs communicate by sending\n\t\t\t\t    #  sequences of bytes, words, lines, '\u0000' terminated strings...\n```\nwould become if written in RxSwift\n```\ngitDiff().grep(\"bug\").less          // sequences of swift objects\n```",
+  "homepage": "https://github.com/ReactiveX/RxSwift",
+  "license": "MIT",
+  "authors": {
+    "Krunoslav Zaher": "krunoslav.zaher@gmail.com"
+  },
+  "source": {
+    "http": "http://tosv.byted.org/obj/ee-infra-ios/RxSwift_7502e8e6f84d68763f9cf27ee47f0983-b0e2bbb0.zip",
+    "sha256": "a78ef7e2a414658a8b306325af7ef64ed53e3e12d78e1a9d19b20306fc9eeb74"
+  },
+  "requires_arc": true,
+  "platforms": {
+    "ios": "8.0",
+    "osx": "10.9",
+    "watchos": "3.0",
+    "tvos": "9.0"
+  },
+  "source_files": [
+    "RxSwift/**/*.swift",
+    "Platform/**/*.swift"
+  ],
+  "exclude_files": "RxSwift/Platform/**/*.swift",
+  "swift_versions": "5.0",
+  "development_status_md5": "7502e8e6f84d68763f9cf27ee47f0983",
+  "swift_version": "5.0"
+}

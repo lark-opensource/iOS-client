@@ -1,0 +1,1 @@
+../../../../CreativeKit/CameraArch/Tools/Device/UIDevice+ACCHardware.h

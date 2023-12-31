@@ -1,0 +1,633 @@
+load('@build_bazel_rules_apple//apple:ios.bzl', 'ios_static_framework')
+load(
+  "@rules_pods//BazelExtensions:extensions.bzl",
+  "gen_includes",
+  "module_map",
+  "gen_hmapsource",
+  "gen_hmap",
+  "run_script_phase",
+  "objc_package",
+  "resource_provider",
+  "uniq_filegroup"
+)
+load('@main_project//.bitsky/common:bitsky_common.bzl', 'defs_package_features', 'defs_external_objc_library', 'defs_external_swift_library', 'defs_extension_objc_library', 'defs_extension_swift_library', 'define_minimum_os_version')
+package(features = defs_package_features)
+# Add a config setting release for compilation mode
+# Assume that people are using `opt` for release mode
+# see the bazel user manual for more information
+# https://docs.bazel.build/versions/master/be/general.html#config_setting
+load(
+  "@bazel_skylib//lib:selects.bzl",
+  "selects"
+)
+config_setting(
+  name = "release",
+  values = {
+    "compilation_mode": "opt"
+  }
+)
+config_setting(
+  name = "iosCase",
+  values = {
+    "apple_platform_type": "ios"
+  }
+)
+config_setting(
+  name = "osxCase",
+  values = {
+    "apple_platform_type": "macos"
+  }
+)
+config_setting(
+  name = "tvosCase",
+  values = {
+    "apple_platform_type": "tvos"
+  }
+)
+config_setting(
+  name = "watchosCase",
+  values = {
+    "apple_platform_type": "watchos"
+  }
+)
+config_setting(
+  name = "x86_64",
+  values = {
+    "ios_multi_cpus": "x86_64"
+  }
+)
+config_setting(
+  name = "i386",
+  values = {
+    "ios_multi_cpus": "i386"
+  }
+)
+config_setting(
+  name = "armv7",
+  values = {
+    "ios_multi_cpus": "armv7"
+  }
+)
+config_setting(
+  name = "arm64",
+  values = {
+    "ios_multi_cpus": "arm64"
+  }
+)
+config_setting(
+  name = "sim_arm64",
+  values = {
+    "ios_multi_cpus": "sim_arm64"
+  }
+)
+selects.config_setting_group(
+  name = "sim_archs",
+  match_any = [
+    ":x86_64",
+    ":i386",
+    ":sim_arm64"
+  ]
+)
+selects.config_setting_group(
+  name = "x86",
+  match_any = [
+    ":x86_64",
+    ":i386"
+  ]
+)
+selects.config_setting_group(
+  name = "arm",
+  match_any = [
+    ":arm64",
+    ":armv7"
+  ]
+)
+selects.config_setting_group(
+  name = "iosDevice",
+  match_all = [
+    ":arm",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "iosSimulator",
+  match_all = [
+    ":sim_archs",
+    ":iosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosDevice",
+  match_all = [
+    ":arm",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "watchosSimulator",
+  match_all = [
+    ":x86",
+    ":watchosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosDevice",
+  match_all = [
+    ":arm",
+    ":tvosCase"
+  ]
+)
+selects.config_setting_group(
+  name = "tvosSimulator",
+  match_all = [
+    ":x86",
+    ":tvosCase"
+  ]
+)
+filegroup(
+  name = "lottie-ios_pod_hdrs",
+  srcs = [
+    ":lottie-ios_root_pod_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+
+gen_includes(
+  name = "lottie-ios_private_includes",
+  include = [
+    "external/lottie-ios/pod_support/Headers/Private/lottie-ios/"
+  ],
+  deps = [],
+  external_name = "lottie-ios"
+)
+gen_includes(
+  name = "lottie-ios_public_includes",
+  include = [
+    "external/lottie-ios/pod_support/Headers/Public/lottie-ios/"
+  ],
+  deps = [],
+  external_name = "lottie-ios"
+)
+filegroup(
+  name = "_lottie-ios_hdrs",
+  srcs = [
+    ":lottie-ios_root_hdrs"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmapsource(
+  name = "lottie-ios_xcode_hmapsource",
+  hdrs = [
+    ":_lottie-ios_hdrs"
+  ],
+  namespace = False,
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_hmap(
+  name = "lottie-ios_xcode_hmap",
+  dep = ":lottie-ios_xcode_hmapsource",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+exports_files(glob(["pod_support/Headers/Public/lottie-ios/*-bitsky-generated.modulemap", "pod_support/Headers/Public/lottie-ios/*-bitsky-generated-umbrella.h"]))
+gen_includes(
+  name = "lottie-ios_custom_includes",
+  include = [
+    "external/Protobuf/objectivec"
+  ],
+  include_files = [],
+  external_name = "lottie-ios",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+gen_includes(
+  name = "lottie-ios_xcode_hmap_includes",
+  include = [],
+  include_files = [
+    ":lottie-ios_xcode_hmap"
+  ],
+  external_name = "lottie-ios",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "lottie-ios_root_hdrs",
+  srcs = [
+    "lottie-ios/Classes/AnimatableLayers/LOTCompositionContainer.h",
+    "lottie-ios/Classes/AnimatableLayers/LOTLayerContainer.h",
+    "lottie-ios/Classes/AnimatableLayers/LOTMaskContainer.h",
+    "lottie-ios/Classes/AnimatableProperties/LOTBezierData.h",
+    "lottie-ios/Classes/AnimatableProperties/LOTKeyframe.h",
+    "lottie-ios/Classes/Extensions/CGGeometry+LOTAdditions.h",
+    "lottie-ios/Classes/Extensions/LOTBezierPath.h",
+    "lottie-ios/Classes/Extensions/LOTHelpers.h",
+    "lottie-ios/Classes/Extensions/LOTRadialGradientLayer.h",
+    "lottie-ios/Classes/Extensions/UIColor+Expanded.h",
+    "lottie-ios/Classes/MacCompatibility/CALayer+Compat.h",
+    "lottie-ios/Classes/MacCompatibility/LOTPlatformCompat.h",
+    "lottie-ios/Classes/MacCompatibility/NSValue+Compat.h",
+    "lottie-ios/Classes/MacCompatibility/UIBezierPath.h",
+    "lottie-ios/Classes/MacCompatibility/UIColor.h",
+    "lottie-ios/Classes/Models/LOTAsset.h",
+    "lottie-ios/Classes/Models/LOTAssetGroup.h",
+    "lottie-ios/Classes/Models/LOTLayer.h",
+    "lottie-ios/Classes/Models/LOTLayerGroup.h",
+    "lottie-ios/Classes/Models/LOTMask.h",
+    "lottie-ios/Classes/Models/LOTModels.h",
+    "lottie-ios/Classes/Models/LOTShapeCircle.h",
+    "lottie-ios/Classes/Models/LOTShapeFill.h",
+    "lottie-ios/Classes/Models/LOTShapeGradientFill.h",
+    "lottie-ios/Classes/Models/LOTShapeGroup.h",
+    "lottie-ios/Classes/Models/LOTShapePath.h",
+    "lottie-ios/Classes/Models/LOTShapeRectangle.h",
+    "lottie-ios/Classes/Models/LOTShapeRepeater.h",
+    "lottie-ios/Classes/Models/LOTShapeStar.h",
+    "lottie-ios/Classes/Models/LOTShapeStroke.h",
+    "lottie-ios/Classes/Models/LOTShapeTransform.h",
+    "lottie-ios/Classes/Models/LOTShapeTrimPath.h",
+    "lottie-ios/Classes/Private/LOTAnimationView_Internal.h",
+    "lottie-ios/Classes/PublicHeaders/LOTAnimatedControl.h",
+    "lottie-ios/Classes/PublicHeaders/LOTAnimatedSwitch.h",
+    "lottie-ios/Classes/PublicHeaders/LOTAnimationCache.h",
+    "lottie-ios/Classes/PublicHeaders/LOTAnimationDelegate.h",
+    "lottie-ios/Classes/PublicHeaders/LOTAnimationTransitionController.h",
+    "lottie-ios/Classes/PublicHeaders/LOTAnimationView.h",
+    "lottie-ios/Classes/PublicHeaders/LOTAnimationView_Compat.h",
+    "lottie-ios/Classes/PublicHeaders/LOTBlockCallback.h",
+    "lottie-ios/Classes/PublicHeaders/LOTCacheProvider.h",
+    "lottie-ios/Classes/PublicHeaders/LOTComposition.h",
+    "lottie-ios/Classes/PublicHeaders/LOTInterpolatorCallback.h",
+    "lottie-ios/Classes/PublicHeaders/LOTKeypath.h",
+    "lottie-ios/Classes/PublicHeaders/LOTValueCallback.h",
+    "lottie-ios/Classes/PublicHeaders/LOTValueDelegate.h",
+    "lottie-ios/Classes/PublicHeaders/Lottie.h",
+    "lottie-ios/Classes/RenderSystem/AnimatorNodes/LOTCircleAnimator.h",
+    "lottie-ios/Classes/RenderSystem/AnimatorNodes/LOTPathAnimator.h",
+    "lottie-ios/Classes/RenderSystem/AnimatorNodes/LOTPolygonAnimator.h",
+    "lottie-ios/Classes/RenderSystem/AnimatorNodes/LOTPolystarAnimator.h",
+    "lottie-ios/Classes/RenderSystem/AnimatorNodes/LOTRoundedRectAnimator.h",
+    "lottie-ios/Classes/RenderSystem/InterpolatorNodes/LOTArrayInterpolator.h",
+    "lottie-ios/Classes/RenderSystem/InterpolatorNodes/LOTColorInterpolator.h",
+    "lottie-ios/Classes/RenderSystem/InterpolatorNodes/LOTNumberInterpolator.h",
+    "lottie-ios/Classes/RenderSystem/InterpolatorNodes/LOTPathInterpolator.h",
+    "lottie-ios/Classes/RenderSystem/InterpolatorNodes/LOTPointInterpolator.h",
+    "lottie-ios/Classes/RenderSystem/InterpolatorNodes/LOTSizeInterpolator.h",
+    "lottie-ios/Classes/RenderSystem/InterpolatorNodes/LOTTransformInterpolator.h",
+    "lottie-ios/Classes/RenderSystem/InterpolatorNodes/LOTValueInterpolator.h",
+    "lottie-ios/Classes/RenderSystem/LOTAnimatorNode.h",
+    "lottie-ios/Classes/RenderSystem/LOTRenderNode.h",
+    "lottie-ios/Classes/RenderSystem/ManipulatorNodes/LOTTrimPathNode.h",
+    "lottie-ios/Classes/RenderSystem/RenderNodes/LOTFillRenderer.h",
+    "lottie-ios/Classes/RenderSystem/RenderNodes/LOTGradientFillRender.h",
+    "lottie-ios/Classes/RenderSystem/RenderNodes/LOTRenderGroup.h",
+    "lottie-ios/Classes/RenderSystem/RenderNodes/LOTRepeaterRenderer.h",
+    "lottie-ios/Classes/RenderSystem/RenderNodes/LOTStrokeRenderer.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "lottie-ios_root_pod_hdrs",
+  srcs = [
+    "pod_support/Headers/Private/lottie-ios/Lottie/CALayer+Compat.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/CGGeometry+LOTAdditions.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTAnimatedControl.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTAnimatedSwitch.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTAnimationCache.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTAnimationDelegate.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTAnimationTransitionController.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTAnimationView.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTAnimationView_Compat.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTAnimationView_Internal.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTAnimatorNode.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTArrayInterpolator.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTAsset.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTAssetGroup.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTBezierData.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTBezierPath.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTBlockCallback.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTCacheProvider.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTCircleAnimator.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTColorInterpolator.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTComposition.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTCompositionContainer.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTFillRenderer.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTGradientFillRender.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTHelpers.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTInterpolatorCallback.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTKeyframe.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTKeypath.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTLayer.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTLayerContainer.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTLayerGroup.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTMask.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTMaskContainer.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTModels.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTNumberInterpolator.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTPathAnimator.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTPathInterpolator.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTPlatformCompat.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTPointInterpolator.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTPolygonAnimator.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTPolystarAnimator.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTRadialGradientLayer.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTRenderGroup.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTRenderNode.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTRepeaterRenderer.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTRoundedRectAnimator.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTShapeCircle.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTShapeFill.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTShapeGradientFill.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTShapeGroup.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTShapePath.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTShapeRectangle.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTShapeRepeater.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTShapeStar.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTShapeStroke.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTShapeTransform.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTShapeTrimPath.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTSizeInterpolator.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTStrokeRenderer.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTTransformInterpolator.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTTrimPathNode.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTValueCallback.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTValueDelegate.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/LOTValueInterpolator.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/Lottie.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/NSValue+Compat.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/UIBezierPath.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/UIColor+Expanded.h",
+    "pod_support/Headers/Private/lottie-ios/Lottie/UIColor.h",
+    "pod_support/Headers/Public/lottie-ios/Lottie/LOTAnimatedControl.h",
+    "pod_support/Headers/Public/lottie-ios/Lottie/LOTAnimatedSwitch.h",
+    "pod_support/Headers/Public/lottie-ios/Lottie/LOTAnimationCache.h",
+    "pod_support/Headers/Public/lottie-ios/Lottie/LOTAnimationDelegate.h",
+    "pod_support/Headers/Public/lottie-ios/Lottie/LOTAnimationTransitionController.h",
+    "pod_support/Headers/Public/lottie-ios/Lottie/LOTAnimationView.h",
+    "pod_support/Headers/Public/lottie-ios/Lottie/LOTAnimationView_Compat.h",
+    "pod_support/Headers/Public/lottie-ios/Lottie/LOTBlockCallback.h",
+    "pod_support/Headers/Public/lottie-ios/Lottie/LOTCacheProvider.h",
+    "pod_support/Headers/Public/lottie-ios/Lottie/LOTComposition.h",
+    "pod_support/Headers/Public/lottie-ios/Lottie/LOTInterpolatorCallback.h",
+    "pod_support/Headers/Public/lottie-ios/Lottie/LOTKeypath.h",
+    "pod_support/Headers/Public/lottie-ios/Lottie/LOTValueCallback.h",
+    "pod_support/Headers/Public/lottie-ios/Lottie/LOTValueDelegate.h",
+    "pod_support/Headers/Public/lottie-ios/Lottie/Lottie.h"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "lottie-ios_swift_interface",
+  deps = [],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "lottie-ios_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  copts = select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "lottie-ios_module_map",
+  module_map = "pod_support/Headers/Public/lottie-ios/lottie-ios-bazel-generated.modulemap",
+  umbrella_hdr = "pod_support/Headers/Public/lottie-ios/lottie-ios-bazel-generated-umbrella.h",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+filegroup(
+  name = "lottie-ios_root_srcs",
+  srcs = [
+    "lottie-ios/Classes/MacCompatibility/CALayer+Compat.m",
+    "lottie-ios/Classes/Extensions/CGGeometry+LOTAdditions.m",
+    "lottie-ios/Classes/Private/LOTAnimatedControl.m",
+    "lottie-ios/Classes/Private/LOTAnimatedSwitch.m",
+    "lottie-ios/Classes/Private/LOTAnimationCache.m",
+    "lottie-ios/Classes/Private/LOTAnimationTransitionController.m",
+    "lottie-ios/Classes/Private/LOTAnimationView.m",
+    "lottie-ios/Classes/RenderSystem/LOTAnimatorNode.m",
+    "lottie-ios/Classes/RenderSystem/InterpolatorNodes/LOTArrayInterpolator.m",
+    "lottie-ios/Classes/Models/LOTAsset.m",
+    "lottie-ios/Classes/Models/LOTAssetGroup.m",
+    "lottie-ios/Classes/AnimatableProperties/LOTBezierData.m",
+    "lottie-ios/Classes/Extensions/LOTBezierPath.m",
+    "lottie-ios/Classes/Private/LOTBlockCallback.m",
+    "lottie-ios/Classes/Private/LOTCacheProvider.m",
+    "lottie-ios/Classes/RenderSystem/AnimatorNodes/LOTCircleAnimator.m",
+    "lottie-ios/Classes/RenderSystem/InterpolatorNodes/LOTColorInterpolator.m",
+    "lottie-ios/Classes/Private/LOTComposition.m",
+    "lottie-ios/Classes/AnimatableLayers/LOTCompositionContainer.m",
+    "lottie-ios/Classes/RenderSystem/RenderNodes/LOTFillRenderer.m",
+    "lottie-ios/Classes/RenderSystem/RenderNodes/LOTGradientFillRender.m",
+    "lottie-ios/Classes/Private/LOTInterpolatorCallback.m",
+    "lottie-ios/Classes/AnimatableProperties/LOTKeyframe.m",
+    "lottie-ios/Classes/Private/LOTKeypath.m",
+    "lottie-ios/Classes/Models/LOTLayer.m",
+    "lottie-ios/Classes/AnimatableLayers/LOTLayerContainer.m",
+    "lottie-ios/Classes/Models/LOTLayerGroup.m",
+    "lottie-ios/Classes/Models/LOTMask.m",
+    "lottie-ios/Classes/AnimatableLayers/LOTMaskContainer.m",
+    "lottie-ios/Classes/RenderSystem/InterpolatorNodes/LOTNumberInterpolator.m",
+    "lottie-ios/Classes/RenderSystem/AnimatorNodes/LOTPathAnimator.m",
+    "lottie-ios/Classes/RenderSystem/InterpolatorNodes/LOTPathInterpolator.m",
+    "lottie-ios/Classes/RenderSystem/InterpolatorNodes/LOTPointInterpolator.m",
+    "lottie-ios/Classes/RenderSystem/AnimatorNodes/LOTPolygonAnimator.m",
+    "lottie-ios/Classes/RenderSystem/AnimatorNodes/LOTPolystarAnimator.m",
+    "lottie-ios/Classes/Extensions/LOTRadialGradientLayer.m",
+    "lottie-ios/Classes/RenderSystem/RenderNodes/LOTRenderGroup.m",
+    "lottie-ios/Classes/RenderSystem/LOTRenderNode.m",
+    "lottie-ios/Classes/RenderSystem/RenderNodes/LOTRepeaterRenderer.m",
+    "lottie-ios/Classes/RenderSystem/AnimatorNodes/LOTRoundedRectAnimator.m",
+    "lottie-ios/Classes/Models/LOTShapeCircle.m",
+    "lottie-ios/Classes/Models/LOTShapeFill.m",
+    "lottie-ios/Classes/Models/LOTShapeGradientFill.m",
+    "lottie-ios/Classes/Models/LOTShapeGroup.m",
+    "lottie-ios/Classes/Models/LOTShapePath.m",
+    "lottie-ios/Classes/Models/LOTShapeRectangle.m",
+    "lottie-ios/Classes/Models/LOTShapeRepeater.m",
+    "lottie-ios/Classes/Models/LOTShapeStar.m",
+    "lottie-ios/Classes/Models/LOTShapeStroke.m",
+    "lottie-ios/Classes/Models/LOTShapeTransform.m",
+    "lottie-ios/Classes/Models/LOTShapeTrimPath.m",
+    "lottie-ios/Classes/RenderSystem/InterpolatorNodes/LOTSizeInterpolator.m",
+    "lottie-ios/Classes/RenderSystem/RenderNodes/LOTStrokeRenderer.m",
+    "lottie-ios/Classes/RenderSystem/InterpolatorNodes/LOTTransformInterpolator.m",
+    "lottie-ios/Classes/RenderSystem/ManipulatorNodes/LOTTrimPathNode.m",
+    "lottie-ios/Classes/Private/LOTValueCallback.m",
+    "lottie-ios/Classes/RenderSystem/InterpolatorNodes/LOTValueInterpolator.m",
+    "lottie-ios/Classes/MacCompatibility/NSValue+Compat.m",
+    "lottie-ios/Classes/MacCompatibility/UIBezierPath.m",
+    "lottie-ios/Classes/Extensions/UIColor+Expanded.m",
+    "lottie-ios/Classes/MacCompatibility/UIColor.m"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_library(
+  name = "lottie-ios_oc",
+  enable_modules = 1,
+  srcs = [
+    "lottie-ios_root_srcs"
+  ],
+  non_arc_srcs = [],
+  hdrs = [
+    "lottie-ios_root_hdrs"
+  ],
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  sdk_frameworks = [
+    "UIKit"
+  ],
+  deps = [
+    ":lottie-ios_xcode_hmap_includes",
+    "@PodHeaders//:PodHeaders_namespace_interface",
+    ":lottie-ios_private_includes",
+    ":lottie-ios_custom_includes",
+    "@PodHeaders//:PodHeaders_public_interface",
+    "@PodHeaders//:PodHeaders_global_objc_interface",
+    ":lottie-ios_objc_interface"
+  ],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dlottie_ios_POD_VERSION=@\\\"9999_2.6.5\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+    "-I."
+  ] + select(
+    {
+      "//conditions:default": [],
+      ":release": []
+    }
+  ),
+  cxxopts = [
+    "-std=gnu++14"
+  ],
+  visibility = [
+    "//visibility:public"
+  ]
+)
+objc_package(
+  name = "lottie-ios",
+  deps = [
+    ":lottie-ios_oc"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+ios_static_framework(
+  name = "lottie-ios_lib",
+  deps = [
+    ":lottie-ios"
+  ],
+  minimum_os_version = "8.0",
+  visibility = [
+    "//visibility:public"
+  ]
+)
+module_map(
+  name = "Lark_lottie-ios_module_map",
+  module_map = "@lottie-ios//:pod_support/Headers/Public/lottie-ios/Lark-bitsky-generated.modulemap",
+  umbrella_hdr = "@lottie-ios//:pod_support/Headers/Public/lottie-ios/Lark-bitsky-generated-umbrella.h",
+  visibility = ["//visibility:public"],
+)
+objc_library(
+  name = "Lark_lottie-ios_objc_interface",
+  enable_modules = 0,
+  srcs = [],
+  non_arc_srcs = [],
+  hdrs = [],
+  deps = ["@lottie-ios//:lottie-ios_objc_interface"],
+  copts = [],
+  visibility = ["//visibility:public"],
+)
+load("@build_bazel_rules_bitsky//rules:framework.bzl", "bitsky_framework")
+load("@main_project//.bitsky/common:bitsky_common.bzl", "defs_xcconfigs")
+bitsky_framework(
+  name = "Lark_lottie-ios",
+  target_name = "Lark",
+  module_name = "Lottie",
+  hdrs = ["@lottie-ios//:lottie-ios_root_pod_hdrs"],
+  srcs = ["@lottie-ios//:lottie-ios_root_srcs"],
+  non_arc_srcs = [],
+  deps = [],
+  pod_deps = [],
+  per_label_options = [],
+  copts = [
+    "-fobjc-weak",
+    "-Wno-unused-command-line-argument",
+    "-Wnon-modular-include-in-framework-module",
+    "-stdlib=libc++",
+    "-DCOCOAPODS=1",
+    "-DOBJC_OLD_DISPATCH_PROTOTYPES=0",
+    "-fdiagnostics-show-note-include-stack",
+    "-fno-common",
+    "-fmessage-length=0",
+    "-fpascal-strings",
+    "-fstrict-aliasing",
+    "-Wno-non-modular-include-in-framework-module",
+    "-Wno-error=non-modular-include-in-framework-module",
+    "-Dlottie_ios_POD_VERSION=@\\\"9999_2.6.5\\\"",
+    "-Wno-documentation",
+    "-Wno-nullability-completeness",
+  ] + select({
+      "//conditions:default": [],
+      ":release": ["-Os",]
+    }) 
+    + getattr(defs_external_objc_library, "common_copts", [])
+    + getattr(defs_external_objc_library, "lottie_ios_copts", []),
+  cxxopts = ["-std=gnu++14", ] + getattr(defs_external_objc_library, "common_cxxopts", []) 
+    + getattr(defs_external_objc_library, "lottie_ios_cxxopts", []),
+  swift_copts = [],
+  sdk_frameworks = ["UIKit"],
+  weak_sdk_frameworks = [],
+  sdk_dylibs = [],
+  data = [],
+  objc_features = [] + getattr(defs_external_objc_library, "common_features", []) 
+    + getattr(defs_external_objc_library, "lottie_ios_features", []),
+  swift_features = [] + getattr(defs_external_swift_library, "common_features", []) 
+    + getattr(defs_external_swift_library, "lottie_ios_features", []),
+  link_dynamic = getattr(defs_external_objc_library, "lottie_ios_dynamic", False),
+  tags = getattr(defs_external_objc_library, "lottie_ios_tags", []),
+  pch = "@rules_pods//BazelExtensions:common.pch",
+  xcconfig_by_build_setting = defs_xcconfigs.get("lottie_ios", {}),
+  visibility = ["//visibility:public"],
+)

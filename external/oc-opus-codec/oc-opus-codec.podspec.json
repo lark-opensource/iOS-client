@@ -1,0 +1,43 @@
+{
+  "name": "oc-opus-codec",
+  "module_name": "OCOpusCodec",
+  "platforms": {
+    "ios": "8.0"
+  },
+  "version": "0.2.9-module",
+  "summary": "Opus 格式音频编码解码器",
+  "homepage": "https://github.com/lichen/oc-opus-codec",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "lichen": "lichen.arthur@bytedance.com"
+  },
+  "source": {
+    "http": "http://tosv.byted.org/obj/ee-infra-ios/oc_opus_codec_904f46baa56acf577b3d9e1bf43dfafa-d33b54e0.tar.xz",
+    "sha256": "075c7fa1a62b9b5645a339d81e45f3543d6ba82a1e1b6b0941aa80258157cbbc"
+  },
+  "public_header_files": [
+    "oc-opus-codec/Classes/OCOpusCodec.h",
+    "oc-opus-codec/Classes/OpusCodec/*.h"
+  ],
+  "source_files": [
+    "oc-opus-codec/Classes/OCOpusCodec.h",
+    "oc-opus-codec/Classes/OpusCodec/*.h",
+    "oc-opus-codec/oc-opus-codec.modulemap"
+  ],
+  "vendored_libraries": [
+    "oc-opus-codec/Classes/opus/lib/libopus.a",
+    "oc-opus-codec/libOCOpusCodec.a"
+  ],
+  "module_map": "oc-opus-codec/oc-opus-codec.modulemap",
+  "libraries": "stdc++",
+  "frameworks": [
+    "UIKit",
+    "AVFoundation",
+    "AudioToolBox"
+  ],
+  "development_status_md5": "904f46baa56acf577b3d9e1bf43dfafa",
+  "development_git_commit": "03a5a71dc9796b55b3c7e8710307a2e9c6c0184a"
+}

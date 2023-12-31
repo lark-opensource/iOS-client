@@ -1,0 +1,155 @@
+{
+  "_bytebus_platform": {
+    "app_id": "9999",
+    "repo_id": "10292"
+  },
+  "authors": {
+    "liushibin": "liushibin@bytedance.com"
+  },
+  "default_subspecs": "CrashDetector",
+  "description": "framework_description",
+  "homepage": "https://code.byted.org/iOS_Library/Heimdallr",
+  "license": {
+    "type": "MIT"
+  },
+  "module_name": "HeimdallrForExtension",
+  "name": "HeimdallrForExtension",
+  "platforms": {
+    "ios": "8.0"
+  },
+  "pod_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "HeimdallrForExtension_POD_VERSION=@\\\"9999_0.0.2-alpha.9\\\""
+  },
+  "prefix_header_file": "HeimdallrForExtension.pch",
+  "repoId": "10292",
+  "source": {
+    "commit": "a4c8a6ed7c8b20f3a84d294e689941b1cacf7b6d",
+    "git": "git@code.byted.org:iOS_Library/Heimdallr.git"
+  },
+  "subspecs": [
+    {
+      "dependencies": {
+        "HeimdallrForExtension/Utility": [],
+        "TTReachability": [
+          "\u003e= 0.8.1"
+        ]
+      },
+      "libraries": "c++",
+      "name": "Network",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/Network/**/{HMDNetworkHelper,HMDNetworkReachability,HMDNetQualityTracker,HMDNetQualityProtocol}.{h,m}"
+    },
+    {
+      "name": "HMDAlogProtocol",
+      "public_header_files": "Heimdallr/Classes/HMDAlogProtocol/Public/**/*.h",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDAlogProtocol/**/*.{h,c,m,mm}"
+    },
+    {
+      "dependencies": {
+        "HeimdallrForExtension/HMDAlogProtocol": [],
+        "HeimdallrForExtension/Utility": []
+      },
+      "libraries": "c++",
+      "name": "Mach",
+      "public_header_files": "Heimdallr/Classes/Mach/Public/**/*.h",
+      "requires_arc": true,
+      "source_files": [
+        "Heimdallr/Classes/Mach/Private/{tools,Backtrace}/**/*.{h,hpp,c,m,mm,cpp}",
+        "Heimdallr/Classes/Mach/Public/**/*.{h,hpp,c,m,mm,cpp}"
+      ]
+    },
+    {
+      "dependencies": {
+        "BDFishhook": [
+          "\u003e= 0.1.1"
+        ],
+        "HeimdallrForExtension/HMDAlogProtocol": [],
+        "TTMacroManager": [
+          "\u003e= 1.1.0"
+        ]
+      },
+      "libraries": "z",
+      "name": "Utility",
+      "public_header_files": "Heimdallr/Classes/Utility/Public/**/*.h",
+      "requires_arc": [
+        "Heimdallr/Classes/Utility/**/ARC/**/*.{m,mm}"
+      ],
+      "source_files": [
+        "Heimdallr/Classes/Utility/**/ARC/{HMDMacro,HMDSwizzle,HMDUserDefaults,NSData+HMDAES,NSData+HMDJSON,NSDictionary+HMDJSON,NSDictionary+HMDSafe,NSNumber+HMDTypeClassify,NSObject+Attributes,NSObject+HMDUtilities,pthread_extended,UIApplication+HMDUtility,HeimdallrUtilities}.{h,c,m,mm,hpp,cpp}",
+        "Heimdallr/Classes/Utility/**/C/{HMDAsyncSafeLinkedList,HMDTimeSepc}.{h,c,m,mm,hpp,cpp}",
+        "Heimdallr/Classes/Utility/**/MRC/{HMDDynamicCall}.{h,m}",
+        "Heimdallr/Classes/Utility/**/**/*.{h,c,m,mm,hpp,cpp}"
+      ]
+    },
+    {
+      "dependencies": {
+        "HeimdallrForExtension/DeviceInfo": [],
+        "HeimdallrForExtension/Mach": [],
+        "HeimdallrForExtension/Network": [],
+        "HeimdallrForExtension/Utility": [],
+        "TTMacroManager": [
+          "\u003e= 1.1.0"
+        ]
+      },
+      "exclude_files": [
+        "Heimdallr/Classes/CrashCapture/**/HMDCrashKit/{Process,Upload}/**/*.{h,hpp,c,m,mm,cpp}"
+      ],
+      "libraries": "c++abi",
+      "name": "CrashCapture",
+      "public_header_files": "Heimdallr/Classes/CrashCapture/Public/**/*.h",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/CrashCapture/**/*.{h,hpp,c,m,mm,cpp}"
+    },
+    {
+      "dependencies": {
+        "BDFishhook": [
+          "\u003e= 0.1.1"
+        ],
+        "HeimdallrForExtension/Core": [],
+        "HeimdallrForExtension/CrashCapture": [],
+        "HeimdallrForExtension/DeviceInfo": []
+      },
+      "exclude_files": "Heimdallr/Classes/CrashDetector/**/HMDCrashRecord.{h,mm}",
+      "name": "CrashDetector",
+      "public_header_files": "Heimdallr/Classes/CrashDetector/Public/**/HMDExtensionCrashTracker.h",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/CrashDetector/**/*.{h,c,m,mm,hpp,cpp}"
+    },
+    {
+      "dependencies": {
+        "HeimdallrForExtension/Utility": []
+      },
+      "name": "Core",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/Core/Private/HMDServiceContext/**/*.{h,c,m,mm,hpp,cpp}"
+    },
+    {
+      "dependencies": {
+        "HeimdallrForExtension/Mach": [],
+        "TTReachability": [
+          "\u003e= 0.8.1"
+        ]
+      },
+      "name": "DeviceInfo",
+      "requires_arc": true,
+      "source_files": [
+        "Heimdallr/Classes/DeviceInfo/**/{HMDInfo,HMDInfo+CustomInfo,HMDInfo+AppInfo,HMDInfo+DeviceInfo,HMDDeviceTool,HMDInfo+AutoTestInfo}.{h,m,c}",
+        "Heimdallr/Classes/DeviceInfo/**/{HMDInjectedInfo}.{h,m}"
+      ]
+    },
+    {
+      "name": "HMDDyldExtension",
+      "public_header_files": "Heimdallr/Classes/HMDDyldExtension/Public/**/*.h",
+      "requires_arc": true,
+      "source_files": "Heimdallr/Classes/HMDDyldExtension/**/*.{h,c,m,mm,hpp,cpp}"
+    }
+  ],
+  "summary": "framework_summary",
+  "user_target_xcconfig": {
+    "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES",
+    "GCC_PREPROCESSOR_DEFINITIONS": "HeimdallrForExtension_POD_VERSION=@\\\"9999_0.0.2-alpha.9\\\""
+  },
+  "version": "0.0.2-alpha.9"
+}

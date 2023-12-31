@@ -1,0 +1,1 @@
+../../../../TSPrivacyKit/Classes/Custom/Trigger/TSPKAdvanceAppStatusTrigger.h

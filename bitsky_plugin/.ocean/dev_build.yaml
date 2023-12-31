@@ -1,0 +1,35 @@
+tags:
+  News: lark_monorepo_pc
+  NewsInHouse: lark_monorepo_pc
+  NewsSocial: lark_monorepo_pc
+  NewsSocialInHouse: lark_monorepo_pc
+  NewsLite: lark_monorepo_pc
+  NewsLiteInHouse: lark_monorepo_pc
+    #新Tag 分组
+  MainXcodeMainArch: lark_monorepo_pc
+  MainXcodeNotMainArch: lark_monorepo_pc
+  NotMainXcodeMainArch: lark_monorepo_pc
+  NotMainXcodeNotMainArch: lark_monorepo_pc
+cache:
+  lark_monorepo_pc:
+    cacheSize: 20G
+    forceSync: true
+    joinToFederation: true
+    raw: true
+    usingAppIdDiscovery: true
+    storageCompress: true
+    coral2Enable: true
+# 固定sailfish头，给sailfish 远程执行使用
+sailfish:
+  # 每个appId单独配置
+  lark_monorepo_pc:
+    healthCheck: true
+dep_server:
+  lark_monorepo_pc:
+    enable: true
+bitsky:
+  main_xcode_version: 14.1.0
+  main_arch: arm64
+  bazel_opt:
+    dolphin_flags: '--modify_execution_info=.*=+no-remote-cache,CppCompile=-no-remote-cache,ObjcCompile=-no-remote-cache,SwiftCompile=-no-remote-cache,SwiftDeriveFiles=-no-remote-cache --experimental_remote_cache_async=true  --experimental_ignore_hmap_for_action_key'
+    sailfish_flags: '--strategy=ObjcCompile=remote,local --strategy=CppCompile=remote,local --remote_local_fallback --experimental_accept_remote_failure_result=false'

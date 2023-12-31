@@ -1,0 +1,1 @@
+../../../../IESGeckoKit/Core/EventTrace/IESGurdEventTraceManager+Private.h
